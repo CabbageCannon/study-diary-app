@@ -524,6 +524,49 @@ class InterviewQuestionBatchResult(BaseModel):
     items: list[InterviewQuestionBatchItemResult]
 
 
+BatchJobType = Literal["ai_review", "quick_publish", "reject"]
+BatchJobStatus = Literal["queued", "running", "completed", "partial_failed", "failed"]
+BatchJobItemStatus = Literal["pending", "running", "succeeded", "skipped", "failed"]
+
+
+class InterviewBatchJobCreate(InterviewQuestionIdsRequest):
+    type: BatchJobType
+    auto_publish: bool = False
+
+
+class InterviewBatchJobItemRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    question_id: str
+    status: BatchJobItemStatus
+    outcome: str | None
+    message: str | None
+    created_at: datetime
+    started_at: datetime | None
+    completed_at: datetime | None
+
+
+class InterviewBatchJobRead(BaseModel):
+    id: str
+    type: BatchJobType
+    status: BatchJobStatus
+    auto_publish: bool
+    total: int
+    processed_count: int
+    succeeded_count: int
+    skipped_count: int
+    failed_count: int
+    published_count: int
+    kept_pending_count: int
+    error: str | None
+    created_at: datetime
+    started_at: datetime | None
+    completed_at: datetime | None
+    updated_at: datetime
+    items: list[InterviewBatchJobItemRead]
+
+
 class InterviewQuestionForTraining(BaseModel):
     id: str
     domain: QuestionDomain

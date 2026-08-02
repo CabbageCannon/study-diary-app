@@ -23,6 +23,13 @@ def _read_bool(name: str, default: bool = False) -> bool:
     return raw_value.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _read_int(name: str, default: int) -> int:
+    try:
+        return int(os.getenv(name, str(default)).strip())
+    except ValueError:
+        return default
+
+
 class Settings:
     def __init__(self) -> None:
         self.llm_api_key = os.getenv("LLM_API_KEY", "").strip()
@@ -36,6 +43,7 @@ class Settings:
         self.allow_unverified_question_access = _read_bool("ALLOW_UNVERIFIED_QUESTION_ACCESS")
         self.allow_ai_question_review = _read_bool("ALLOW_AI_QUESTION_REVIEW")
         self.allow_question_quick_publish = _read_bool("ALLOW_QUESTION_QUICK_PUBLISH")
+        self.batch_ai_review_concurrency = min(3, max(1, _read_int("BATCH_AI_REVIEW_CONCURRENCY", 2)))
 
     @property
     def frontend_origins(self) -> list[str]:

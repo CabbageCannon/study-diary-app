@@ -158,6 +158,42 @@ class InterviewQuestion(Base):
         return value if isinstance(value, dict) else None
 
 
+class InterviewBatchJob(Base):
+    __tablename__ = "interview_batch_jobs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    job_type: Mapped[str] = mapped_column(String(32), index=True)
+    status: Mapped[str] = mapped_column(String(32), index=True, default="queued")
+    auto_publish: Mapped[bool] = mapped_column(Boolean, default=False)
+    total: Mapped[int] = mapped_column(Integer)
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+    @property
+    def type(self) -> str:
+        return self.job_type
+
+
+class InterviewBatchJobItem(Base):
+    __tablename__ = "interview_batch_job_items"
+    __table_args__ = (UniqueConstraint("job_id", "question_id", name="uq_interview_batch_job_question"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    job_id: Mapped[str] = mapped_column(
+        ForeignKey("interview_batch_jobs.id", ondelete="CASCADE"), index=True
+    )
+    question_id: Mapped[str] = mapped_column(ForeignKey("interview_questions.id"), index=True)
+    status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
+    outcome: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
 class InterviewQuestionSet(Base):
     __tablename__ = "interview_question_sets"
 

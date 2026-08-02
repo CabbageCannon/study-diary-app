@@ -95,6 +95,16 @@ def quick_publish(db: Session, question: InterviewQuestion) -> InterviewQuestion
     return question
 
 
+def reject_question(db: Session, question: InterviewQuestion) -> InterviewQuestion:
+    question.review_status = "rejected"
+    question.review_method = "human"
+    question.verified_by_human = False
+    question.reviewed_at = utc_now()
+    db.commit()
+    db.refresh(question)
+    return question
+
+
 async def batch_ai_review(
     db: Session,
     question_ids: list[str],
@@ -210,12 +220,7 @@ def batch_reject(db: Session, question_ids: list[str]) -> InterviewQuestionBatch
             items.append(InterviewQuestionBatchItemResult(question_id=question_id, outcome="skipped", message="题目已经被拒绝"))
             continue
         try:
-            question.review_status = "rejected"
-            question.review_method = "human"
-            question.verified_by_human = False
-            question.reviewed_at = utc_now()
-            db.commit()
-            db.refresh(question)
+            reject_question(db, question)
         except Exception as exc:  # Keep a single persistence failure from blocking later decisions.
             db.rollback()
             failed += 1

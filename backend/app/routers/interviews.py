@@ -1,6 +1,6 @@
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -10,6 +10,8 @@ from app.repositories import interview_training_repository as training_repositor
 from app.repositories.interview_repository import apply_review_update, get_question, list_questions
 from app.schemas import (
     InterviewAnswerCreate,
+    InterviewBatchJobCreate,
+    InterviewBatchJobRead,
     InterviewAnswerSubmissionRead,
     InterviewQuestionAIReviewBatchRequest,
     InterviewQuestionAIReviewRequest,
@@ -30,6 +32,7 @@ from app.services.interview_question_review_service import (
     batch_reject,
     run_ai_review,
 )
+from app.services.interview_batch_job_service import create_batch_job, get_batch_job, list_batch_jobs, run_batch_job, serialize_batch_job
 from app.services.interview_training_service import (
     create_question_set,
     get_question_set_read,
@@ -64,6 +67,14 @@ def require_ai_question_review_enabled() -> None:
 def require_question_quick_publish_enabled() -> None:
     require_question_review_enabled()
     if not settings.allow_question_quick_publish:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="快速正式化接口尚未开启")
+
+
+def require_batch_job_feature_enabled(job_type: str) -> None:
+    require_question_review_enabled()
+    if job_type == "ai_review" and not settings.allow_ai_question_review:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="AI 题目审核接口尚未开启")
+    if job_type == "quick_publish" and not settings.allow_question_quick_publish:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="快速正式化接口尚未开启")
 
 
@@ -180,6 +191,37 @@ def reject_interview_questions_batch(
 ) -> InterviewQuestionBatchResult:
     require_question_review_enabled()
     return batch_reject(db, payload.question_ids)
+
+
+@router.post("/batch-jobs", response_model=InterviewBatchJobRead, status_code=status.HTTP_202_ACCEPTED)
+async def create_interview_batch_job(
+    payload: InterviewBatchJobCreate,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+) -> InterviewBatchJobRead:
+    require_batch_job_feature_enabled(payload.type)
+    job = create_batch_job(db, payload)
+    background_tasks.add_task(run_batch_job, job.id)
+    return serialize_batch_job(db, job)
+
+
+@router.get("/batch-jobs", response_model=list[InterviewBatchJobRead])
+def get_interview_batch_jobs(
+    status_filter: Literal["queued", "running", "completed", "partial_failed", "failed"] | None = Query(default=None, alias="status"),
+    limit: int = Query(default=12, ge=1, le=30),
+    db: Session = Depends(get_db),
+) -> list[InterviewBatchJobRead]:
+    require_question_review_enabled()
+    return list_batch_jobs(db, status=status_filter, limit=limit)
+
+
+@router.get("/batch-jobs/{job_id}", response_model=InterviewBatchJobRead)
+def get_interview_batch_job(job_id: str, db: Session = Depends(get_db)) -> InterviewBatchJobRead:
+    require_question_review_enabled()
+    job = get_batch_job(db, job_id)
+    if job is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="批量任务不存在")
+    return serialize_batch_job(db, job)
 
 
 @router.get("/questions/{question_id}", response_model=InterviewQuestionRead)

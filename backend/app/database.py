@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Generator
 
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from app.config import settings
@@ -55,11 +55,26 @@ def _apply_sqlite_review_metadata_migration() -> None:
             connection.exec_driver_sql(f"ALTER TABLE interview_questions ADD COLUMN {name} {definition}")
 
 
+def _mark_interrupted_batch_jobs_failed() -> None:
+    inspector = inspect(engine)
+    if "interview_batch_jobs" not in inspector.get_table_names():
+        return
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                "UPDATE interview_batch_jobs "
+                "SET status = 'failed', error = '服务重启前任务未完成，请重新提交', completed_at = CURRENT_TIMESTAMP "
+                "WHERE status IN ('queued', 'running')"
+            )
+        )
+
+
 def init_db() -> None:
     from app import models  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
     _apply_sqlite_review_metadata_migration()
+    _mark_interrupted_batch_jobs_failed()
 
 
 def get_db() -> Generator[Session, None, None]:

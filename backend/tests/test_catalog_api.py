@@ -67,11 +67,14 @@ class CatalogApiTests(unittest.TestCase):
 
         app.dependency_overrides[get_db] = override_db
         self.client = TestClient(app)
+        self.previous_unverified_access = settings.allow_unverified_question_access
+        settings.allow_unverified_question_access = False
 
     def tearDown(self) -> None:
         app.dependency_overrides.clear()
         self.client.close()
         self.session.close()
+        settings.allow_unverified_question_access = self.previous_unverified_access
 
     def test_default_query_only_returns_verified_questions(self) -> None:
         response = self.client.get("/api/interviews/questions")
@@ -80,9 +83,7 @@ class CatalogApiTests(unittest.TestCase):
 
         pending_response = self.client.get("/api/interviews/questions?review_status=pending")
         self.assertEqual(pending_response.status_code, 403)
-        previous_value = settings.allow_unverified_question_access
         settings.allow_unverified_question_access = True
-        self.addCleanup(setattr, settings, "allow_unverified_question_access", previous_value)
         pending_response = self.client.get("/api/interviews/questions?review_status=pending")
         self.assertEqual(pending_response.status_code, 200)
         self.assertEqual([item["id"] for item in pending_response.json()], ["pending-question-001"])
