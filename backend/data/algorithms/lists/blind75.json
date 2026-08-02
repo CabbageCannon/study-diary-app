@@ -1,0 +1,10 @@
+{
+  "list_id": "blind75",
+  "name": "Blind 75",
+  "source": {
+    "type": "upstream_metadata_flag",
+    "url": "https://github.com/neetcode-gh/leetcode",
+    "license": "MIT"
+  },
+  "problem_slugs": []
+}

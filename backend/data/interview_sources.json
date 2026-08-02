@@ -1,0 +1,93 @@
+{
+  "react-paper": {
+    "name": "ReAct: Synergizing Reasoning and Acting in Language Models",
+    "url": "https://arxiv.org/abs/2210.03629",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-08-02"
+  },
+  "mcp-spec": {
+    "name": "Model Context Protocol Specification",
+    "url": "https://modelcontextprotocol.io/specification/2025-06-18",
+    "source_type": "specification",
+    "license": "Specification terms; no verbatim text imported",
+    "accessed_at": "2026-08-02"
+  },
+  "openai-api-docs": {
+    "name": "OpenAI API Documentation",
+    "url": "https://platform.openai.com/docs/",
+    "source_type": "official_documentation",
+    "license": "Documentation terms apply; no verbatim text imported",
+    "accessed_at": "2026-08-02"
+  },
+  "rag-paper": {
+    "name": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+    "url": "https://arxiv.org/abs/2005.11401",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-08-02"
+  },
+  "langgraph-docs": {
+    "name": "LangGraph Documentation",
+    "url": "https://langchain-ai.github.io/langgraph/",
+    "source_type": "official_documentation",
+    "license": "MIT (project); no verbatim text imported",
+    "accessed_at": "2026-08-02"
+  },
+  "python-asyncio-docs": {
+    "name": "Python asyncio Documentation",
+    "url": "https://docs.python.org/3/library/asyncio.html",
+    "source_type": "official_documentation",
+    "license": "PSF License",
+    "accessed_at": "2026-08-02"
+  },
+  "fastapi-docs": {
+    "name": "FastAPI Documentation",
+    "url": "https://fastapi.tiangolo.com/",
+    "source_type": "official_documentation",
+    "license": "MIT",
+    "accessed_at": "2026-08-02"
+  },
+  "pydantic-docs": {
+    "name": "Pydantic Documentation",
+    "url": "https://docs.pydantic.dev/latest/",
+    "source_type": "official_documentation",
+    "license": "MIT",
+    "accessed_at": "2026-08-02"
+  },
+  "rfc9110": {
+    "name": "RFC 9110: HTTP Semantics",
+    "url": "https://www.rfc-editor.org/rfc/rfc9110",
+    "source_type": "specification",
+    "license": "IETF Trust Legal Provisions; no verbatim text imported",
+    "accessed_at": "2026-08-02"
+  },
+  "mdn-sse": {
+    "name": "MDN: Using server-sent events",
+    "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
+    "source_type": "official_documentation",
+    "license": "CC-BY-SA 2.5; no verbatim text imported",
+    "accessed_at": "2026-08-02"
+  },
+  "mdn-websocket": {
+    "name": "MDN: The WebSocket API",
+    "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API",
+    "source_type": "official_documentation",
+    "license": "CC-BY-SA 2.5; no verbatim text imported",
+    "accessed_at": "2026-08-02"
+  },
+  "opentelemetry-docs": {
+    "name": "OpenTelemetry Documentation",
+    "url": "https://opentelemetry.io/docs/",
+    "source_type": "official_documentation",
+    "license": "Apache-2.0",
+    "accessed_at": "2026-08-02"
+  },
+  "docker-docs": {
+    "name": "Docker Documentation",
+    "url": "https://docs.docker.com/",
+    "source_type": "official_documentation",
+    "license": "Documentation terms apply; no verbatim text imported",
+    "accessed_at": "2026-08-02"
+  }
+}

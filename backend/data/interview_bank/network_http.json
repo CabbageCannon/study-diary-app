@@ -1,0 +1,79 @@
+{
+  "questions": [
+    {
+      "id": "network-http-idempotency-001",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "idempotency_key",
+      "question": "为什么创建订单或触发 AI 任务的 POST 接口也常常需要幂等键？",
+      "difficulty": "medium",
+      "question_type": "engineering_practice",
+      "expected_duration_seconds": 90,
+      "tags": ["HTTP", "幂等", "重试"],
+      "reference_points": ["网络超时不代表服务端未执行", "客户端或网关重试可能导致重复副作用", "服务端应把幂等键与请求摘要和处理结果关联", "同键但不同请求内容必须被拒绝或明确处理"],
+      "evaluation_rubric": [
+        {"point": "解释超时和重试导致的重复副作用", "weight": 40, "mandatory": true},
+        {"point": "说明幂等键的服务端存储或结果复用", "weight": 35, "mandatory": true},
+        {"point": "说明键冲突或过期策略", "weight": 25, "mandatory": false}
+      ],
+      "common_mistakes": ["认为 POST 天然不能幂等", "只让客户端生成键但服务端不存状态", "同一个键允许不同请求体覆盖结果"],
+      "oral_answer_outline": ["从不确定网络结果开始", "说明键与请求摘要的绑定", "补充过期和冲突处理"],
+      "reference_answer": "客户端超时后不知道服务端是否已经完成，如果直接重试，订单、扣费或 AI 作业都可能重复创建。幂等键让服务端记录一次请求的摘要和结果，同一个键的后续请求返回已知结果而不是再次执行。还要校验同键请求是否一致，并为键设置符合业务窗口的过期策略。",
+      "follow_up_questions": ["异步任务尚未完成时，重复请求应返回什么状态？", "幂等记录怎样避免无限增长？"],
+      "sources": [{"source_id": "rfc9110"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-sse-websocket-001",
+      "domain": "network",
+      "topic": "sse",
+      "subtopic": "streaming_transport_choice",
+      "question": "AI 文本流式输出时，SSE 和 WebSocket 应如何选择？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 90,
+      "tags": ["SSE", "WebSocket", "Streaming"],
+      "reference_points": ["SSE 适合服务端单向持续推送并基于 HTTP", "WebSocket 适合客户端和服务端都需要低延迟双向消息", "两者都要处理断线、取消、认证和心跳或重连", "传输选择应由交互模式和基础设施能力决定"],
+      "evaluation_rubric": [
+        {"point": "准确说明两种协议的通信方向差异", "weight": 40, "mandatory": true},
+        {"point": "提到断线重连或取消处理", "weight": 30, "mandatory": true},
+        {"point": "不把 WebSocket 描述为所有流式场景的默认最优解", "weight": 30, "mandatory": false}
+      ],
+      "common_mistakes": ["为了单向 token 流也引入复杂双向协议", "只处理正常结束不处理浏览器断开", "在流中发送未授权的敏感事件"],
+      "oral_answer_outline": ["从单向还是双向交互判断", "说明连接生命周期", "补充代理和部署限制"],
+      "reference_answer": "只需要把 token 或进度从服务端推向浏览器时，SSE 基于普通 HTTP，通常更容易接入代理和鉴权。若用户需要在同一连接中频繁发送控制、协作或实时输入，WebSocket 的双向通道更合适。无论选哪种，都要设计取消、断线、重连、认证和服务端资源释放。",
+      "follow_up_questions": ["用户关闭页面后如何让后端取消模型流？", "通过反向代理部署 SSE 时要关注哪些缓冲行为？"],
+      "sources": [{"source_id": "mdn-sse"}, {"source_id": "mdn-websocket"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-proxy-timeout-001",
+      "domain": "network",
+      "topic": "proxy",
+      "subtopic": "timeout_budget",
+      "question": "为什么 AI 请求的超时不能只在客户端设置一个很大的总超时？",
+      "difficulty": "hard",
+      "question_type": "reliability_reasoning",
+      "expected_duration_seconds": 120,
+      "tags": ["HTTP", "Proxy", "Timeout"],
+      "reference_points": ["请求可能经过客户端、网关、应用、模型和工具等多层", "需要把总时间预算拆分为连接、读取、工具和排队预算", "超时后应取消下游工作或让其可查询，避免幽灵任务", "重试需考虑剩余预算和幂等性"],
+      "evaluation_rubric": [
+        {"point": "说明端到端路径中存在多层超时", "weight": 35, "mandatory": true},
+        {"point": "解释时间预算拆分与传播", "weight": 35, "mandatory": true},
+        {"point": "说明超时后的取消或异步查询处理", "weight": 30, "mandatory": true}
+      ],
+      "common_mistakes": ["所有层都设置相同的大超时", "超时后任务仍在后台继续消耗资源", "在快到截止时间时继续完整重试"],
+      "oral_answer_outline": ["描述调用链", "从总预算拆分子预算", "说明取消、重试与幂等"],
+      "reference_answer": "AI 调用通常跨越网关、应用、模型服务和工具，每一层的排队与读写时间都不同。应从端到端 deadline 派生连接、读取和工具的子预算，并把剩余时间向下游传递。超时后要能取消或查询后台作业状态；重试只在有剩余预算且操作可安全重放时进行。",
+      "follow_up_questions": ["怎样避免代理比应用更早切断流式响应？", "如何为异步长任务设计轮询和回调接口？"],
+      "sources": [{"source_id": "rfc9110"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    }
+  ]
+}

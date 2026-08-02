@@ -1,0 +1,21 @@
+{
+  "total": 27,
+  "by_domain": {
+    "agent": 9,
+    "ai_engineering": 6,
+    "llm_application": 3,
+    "network": 3,
+    "python": 3,
+    "rag": 3
+  },
+  "by_difficulty": {
+    "easy": 1,
+    "medium": 20,
+    "hard": 6
+  },
+  "pending_count": 27,
+  "verified_count": 0,
+  "rejected_count": 0,
+  "duplicate_candidates": [],
+  "validation_errors": []
+}

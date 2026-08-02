@@ -19,7 +19,18 @@
 │     ├─ llm.py
 │     ├─ prompts.py
 │     └─ routers/
-│        └─ diaries.py
+│        ├─ diaries.py
+│        ├─ algorithms.py
+│        └─ interviews.py
+│  ├─ data/
+│  │  ├─ algorithms/
+│  │  ├─ interview_bank/
+│  │  ├─ interview_question_bank.json
+│  │  ├─ interview_sources.json
+│  │  ├─ data_manifest.json
+│  │  └─ ATTRIBUTIONS.md
+│  ├─ scripts/
+│  └─ tests/
 └─ frontend/
    ├─ package.json
    ├─ .env.example
@@ -128,6 +139,43 @@ GET /api/diaries/{diary_id}
 DELETE /api/diaries/{diary_id}
 ```
 
+## 本地题库
+
+后端新增本地、可审计的题库管道，和日记数据完全独立：
+
+- 算法题只保存题目元数据和固定链接；不保存题面、题解或测试用例。
+- NeetCode 150 / Blind 75 通过本地 `.problemSiteData.json` 离线转换；应用运行时不联网读取 GitHub 或 LeetCode。
+- Hot 100 只预留人工维护或许可证清晰数据集的 slug 合并能力，初始为空。
+- 八股题围绕 Agent、RAG、Python、网络和 AI 工程；每题保存来源、参考要点、评分 rubric 和审核状态。
+- 由 AI 协助整理的首批 27 道八股题均为 `pending`，默认 API 不会返回。人工审核后才可改为 `verified`。
+
+构建、校验和导入说明见 [docs/data-import-guide.md](docs/data-import-guide.md)，数据源和许可证说明见 [backend/data/ATTRIBUTIONS.md](backend/data/ATTRIBUTIONS.md)。
+
+```bash
+cd backend
+.venv\Scripts\python.exe scripts\build_interview_bank.py
+.venv\Scripts\python.exe scripts\validate_seed_data.py
+.venv\Scripts\python.exe scripts\import_seed_data.py --all --dry-run
+```
+
+算法题上游数据由人工下载后构建：
+
+```bash
+cd backend
+.venv\Scripts\python.exe scripts\build_problem_catalog.py --source C:\path\to\.problemSiteData.json
+```
+
+题库查询 API：
+
+```http
+GET /api/algorithms/problems?difficulty=easy&pattern=arrays_hashing&topic=数组&source_list=neetcode150&limit=20
+GET /api/algorithms/problems/{stable_key}
+GET /api/interviews/questions?domain=agent&difficulty=medium&count=10&random=true
+GET /api/interviews/questions/{question_id}
+```
+
+八股题接口默认 `review_status=verified`；本地开发审核时可显式传 `review_status=pending`。
+
 查询列表、查询详情和删除日记。
 
 ## 常用检查命令
@@ -145,6 +193,13 @@ python -c "from app.database import init_db; init_db(); from fastapi.testclient 
 ```bash
 cd frontend
 npm run build
+```
+
+题库与后端测试：
+
+```bash
+cd backend
+.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
 ## 后续可扩展方向

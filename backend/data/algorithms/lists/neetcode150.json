@@ -1,0 +1,10 @@
+{
+  "list_id": "neetcode150",
+  "name": "NeetCode 150",
+  "source": {
+    "type": "upstream_metadata_flag",
+    "url": "https://github.com/neetcode-gh/leetcode",
+    "license": "MIT"
+  },
+  "problem_slugs": []
+}

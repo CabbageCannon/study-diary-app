@@ -1,0 +1,79 @@
+{
+  "questions": [
+    {
+      "id": "python-asyncio-001",
+      "domain": "python",
+      "topic": "asyncio",
+      "subtopic": "blocking_call",
+      "question": "在 FastAPI 的 async 路由中直接执行阻塞 I/O 或 CPU 密集任务会发生什么，应如何处理？",
+      "difficulty": "medium",
+      "question_type": "runtime_reasoning",
+      "expected_duration_seconds": 90,
+      "tags": ["Python", "asyncio", "FastAPI"],
+      "reference_points": ["阻塞调用会占用事件循环并影响同一进程中的其他协程", "异步 I/O 库应使用 await 而不是同步客户端", "短暂同步 I/O 可转交线程池", "CPU 密集任务应考虑进程池、任务队列或独立 worker"],
+      "evaluation_rubric": [
+        {"point": "说明阻塞事件循环的并发影响", "weight": 40, "mandatory": true},
+        {"point": "区分 I/O 阻塞和 CPU 密集任务的处理方式", "weight": 35, "mandatory": true},
+        {"point": "提到超时、取消或背压", "weight": 25, "mandatory": false}
+      ],
+      "common_mistakes": ["把普通函数改成 async 就认为不会阻塞", "在协程里直接调用 requests 或重计算", "把所有 CPU 任务都丢进无限线程池"],
+      "oral_answer_outline": ["说明事件循环的单线程协作特点", "按 I/O 和 CPU 给出方案", "补充超时与容量限制"],
+      "reference_answer": "async 路由只有在内部也能让出事件循环时才有并发优势。同步网络、文件操作或长时间计算会阻塞同一进程中的其他请求；异步 I/O 应使用可 await 的客户端，短同步操作可受控地交给线程池。CPU 密集任务通常应放到进程池或独立 worker，并设置队列、超时和取消策略。",
+      "follow_up_questions": ["线程池中的任务如何传播请求超时？", "为什么 GIL 会影响 CPU 密集任务的线程并行？"],
+      "sources": [{"source_id": "python-asyncio-docs"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "python-fastapi-dependencies-001",
+      "domain": "python",
+      "topic": "fastapi",
+      "subtopic": "dependency_lifecycle",
+      "question": "FastAPI 依赖注入适合解决哪些问题，怎样避免把请求级资源做成全局可变状态？",
+      "difficulty": "medium",
+      "question_type": "engineering_practice",
+      "expected_duration_seconds": 90,
+      "tags": ["FastAPI", "Dependency Injection", "资源生命周期"],
+      "reference_points": ["依赖可集中处理认证、数据库会话和请求上下文", "yield 型依赖可以定义请求结束后的清理", "请求级会话不应被保存在跨请求共享的全局变量", "长生命周期客户端可在应用生命周期中初始化并明确线程安全边界"],
+      "evaluation_rubric": [
+        {"point": "说明依赖注入的复用和可测试性价值", "weight": 30, "mandatory": true},
+        {"point": "说明请求级资源的创建和释放", "weight": 40, "mandatory": true},
+        {"point": "区分请求级与应用级资源", "weight": 30, "mandatory": true}
+      ],
+      "common_mistakes": ["把数据库 Session 缓存在模块全局变量", "忘记关闭连接或释放事务", "在路由中复制认证与资源初始化代码"],
+      "oral_answer_outline": ["给出依赖典型用途", "解释 yield 清理", "说明不同生命周期的边界"],
+      "reference_answer": "依赖注入可以让认证、数据库会话和请求上下文以可复用、可替换的方式进入路由。对请求级资源可用 yield 在响应后清理或回滚，避免把 Session 等可变对象放在全局。连接池或只读客户端可以应用级复用，但必须确认并发安全并在应用关闭时统一释放。",
+      "follow_up_questions": ["测试中如何覆盖替换一个认证依赖？", "数据库事务应在依赖中提交还是业务层提交？"],
+      "sources": [{"source_id": "fastapi-docs"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "python-pydantic-validation-001",
+      "domain": "python",
+      "topic": "pydantic",
+      "subtopic": "boundary_validation",
+      "question": "Pydantic 在 AI 应用接口中应该放在哪些边界，为什么仍不能替代业务校验？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": ["Pydantic", "Validation", "AI 应用"],
+      "reference_points": ["在 HTTP 请求、模型结构化输出和外部工具结果入口做类型与字段校验", "Pydantic 适合声明序列化和基础约束", "库存、权限、幂等状态等依赖当前系统状态的规则仍属业务校验", "验证错误应转换为明确、不会泄露内部细节的响应"],
+      "evaluation_rubric": [
+        {"point": "列出至少两个外部数据边界", "weight": 35, "mandatory": true},
+        {"point": "区分数据结构校验和状态相关的业务校验", "weight": 40, "mandatory": true},
+        {"point": "说明错误处理和可观测性", "weight": 25, "mandatory": false}
+      ],
+      "common_mistakes": ["只校验前端请求，不校验模型或工具返回", "通过 Pydantic 就直接执行写操作", "把内部栈信息直接返回给用户"],
+      "oral_answer_outline": ["先列出三个信任边界", "说明模型能保证什么", "补充业务规则和错误处理"],
+      "reference_answer": "Pydantic 应放在所有不可信输入边界，例如 HTTP 请求、LLM 的结构化结果和外部工具返回，用于检查字段、类型和基础约束。它不能判断当前用户是否有权限、资源是否存在或操作是否幂等，这些必须由业务层查询真实状态后决定。验证失败需要留下可观测信息，但向客户端返回的内容应简洁且不泄露内部实现。",
+      "follow_up_questions": ["如何为同一资源的创建和更新设计不同的 Schema？", "模型输出验证失败后应如何把错误反馈给模型？"],
+      "sources": [{"source_id": "pydantic-docs"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    }
+  ]
+}

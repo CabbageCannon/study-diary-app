@@ -1,0 +1,79 @@
+{
+  "questions": [
+    {
+      "id": "agent-memory-001",
+      "domain": "agent",
+      "topic": "memory",
+      "subtopic": "memory_lifecycle",
+      "question": "Agent Memory 应如何区分短期上下文、长期记忆和外部事实，写入前需要哪些控制？",
+      "difficulty": "medium",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 90,
+      "tags": ["Agent Memory", "上下文", "隐私"],
+      "reference_points": ["短期上下文服务于当前任务并受窗口限制", "长期记忆应有明确用途、归属、过期和删除策略", "外部知识应可追溯到来源而不是混同为用户偏好", "写入前需要权限、敏感数据和质量校验"],
+      "evaluation_rubric": [
+        {"point": "清楚区分三类信息及其生命周期", "weight": 40, "mandatory": true},
+        {"point": "说明长期记忆需要过期或删除机制", "weight": 30, "mandatory": true},
+        {"point": "提到敏感信息与写入授权", "weight": 30, "mandatory": false}
+      ],
+      "common_mistakes": ["把所有聊天记录永久写入向量库", "将检索到的网页事实当作用户记忆", "没有记忆的来源和更新时间"],
+      "oral_answer_outline": ["按生命周期定义三类数据", "说明写入门槛", "补充检索、删除与审计"],
+      "reference_answer": "短期上下文只服务当前执行并会随会话结束或压缩，长期记忆则应有用户归属、用途、保留期和删除入口。外部事实应保留来源与更新时间，不能冒充为用户偏好。任何写入都要经过授权、敏感信息处理和质量判断，并能追溯哪次任务写入了什么。",
+      "follow_up_questions": ["用户要求遗忘后，缓存和派生索引怎样处理？", "如何避免模型把一次性偏好写成长久记忆？"],
+      "sources": [{"source_id": "langgraph-docs"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "agent-planning-001",
+      "domain": "agent",
+      "topic": "planning",
+      "subtopic": "plan_execution_replan",
+      "question": "计划型 Agent 为什么需要把计划、执行状态和重规划分开建模？",
+      "difficulty": "medium",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 90,
+      "tags": ["Agent", "Planning", "状态机"],
+      "reference_points": ["计划是可调整的意图，不等同于执行日志", "每个步骤应有输入、状态、结果和失败原因", "工具结果或环境变化可触发局部重规划", "需要限制重规划次数并保留原计划以便审计"],
+      "evaluation_rubric": [
+        {"point": "区分计划与真实执行状态", "weight": 35, "mandatory": true},
+        {"point": "说明何时触发重规划", "weight": 35, "mandatory": true},
+        {"point": "说明循环限制或审计要求", "weight": 30, "mandatory": false}
+      ],
+      "common_mistakes": ["把模型第一次计划当成不可变事实", "失败后从头重复所有步骤", "重规划不记录原因和版本"],
+      "oral_answer_outline": ["先定义计划和状态", "说明执行反馈如何更新状态", "补充局部重规划与上限"],
+      "reference_answer": "计划描述预期路径，执行状态记录实际发生了什么，二者分离后系统才能知道哪个步骤可重试、哪个依赖已失效。工具返回失败、数据变化或前提不成立时，可以只调整受影响的后续步骤。每次计划变化应版本化并设置重规划上限，避免模型在相同失败上反复循环。",
+      "follow_up_questions": ["如何判断是局部重规划还是直接终止？", "计划中的依赖关系怎样表示才便于恢复？"],
+      "sources": [{"source_id": "react-paper"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "agent-multi-agent-001",
+      "domain": "agent",
+      "topic": "multi_agent",
+      "subtopic": "coordination_contract",
+      "question": "多 Agent 系统在什么情况下有价值，如何避免只是把单 Agent 的复杂度放大？",
+      "difficulty": "hard",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 120,
+      "tags": ["Multi-Agent", "协作", "架构"],
+      "reference_points": ["角色拆分应对应独立能力、权限或可并行的工作", "Agent 间需要明确输入输出契约和共享状态边界", "协调器要处理超时、冲突、重复工作和失败降级", "应先用单 Agent 基线证明拆分带来质量、成本或延迟收益"],
+      "evaluation_rubric": [
+        {"point": "给出合理的拆分条件而非泛泛强调专业化", "weight": 35, "mandatory": true},
+        {"point": "说明通信契约与共享状态控制", "weight": 35, "mandatory": true},
+        {"point": "说明用基线和指标验证收益", "weight": 30, "mandatory": true}
+      ],
+      "common_mistakes": ["每个步骤都创建一个 Agent", "所有 Agent 共享无限上下文和同一权限", "没有协调器的超时与冲突处理"],
+      "oral_answer_outline": ["从独立职责和并行需求说明适用性", "讲清通信与状态", "最后以基线和可观测性收束"],
+      "reference_answer": "多 Agent 适合存在清晰权限边界、可独立评审或可并行执行的任务，不是把提示词拆成多个名字。每个角色都应有输入输出契约、有限共享状态和最小权限，协调层负责顺序、超时、冲突和最终汇总。上线前需要与单 Agent 基线比较成功率、延迟和成本，否则协作开销常常大于收益。",
+      "follow_up_questions": ["两个 Agent 给出冲突结论时如何处理？", "如何防止多个 Agent 重复调用同一个昂贵工具？"],
+      "sources": [{"source_id": "langgraph-docs"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    }
+  ]
+}

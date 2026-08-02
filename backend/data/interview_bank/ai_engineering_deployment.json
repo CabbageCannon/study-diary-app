@@ -1,0 +1,129 @@
+{
+  "questions": [
+    {
+      "id": "ai-retry-timeout-001",
+      "domain": "ai_engineering",
+      "topic": "retry",
+      "subtopic": "retry_policy",
+      "question": "AI API 调用的重试策略应如何区分限流、瞬时服务错误和业务校验错误？",
+      "difficulty": "medium",
+      "question_type": "reliability_reasoning",
+      "expected_duration_seconds": 90,
+      "tags": ["AI API", "Retry", "Rate Limit"],
+      "reference_points": ["只对可能恢复的错误重试", "限流和瞬时错误应使用退避、抖动及服务端建议", "认证、参数校验和内容策略错误不应盲目重试", "重试必须受总 deadline、次数和幂等性约束"],
+      "evaluation_rubric": [
+        {"point": "区分可恢复与不可恢复错误", "weight": 40, "mandatory": true},
+        {"point": "说明退避和抖动的作用", "weight": 30, "mandatory": true},
+        {"point": "提到 deadline 或幂等约束", "weight": 30, "mandatory": true}
+      ],
+      "common_mistakes": ["对所有 4xx 和 5xx 统一无限重试", "所有客户端同时固定间隔重试", "没有记录每次重试原因和次数"],
+      "oral_answer_outline": ["先按错误类别决策", "描述退避策略", "收束到预算和观测"],
+      "reference_answer": "重试前要先判断错误是否可能自行恢复。限流和短暂服务异常可采用带抖动的指数退避，并遵循服务端给出的等待建议；认证、参数或策略拒绝需要修正输入而不是重试。整个过程还要受端到端 deadline、最大次数和幂等性限制，并记录错误分类和实际重试次数。",
+      "follow_up_questions": ["为什么抖动能缓解重试风暴？", "流式请求已输出部分内容后还能安全重试吗？"],
+      "sources": [{"source_id": "openai-api-docs"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "ai-streaming-001",
+      "domain": "ai_engineering",
+      "topic": "streaming",
+      "subtopic": "partial_output",
+      "question": "模型流式输出已向用户发送部分内容后发生错误，产品和后端应如何处理？",
+      "difficulty": "medium",
+      "question_type": "incident_response",
+      "expected_duration_seconds": 90,
+      "tags": ["Streaming", "错误处理", "UX"],
+      "reference_points": ["将已发送文本和最终完成状态分开表示", "明确告知输出中断，避免把部分内容标为完整答案", "保留请求标识、错误分类和是否可继续或重试", "对可能产生副作用的工具调用不能因为文本重试而重复执行"],
+      "evaluation_rubric": [
+        {"point": "说明部分内容与完成状态必须区分", "weight": 35, "mandatory": true},
+        {"point": "说明用户可见的中断和恢复策略", "weight": 30, "mandatory": true},
+        {"point": "提到工具副作用和幂等风险", "weight": 35, "mandatory": true}
+      ],
+      "common_mistakes": ["断流后把 partial text 当成功结果缓存", "自动重试导致工具重复执行", "没有给前端结束事件或错误码"],
+      "oral_answer_outline": ["定义流生命周期状态", "说明前端如何呈现中断", "补充恢复和副作用保护"],
+      "reference_answer": "流式协议中应把增量文本、完成事件和错误事件分开，发生错误时前端明确提示内容未完成并提供受控的继续或重新生成入口。后端要记录请求和错误状态，便于恢复或排查。若同一次生成已触发工具，重新生成不能简单重放副作用，而要依赖调用记录和幂等保护。",
+      "follow_up_questions": ["如何实现断线后的继续阅读和重新连接？", "部分输出是否应写入会话历史？"],
+      "sources": [{"source_id": "mdn-sse"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "ai-observability-002",
+      "domain": "ai_engineering",
+      "topic": "tracing",
+      "subtopic": "model_cost_latency",
+      "question": "生产 AI 服务应记录哪些模型调用指标，才能同时诊断质量、成本和稳定性？",
+      "difficulty": "medium",
+      "question_type": "engineering_practice",
+      "expected_duration_seconds": 90,
+      "tags": ["LLM", "Tracing", "Cost"],
+      "reference_points": ["记录模型和提示版本、请求结果、时延和错误分类", "记录输入输出 token、缓存命中和外部工具次数", "按用户或任务维度聚合成本但避免记录敏感原文", "将线上反馈或评测结果与 trace 关联"],
+      "evaluation_rubric": [
+        {"point": "列出时延、错误和 token 或成本指标", "weight": 35, "mandatory": true},
+        {"point": "说明版本和请求关联的重要性", "weight": 35, "mandatory": true},
+        {"point": "兼顾隐私与质量反馈", "weight": 30, "mandatory": false}
+      ],
+      "common_mistakes": ["只记录总调用次数", "只记录 token 而不知道对应模型和版本", "为了排障保存所有用户原文"],
+      "oral_answer_outline": ["从一次调用的身份、结果、成本说起", "说明聚合和关联", "补充脱敏与质量闭环"],
+      "reference_answer": "每次调用至少要关联模型和提示版本、成功或失败状态、端到端及模型时延、输入输出 token、缓存与工具调用次数。这样可以按任务和版本分析质量下降、成本异常或重试风暴。日志应以请求标识关联评测和用户反馈，同时对原始内容做最小化收集和脱敏。",
+      "follow_up_questions": ["提示词版本变化怎样与 A/B 结果关联？", "token 成本突增时优先检查哪些维度？"],
+      "sources": [{"source_id": "opentelemetry-docs"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "ai-cost-control-001",
+      "domain": "ai_engineering",
+      "topic": "cost_control",
+      "subtopic": "budget_guardrail",
+      "question": "如何为 AI Agent 设计成本护栏，避免复杂任务无限消耗 token 和工具费用？",
+      "difficulty": "medium",
+      "question_type": "system_design",
+      "expected_duration_seconds": 90,
+      "tags": ["Cost Control", "Agent", "Budget"],
+      "reference_points": ["设置每请求、每用户和每任务类型的 token、时间与工具调用上限", "在每轮循环检查剩余预算并选择降级、摘要或终止", "昂贵工具调用前应评估必要性并缓存可复用结果", "成本指标需要按模型、工具和功能归因"],
+      "evaluation_rubric": [
+        {"point": "给出多层预算而非单一全局额度", "weight": 35, "mandatory": true},
+        {"point": "说明运行中预算检查和降级或终止", "weight": 35, "mandatory": true},
+        {"point": "提到归因或缓存策略", "weight": 30, "mandatory": false}
+      ],
+      "common_mistakes": ["只在月底统计成本", "达到预算后仍允许最后一轮任意工具调用", "把所有结果缓存而不考虑新鲜度和权限"],
+      "oral_answer_outline": ["定义预算维度", "解释每轮实时检查", "补充缓存与归因"],
+      "reference_answer": "成本控制要同时限制单请求、单用户和任务类别的 token、时长与外部工具次数，而不是只看月度账单。Agent 在每轮决策前读取剩余预算，接近上限时可缩短上下文、使用低成本模型、返回部分结果或终止。还要把费用归因到模型、工具和功能，并谨慎缓存可复用且权限一致的结果。",
+      "follow_up_questions": ["摘要会降低答案质量时如何决定是否继续？", "共享缓存怎样防止跨用户数据泄露？"],
+      "sources": [{"source_id": "openai-api-docs"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "ai-deployment-001",
+      "domain": "ai_engineering",
+      "topic": "deployment",
+      "subtopic": "container_runtime",
+      "question": "部署 AI 后端服务时，容器镜像、配置和密钥应如何分离，为什么？",
+      "difficulty": "hard",
+      "question_type": "deployment_design",
+      "expected_duration_seconds": 120,
+      "tags": ["Deployment", "Docker", "Secrets"],
+      "reference_points": ["镜像应包含可重复构建的代码和运行依赖，不应包含环境密钥", "配置通过环境或受控配置系统注入，并区分不同环境", "密钥应由专门的 secret 管理机制提供且避免写入日志和镜像层", "部署需设置健康检查、资源限制和可回滚版本"],
+      "evaluation_rubric": [
+        {"point": "明确密钥不能进入镜像、仓库或构建日志", "weight": 40, "mandatory": true},
+        {"point": "说明配置与镜像可移植性的关系", "weight": 30, "mandatory": true},
+        {"point": "说明健康检查、资源限制或回滚", "weight": 30, "mandatory": false}
+      ],
+      "common_mistakes": ["把 .env COPY 进镜像", "同一个镜像靠修改源码区分环境", "运行时没有资源限制导致单次任务拖垮实例"],
+      "oral_answer_outline": ["先划分不可变镜像与运行时配置", "强调密钥生命周期", "补充运行保障和回滚"],
+      "reference_answer": "镜像应是可重复构建的应用和依赖，不包含 API Key、数据库密码或环境专属配置；这样同一镜像才能安全地在不同环境部署。配置和密钥在运行时由受控系统注入，密钥不进入日志、镜像层或仓库。服务还需要健康检查、资源和并发限制，以及可回滚的版本策略。",
+      "follow_up_questions": ["如何轮换已泄露或即将过期的密钥？", "长时间模型请求怎样影响容器的健康检查设计？"],
+      "sources": [{"source_id": "docker-docs"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "questions": [
+    {
+      "id": "rag-retrieval-pipeline-001",
+      "domain": "rag",
+      "topic": "retrieval",
+      "subtopic": "retrieval_generation_boundary",
+      "question": "一个可生产化的 RAG 查询链路应包含哪些主要阶段，各阶段如何降低幻觉？",
+      "difficulty": "medium",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 120,
+      "tags": ["RAG", "检索", "幻觉"],
+      "reference_points": ["查询进入前进行权限、意图或改写处理", "检索阶段使用合适的索引、过滤条件和召回数量", "可对候选文档重排并构造带来源的上下文", "生成阶段要求基于上下文回答并在证据不足时拒答或追问"],
+      "evaluation_rubric": [
+        {"point": "清楚分开检索、重排、上下文构造和生成", "weight": 35, "mandatory": true},
+        {"point": "说明元数据或权限过滤不能放在生成后", "weight": 30, "mandatory": true},
+        {"point": "说明证据不足时的降级策略", "weight": 35, "mandatory": true}
+      ],
+      "common_mistakes": ["把向量检索结果直接全部塞进提示词", "认为加入 RAG 就不会产生幻觉", "在模型回答后才处理租户权限"],
+      "oral_answer_outline": ["按查询、召回、重排、生成说明", "强调过滤和引用", "补充无证据时的降级"],
+      "reference_answer": "RAG 先对查询做必要的身份和元数据约束，再召回候选片段并按相关性重排。随后只把有限、可追溯的证据组织进上下文，要求模型区分事实与不确定项。若没有足够证据，系统应返回不知道、请求补充信息或转人工，而不是让模型补全答案。",
+      "follow_up_questions": ["如何同时评估召回质量和最终回答质量？", "多租户检索中元数据过滤应放在哪一层？"],
+      "sources": [{"source_id": "rag-paper"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "rag-chunking-001",
+      "domain": "rag",
+      "topic": "chunking",
+      "subtopic": "chunk_size_overlap",
+      "question": "切分知识库文档时，chunk 大小和 overlap 应如何权衡？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 90,
+      "tags": ["RAG", "Chunking", "Embedding"],
+      "reference_points": ["切分应尽量保留段落、标题和语义边界", "chunk 太小会丢失上下文并增加召回碎片", "chunk 太大会降低定位精度并占用上下文窗口", "overlap 只用于跨边界语义连续性，过大会增加重复和成本"],
+      "evaluation_rubric": [
+        {"point": "说明结构或语义边界优先于固定字符数", "weight": 35, "mandatory": true},
+        {"point": "解释过小和过大的具体代价", "weight": 35, "mandatory": true},
+        {"point": "解释 overlap 的收益和成本", "weight": 30, "mandatory": false}
+      ],
+      "common_mistakes": ["所有文档按相同字符数硬切", "用很大 overlap 试图解决全部检索问题", "忽略表格、代码块和标题层级"],
+      "oral_answer_outline": ["先以文档结构决定候选边界", "说明大小的双向权衡", "用离线评测而非直觉调参"],
+      "reference_answer": "切分应优先尊重标题、段落和语义单元，再依据模型上下文和检索任务设定大小。过小的片段缺少限定条件，过大的片段会稀释相似度并浪费 token。overlap 用来保留跨边界的连续语义，但需要受控；最终应通过带标注查询的召回评测选择参数。",
+      "follow_up_questions": ["代码和表格是否应采用不同切分策略？", "如何发现某个 chunk 长度导致答案缺少前提？"],
+      "sources": [{"source_id": "rag-paper"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "rag-hallucination-evaluation-001",
+      "domain": "rag",
+      "topic": "evaluation",
+      "subtopic": "groundedness",
+      "question": "如何评估 RAG 回答是否真正被检索证据支持，而不是看起来合理？",
+      "difficulty": "hard",
+      "question_type": "evaluation_design",
+      "expected_duration_seconds": 120,
+      "tags": ["RAG", "评估", "Groundedness"],
+      "reference_points": ["准备带证据或可判定事实的评测集", "分别衡量检索召回、上下文相关性和回答支持度", "要求回答引用证据并检查主张是否能被片段蕴含", "记录无答案场景，避免只评估能回答的问题"],
+      "evaluation_rubric": [
+        {"point": "区分检索质量和生成事实支持度", "weight": 40, "mandatory": true},
+        {"point": "说明评测需有证据或人工判定依据", "weight": 35, "mandatory": true},
+        {"point": "提到拒答或无答案样本", "weight": 25, "mandatory": false}
+      ],
+      "common_mistakes": ["只让另一个模型给整体主观分数", "只评估最终回答而不检查召回", "评测集没有无法从知识库回答的问题"],
+      "oral_answer_outline": ["拆分检索与生成指标", "说明证据对齐判定", "补充人工抽检和无答案样本"],
+      "reference_answer": "不能只看回答流畅度，应把评估拆成召回是否找到正确证据、上下文是否相关、每个关键主张是否被证据支持。评测集需要保存标准证据或可复核事实，并包含知识库没有答案的查询。自动评分可用于规模化，但应通过人工抽检校准，并保留引用供追溯。",
+      "follow_up_questions": ["引用正确但答案遗漏关键限定条件应如何计分？", "如何处理多个等价证据片段？"],
+      "sources": [{"source_id": "rag-paper"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    }
+  ]
+}

@@ -45,3 +45,18 @@ def build_rewrite_user_prompt(date: str, raw_text: str, current_draft_json: str,
 
 用户反馈：
 {feedback}"""
+
+
+INTERVIEW_EVALUATION_PROMPT_TEMPLATE = """你是一名严格、可解释的技术面试评估助手。
+
+只依据题目提供的评分材料评估用户回答；不要编造题目、来源或知识点。
+输出必须符合指定 JSON Schema。
+
+题目：{question}
+参考要点：{reference_points}
+评分规则：{evaluation_rubric}
+常见错误：{common_mistakes}
+用户回答：{user_answer}
+
+请分别给出正确性、完整性、结构性、口述清晰度评分，并说明匹配、错误和缺失要点。
+"""

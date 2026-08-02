@@ -1,0 +1,1737 @@
+{
+  "catalog_version": 1,
+  "questions": [
+    {
+      "id": "agent-evaluation-001",
+      "domain": "agent",
+      "topic": "agent_evaluation",
+      "subtopic": "task_success_metrics",
+      "question": "如何为带工具的 Agent 设计离线评估，而不是只评估最终文本是否流畅？",
+      "difficulty": "medium",
+      "question_type": "evaluation_design",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Agent Evaluation",
+        "工具调用",
+        "离线评测"
+      ],
+      "reference_points": [
+        "评测样本应包含任务、可用工具、环境状态和期望结果",
+        "同时检查任务成功、工具选择、参数正确性和安全约束",
+        "需要记录中间轨迹以定位失败阶段",
+        "将成本、时延和重试次数纳入质量权衡"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "说明评测对象包含轨迹而非只有最终答案",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "给出至少两个工具调用层面的指标",
+          "weight": 30,
+          "mandatory": true
+        },
+        {
+          "point": "提到成本或时延等工程指标",
+          "weight": 30,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只用人工主观印象评估",
+        "任务成功就忽略越权或多余调用",
+        "没有固定环境导致结果不可复现"
+      ],
+      "oral_answer_outline": [
+        "定义可复现实例",
+        "拆分最终结果与轨迹指标",
+        "加入风险和成本维度"
+      ],
+      "reference_answer": "离线样本要固定用户目标、工具集合、初始状态和可验证的期望结果。除了最终答案，还应检查工具选择是否正确、参数是否合规、调用轮数和是否触发安全限制，并保留每一步轨迹来定位失败。评估还要看延迟、token 和外部调用成本，避免用高成本掩盖不稳定性。",
+      "follow_up_questions": [
+        "如何处理同一任务存在多条正确工具路径？",
+        "离线高分后上线前还需要什么验证？"
+      ],
+      "sources": [
+        {
+          "title": "OpenAI API Documentation",
+          "url": "https://platform.openai.com/docs/",
+          "source_type": "official_documentation",
+          "license": "Documentation terms apply; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "agent-execution-loop-001",
+      "domain": "agent",
+      "topic": "react_pattern",
+      "subtopic": "execution_loop",
+      "question": "一个带工具的 Agent 执行循环通常包含哪些步骤，终止条件应如何设计？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "Agent",
+        "ReAct",
+        "执行循环"
+      ],
+      "reference_points": [
+        "将任务上下文、可用工具和约束发送给模型",
+        "应用解析模型的动作或工具调用请求",
+        "应用校验参数后执行工具并把结果回填给模型",
+        "设置最终回答、最大轮数、预算或错误阈值等终止条件"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "明确模型负责决策而应用负责实际执行工具",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "说明工具结果会作为下一轮上下文返回",
+          "weight": 30,
+          "mandatory": true
+        },
+        {
+          "point": "给出至少一种防止无限循环的终止条件",
+          "weight": 35,
+          "mandatory": true
+        }
+      ],
+      "common_mistakes": [
+        "认为模型会直接执行本地函数",
+        "只描述推理而忽略工具结果回填",
+        "没有最大轮数或失败退出策略"
+      ],
+      "oral_answer_outline": [
+        "先划分模型和应用的职责",
+        "按决策、校验、执行、回填的顺序说明",
+        "最后补充终止与审计机制"
+      ],
+      "reference_answer": "完整循环从应用提供任务、消息和工具定义开始。模型只提出下一步或工具调用，应用必须校验工具名和参数、执行受控操作，并把结果作为新消息回传。循环在模型给出最终回答、达到最大轮数、预算耗尽或连续失败时结束，过程还应记录每一轮输入、调用和错误。",
+      "follow_up_questions": [
+        "如何区分可重试错误和不可重试错误？",
+        "最大轮数应该如何按任务类型设置？"
+      ],
+      "sources": [
+        {
+          "title": "ReAct: Synergizing Reasoning and Acting in Language Models",
+          "url": "https://arxiv.org/abs/2210.03629",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "agent-human-in-loop-001",
+      "domain": "agent",
+      "topic": "human_in_the_loop",
+      "subtopic": "approval_gate",
+      "question": "哪些 Agent 操作应经过人工确认，确认点应放在工作流的什么位置？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "Agent",
+        "人工确认",
+        "风险控制"
+      ],
+      "reference_points": [
+        "按影响范围、不可逆性和权限等级划分风险",
+        "对外发送、资金、删除和权限变更应设置确认门",
+        "确认前展示将执行的参数和影响范围",
+        "确认结果需要与执行记录关联以便审计"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "能以风险而不是工具名称判断是否需要确认",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "说明确认前需要展示可理解的执行摘要",
+          "weight": 30,
+          "mandatory": true
+        },
+        {
+          "point": "说明确认与审计记录的关系",
+          "weight": 35,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "所有操作都弹窗导致流程不可用",
+        "只在执行完成后提示用户",
+        "确认内容不包含实际参数和影响"
+      ],
+      "oral_answer_outline": [
+        "先定义高风险操作",
+        "说明审批前的信息呈现",
+        "补充超时、拒绝和审计处理"
+      ],
+      "reference_answer": "人工确认不应按某个工具一刀切，而要看操作是否外部可见、不可逆或会扩大权限。高风险操作前，系统应以用户能理解的方式展示目标、参数和影响范围；确认令牌应绑定这次具体操作，拒绝或超时则停止执行。最终把审批人、时间、参数摘要和执行结果写入审计日志。",
+      "follow_up_questions": [
+        "如何避免确认后参数被悄悄替换？",
+        "低风险批量操作怎样减少打扰？"
+      ],
+      "sources": [
+        {
+          "title": "OpenAI API Documentation",
+          "url": "https://platform.openai.com/docs/",
+          "source_type": "official_documentation",
+          "license": "Documentation terms apply; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "agent-mcp-boundary-001",
+      "domain": "agent",
+      "topic": "mcp",
+      "subtopic": "client_server_roles",
+      "question": "MCP 中 Host、Client 和 Server 的职责分别是什么，工具权限应在哪一层落实？",
+      "difficulty": "medium",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MCP",
+        "Client",
+        "Server"
+      ],
+      "reference_points": [
+        "Host 负责承载用户体验和协调多个连接",
+        "Client 与一个 Server 建立协议连接并转发能力调用",
+        "Server 暴露资源、提示词或工具等能力",
+        "Server 仍需独立进行认证、授权和输入校验"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "区分 Host、Client、Server 的连接与能力职责",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "说明 MCP 协议本身不替代业务授权",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "提到 Server 侧输入验证或审计",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "把 Host 与 Client 当成同一个必然组件",
+        "认为接入 MCP 就自动获得授权控制",
+        "只在模型侧限制工具而不在 Server 校验"
+      ],
+      "oral_answer_outline": [
+        "按连接关系定义三个角色",
+        "解释能力由 Server 提供",
+        "强调授权必须落在资源拥有方"
+      ],
+      "reference_answer": "Host 是面向用户并协调多个 MCP 连接的应用，Client 通常代表 Host 与一个 Server 建立会话，Server 则发布工具、资源或提示词能力。协议让能力发现和消息交换标准化，但不决定谁能访问真实资源。资源拥有方的 Server 必须自行认证调用者、授权具体动作并校验输入。",
+      "follow_up_questions": [
+        "多 Server 环境下如何隔离不同租户的凭据？",
+        "MCP 工具描述中哪些字段不应包含敏感信息？"
+      ],
+      "sources": [
+        {
+          "title": "Model Context Protocol Specification",
+          "url": "https://modelcontextprotocol.io/specification/2025-06-18",
+          "source_type": "specification",
+          "license": "Specification terms; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "agent-memory-001",
+      "domain": "agent",
+      "topic": "memory",
+      "subtopic": "memory_lifecycle",
+      "question": "Agent Memory 应如何区分短期上下文、长期记忆和外部事实，写入前需要哪些控制？",
+      "difficulty": "medium",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "Agent Memory",
+        "上下文",
+        "隐私"
+      ],
+      "reference_points": [
+        "短期上下文服务于当前任务并受窗口限制",
+        "长期记忆应有明确用途、归属、过期和删除策略",
+        "外部知识应可追溯到来源而不是混同为用户偏好",
+        "写入前需要权限、敏感数据和质量校验"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "清楚区分三类信息及其生命周期",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "说明长期记忆需要过期或删除机制",
+          "weight": 30,
+          "mandatory": true
+        },
+        {
+          "point": "提到敏感信息与写入授权",
+          "weight": 30,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "把所有聊天记录永久写入向量库",
+        "将检索到的网页事实当作用户记忆",
+        "没有记忆的来源和更新时间"
+      ],
+      "oral_answer_outline": [
+        "按生命周期定义三类数据",
+        "说明写入门槛",
+        "补充检索、删除与审计"
+      ],
+      "reference_answer": "短期上下文只服务当前执行并会随会话结束或压缩，长期记忆则应有用户归属、用途、保留期和删除入口。外部事实应保留来源与更新时间，不能冒充为用户偏好。任何写入都要经过授权、敏感信息处理和质量判断，并能追溯哪次任务写入了什么。",
+      "follow_up_questions": [
+        "用户要求遗忘后，缓存和派生索引怎样处理？",
+        "如何避免模型把一次性偏好写成长久记忆？"
+      ],
+      "sources": [
+        {
+          "title": "LangGraph Documentation",
+          "url": "https://langchain-ai.github.io/langgraph/",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "agent-multi-agent-001",
+      "domain": "agent",
+      "topic": "multi_agent",
+      "subtopic": "coordination_contract",
+      "question": "多 Agent 系统在什么情况下有价值，如何避免只是把单 Agent 的复杂度放大？",
+      "difficulty": "hard",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Multi-Agent",
+        "协作",
+        "架构"
+      ],
+      "reference_points": [
+        "角色拆分应对应独立能力、权限或可并行的工作",
+        "Agent 间需要明确输入输出契约和共享状态边界",
+        "协调器要处理超时、冲突、重复工作和失败降级",
+        "应先用单 Agent 基线证明拆分带来质量、成本或延迟收益"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "给出合理的拆分条件而非泛泛强调专业化",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "说明通信契约与共享状态控制",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "说明用基线和指标验证收益",
+          "weight": 30,
+          "mandatory": true
+        }
+      ],
+      "common_mistakes": [
+        "每个步骤都创建一个 Agent",
+        "所有 Agent 共享无限上下文和同一权限",
+        "没有协调器的超时与冲突处理"
+      ],
+      "oral_answer_outline": [
+        "从独立职责和并行需求说明适用性",
+        "讲清通信与状态",
+        "最后以基线和可观测性收束"
+      ],
+      "reference_answer": "多 Agent 适合存在清晰权限边界、可独立评审或可并行执行的任务，不是把提示词拆成多个名字。每个角色都应有输入输出契约、有限共享状态和最小权限，协调层负责顺序、超时、冲突和最终汇总。上线前需要与单 Agent 基线比较成功率、延迟和成本，否则协作开销常常大于收益。",
+      "follow_up_questions": [
+        "两个 Agent 给出冲突结论时如何处理？",
+        "如何防止多个 Agent 重复调用同一个昂贵工具？"
+      ],
+      "sources": [
+        {
+          "title": "LangGraph Documentation",
+          "url": "https://langchain-ai.github.io/langgraph/",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "agent-planning-001",
+      "domain": "agent",
+      "topic": "planning",
+      "subtopic": "plan_execution_replan",
+      "question": "计划型 Agent 为什么需要把计划、执行状态和重规划分开建模？",
+      "difficulty": "medium",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "Agent",
+        "Planning",
+        "状态机"
+      ],
+      "reference_points": [
+        "计划是可调整的意图，不等同于执行日志",
+        "每个步骤应有输入、状态、结果和失败原因",
+        "工具结果或环境变化可触发局部重规划",
+        "需要限制重规划次数并保留原计划以便审计"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "区分计划与真实执行状态",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "说明何时触发重规划",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "说明循环限制或审计要求",
+          "weight": 30,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "把模型第一次计划当成不可变事实",
+        "失败后从头重复所有步骤",
+        "重规划不记录原因和版本"
+      ],
+      "oral_answer_outline": [
+        "先定义计划和状态",
+        "说明执行反馈如何更新状态",
+        "补充局部重规划与上限"
+      ],
+      "reference_answer": "计划描述预期路径，执行状态记录实际发生了什么，二者分离后系统才能知道哪个步骤可重试、哪个依赖已失效。工具返回失败、数据变化或前提不成立时，可以只调整受影响的后续步骤。每次计划变化应版本化并设置重规划上限，避免模型在相同失败上反复循环。",
+      "follow_up_questions": [
+        "如何判断是局部重规划还是直接终止？",
+        "计划中的依赖关系怎样表示才便于恢复？"
+      ],
+      "sources": [
+        {
+          "title": "ReAct: Synergizing Reasoning and Acting in Language Models",
+          "url": "https://arxiv.org/abs/2210.03629",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "agent-safety-evaluation-001",
+      "domain": "agent",
+      "topic": "agent_safety",
+      "subtopic": "adversarial_evaluation",
+      "question": "如何验证 Agent 在提示注入和越权工具请求下仍会遵守安全策略？",
+      "difficulty": "hard",
+      "question_type": "security_reasoning",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Agent Safety",
+        "提示注入",
+        "评测"
+      ],
+      "reference_points": [
+        "构造直接和间接提示注入、权限越界和数据外泄等场景",
+        "验证工具服务端拒绝非法动作，而不是只检查模型措辞",
+        "记录攻击输入、决策轨迹、实际调用和拒绝原因",
+        "将测试纳入回归集并在工具或提示变更后重复执行"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "说明安全评测必须覆盖真实工具执行边界",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "给出多类对抗场景",
+          "weight": 30,
+          "mandatory": true
+        },
+        {
+          "point": "说明回归和证据记录",
+          "weight": 30,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只问模型是否会遵守规则",
+        "测试环境有管理员权限，无法暴露授权问题",
+        "安全样本只在上线前跑一次"
+      ],
+      "oral_answer_outline": [
+        "先定义攻击面",
+        "在受控环境验证服务端拒绝",
+        "将结果沉淀为回归集"
+      ],
+      "reference_answer": "安全评测应在隔离环境构造直接和文档内嵌的提示注入、跨租户访问、危险参数等用例。验收标准不是模型说了拒绝，而是服务端工具没有执行越权操作，并且有明确的拒绝证据。把输入、轨迹和调用结果保留为回归样本，在模型、提示词或工具策略变化后持续重跑。",
+      "follow_up_questions": [
+        "怎样在不泄露真实数据的情况下构造跨租户测试？",
+        "安全拒绝率升高时如何排查是否误伤正常任务？"
+      ],
+      "sources": [
+        {
+          "title": "OpenAI API Documentation",
+          "url": "https://platform.openai.com/docs/",
+          "source_type": "official_documentation",
+          "license": "Documentation terms apply; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "agent-safety-tool-boundary-001",
+      "domain": "agent",
+      "topic": "agent_safety",
+      "subtopic": "tool_permission_boundary",
+      "question": "设计 Agent 工具权限边界时，为什么不能只依赖提示词限制？",
+      "difficulty": "hard",
+      "question_type": "security_reasoning",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Agent",
+        "工具权限",
+        "安全"
+      ],
+      "reference_points": [
+        "提示词是行为引导，不是强制访问控制",
+        "工具层必须校验身份、权限、参数和资源范围",
+        "高风险能力应最小权限、分级授权和可撤销",
+        "不可信文本可能通过间接提示注入影响模型决策"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "明确提示词不能替代服务端授权校验",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "说明至少两种工具层防护措施",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "提到不可信内容或提示注入的风险",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "把系统提示词视为安全边界",
+        "只限制工具名称，不限制参数和资源",
+        "让模型直接拥有数据库管理员权限"
+      ],
+      "oral_answer_outline": [
+        "先解释提示词的非确定性",
+        "落到服务端权限与参数策略",
+        "最后说明审计和撤销机制"
+      ],
+      "reference_answer": "提示词只能影响模型倾向，不能证明每次调用都符合权限策略，而且外部文档中的恶意指令可能改变模型选择。安全边界必须放在工具服务端：基于用户身份检查权限，约束可访问资源和参数，对删除、写入等能力采用最小权限和短期授权。每次调用还应有审计、限额和可撤销的凭据。",
+      "follow_up_questions": [
+        "资源范围校验怎样避免路径穿越或跨租户访问？",
+        "如何测试间接提示注入是否绕过工具策略？"
+      ],
+      "sources": [
+        {
+          "title": "OpenAI API Documentation",
+          "url": "https://platform.openai.com/docs/",
+          "source_type": "official_documentation",
+          "license": "Documentation terms apply; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "agent-tool-calling-loop-001",
+      "domain": "llm_application",
+      "topic": "tool_calling",
+      "subtopic": "parameter_validation",
+      "question": "一个完整的 LLM Tool Calling 循环中，应用为什么必须校验工具参数？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "Agent",
+        "Tool Calling",
+        "参数校验"
+      ],
+      "reference_points": [
+        "工具定义需要提供明确的名称、描述和参数 Schema",
+        "模型输出可能缺字段、类型错误或超出业务约束",
+        "应用在执行前做 Schema、权限和业务规则校验",
+        "工具失败结果应结构化返回模型而不是被静默吞掉"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "说明模型调用请求不是可信的执行指令",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "明确提到 Schema 校验和业务或权限校验",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "说明失败结果如何回传和终止",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "将模型生成的 JSON 直接传给函数",
+        "只校验 JSON 格式而不校验资源权限",
+        "工具异常后继续使用不存在的结果"
+      ],
+      "oral_answer_outline": [
+        "先说明请求来源不可信",
+        "列出三层校验",
+        "补充失败回传与重试边界"
+      ],
+      "reference_answer": "模型产生的是调用建议，不是可信命令。应用先按工具 Schema 检查类型和必填字段，再检查当前用户权限、参数范围和业务前置条件；不通过就返回可读的结构化错误，而不是执行或吞掉异常。这样模型可以修正下一轮请求，同时服务端仍保持最终控制权。",
+      "follow_up_questions": [
+        "哪些参数校验适合在 JSON Schema 外完成？",
+        "工具调用失败时什么时候应允许模型重试？"
+      ],
+      "sources": [
+        {
+          "title": "OpenAI API Documentation",
+          "url": "https://platform.openai.com/docs/",
+          "source_type": "official_documentation",
+          "license": "Documentation terms apply; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "ai-cost-control-001",
+      "domain": "ai_engineering",
+      "topic": "cost_control",
+      "subtopic": "budget_guardrail",
+      "question": "如何为 AI Agent 设计成本护栏，避免复杂任务无限消耗 token 和工具费用？",
+      "difficulty": "medium",
+      "question_type": "system_design",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "Cost Control",
+        "Agent",
+        "Budget"
+      ],
+      "reference_points": [
+        "设置每请求、每用户和每任务类型的 token、时间与工具调用上限",
+        "在每轮循环检查剩余预算并选择降级、摘要或终止",
+        "昂贵工具调用前应评估必要性并缓存可复用结果",
+        "成本指标需要按模型、工具和功能归因"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "给出多层预算而非单一全局额度",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "说明运行中预算检查和降级或终止",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "提到归因或缓存策略",
+          "weight": 30,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只在月底统计成本",
+        "达到预算后仍允许最后一轮任意工具调用",
+        "把所有结果缓存而不考虑新鲜度和权限"
+      ],
+      "oral_answer_outline": [
+        "定义预算维度",
+        "解释每轮实时检查",
+        "补充缓存与归因"
+      ],
+      "reference_answer": "成本控制要同时限制单请求、单用户和任务类别的 token、时长与外部工具次数，而不是只看月度账单。Agent 在每轮决策前读取剩余预算，接近上限时可缩短上下文、使用低成本模型、返回部分结果或终止。还要把费用归因到模型、工具和功能，并谨慎缓存可复用且权限一致的结果。",
+      "follow_up_questions": [
+        "摘要会降低答案质量时如何决定是否继续？",
+        "共享缓存怎样防止跨用户数据泄露？"
+      ],
+      "sources": [
+        {
+          "title": "OpenAI API Documentation",
+          "url": "https://platform.openai.com/docs/",
+          "source_type": "official_documentation",
+          "license": "Documentation terms apply; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "ai-deployment-001",
+      "domain": "ai_engineering",
+      "topic": "deployment",
+      "subtopic": "container_runtime",
+      "question": "部署 AI 后端服务时，容器镜像、配置和密钥应如何分离，为什么？",
+      "difficulty": "hard",
+      "question_type": "deployment_design",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Deployment",
+        "Docker",
+        "Secrets"
+      ],
+      "reference_points": [
+        "镜像应包含可重复构建的代码和运行依赖，不应包含环境密钥",
+        "配置通过环境或受控配置系统注入，并区分不同环境",
+        "密钥应由专门的 secret 管理机制提供且避免写入日志和镜像层",
+        "部署需设置健康检查、资源限制和可回滚版本"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "明确密钥不能进入镜像、仓库或构建日志",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "说明配置与镜像可移植性的关系",
+          "weight": 30,
+          "mandatory": true
+        },
+        {
+          "point": "说明健康检查、资源限制或回滚",
+          "weight": 30,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "把 .env COPY 进镜像",
+        "同一个镜像靠修改源码区分环境",
+        "运行时没有资源限制导致单次任务拖垮实例"
+      ],
+      "oral_answer_outline": [
+        "先划分不可变镜像与运行时配置",
+        "强调密钥生命周期",
+        "补充运行保障和回滚"
+      ],
+      "reference_answer": "镜像应是可重复构建的应用和依赖，不包含 API Key、数据库密码或环境专属配置；这样同一镜像才能安全地在不同环境部署。配置和密钥在运行时由受控系统注入，密钥不进入日志、镜像层或仓库。服务还需要健康检查、资源和并发限制，以及可回滚的版本策略。",
+      "follow_up_questions": [
+        "如何轮换已泄露或即将过期的密钥？",
+        "长时间模型请求怎样影响容器的健康检查设计？"
+      ],
+      "sources": [
+        {
+          "title": "Docker Documentation",
+          "url": "https://docs.docker.com/",
+          "source_type": "official_documentation",
+          "license": "Documentation terms apply; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "ai-observability-001",
+      "domain": "ai_engineering",
+      "topic": "observability",
+      "subtopic": "trace_correlation",
+      "question": "AI 应用的可观测性为什么需要关联一次用户请求、模型调用、工具调用和检索？",
+      "difficulty": "medium",
+      "question_type": "engineering_practice",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "Observability",
+        "Tracing",
+        "AI Engineering"
+      ],
+      "reference_points": [
+        "一个用户请求可能跨越模型、检索、工具和异步任务",
+        "统一 trace 或 correlation id 才能定位端到端失败和延迟",
+        "span 属性应记录模型、耗时、状态码和去敏后的用量信息",
+        "日志不能默认写入原始敏感提示词或密钥"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "说明端到端关联的排障价值",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "给出可记录的关键指标或属性",
+          "weight": 30,
+          "mandatory": true
+        },
+        {
+          "point": "提到脱敏或隐私保护",
+          "weight": 30,
+          "mandatory": true
+        }
+      ],
+      "common_mistakes": [
+        "每个服务独立打日志但没有请求关联",
+        "记录完整用户提示词和 API Key",
+        "只记录成功调用不记录错误和重试"
+      ],
+      "oral_answer_outline": [
+        "描述一次请求的跨组件路径",
+        "说明 trace 和 span 指标",
+        "补充隐私与采样策略"
+      ],
+      "reference_answer": "一次 AI 请求往往同时经过检索、模型、工具和异步队列，单点日志无法回答慢在哪里或错误来自哪里。为每次请求传播统一 trace id，并用 span 记录模型版本、耗时、状态、重试和经过脱敏的用量，才能还原链路。观测数据也要遵守最小化原则，避免默认收集提示词原文和秘密。",
+      "follow_up_questions": [
+        "如何让异步队列任务继续传播 trace context？",
+        "采样策略怎样避免漏掉失败请求？"
+      ],
+      "sources": [
+        {
+          "title": "OpenTelemetry Documentation",
+          "url": "https://opentelemetry.io/docs/",
+          "source_type": "official_documentation",
+          "license": "Apache-2.0",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "ai-observability-002",
+      "domain": "ai_engineering",
+      "topic": "tracing",
+      "subtopic": "model_cost_latency",
+      "question": "生产 AI 服务应记录哪些模型调用指标，才能同时诊断质量、成本和稳定性？",
+      "difficulty": "medium",
+      "question_type": "engineering_practice",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "LLM",
+        "Tracing",
+        "Cost"
+      ],
+      "reference_points": [
+        "记录模型和提示版本、请求结果、时延和错误分类",
+        "记录输入输出 token、缓存命中和外部工具次数",
+        "按用户或任务维度聚合成本但避免记录敏感原文",
+        "将线上反馈或评测结果与 trace 关联"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "列出时延、错误和 token 或成本指标",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "说明版本和请求关联的重要性",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "兼顾隐私与质量反馈",
+          "weight": 30,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只记录总调用次数",
+        "只记录 token 而不知道对应模型和版本",
+        "为了排障保存所有用户原文"
+      ],
+      "oral_answer_outline": [
+        "从一次调用的身份、结果、成本说起",
+        "说明聚合和关联",
+        "补充脱敏与质量闭环"
+      ],
+      "reference_answer": "每次调用至少要关联模型和提示版本、成功或失败状态、端到端及模型时延、输入输出 token、缓存与工具调用次数。这样可以按任务和版本分析质量下降、成本异常或重试风暴。日志应以请求标识关联评测和用户反馈，同时对原始内容做最小化收集和脱敏。",
+      "follow_up_questions": [
+        "提示词版本变化怎样与 A/B 结果关联？",
+        "token 成本突增时优先检查哪些维度？"
+      ],
+      "sources": [
+        {
+          "title": "OpenTelemetry Documentation",
+          "url": "https://opentelemetry.io/docs/",
+          "source_type": "official_documentation",
+          "license": "Apache-2.0",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "ai-retry-timeout-001",
+      "domain": "ai_engineering",
+      "topic": "retry",
+      "subtopic": "retry_policy",
+      "question": "AI API 调用的重试策略应如何区分限流、瞬时服务错误和业务校验错误？",
+      "difficulty": "medium",
+      "question_type": "reliability_reasoning",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "AI API",
+        "Retry",
+        "Rate Limit"
+      ],
+      "reference_points": [
+        "只对可能恢复的错误重试",
+        "限流和瞬时错误应使用退避、抖动及服务端建议",
+        "认证、参数校验和内容策略错误不应盲目重试",
+        "重试必须受总 deadline、次数和幂等性约束"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "区分可恢复与不可恢复错误",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "说明退避和抖动的作用",
+          "weight": 30,
+          "mandatory": true
+        },
+        {
+          "point": "提到 deadline 或幂等约束",
+          "weight": 30,
+          "mandatory": true
+        }
+      ],
+      "common_mistakes": [
+        "对所有 4xx 和 5xx 统一无限重试",
+        "所有客户端同时固定间隔重试",
+        "没有记录每次重试原因和次数"
+      ],
+      "oral_answer_outline": [
+        "先按错误类别决策",
+        "描述退避策略",
+        "收束到预算和观测"
+      ],
+      "reference_answer": "重试前要先判断错误是否可能自行恢复。限流和短暂服务异常可采用带抖动的指数退避，并遵循服务端给出的等待建议；认证、参数或策略拒绝需要修正输入而不是重试。整个过程还要受端到端 deadline、最大次数和幂等性限制，并记录错误分类和实际重试次数。",
+      "follow_up_questions": [
+        "为什么抖动能缓解重试风暴？",
+        "流式请求已输出部分内容后还能安全重试吗？"
+      ],
+      "sources": [
+        {
+          "title": "OpenAI API Documentation",
+          "url": "https://platform.openai.com/docs/",
+          "source_type": "official_documentation",
+          "license": "Documentation terms apply; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "ai-streaming-001",
+      "domain": "ai_engineering",
+      "topic": "streaming",
+      "subtopic": "partial_output",
+      "question": "模型流式输出已向用户发送部分内容后发生错误，产品和后端应如何处理？",
+      "difficulty": "medium",
+      "question_type": "incident_response",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "Streaming",
+        "错误处理",
+        "UX"
+      ],
+      "reference_points": [
+        "将已发送文本和最终完成状态分开表示",
+        "明确告知输出中断，避免把部分内容标为完整答案",
+        "保留请求标识、错误分类和是否可继续或重试",
+        "对可能产生副作用的工具调用不能因为文本重试而重复执行"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "说明部分内容与完成状态必须区分",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "说明用户可见的中断和恢复策略",
+          "weight": 30,
+          "mandatory": true
+        },
+        {
+          "point": "提到工具副作用和幂等风险",
+          "weight": 35,
+          "mandatory": true
+        }
+      ],
+      "common_mistakes": [
+        "断流后把 partial text 当成功结果缓存",
+        "自动重试导致工具重复执行",
+        "没有给前端结束事件或错误码"
+      ],
+      "oral_answer_outline": [
+        "定义流生命周期状态",
+        "说明前端如何呈现中断",
+        "补充恢复和副作用保护"
+      ],
+      "reference_answer": "流式协议中应把增量文本、完成事件和错误事件分开，发生错误时前端明确提示内容未完成并提供受控的继续或重新生成入口。后端要记录请求和错误状态，便于恢复或排查。若同一次生成已触发工具，重新生成不能简单重放副作用，而要依赖调用记录和幂等保护。",
+      "follow_up_questions": [
+        "如何实现断线后的继续阅读和重新连接？",
+        "部分输出是否应写入会话历史？"
+      ],
+      "sources": [
+        {
+          "title": "MDN: Using server-sent events",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
+          "source_type": "official_documentation",
+          "license": "CC-BY-SA 2.5; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-function-calling-contract-001",
+      "domain": "llm_application",
+      "topic": "function_calling",
+      "subtopic": "function_contract",
+      "question": "设计 Function Calling 工具定义时，函数描述和参数 Schema 各自承担什么作用？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 60,
+      "tags": [
+        "Function Calling",
+        "Schema",
+        "Tool Design"
+      ],
+      "reference_points": [
+        "函数名称和描述帮助模型理解何时应选择该能力",
+        "参数 Schema 约束字段、类型和枚举等结构",
+        "描述应说明业务语义、边界和副作用而非暴露内部实现",
+        "服务端仍需校验模型输出并决定是否执行"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "区分选择工具的描述与约束参数的 Schema",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "说明描述应包含边界或副作用",
+          "weight": 30,
+          "mandatory": true
+        },
+        {
+          "point": "说明服务端保留执行控制权",
+          "weight": 30,
+          "mandatory": true
+        }
+      ],
+      "common_mistakes": [
+        "把函数描述写成模糊的万能工具",
+        "在 Schema 中放入密钥或内部实现细节",
+        "认为模型符合 Schema 就不需服务端校验"
+      ],
+      "oral_answer_outline": [
+        "先解释模型如何选择工具",
+        "说明参数约束",
+        "强调执行边界"
+      ],
+      "reference_answer": "函数描述主要帮助模型判断这个工具解决什么问题、何时不该使用以及是否有副作用；参数 Schema 则定义调用数据的结构和可取值范围。两者都应简洁、稳定且面向业务语义。即使模型返回了符合 Schema 的参数，服务端仍要检查权限和当前状态，再决定是否执行。",
+      "follow_up_questions": [],
+      "sources": [
+        {
+          "title": "OpenAI API Documentation",
+          "url": "https://platform.openai.com/docs/",
+          "source_type": "official_documentation",
+          "license": "Documentation terms apply; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-structured-output-001",
+      "domain": "llm_application",
+      "topic": "structured_output",
+      "subtopic": "schema_contract",
+      "question": "为什么 AI 应用需要把结构化输出视为接口契约，而不是仅让模型返回 JSON？",
+      "difficulty": "medium",
+      "question_type": "engineering_practice",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "Structured Output",
+        "Schema",
+        "LLM API"
+      ],
+      "reference_points": [
+        "合法 JSON 不代表字段、类型和枚举满足业务约束",
+        "Schema 可让调用方验证和演进输入输出契约",
+        "需要处理拒答、截断和验证失败等非正常结果",
+        "下游执行前仍应做领域校验"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "区分 JSON 语法有效与 Schema 语义有效",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "说明验证失败的处理路径",
+          "weight": 30,
+          "mandatory": true
+        },
+        {
+          "point": "说明下游仍需要领域校验",
+          "weight": 30,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只用 JSON.parse 就进入数据库",
+        "将模型拒答当成空对象",
+        "Schema 变更后没有版本或兼容策略"
+      ],
+      "oral_answer_outline": [
+        "先说明 JSON 的局限",
+        "再说明 Schema 验证和错误分支",
+        "补充版本化与业务校验"
+      ],
+      "reference_answer": "JSON 只保证序列化格式，不能保证字段完整、枚举正确或内容可被业务安全使用。把输出定义成 Schema 后，调用方可明确验证、记录失败原因，并为拒答、截断和重试建立分支。即使通过 Schema，也要在执行动作前检查业务权限和资源状态，因为模型输出不是可信输入。",
+      "follow_up_questions": [
+        "Schema 新增必填字段时如何做兼容发布？",
+        "验证失败时直接重试与要求模型修正有什么区别？"
+      ],
+      "sources": [
+        {
+          "title": "OpenAI API Documentation",
+          "url": "https://platform.openai.com/docs/",
+          "source_type": "official_documentation",
+          "license": "Documentation terms apply; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-http-idempotency-001",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "idempotency_key",
+      "question": "为什么创建订单或触发 AI 任务的 POST 接口也常常需要幂等键？",
+      "difficulty": "medium",
+      "question_type": "engineering_practice",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "HTTP",
+        "幂等",
+        "重试"
+      ],
+      "reference_points": [
+        "网络超时不代表服务端未执行",
+        "客户端或网关重试可能导致重复副作用",
+        "服务端应把幂等键与请求摘要和处理结果关联",
+        "同键但不同请求内容必须被拒绝或明确处理"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "解释超时和重试导致的重复副作用",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "说明幂等键的服务端存储或结果复用",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "说明键冲突或过期策略",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "认为 POST 天然不能幂等",
+        "只让客户端生成键但服务端不存状态",
+        "同一个键允许不同请求体覆盖结果"
+      ],
+      "oral_answer_outline": [
+        "从不确定网络结果开始",
+        "说明键与请求摘要的绑定",
+        "补充过期和冲突处理"
+      ],
+      "reference_answer": "客户端超时后不知道服务端是否已经完成，如果直接重试，订单、扣费或 AI 作业都可能重复创建。幂等键让服务端记录一次请求的摘要和结果，同一个键的后续请求返回已知结果而不是再次执行。还要校验同键请求是否一致，并为键设置符合业务窗口的过期策略。",
+      "follow_up_questions": [
+        "异步任务尚未完成时，重复请求应返回什么状态？",
+        "幂等记录怎样避免无限增长？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 9110: HTTP Semantics",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110",
+          "source_type": "specification",
+          "license": "IETF Trust Legal Provisions; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-proxy-timeout-001",
+      "domain": "network",
+      "topic": "proxy",
+      "subtopic": "timeout_budget",
+      "question": "为什么 AI 请求的超时不能只在客户端设置一个很大的总超时？",
+      "difficulty": "hard",
+      "question_type": "reliability_reasoning",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "HTTP",
+        "Proxy",
+        "Timeout"
+      ],
+      "reference_points": [
+        "请求可能经过客户端、网关、应用、模型和工具等多层",
+        "需要把总时间预算拆分为连接、读取、工具和排队预算",
+        "超时后应取消下游工作或让其可查询，避免幽灵任务",
+        "重试需考虑剩余预算和幂等性"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "说明端到端路径中存在多层超时",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "解释时间预算拆分与传播",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "说明超时后的取消或异步查询处理",
+          "weight": 30,
+          "mandatory": true
+        }
+      ],
+      "common_mistakes": [
+        "所有层都设置相同的大超时",
+        "超时后任务仍在后台继续消耗资源",
+        "在快到截止时间时继续完整重试"
+      ],
+      "oral_answer_outline": [
+        "描述调用链",
+        "从总预算拆分子预算",
+        "说明取消、重试与幂等"
+      ],
+      "reference_answer": "AI 调用通常跨越网关、应用、模型服务和工具，每一层的排队与读写时间都不同。应从端到端 deadline 派生连接、读取和工具的子预算，并把剩余时间向下游传递。超时后要能取消或查询后台作业状态；重试只在有剩余预算且操作可安全重放时进行。",
+      "follow_up_questions": [
+        "怎样避免代理比应用更早切断流式响应？",
+        "如何为异步长任务设计轮询和回调接口？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 9110: HTTP Semantics",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110",
+          "source_type": "specification",
+          "license": "IETF Trust Legal Provisions; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-sse-websocket-001",
+      "domain": "network",
+      "topic": "sse",
+      "subtopic": "streaming_transport_choice",
+      "question": "AI 文本流式输出时，SSE 和 WebSocket 应如何选择？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "SSE",
+        "WebSocket",
+        "Streaming"
+      ],
+      "reference_points": [
+        "SSE 适合服务端单向持续推送并基于 HTTP",
+        "WebSocket 适合客户端和服务端都需要低延迟双向消息",
+        "两者都要处理断线、取消、认证和心跳或重连",
+        "传输选择应由交互模式和基础设施能力决定"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "准确说明两种协议的通信方向差异",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "提到断线重连或取消处理",
+          "weight": 30,
+          "mandatory": true
+        },
+        {
+          "point": "不把 WebSocket 描述为所有流式场景的默认最优解",
+          "weight": 30,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "为了单向 token 流也引入复杂双向协议",
+        "只处理正常结束不处理浏览器断开",
+        "在流中发送未授权的敏感事件"
+      ],
+      "oral_answer_outline": [
+        "从单向还是双向交互判断",
+        "说明连接生命周期",
+        "补充代理和部署限制"
+      ],
+      "reference_answer": "只需要把 token 或进度从服务端推向浏览器时，SSE 基于普通 HTTP，通常更容易接入代理和鉴权。若用户需要在同一连接中频繁发送控制、协作或实时输入，WebSocket 的双向通道更合适。无论选哪种，都要设计取消、断线、重连、认证和服务端资源释放。",
+      "follow_up_questions": [
+        "用户关闭页面后如何让后端取消模型流？",
+        "通过反向代理部署 SSE 时要关注哪些缓冲行为？"
+      ],
+      "sources": [
+        {
+          "title": "MDN: Using server-sent events",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
+          "source_type": "official_documentation",
+          "license": "CC-BY-SA 2.5; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        },
+        {
+          "title": "MDN: The WebSocket API",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API",
+          "source_type": "official_documentation",
+          "license": "CC-BY-SA 2.5; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "python-asyncio-001",
+      "domain": "python",
+      "topic": "asyncio",
+      "subtopic": "blocking_call",
+      "question": "在 FastAPI 的 async 路由中直接执行阻塞 I/O 或 CPU 密集任务会发生什么，应如何处理？",
+      "difficulty": "medium",
+      "question_type": "runtime_reasoning",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "Python",
+        "asyncio",
+        "FastAPI"
+      ],
+      "reference_points": [
+        "阻塞调用会占用事件循环并影响同一进程中的其他协程",
+        "异步 I/O 库应使用 await 而不是同步客户端",
+        "短暂同步 I/O 可转交线程池",
+        "CPU 密集任务应考虑进程池、任务队列或独立 worker"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "说明阻塞事件循环的并发影响",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "区分 I/O 阻塞和 CPU 密集任务的处理方式",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "提到超时、取消或背压",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "把普通函数改成 async 就认为不会阻塞",
+        "在协程里直接调用 requests 或重计算",
+        "把所有 CPU 任务都丢进无限线程池"
+      ],
+      "oral_answer_outline": [
+        "说明事件循环的单线程协作特点",
+        "按 I/O 和 CPU 给出方案",
+        "补充超时与容量限制"
+      ],
+      "reference_answer": "async 路由只有在内部也能让出事件循环时才有并发优势。同步网络、文件操作或长时间计算会阻塞同一进程中的其他请求；异步 I/O 应使用可 await 的客户端，短同步操作可受控地交给线程池。CPU 密集任务通常应放到进程池或独立 worker，并设置队列、超时和取消策略。",
+      "follow_up_questions": [
+        "线程池中的任务如何传播请求超时？",
+        "为什么 GIL 会影响 CPU 密集任务的线程并行？"
+      ],
+      "sources": [
+        {
+          "title": "Python asyncio Documentation",
+          "url": "https://docs.python.org/3/library/asyncio.html",
+          "source_type": "official_documentation",
+          "license": "PSF License",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "python-fastapi-dependencies-001",
+      "domain": "python",
+      "topic": "fastapi",
+      "subtopic": "dependency_lifecycle",
+      "question": "FastAPI 依赖注入适合解决哪些问题，怎样避免把请求级资源做成全局可变状态？",
+      "difficulty": "medium",
+      "question_type": "engineering_practice",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "FastAPI",
+        "Dependency Injection",
+        "资源生命周期"
+      ],
+      "reference_points": [
+        "依赖可集中处理认证、数据库会话和请求上下文",
+        "yield 型依赖可以定义请求结束后的清理",
+        "请求级会话不应被保存在跨请求共享的全局变量",
+        "长生命周期客户端可在应用生命周期中初始化并明确线程安全边界"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "说明依赖注入的复用和可测试性价值",
+          "weight": 30,
+          "mandatory": true
+        },
+        {
+          "point": "说明请求级资源的创建和释放",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "区分请求级与应用级资源",
+          "weight": 30,
+          "mandatory": true
+        }
+      ],
+      "common_mistakes": [
+        "把数据库 Session 缓存在模块全局变量",
+        "忘记关闭连接或释放事务",
+        "在路由中复制认证与资源初始化代码"
+      ],
+      "oral_answer_outline": [
+        "给出依赖典型用途",
+        "解释 yield 清理",
+        "说明不同生命周期的边界"
+      ],
+      "reference_answer": "依赖注入可以让认证、数据库会话和请求上下文以可复用、可替换的方式进入路由。对请求级资源可用 yield 在响应后清理或回滚，避免把 Session 等可变对象放在全局。连接池或只读客户端可以应用级复用，但必须确认并发安全并在应用关闭时统一释放。",
+      "follow_up_questions": [
+        "测试中如何覆盖替换一个认证依赖？",
+        "数据库事务应在依赖中提交还是业务层提交？"
+      ],
+      "sources": [
+        {
+          "title": "FastAPI Documentation",
+          "url": "https://fastapi.tiangolo.com/",
+          "source_type": "official_documentation",
+          "license": "MIT",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "python-pydantic-validation-001",
+      "domain": "python",
+      "topic": "pydantic",
+      "subtopic": "boundary_validation",
+      "question": "Pydantic 在 AI 应用接口中应该放在哪些边界，为什么仍不能替代业务校验？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "Pydantic",
+        "Validation",
+        "AI 应用"
+      ],
+      "reference_points": [
+        "在 HTTP 请求、模型结构化输出和外部工具结果入口做类型与字段校验",
+        "Pydantic 适合声明序列化和基础约束",
+        "库存、权限、幂等状态等依赖当前系统状态的规则仍属业务校验",
+        "验证错误应转换为明确、不会泄露内部细节的响应"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "列出至少两个外部数据边界",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "区分数据结构校验和状态相关的业务校验",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "说明错误处理和可观测性",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只校验前端请求，不校验模型或工具返回",
+        "通过 Pydantic 就直接执行写操作",
+        "把内部栈信息直接返回给用户"
+      ],
+      "oral_answer_outline": [
+        "先列出三个信任边界",
+        "说明模型能保证什么",
+        "补充业务规则和错误处理"
+      ],
+      "reference_answer": "Pydantic 应放在所有不可信输入边界，例如 HTTP 请求、LLM 的结构化结果和外部工具返回，用于检查字段、类型和基础约束。它不能判断当前用户是否有权限、资源是否存在或操作是否幂等，这些必须由业务层查询真实状态后决定。验证失败需要留下可观测信息，但向客户端返回的内容应简洁且不泄露内部实现。",
+      "follow_up_questions": [
+        "如何为同一资源的创建和更新设计不同的 Schema？",
+        "模型输出验证失败后应如何把错误反馈给模型？"
+      ],
+      "sources": [
+        {
+          "title": "Pydantic Documentation",
+          "url": "https://docs.pydantic.dev/latest/",
+          "source_type": "official_documentation",
+          "license": "MIT",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "rag-chunking-001",
+      "domain": "rag",
+      "topic": "chunking",
+      "subtopic": "chunk_size_overlap",
+      "question": "切分知识库文档时，chunk 大小和 overlap 应如何权衡？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "RAG",
+        "Chunking",
+        "Embedding"
+      ],
+      "reference_points": [
+        "切分应尽量保留段落、标题和语义边界",
+        "chunk 太小会丢失上下文并增加召回碎片",
+        "chunk 太大会降低定位精度并占用上下文窗口",
+        "overlap 只用于跨边界语义连续性，过大会增加重复和成本"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "说明结构或语义边界优先于固定字符数",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "解释过小和过大的具体代价",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "解释 overlap 的收益和成本",
+          "weight": 30,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "所有文档按相同字符数硬切",
+        "用很大 overlap 试图解决全部检索问题",
+        "忽略表格、代码块和标题层级"
+      ],
+      "oral_answer_outline": [
+        "先以文档结构决定候选边界",
+        "说明大小的双向权衡",
+        "用离线评测而非直觉调参"
+      ],
+      "reference_answer": "切分应优先尊重标题、段落和语义单元，再依据模型上下文和检索任务设定大小。过小的片段缺少限定条件，过大的片段会稀释相似度并浪费 token。overlap 用来保留跨边界的连续语义，但需要受控；最终应通过带标注查询的召回评测选择参数。",
+      "follow_up_questions": [
+        "代码和表格是否应采用不同切分策略？",
+        "如何发现某个 chunk 长度导致答案缺少前提？"
+      ],
+      "sources": [
+        {
+          "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+          "url": "https://arxiv.org/abs/2005.11401",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "rag-hallucination-evaluation-001",
+      "domain": "rag",
+      "topic": "evaluation",
+      "subtopic": "groundedness",
+      "question": "如何评估 RAG 回答是否真正被检索证据支持，而不是看起来合理？",
+      "difficulty": "hard",
+      "question_type": "evaluation_design",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "RAG",
+        "评估",
+        "Groundedness"
+      ],
+      "reference_points": [
+        "准备带证据或可判定事实的评测集",
+        "分别衡量检索召回、上下文相关性和回答支持度",
+        "要求回答引用证据并检查主张是否能被片段蕴含",
+        "记录无答案场景，避免只评估能回答的问题"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "区分检索质量和生成事实支持度",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "说明评测需有证据或人工判定依据",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "提到拒答或无答案样本",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只让另一个模型给整体主观分数",
+        "只评估最终回答而不检查召回",
+        "评测集没有无法从知识库回答的问题"
+      ],
+      "oral_answer_outline": [
+        "拆分检索与生成指标",
+        "说明证据对齐判定",
+        "补充人工抽检和无答案样本"
+      ],
+      "reference_answer": "不能只看回答流畅度，应把评估拆成召回是否找到正确证据、上下文是否相关、每个关键主张是否被证据支持。评测集需要保存标准证据或可复核事实，并包含知识库没有答案的查询。自动评分可用于规模化，但应通过人工抽检校准，并保留引用供追溯。",
+      "follow_up_questions": [
+        "引用正确但答案遗漏关键限定条件应如何计分？",
+        "如何处理多个等价证据片段？"
+      ],
+      "sources": [
+        {
+          "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+          "url": "https://arxiv.org/abs/2005.11401",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "rag-retrieval-pipeline-001",
+      "domain": "rag",
+      "topic": "retrieval",
+      "subtopic": "retrieval_generation_boundary",
+      "question": "一个可生产化的 RAG 查询链路应包含哪些主要阶段，各阶段如何降低幻觉？",
+      "difficulty": "medium",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "RAG",
+        "检索",
+        "幻觉"
+      ],
+      "reference_points": [
+        "查询进入前进行权限、意图或改写处理",
+        "检索阶段使用合适的索引、过滤条件和召回数量",
+        "可对候选文档重排并构造带来源的上下文",
+        "生成阶段要求基于上下文回答并在证据不足时拒答或追问"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "清楚分开检索、重排、上下文构造和生成",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "说明元数据或权限过滤不能放在生成后",
+          "weight": 30,
+          "mandatory": true
+        },
+        {
+          "point": "说明证据不足时的降级策略",
+          "weight": 35,
+          "mandatory": true
+        }
+      ],
+      "common_mistakes": [
+        "把向量检索结果直接全部塞进提示词",
+        "认为加入 RAG 就不会产生幻觉",
+        "在模型回答后才处理租户权限"
+      ],
+      "oral_answer_outline": [
+        "按查询、召回、重排、生成说明",
+        "强调过滤和引用",
+        "补充无证据时的降级"
+      ],
+      "reference_answer": "RAG 先对查询做必要的身份和元数据约束，再召回候选片段并按相关性重排。随后只把有限、可追溯的证据组织进上下文，要求模型区分事实与不确定项。若没有足够证据，系统应返回不知道、请求补充信息或转人工，而不是让模型补全答案。",
+      "follow_up_questions": [
+        "如何同时评估召回质量和最终回答质量？",
+        "多租户检索中元数据过滤应放在哪一层？"
+      ],
+      "sources": [
+        {
+          "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+          "url": "https://arxiv.org/abs/2005.11401",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    }
+  ]
+}

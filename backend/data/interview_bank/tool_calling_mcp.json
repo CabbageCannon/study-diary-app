@@ -1,0 +1,104 @@
+{
+  "questions": [
+    {
+      "id": "agent-tool-calling-loop-001",
+      "domain": "llm_application",
+      "topic": "tool_calling",
+      "subtopic": "parameter_validation",
+      "question": "一个完整的 LLM Tool Calling 循环中，应用为什么必须校验工具参数？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": ["Agent", "Tool Calling", "参数校验"],
+      "reference_points": ["工具定义需要提供明确的名称、描述和参数 Schema", "模型输出可能缺字段、类型错误或超出业务约束", "应用在执行前做 Schema、权限和业务规则校验", "工具失败结果应结构化返回模型而不是被静默吞掉"],
+      "evaluation_rubric": [
+        {"point": "说明模型调用请求不是可信的执行指令", "weight": 35, "mandatory": true},
+        {"point": "明确提到 Schema 校验和业务或权限校验", "weight": 40, "mandatory": true},
+        {"point": "说明失败结果如何回传和终止", "weight": 25, "mandatory": false}
+      ],
+      "common_mistakes": ["将模型生成的 JSON 直接传给函数", "只校验 JSON 格式而不校验资源权限", "工具异常后继续使用不存在的结果"],
+      "oral_answer_outline": ["先说明请求来源不可信", "列出三层校验", "补充失败回传与重试边界"],
+      "reference_answer": "模型产生的是调用建议，不是可信命令。应用先按工具 Schema 检查类型和必填字段，再检查当前用户权限、参数范围和业务前置条件；不通过就返回可读的结构化错误，而不是执行或吞掉异常。这样模型可以修正下一轮请求，同时服务端仍保持最终控制权。",
+      "follow_up_questions": ["哪些参数校验适合在 JSON Schema 外完成？", "工具调用失败时什么时候应允许模型重试？"],
+      "sources": [{"source_id": "openai-api-docs"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "agent-mcp-boundary-001",
+      "domain": "agent",
+      "topic": "mcp",
+      "subtopic": "client_server_roles",
+      "question": "MCP 中 Host、Client 和 Server 的职责分别是什么，工具权限应在哪一层落实？",
+      "difficulty": "medium",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 90,
+      "tags": ["MCP", "Client", "Server"],
+      "reference_points": ["Host 负责承载用户体验和协调多个连接", "Client 与一个 Server 建立协议连接并转发能力调用", "Server 暴露资源、提示词或工具等能力", "Server 仍需独立进行认证、授权和输入校验"],
+      "evaluation_rubric": [
+        {"point": "区分 Host、Client、Server 的连接与能力职责", "weight": 40, "mandatory": true},
+        {"point": "说明 MCP 协议本身不替代业务授权", "weight": 35, "mandatory": true},
+        {"point": "提到 Server 侧输入验证或审计", "weight": 25, "mandatory": false}
+      ],
+      "common_mistakes": ["把 Host 与 Client 当成同一个必然组件", "认为接入 MCP 就自动获得授权控制", "只在模型侧限制工具而不在 Server 校验"],
+      "oral_answer_outline": ["按连接关系定义三个角色", "解释能力由 Server 提供", "强调授权必须落在资源拥有方"],
+      "reference_answer": "Host 是面向用户并协调多个 MCP 连接的应用，Client 通常代表 Host 与一个 Server 建立会话，Server 则发布工具、资源或提示词能力。协议让能力发现和消息交换标准化，但不决定谁能访问真实资源。资源拥有方的 Server 必须自行认证调用者、授权具体动作并校验输入。",
+      "follow_up_questions": ["多 Server 环境下如何隔离不同租户的凭据？", "MCP 工具描述中哪些字段不应包含敏感信息？"],
+      "sources": [{"source_id": "mcp-spec"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-structured-output-001",
+      "domain": "llm_application",
+      "topic": "structured_output",
+      "subtopic": "schema_contract",
+      "question": "为什么 AI 应用需要把结构化输出视为接口契约，而不是仅让模型返回 JSON？",
+      "difficulty": "medium",
+      "question_type": "engineering_practice",
+      "expected_duration_seconds": 90,
+      "tags": ["Structured Output", "Schema", "LLM API"],
+      "reference_points": ["合法 JSON 不代表字段、类型和枚举满足业务约束", "Schema 可让调用方验证和演进输入输出契约", "需要处理拒答、截断和验证失败等非正常结果", "下游执行前仍应做领域校验"],
+      "evaluation_rubric": [
+        {"point": "区分 JSON 语法有效与 Schema 语义有效", "weight": 40, "mandatory": true},
+        {"point": "说明验证失败的处理路径", "weight": 30, "mandatory": true},
+        {"point": "说明下游仍需要领域校验", "weight": 30, "mandatory": false}
+      ],
+      "common_mistakes": ["只用 JSON.parse 就进入数据库", "将模型拒答当成空对象", "Schema 变更后没有版本或兼容策略"],
+      "oral_answer_outline": ["先说明 JSON 的局限", "再说明 Schema 验证和错误分支", "补充版本化与业务校验"],
+      "reference_answer": "JSON 只保证序列化格式，不能保证字段完整、枚举正确或内容可被业务安全使用。把输出定义成 Schema 后，调用方可明确验证、记录失败原因，并为拒答、截断和重试建立分支。即使通过 Schema，也要在执行动作前检查业务权限和资源状态，因为模型输出不是可信输入。",
+      "follow_up_questions": ["Schema 新增必填字段时如何做兼容发布？", "验证失败时直接重试与要求模型修正有什么区别？"],
+      "sources": [{"source_id": "openai-api-docs"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-function-calling-contract-001",
+      "domain": "llm_application",
+      "topic": "function_calling",
+      "subtopic": "function_contract",
+      "question": "设计 Function Calling 工具定义时，函数描述和参数 Schema 各自承担什么作用？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 60,
+      "tags": ["Function Calling", "Schema", "Tool Design"],
+      "reference_points": ["函数名称和描述帮助模型理解何时应选择该能力", "参数 Schema 约束字段、类型和枚举等结构", "描述应说明业务语义、边界和副作用而非暴露内部实现", "服务端仍需校验模型输出并决定是否执行"],
+      "evaluation_rubric": [
+        {"point": "区分选择工具的描述与约束参数的 Schema", "weight": 40, "mandatory": true},
+        {"point": "说明描述应包含边界或副作用", "weight": 30, "mandatory": true},
+        {"point": "说明服务端保留执行控制权", "weight": 30, "mandatory": true}
+      ],
+      "common_mistakes": ["把函数描述写成模糊的万能工具", "在 Schema 中放入密钥或内部实现细节", "认为模型符合 Schema 就不需服务端校验"],
+      "oral_answer_outline": ["先解释模型如何选择工具", "说明参数约束", "强调执行边界"],
+      "reference_answer": "函数描述主要帮助模型判断这个工具解决什么问题、何时不该使用以及是否有副作用；参数 Schema 则定义调用数据的结构和可取值范围。两者都应简洁、稳定且面向业务语义。即使模型返回了符合 Schema 的参数，服务端仍要检查权限和当前状态，再决定是否执行。",
+      "follow_up_questions": [],
+      "sources": [{"source_id": "openai-api-docs"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    }
+  ]
+}

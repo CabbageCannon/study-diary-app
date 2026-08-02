@@ -1,0 +1,57 @@
+{
+  "Arrays & Hashing": {
+    "key": "arrays_hashing",
+    "label": "数组与哈希",
+    "topics": ["数组", "哈希表"]
+  },
+  "Two Pointers": {
+    "key": "two_pointers",
+    "label": "双指针",
+    "topics": ["双指针"]
+  },
+  "Sliding Window": {
+    "key": "sliding_window",
+    "label": "滑动窗口",
+    "topics": ["滑动窗口"]
+  },
+  "Binary Search": {
+    "key": "binary_search",
+    "label": "二分查找",
+    "topics": ["二分查找"]
+  },
+  "Linked List": {
+    "key": "linked_list",
+    "label": "链表",
+    "topics": ["链表"]
+  },
+  "Trees": {
+    "key": "tree",
+    "label": "树",
+    "topics": ["二叉树", "树"]
+  },
+  "Graphs": {
+    "key": "graph",
+    "label": "图",
+    "topics": ["图"]
+  },
+  "Backtracking": {
+    "key": "backtracking",
+    "label": "回溯",
+    "topics": ["回溯"]
+  },
+  "Dynamic Programming": {
+    "key": "dynamic_programming",
+    "label": "动态规划",
+    "topics": ["动态规划"]
+  },
+  "Greedy": {
+    "key": "greedy",
+    "label": "贪心",
+    "topics": ["贪心"]
+  },
+  "Heap / Priority Queue": {
+    "key": "heap",
+    "label": "堆与优先队列",
+    "topics": ["堆", "优先队列"]
+  }
+}

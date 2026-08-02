@@ -1,0 +1,35 @@
+{
+  "generated_at": "2026-08-02T07:33:59.159065+00:00",
+  "algorithm_count": 0,
+  "interview_question_count": 27,
+  "algorithm_sources": [
+    "neetcode-gh/leetcode"
+  ],
+  "interview_sources": [
+    "docker-docs",
+    "fastapi-docs",
+    "langgraph-docs",
+    "mcp-spec",
+    "mdn-sse",
+    "mdn-websocket",
+    "openai-api-docs",
+    "opentelemetry-docs",
+    "pydantic-docs",
+    "python-asyncio-docs",
+    "rag-paper",
+    "react-paper",
+    "rfc9110"
+  ],
+  "files": [
+    {
+      "path": "data/algorithms/problem_catalog.json",
+      "sha256": "7ad56d6c19bd57f9164445fd0bc744658b46f5a1c657748205542d1e8b332f2f",
+      "record_count": 0
+    },
+    {
+      "path": "data/interview_question_bank.json",
+      "sha256": "12ceceebddda4c68e013f597c8a2ca1194bf1f7d70c8b2ab216dccb32db1d558",
+      "record_count": 27
+    }
+  ]
+}

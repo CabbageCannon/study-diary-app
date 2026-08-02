@@ -1,0 +1,7 @@
+{
+  "name": "neetcode-gh/leetcode",
+  "url": "https://github.com/neetcode-gh/leetcode",
+  "license": "MIT",
+  "imported_fields": ["problem", "pattern", "link", "difficulty", "neetcode150", "blind75"],
+  "notes": "运行时不访问该仓库。请先由人工下载或以许可明确的方式提供 .problemSiteData.json，再运行 build_problem_catalog.py。"
+}

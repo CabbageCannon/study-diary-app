@@ -1,0 +1,79 @@
+{
+  "questions": [
+    {
+      "id": "agent-execution-loop-001",
+      "domain": "agent",
+      "topic": "react_pattern",
+      "subtopic": "execution_loop",
+      "question": "一个带工具的 Agent 执行循环通常包含哪些步骤，终止条件应如何设计？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": ["Agent", "ReAct", "执行循环"],
+      "reference_points": ["将任务上下文、可用工具和约束发送给模型", "应用解析模型的动作或工具调用请求", "应用校验参数后执行工具并把结果回填给模型", "设置最终回答、最大轮数、预算或错误阈值等终止条件"],
+      "evaluation_rubric": [
+        {"point": "明确模型负责决策而应用负责实际执行工具", "weight": 35, "mandatory": true},
+        {"point": "说明工具结果会作为下一轮上下文返回", "weight": 30, "mandatory": true},
+        {"point": "给出至少一种防止无限循环的终止条件", "weight": 35, "mandatory": true}
+      ],
+      "common_mistakes": ["认为模型会直接执行本地函数", "只描述推理而忽略工具结果回填", "没有最大轮数或失败退出策略"],
+      "oral_answer_outline": ["先划分模型和应用的职责", "按决策、校验、执行、回填的顺序说明", "最后补充终止与审计机制"],
+      "reference_answer": "完整循环从应用提供任务、消息和工具定义开始。模型只提出下一步或工具调用，应用必须校验工具名和参数、执行受控操作，并把结果作为新消息回传。循环在模型给出最终回答、达到最大轮数、预算耗尽或连续失败时结束，过程还应记录每一轮输入、调用和错误。",
+      "follow_up_questions": ["如何区分可重试错误和不可重试错误？", "最大轮数应该如何按任务类型设置？"],
+      "sources": [{"source_id": "react-paper"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "agent-human-in-loop-001",
+      "domain": "agent",
+      "topic": "human_in_the_loop",
+      "subtopic": "approval_gate",
+      "question": "哪些 Agent 操作应经过人工确认，确认点应放在工作流的什么位置？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 90,
+      "tags": ["Agent", "人工确认", "风险控制"],
+      "reference_points": ["按影响范围、不可逆性和权限等级划分风险", "对外发送、资金、删除和权限变更应设置确认门", "确认前展示将执行的参数和影响范围", "确认结果需要与执行记录关联以便审计"],
+      "evaluation_rubric": [
+        {"point": "能以风险而不是工具名称判断是否需要确认", "weight": 35, "mandatory": true},
+        {"point": "说明确认前需要展示可理解的执行摘要", "weight": 30, "mandatory": true},
+        {"point": "说明确认与审计记录的关系", "weight": 35, "mandatory": false}
+      ],
+      "common_mistakes": ["所有操作都弹窗导致流程不可用", "只在执行完成后提示用户", "确认内容不包含实际参数和影响"],
+      "oral_answer_outline": ["先定义高风险操作", "说明审批前的信息呈现", "补充超时、拒绝和审计处理"],
+      "reference_answer": "人工确认不应按某个工具一刀切，而要看操作是否外部可见、不可逆或会扩大权限。高风险操作前，系统应以用户能理解的方式展示目标、参数和影响范围；确认令牌应绑定这次具体操作，拒绝或超时则停止执行。最终把审批人、时间、参数摘要和执行结果写入审计日志。",
+      "follow_up_questions": ["如何避免确认后参数被悄悄替换？", "低风险批量操作怎样减少打扰？"],
+      "sources": [{"source_id": "openai-api-docs"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "agent-safety-tool-boundary-001",
+      "domain": "agent",
+      "topic": "agent_safety",
+      "subtopic": "tool_permission_boundary",
+      "question": "设计 Agent 工具权限边界时，为什么不能只依赖提示词限制？",
+      "difficulty": "hard",
+      "question_type": "security_reasoning",
+      "expected_duration_seconds": 120,
+      "tags": ["Agent", "工具权限", "安全"],
+      "reference_points": ["提示词是行为引导，不是强制访问控制", "工具层必须校验身份、权限、参数和资源范围", "高风险能力应最小权限、分级授权和可撤销", "不可信文本可能通过间接提示注入影响模型决策"],
+      "evaluation_rubric": [
+        {"point": "明确提示词不能替代服务端授权校验", "weight": 40, "mandatory": true},
+        {"point": "说明至少两种工具层防护措施", "weight": 35, "mandatory": true},
+        {"point": "提到不可信内容或提示注入的风险", "weight": 25, "mandatory": false}
+      ],
+      "common_mistakes": ["把系统提示词视为安全边界", "只限制工具名称，不限制参数和资源", "让模型直接拥有数据库管理员权限"],
+      "oral_answer_outline": ["先解释提示词的非确定性", "落到服务端权限与参数策略", "最后说明审计和撤销机制"],
+      "reference_answer": "提示词只能影响模型倾向，不能证明每次调用都符合权限策略，而且外部文档中的恶意指令可能改变模型选择。安全边界必须放在工具服务端：基于用户身份检查权限，约束可访问资源和参数，对删除、写入等能力采用最小权限和短期授权。每次调用还应有审计、限额和可撤销的凭据。",
+      "follow_up_questions": ["资源范围校验怎样避免路径穿越或跨租户访问？", "如何测试间接提示注入是否绕过工具策略？"],
+      "sources": [{"source_id": "openai-api-docs"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    }
+  ]
+}

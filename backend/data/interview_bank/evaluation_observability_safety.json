@@ -1,0 +1,79 @@
+{
+  "questions": [
+    {
+      "id": "agent-evaluation-001",
+      "domain": "agent",
+      "topic": "agent_evaluation",
+      "subtopic": "task_success_metrics",
+      "question": "如何为带工具的 Agent 设计离线评估，而不是只评估最终文本是否流畅？",
+      "difficulty": "medium",
+      "question_type": "evaluation_design",
+      "expected_duration_seconds": 120,
+      "tags": ["Agent Evaluation", "工具调用", "离线评测"],
+      "reference_points": ["评测样本应包含任务、可用工具、环境状态和期望结果", "同时检查任务成功、工具选择、参数正确性和安全约束", "需要记录中间轨迹以定位失败阶段", "将成本、时延和重试次数纳入质量权衡"],
+      "evaluation_rubric": [
+        {"point": "说明评测对象包含轨迹而非只有最终答案", "weight": 40, "mandatory": true},
+        {"point": "给出至少两个工具调用层面的指标", "weight": 30, "mandatory": true},
+        {"point": "提到成本或时延等工程指标", "weight": 30, "mandatory": false}
+      ],
+      "common_mistakes": ["只用人工主观印象评估", "任务成功就忽略越权或多余调用", "没有固定环境导致结果不可复现"],
+      "oral_answer_outline": ["定义可复现实例", "拆分最终结果与轨迹指标", "加入风险和成本维度"],
+      "reference_answer": "离线样本要固定用户目标、工具集合、初始状态和可验证的期望结果。除了最终答案，还应检查工具选择是否正确、参数是否合规、调用轮数和是否触发安全限制，并保留每一步轨迹来定位失败。评估还要看延迟、token 和外部调用成本，避免用高成本掩盖不稳定性。",
+      "follow_up_questions": ["如何处理同一任务存在多条正确工具路径？", "离线高分后上线前还需要什么验证？"],
+      "sources": [{"source_id": "openai-api-docs"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "ai-observability-001",
+      "domain": "ai_engineering",
+      "topic": "observability",
+      "subtopic": "trace_correlation",
+      "question": "AI 应用的可观测性为什么需要关联一次用户请求、模型调用、工具调用和检索？",
+      "difficulty": "medium",
+      "question_type": "engineering_practice",
+      "expected_duration_seconds": 90,
+      "tags": ["Observability", "Tracing", "AI Engineering"],
+      "reference_points": ["一个用户请求可能跨越模型、检索、工具和异步任务", "统一 trace 或 correlation id 才能定位端到端失败和延迟", "span 属性应记录模型、耗时、状态码和去敏后的用量信息", "日志不能默认写入原始敏感提示词或密钥"],
+      "evaluation_rubric": [
+        {"point": "说明端到端关联的排障价值", "weight": 40, "mandatory": true},
+        {"point": "给出可记录的关键指标或属性", "weight": 30, "mandatory": true},
+        {"point": "提到脱敏或隐私保护", "weight": 30, "mandatory": true}
+      ],
+      "common_mistakes": ["每个服务独立打日志但没有请求关联", "记录完整用户提示词和 API Key", "只记录成功调用不记录错误和重试"],
+      "oral_answer_outline": ["描述一次请求的跨组件路径", "说明 trace 和 span 指标", "补充隐私与采样策略"],
+      "reference_answer": "一次 AI 请求往往同时经过检索、模型、工具和异步队列，单点日志无法回答慢在哪里或错误来自哪里。为每次请求传播统一 trace id，并用 span 记录模型版本、耗时、状态、重试和经过脱敏的用量，才能还原链路。观测数据也要遵守最小化原则，避免默认收集提示词原文和秘密。",
+      "follow_up_questions": ["如何让异步队列任务继续传播 trace context？", "采样策略怎样避免漏掉失败请求？"],
+      "sources": [{"source_id": "opentelemetry-docs"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "agent-safety-evaluation-001",
+      "domain": "agent",
+      "topic": "agent_safety",
+      "subtopic": "adversarial_evaluation",
+      "question": "如何验证 Agent 在提示注入和越权工具请求下仍会遵守安全策略？",
+      "difficulty": "hard",
+      "question_type": "security_reasoning",
+      "expected_duration_seconds": 120,
+      "tags": ["Agent Safety", "提示注入", "评测"],
+      "reference_points": ["构造直接和间接提示注入、权限越界和数据外泄等场景", "验证工具服务端拒绝非法动作，而不是只检查模型措辞", "记录攻击输入、决策轨迹、实际调用和拒绝原因", "将测试纳入回归集并在工具或提示变更后重复执行"],
+      "evaluation_rubric": [
+        {"point": "说明安全评测必须覆盖真实工具执行边界", "weight": 40, "mandatory": true},
+        {"point": "给出多类对抗场景", "weight": 30, "mandatory": true},
+        {"point": "说明回归和证据记录", "weight": 30, "mandatory": false}
+      ],
+      "common_mistakes": ["只问模型是否会遵守规则", "测试环境有管理员权限，无法暴露授权问题", "安全样本只在上线前跑一次"],
+      "oral_answer_outline": ["先定义攻击面", "在受控环境验证服务端拒绝", "将结果沉淀为回归集"],
+      "reference_answer": "安全评测应在隔离环境构造直接和文档内嵌的提示注入、跨租户访问、危险参数等用例。验收标准不是模型说了拒绝，而是服务端工具没有执行越权操作，并且有明确的拒绝证据。把输入、轨迹和调用结果保留为回归样本，在模型、提示词或工具策略变化后持续重跑。",
+      "follow_up_questions": ["怎样在不泄露真实数据的情况下构造跨租户测试？", "安全拒绝率升高时如何排查是否误伤正常任务？"],
+      "sources": [{"source_id": "openai-api-docs"}],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    }
+  ]
+}

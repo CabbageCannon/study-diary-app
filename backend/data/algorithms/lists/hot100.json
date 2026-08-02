@@ -1,0 +1,10 @@
+{
+  "list_id": "hot100",
+  "name": "力扣 Hot 100",
+  "source": {
+    "type": "manual_or_licensed_dataset",
+    "url": "",
+    "license": ""
+  },
+  "problem_slugs": []
+}
