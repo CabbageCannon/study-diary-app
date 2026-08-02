@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
 from app.database import Base, get_db
+from app.config import settings
 from app.main import app
 from app.repositories.interview_repository import upsert_question
 from app.schemas import InterviewQuestionSeed
@@ -77,6 +78,11 @@ class CatalogApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual([item["id"] for item in response.json()], ["verified-question-001"])
 
+        pending_response = self.client.get("/api/interviews/questions?review_status=pending")
+        self.assertEqual(pending_response.status_code, 403)
+        previous_value = settings.allow_unverified_question_access
+        settings.allow_unverified_question_access = True
+        self.addCleanup(setattr, settings, "allow_unverified_question_access", previous_value)
         pending_response = self.client.get("/api/interviews/questions?review_status=pending")
         self.assertEqual(pending_response.status_code, 200)
         self.assertEqual([item["id"] for item in pending_response.json()], ["pending-question-001"])

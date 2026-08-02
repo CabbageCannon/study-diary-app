@@ -1,0 +1,385 @@
+{
+  "generated_at": "2026-08-02T08:31:08.763577+00:00",
+  "total": 27,
+  "note": "自动质量检查不能替代人工审核；本报告不会把任何题目改为 verified。",
+  "questions": [
+    {
+      "id": "agent-evaluation-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "agent-execution-loop-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "agent-human-in-loop-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "agent-mcp-boundary-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "agent-memory-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "agent-multi-agent-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "agent-planning-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "agent-safety-evaluation-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "agent-safety-tool-boundary-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "agent-tool-calling-loop-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "ai-cost-control-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "ai-deployment-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "ai-observability-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "ai-observability-002",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "ai-retry-timeout-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "ai-streaming-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "llm-function-calling-contract-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "llm-structured-output-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "network-http-idempotency-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "network-proxy-timeout-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "network-sse-websocket-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "python-asyncio-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "python-fastapi-dependencies-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "python-pydantic-validation-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "rag-chunking-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "rag-hallucination-evaluation-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    },
+    {
+      "id": "rag-retrieval-pipeline-001",
+      "recommended_status": "pending",
+      "quality_checks": {
+        "has_specific_source": true,
+        "rubric_valid": true,
+        "reference_points_valid": true,
+        "common_mistakes_valid": true,
+        "answer_length_valid": true,
+        "question_hash_unique": true,
+        "possible_factual_risk": false
+      },
+      "notes": []
+    }
+  ]
+}

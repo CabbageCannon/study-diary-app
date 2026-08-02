@@ -3,7 +3,10 @@ import { NavLink } from "react-router-dom";
 const navItems = [
   { to: "/write", label: "写日记" },
   { to: "/history", label: "历史日记" },
+  { to: "/interview", label: "八股训练" },
 ];
+
+const questionReviewEnabled = import.meta.env.VITE_ENABLE_QUESTION_REVIEW === "true";
 
 export function Navigation() {
   return (
@@ -17,7 +20,7 @@ export function Navigation() {
       </div>
 
       <div className="nav-links">
-        {navItems.map((item) => (
+        {[...navItems, ...(questionReviewEnabled ? [{ to: "/interview/review", label: "题库审核" }] : [])].map((item) => (
           <NavLink className={({ isActive }) => (isActive ? "nav-link nav-link-active" : "nav-link")} to={item.to} key={item.to}>
             {item.label}
           </NavLink>

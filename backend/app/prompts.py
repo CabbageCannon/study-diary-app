@@ -23,6 +23,13 @@ REWRITE_SYSTEM_PROMPT = """你是一个学习日记草稿改写助手。你需�
 8. tags 是字符串数组，数量 2 到 5 个。"""
 
 
+INTERVIEW_EVALUATION_SYSTEM_PROMPT = """你是一名严格、可解释的中文技术面试评估助手。
+
+只能依据输入中给出的题目、参考要点、评分规则和常见错误进行评分；不要编造新的标准答案来源。
+输出必须是一个严格 JSON 对象，包含：correctness_score、completeness_score、structure_score、oral_clarity_score、matched_points、incorrect_points、missing_points、improved_answer、follow_up_questions。
+四个分数均为 0 到 100 的整数。improved_answer 必须是 60 到 90 秒可口述的简洁回答，不要写成教材。若回答过短或空泛，应在 missing_points 中明确指出。"""
+
+
 def build_draft_user_prompt(date: str, raw_text: str) -> str:
     return f"""请根据下面的原始学习记录，整理成一篇学习日记：
 
@@ -59,4 +66,32 @@ INTERVIEW_EVALUATION_PROMPT_TEMPLATE = """你是一名严格、可解释的技�
 用户回答：{user_answer}
 
 请分别给出正确性、完整性、结构性、口述清晰度评分，并说明匹配、错误和缺失要点。
+"""
+
+
+def build_interview_evaluation_prompt(
+    *,
+    question: str,
+    reference_points_json: str,
+    evaluation_rubric_json: str,
+    common_mistakes_json: str,
+    user_answer: str,
+    repair_instruction: str = "",
+) -> str:
+    return f"""题目：
+{question}
+
+参考要点：
+{reference_points_json}
+
+评分规则：
+{evaluation_rubric_json}
+
+常见错误：
+{common_mistakes_json}
+
+用户回答：
+{user_answer}
+
+{repair_instruction}
 """

@@ -1,5 +1,28 @@
 # 学习日记记录系统
 
+## 八股训练 MVP
+
+项目新增了一个基于本地面试题库的训练闭环：训练集只从 `verified` 且启用的题目中抽题，支持文本或浏览器语音输入、逐题 AI 评分、回答历史和间隔复习。题库初始的 27 道题仍全部是 `pending`，不会因为生成审核报告而自动变为已验证。
+
+从 `backend` 目录执行以下命令可以生成只读的人工审核建议报告；该命令不会写入数据库，也不会更改题目审核状态：
+
+```powershell
+.venv\Scripts\python.exe scripts\build_interview_manual_review_report.py
+```
+
+审核能力默认关闭。仅在本地人工审核时，同时启用后端和前端开关：
+
+```powershell
+# backend/.env
+ALLOW_QUESTION_REVIEW=true
+ALLOW_UNVERIFIED_QUESTION_ACCESS=true
+
+# frontend/.env
+VITE_ENABLE_QUESTION_REVIEW=true
+```
+
+训练接口包括 `POST /api/interviews/question-sets`、`POST /api/interviews/question-sets/{id}/answers`、`POST /api/interviews/answers/{id}/retry`、`POST /api/interviews/answers/{id}/evaluate`、`GET /api/interviews/question-sets` 和 `GET /api/interviews/reviews/due`。评分按正确性 35%、完整性 30%、结构性 20%、口语表达 15% 加权，并按 1 / 3 / 7 / 14 天安排复习。
+
 一个本地运行的学习日记 Web 应用：前端使用 React + TypeScript + Vite，后端使用 FastAPI + SQLite + SQLAlchemy，通过 OpenAI-compatible API 将口语化学习记录整理成可检查、可修改、可归档的中文学习日记。
 
 ## 项目结构
@@ -74,7 +97,7 @@ copy .env.example .env
 npm run dev
 ```
 
-浏览器打开 `http://localhost:5173`。
+浏览器打开 `http://127.0.0.1:5173`。开发服务器会固定使用 5173；若终端提示端口已被占用，请先停止占用该端口的旧前端进程，而不是继续打开旧服务。
 
 前端页面：
 
@@ -90,13 +113,13 @@ LLM_API_KEY=your_api_key_here
 LLM_BASE_URL=https://api.openai.com/v1
 LLM_MODEL=gpt-4o-mini
 DATABASE_URL=sqlite:///./data/study_diary.db
-FRONTEND_ORIGIN=http://localhost:5173
+FRONTEND_ORIGIN=http://127.0.0.1:5173
 ```
 
 前端 `frontend/.env`：
 
 ```env
-VITE_API_BASE_URL=http://localhost:8000
+VITE_API_BASE_URL=http://127.0.0.1:8000
 ```
 
 `LLM_BASE_URL` 使用 OpenAI-compatible 格式，因此可以切换到 DeepSeek、OpenAI 或其他兼容服务。不要提交真实 `.env` 文件或 API Key。

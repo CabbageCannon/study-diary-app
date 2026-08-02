@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 import json
 
-from sqlalchemy import Boolean, DateTime, Float, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -140,3 +140,109 @@ class InterviewQuestion(Base):
     @property
     def sources(self) -> list[dict[str, object]]:
         return [item for item in self._json_list(self.sources_json) if isinstance(item, dict)]
+
+
+class InterviewQuestionSet(Base):
+    __tablename__ = "interview_question_sets"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    date: Mapped[str] = mapped_column(String(10), index=True)
+    domain: Mapped[str | None] = mapped_column(String(80), nullable=True, index=True)
+    topic: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
+    difficulty: Mapped[str | None] = mapped_column(String(20), nullable=True, index=True)
+    question_count: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(String(20), default="active", index=True)
+    current_index: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class InterviewQuestionSetItem(Base):
+    __tablename__ = "interview_question_set_items"
+    __table_args__ = (
+        UniqueConstraint("question_set_id", "order_index", name="uq_interview_set_order"),
+        UniqueConstraint("question_set_id", "question_id", name="uq_interview_set_question"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    question_set_id: Mapped[int] = mapped_column(
+        ForeignKey("interview_question_sets.id", ondelete="CASCADE"), index=True
+    )
+    question_id: Mapped[str] = mapped_column(ForeignKey("interview_questions.id"), index=True)
+    order_index: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class InterviewAnswer(Base):
+    __tablename__ = "interview_answers"
+    __table_args__ = (UniqueConstraint("question_set_id", "question_id", "attempt_index", name="uq_interview_answer_attempt"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    question_set_id: Mapped[int] = mapped_column(
+        ForeignKey("interview_question_sets.id", ondelete="CASCADE"), index=True
+    )
+    question_id: Mapped[str] = mapped_column(ForeignKey("interview_questions.id"), index=True)
+    attempt_index: Mapped[int] = mapped_column(Integer, default=1)
+    answer_text: Mapped[str] = mapped_column(Text)
+    answer_source: Mapped[str] = mapped_column(String(20))
+    duration_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class InterviewEvaluation(Base):
+    __tablename__ = "interview_evaluations"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    answer_id: Mapped[int] = mapped_column(ForeignKey("interview_answers.id", ondelete="CASCADE"), unique=True, index=True)
+    correctness_score: Mapped[int] = mapped_column(Integer)
+    completeness_score: Mapped[int] = mapped_column(Integer)
+    structure_score: Mapped[int] = mapped_column(Integer)
+    oral_clarity_score: Mapped[int] = mapped_column(Integer)
+    total_score: Mapped[float] = mapped_column(Float)
+    matched_points_json: Mapped[str] = mapped_column("matched_points", Text, default="[]")
+    incorrect_points_json: Mapped[str] = mapped_column("incorrect_points", Text, default="[]")
+    missing_points_json: Mapped[str] = mapped_column("missing_points", Text, default="[]")
+    improved_answer: Mapped[str] = mapped_column(Text)
+    follow_up_questions_json: Mapped[str] = mapped_column("follow_up_questions", Text, default="[]")
+    ai_raw_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    model_name: Mapped[str] = mapped_column(String(160))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+    def _json_list(self, value: str) -> list[str]:
+        try:
+            decoded = json.loads(value or "[]")
+        except json.JSONDecodeError:
+            return []
+        return [str(item) for item in decoded] if isinstance(decoded, list) else []
+
+    @property
+    def matched_points(self) -> list[str]:
+        return self._json_list(self.matched_points_json)
+
+    @property
+    def incorrect_points(self) -> list[str]:
+        return self._json_list(self.incorrect_points_json)
+
+    @property
+    def missing_points(self) -> list[str]:
+        return self._json_list(self.missing_points_json)
+
+    @property
+    def follow_up_questions(self) -> list[str]:
+        return self._json_list(self.follow_up_questions_json)
+
+
+class InterviewReviewSchedule(Base):
+    __tablename__ = "interview_review_schedules"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    question_id: Mapped[str] = mapped_column(ForeignKey("interview_questions.id"), unique=True, index=True)
+    last_answer_id: Mapped[int] = mapped_column(ForeignKey("interview_answers.id"), index=True)
+    last_score: Mapped[float] = mapped_column(Float)
+    next_review_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    review_interval_days: Mapped[int] = mapped_column(Integer)
+    review_count: Mapped[int] = mapped_column(Integer, default=1)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)

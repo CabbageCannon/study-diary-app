@@ -389,5 +389,184 @@ class AnswerEvaluation(BaseModel):
     matched_points: list[str] = Field(default_factory=list)
     incorrect_points: list[str] = Field(default_factory=list)
     missing_points: list[str] = Field(default_factory=list)
-    improved_answer: str = ""
+    improved_answer: str = Field(min_length=40, max_length=1200)
     follow_up_questions: list[str] = Field(default_factory=list)
+
+    @field_validator("matched_points", "incorrect_points", "missing_points", "follow_up_questions")
+    @classmethod
+    def normalize_evaluation_lists(cls, value: list[str]) -> list[str]:
+        return [item.strip() for item in value if item.strip()]
+
+
+QuestionSetStatus = Literal["active", "completed", "abandoned"]
+QuestionSetItemStatus = Literal["pending", "answered", "skipped"]
+AnswerSource = Literal["voice", "text"]
+
+
+class InterviewQuestionReviewUpdate(BaseModel):
+    question: str | None = Field(default=None, min_length=8, max_length=1000)
+    difficulty: Difficulty | None = None
+    expected_duration_seconds: int | None = Field(default=None, ge=30, le=600)
+    tags: list[str] | None = Field(default=None, min_length=1)
+    reference_points: list[str] | None = Field(default=None, min_length=1)
+    evaluation_rubric: list[EvaluationRubricItem] | None = Field(default=None, min_length=1)
+    common_mistakes: list[str] | None = Field(default=None, min_length=1)
+    oral_answer_outline: list[str] | None = Field(default=None, min_length=1)
+    reference_answer: str | None = Field(default=None, min_length=40, max_length=1200)
+    follow_up_questions: list[str] | None = None
+    review_status: ReviewStatus | None = None
+    quality_score: float | None = Field(default=None, ge=0, le=100)
+
+    @field_validator(
+        "question",
+        "reference_answer",
+        "tags",
+        "reference_points",
+        "common_mistakes",
+        "oral_answer_outline",
+        "follow_up_questions",
+    )
+    @classmethod
+    def normalize_optional_content(cls, value: Any) -> Any:
+        if value is None:
+            return None
+        return InterviewQuestionSeed.normalize_content(value)
+
+    @field_validator("evaluation_rubric")
+    @classmethod
+    def validate_optional_rubric(cls, value: list[EvaluationRubricItem] | None) -> list[EvaluationRubricItem] | None:
+        if value is not None and sum(item.weight for item in value) != 100:
+            raise ValueError("evaluation_rubric 的 weight 总和必须为 100")
+        return value
+
+
+class InterviewQuestionForTraining(BaseModel):
+    id: str
+    domain: QuestionDomain
+    topic: str
+    difficulty: Difficulty
+    expected_duration_seconds: int
+    tags: list[str]
+    question: str
+
+
+class InterviewQuestionSetCreate(BaseModel):
+    domain: QuestionDomain | None = None
+    topic: str | None = Field(default=None, max_length=100)
+    difficulty: Difficulty | None = None
+    question_count: int = Field(ge=1, le=30)
+    include_due_reviews: bool = True
+    random_order: bool = True
+
+    @field_validator("topic")
+    @classmethod
+    def normalize_optional_topic(cls, value: str | None) -> str | None:
+        return InterviewQuestionSeed.normalize_key(value) if value else None
+
+
+class InterviewEvaluationRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    answer_id: int
+    correctness_score: int
+    completeness_score: int
+    structure_score: int
+    oral_clarity_score: int
+    total_score: float
+    matched_points: list[str]
+    incorrect_points: list[str]
+    missing_points: list[str]
+    improved_answer: str
+    follow_up_questions: list[str]
+    model_name: str
+    created_at: datetime
+
+
+class InterviewAnswerRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    question_set_id: int
+    question_id: str
+    attempt_index: int
+    answer_text: str
+    answer_source: AnswerSource
+    duration_seconds: int | None
+    created_at: datetime
+    updated_at: datetime
+
+
+class InterviewAnswerCreate(BaseModel):
+    question_id: str = Field(min_length=1, max_length=160)
+    answer_text: str = Field(min_length=1, max_length=12000)
+    answer_source: AnswerSource
+    duration_seconds: int | None = Field(default=None, ge=0, le=7200)
+
+    @field_validator("answer_text")
+    @classmethod
+    def normalize_answer_text(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("answer_text 不能为空")
+        return value
+
+
+class InterviewAnswerSubmissionRead(BaseModel):
+    answer: InterviewAnswerRead
+    evaluation: InterviewEvaluationRead | None = None
+    evaluation_status: Literal["completed", "failed"]
+    evaluation_error: str | None = None
+    next_review_at: datetime | None = None
+
+
+class InterviewQuestionSetItemRead(BaseModel):
+    id: int
+    order_index: int
+    status: QuestionSetItemStatus
+    question: InterviewQuestionForTraining
+    latest_answer: InterviewAnswerRead | None = None
+    latest_evaluation: InterviewEvaluationRead | None = None
+    next_review_at: datetime | None = None
+
+
+class InterviewQuestionSetRead(BaseModel):
+    id: int
+    date: str
+    domain: QuestionDomain | None
+    topic: str | None
+    difficulty: Difficulty | None
+    question_count: int
+    available_question_count: int
+    availability_message: str | None = None
+    status: QuestionSetStatus
+    current_index: int
+    created_at: datetime
+    completed_at: datetime | None
+    items: list[InterviewQuestionSetItemRead]
+    current_question: InterviewQuestionForTraining | None
+
+
+class InterviewQuestionSetSummary(BaseModel):
+    id: int
+    date: str
+    domain: QuestionDomain | None
+    topic: str | None
+    difficulty: Difficulty | None
+    question_count: int
+    answered_count: int
+    status: QuestionSetStatus
+    average_score: float | None
+    created_at: datetime
+    completed_at: datetime | None
+
+
+class InterviewReviewScheduleRead(BaseModel):
+    id: int
+    question_id: str
+    last_answer_id: int
+    last_score: float
+    next_review_at: datetime
+    review_interval_days: int
+    review_count: int
+    question: InterviewQuestionForTraining

@@ -16,6 +16,13 @@ def _normalize_sqlite_url(raw_url: str) -> str:
     return raw_url
 
 
+def _read_bool(name: str, default: bool = False) -> bool:
+    raw_value = os.getenv(name)
+    if raw_value is None:
+        return default
+    return raw_value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 class Settings:
     def __init__(self) -> None:
         self.llm_api_key = os.getenv("LLM_API_KEY", "").strip()
@@ -24,7 +31,9 @@ class Settings:
         self.database_url = _normalize_sqlite_url(
             os.getenv("DATABASE_URL", "sqlite:///./data/study_diary.db").strip()
         )
-        self.frontend_origin = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173").strip()
+        self.frontend_origin = os.getenv("FRONTEND_ORIGIN", "http://127.0.0.1:5173").strip()
+        self.allow_question_review = _read_bool("ALLOW_QUESTION_REVIEW")
+        self.allow_unverified_question_access = _read_bool("ALLOW_UNVERIFIED_QUESTION_ACCESS")
 
     @property
     def frontend_origins(self) -> list[str]:

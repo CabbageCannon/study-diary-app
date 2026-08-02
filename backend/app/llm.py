@@ -4,11 +4,23 @@ import httpx
 from pydantic import ValidationError
 
 from app.config import settings
-from app.prompts import DRAFT_SYSTEM_PROMPT, REWRITE_SYSTEM_PROMPT, build_draft_user_prompt, build_rewrite_user_prompt
-from app.schemas import DiaryDraftContent
+from app.models import InterviewQuestion
+from app.prompts import (
+    DRAFT_SYSTEM_PROMPT,
+    INTERVIEW_EVALUATION_SYSTEM_PROMPT,
+    REWRITE_SYSTEM_PROMPT,
+    build_draft_user_prompt,
+    build_interview_evaluation_prompt,
+    build_rewrite_user_prompt,
+)
+from app.schemas import AnswerEvaluation, DiaryDraftContent
 
 
 class LLMError(RuntimeError):
+    pass
+
+
+class LLMFormatError(LLMError):
     pass
 
 
@@ -25,15 +37,15 @@ def _parse_json_content(content: str) -> dict:
     try:
         parsed = json.loads(text)
     except json.JSONDecodeError as exc:
-        raise LLMError("大模型返回的内容不是有效 JSON，请稍后重试。") from exc
+        raise LLMFormatError("大模型返回的内容不是有效 JSON。") from exc
 
     if not isinstance(parsed, dict):
-        raise LLMError("大模型返回的 JSON 结构不正确。")
+        raise LLMFormatError("大模型返回的 JSON 结构不正确。")
 
     return parsed
 
 
-async def _request_polished_content(system_prompt: str, user_prompt: str) -> DiaryDraftContent:
+async def _request_json_content(system_prompt: str, user_prompt: str) -> tuple[dict, str]:
     if not settings.llm_api_key or settings.llm_api_key == "your_api_key_here":
         raise LLMError("未配置 LLM_API_KEY，请在 backend/.env 中填写可用的大模型 API Key。")
 
@@ -65,10 +77,16 @@ async def _request_polished_content(system_prompt: str, user_prompt: str) -> Dia
         data = response.json()
         content = data["choices"][0]["message"]["content"]
     except (KeyError, IndexError, TypeError, json.JSONDecodeError) as exc:
-        raise LLMError("大模型响应格式不符合 OpenAI-compatible Chat Completions 结构。") from exc
+        raise LLMFormatError("大模型响应格式不符合 OpenAI-compatible Chat Completions 结构。") from exc
+
+    return _parse_json_content(content), content
+
+
+async def _request_polished_content(system_prompt: str, user_prompt: str) -> DiaryDraftContent:
+    parsed, _ = await _request_json_content(system_prompt, user_prompt)
 
     try:
-        return DiaryDraftContent.model_validate(_parse_json_content(content))
+        return DiaryDraftContent.model_validate(parsed)
     except ValidationError as exc:
         raise LLMError(f"大模型返回字段不完整或格式错误：{exc.errors()}") from exc
 
@@ -96,3 +114,29 @@ async def rewrite_learning_diary_draft(
             feedback=feedback,
         ),
     )
+
+
+async def evaluate_interview_answer(question: InterviewQuestion, user_answer: str) -> tuple[AnswerEvaluation, str]:
+    """Evaluate a saved answer with one bounded repair attempt for malformed model output."""
+
+    prompt = build_interview_evaluation_prompt(
+        question=question.question,
+        reference_points_json=json.dumps(question.reference_points, ensure_ascii=False),
+        evaluation_rubric_json=json.dumps(question.evaluation_rubric, ensure_ascii=False),
+        common_mistakes_json=json.dumps(question.common_mistakes, ensure_ascii=False),
+        user_answer=user_answer,
+    )
+    last_error = ""
+    for attempt in range(2):
+        repair_instruction = "" if attempt == 0 else f"上一次输出未通过结构校验：{last_error}。请只返回符合要求的 JSON。"
+        try:
+            parsed, _ = await _request_json_content(
+                INTERVIEW_EVALUATION_SYSTEM_PROMPT,
+                f"{prompt}\n{repair_instruction}",
+            )
+            evaluation = AnswerEvaluation.model_validate(parsed)
+            return evaluation, json.dumps(parsed, ensure_ascii=False)
+        except (LLMFormatError, ValidationError) as exc:
+            last_error = str(exc)
+
+    raise LLMError("大模型评价结果格式错误，已进行一次修复重试。")
