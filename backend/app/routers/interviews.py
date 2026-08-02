@@ -5,17 +5,30 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import get_db
+from app.llm import LLMError
 from app.repositories import interview_training_repository as training_repository
 from app.repositories.interview_repository import apply_review_update, get_question, list_questions
 from app.schemas import (
     InterviewAnswerCreate,
     InterviewAnswerSubmissionRead,
+    InterviewQuestionAIReviewBatchRequest,
+    InterviewQuestionAIReviewRequest,
+    InterviewQuestionAIReviewResult,
+    InterviewQuestionBatchResult,
+    InterviewQuestionIdsRequest,
     InterviewQuestionRead,
     InterviewQuestionReviewUpdate,
     InterviewQuestionSetCreate,
     InterviewQuestionSetRead,
     InterviewQuestionSetSummary,
     InterviewReviewScheduleRead,
+)
+from app.services.interview_question_review_service import (
+    apply_ai_recommendation,
+    batch_ai_review,
+    batch_quick_publish,
+    batch_reject,
+    run_ai_review,
 )
 from app.services.interview_training_service import (
     create_question_set,
@@ -40,6 +53,18 @@ def require_question_review_enabled() -> None:
 def require_unverified_access_enabled(review_status: str) -> None:
     if review_status != "verified" and not settings.allow_unverified_question_access:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="未审核题目访问尚未开启")
+
+
+def require_ai_question_review_enabled() -> None:
+    require_question_review_enabled()
+    if not settings.allow_ai_question_review:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="AI 题目审核接口尚未开启")
+
+
+def require_question_quick_publish_enabled() -> None:
+    require_question_review_enabled()
+    if not settings.allow_question_quick_publish:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="快速正式化接口尚未开启")
 
 
 @router.get("/questions", response_model=list[InterviewQuestionRead])
@@ -83,6 +108,78 @@ def review_interview_question(
         )
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
+
+
+@router.post("/questions/{question_id}/ai-review", response_model=InterviewQuestionAIReviewResult)
+async def ai_review_interview_question(
+    question_id: str,
+    payload: InterviewQuestionAIReviewRequest,
+    db: Session = Depends(get_db),
+) -> InterviewQuestionAIReviewResult:
+    require_ai_question_review_enabled()
+    question = get_question(db, question_id)
+    if question is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="八股题不存在")
+    try:
+        review, published = await run_ai_review(db, question, auto_publish=payload.auto_publish)
+    except LLMError as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
+    return InterviewQuestionAIReviewResult(
+        question=InterviewQuestionRead.model_validate(question),
+        review=review,
+        published=published,
+        review_model=settings.llm_model,
+    )
+
+
+@router.post("/questions/{question_id}/ai-review/apply", response_model=InterviewQuestionAIReviewResult)
+def apply_ai_interview_review(
+    question_id: str,
+    db: Session = Depends(get_db),
+) -> InterviewQuestionAIReviewResult:
+    require_ai_question_review_enabled()
+    question = get_question(db, question_id)
+    if question is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="八股题不存在")
+    try:
+        review, published = apply_ai_recommendation(db, question)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
+    return InterviewQuestionAIReviewResult(
+        question=InterviewQuestionRead.model_validate(question),
+        review=review,
+        published=published,
+        review_model=question.review_model or settings.llm_model,
+    )
+
+
+@router.post("/questions/ai-review-batch", response_model=InterviewQuestionBatchResult)
+async def ai_review_interview_questions_batch(
+    payload: InterviewQuestionAIReviewBatchRequest,
+    db: Session = Depends(get_db),
+) -> InterviewQuestionBatchResult:
+    require_ai_question_review_enabled()
+    return await batch_ai_review(db, payload.question_ids, auto_publish=payload.auto_publish)
+
+
+@router.post("/questions/publish-batch", response_model=InterviewQuestionBatchResult)
+def quick_publish_interview_questions_batch(
+    payload: InterviewQuestionIdsRequest,
+    db: Session = Depends(get_db),
+) -> InterviewQuestionBatchResult:
+    require_question_quick_publish_enabled()
+    return batch_quick_publish(db, payload.question_ids)
+
+
+@router.post("/questions/reject-batch", response_model=InterviewQuestionBatchResult)
+def reject_interview_questions_batch(
+    payload: InterviewQuestionIdsRequest,
+    db: Session = Depends(get_db),
+) -> InterviewQuestionBatchResult:
+    require_question_review_enabled()
+    return batch_reject(db, payload.question_ids)
 
 
 @router.get("/questions/{question_id}", response_model=InterviewQuestionRead)

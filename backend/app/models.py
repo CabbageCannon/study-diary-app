@@ -101,6 +101,12 @@ class InterviewQuestion(Base):
     sources_json: Mapped[str] = mapped_column("sources", Text, default="[]")
     review_status: Mapped[str] = mapped_column(String(20), index=True, default="pending")
     verified_by_human: Mapped[bool] = mapped_column(Boolean, default=False)
+    human_quality_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    ai_quality_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    review_method: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
+    review_model: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    ai_review_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     quality_score: Mapped[float | None] = mapped_column(Float, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
@@ -140,6 +146,16 @@ class InterviewQuestion(Base):
     @property
     def sources(self) -> list[dict[str, object]]:
         return [item for item in self._json_list(self.sources_json) if isinstance(item, dict)]
+
+    @property
+    def ai_review(self) -> dict[str, object] | None:
+        if not self.ai_review_json:
+            return None
+        try:
+            value = json.loads(self.ai_review_json)
+        except json.JSONDecodeError:
+            return None
+        return value if isinstance(value, dict) else None
 
 
 class InterviewQuestionSet(Base):

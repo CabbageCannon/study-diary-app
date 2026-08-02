@@ -93,5 +93,54 @@ def build_interview_evaluation_prompt(
 用户回答：
 {user_answer}
 
-{repair_instruction}
+    {repair_instruction}
+"""
+
+
+INTERVIEW_QUESTION_REVIEW_SYSTEM_PROMPT = """你是一名严格的中文技术面试题库审核助手。
+只能依据输入题目的题干、参考要点、评分 Rubric、常见误区、口述提纲、参考答案、追问和已有来源进行质量评估；不要编造新来源，不要改写题目。
+重点检查问题是否清楚、要点是否完整、Rubric 是否可执行、答案是否适合口述、来源是否支持结论、是否有明显事实或重复风险，以及是否真的适合训练。
+只返回严格 JSON 对象，必须包含：quality_score、clarity_score、technical_score、interview_value_score、source_support_score、factual_risk、duplicate_risk、issues、suggested_changes、recommended_status。
+所有分数都是 0 到 100 的整数。只有质量分至少 85 且没有事实风险、重复风险，并且内容适合正式训练时，recommended_status 才可以是 verified；其余情况返回 pending。"""
+
+
+def build_interview_question_review_prompt(
+    *,
+    question: str,
+    domain: str,
+    topic: str,
+    difficulty: str,
+    reference_points_json: str,
+    evaluation_rubric_json: str,
+    common_mistakes_json: str,
+    oral_answer_outline_json: str,
+    reference_answer: str,
+    follow_up_questions_json: str,
+    sources_json: str,
+) -> str:
+    return f"""题目：{question}
+领域：{domain}
+主题：{topic}
+难度：{difficulty}
+
+参考要点：
+{reference_points_json}
+
+评分 Rubric：
+{evaluation_rubric_json}
+
+常见误区：
+{common_mistakes_json}
+
+口述回答提纲：
+{oral_answer_outline_json}
+
+参考回答：
+{reference_answer}
+
+追问：
+{follow_up_questions_json}
+
+已有来源：
+{sources_json}
 """

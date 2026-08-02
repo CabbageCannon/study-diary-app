@@ -10,15 +10,27 @@
 .venv\Scripts\python.exe scripts\build_interview_manual_review_report.py
 ```
 
-审核能力默认关闭。仅在本地人工审核时，同时启用后端和前端开关：
+审核能力默认关闭。仅在本地审核时，同时启用后端和前端开关；AI 审核和快速正式化还需要各自的后端、前端开关：
 
 ```powershell
 # backend/.env
 ALLOW_QUESTION_REVIEW=true
 ALLOW_UNVERIFIED_QUESTION_ACCESS=true
+ALLOW_AI_QUESTION_REVIEW=true
+ALLOW_QUESTION_QUICK_PUBLISH=true
 
 # frontend/.env
 VITE_ENABLE_QUESTION_REVIEW=true
+VITE_ENABLE_AI_QUESTION_REVIEW=true
+VITE_ENABLE_QUESTION_QUICK_PUBLISH=true
+```
+
+普通题库导入只更新题目内容，已存在题目的人工评分、AI 审核结果、审核方式、审核时间和状态都会保留。只有明确执行 `--overwrite-review-metadata` 才允许种子 JSON 覆盖这些审核元数据：
+
+```powershell
+cd backend
+.venv\Scripts\python.exe scripts\import_seed_data.py --interviews --dry-run
+.venv\Scripts\python.exe scripts\import_seed_data.py --interviews --overwrite-review-metadata
 ```
 
 训练接口包括 `POST /api/interviews/question-sets`、`POST /api/interviews/question-sets/{id}/answers`、`POST /api/interviews/answers/{id}/retry`、`POST /api/interviews/answers/{id}/evaluate`、`GET /api/interviews/question-sets` 和 `GET /api/interviews/reviews/due`。评分按正确性 35%、完整性 30%、结构性 20%、口语表达 15% 加权，并按 1 / 3 / 7 / 14 天安排复习。
@@ -120,6 +132,9 @@ FRONTEND_ORIGIN=http://127.0.0.1:5173
 
 ```env
 VITE_API_BASE_URL=http://127.0.0.1:8000
+VITE_ENABLE_QUESTION_REVIEW=false
+VITE_ENABLE_AI_QUESTION_REVIEW=false
+VITE_ENABLE_QUESTION_QUICK_PUBLISH=false
 ```
 
 `LLM_BASE_URL` 使用 OpenAI-compatible 格式，因此可以切换到 DeepSeek、OpenAI 或其他兼容服务。不要提交真实 `.env` 文件或 API Key。
@@ -198,6 +213,19 @@ GET /api/interviews/questions/{question_id}
 ```
 
 八股题接口默认 `review_status=verified`；本地开发审核时可显式传 `review_status=pending`。
+
+审核 API（均受后端 feature flag 保护）：
+
+```http
+PATCH /api/interviews/questions/{question_id}/review
+POST /api/interviews/questions/{question_id}/ai-review
+POST /api/interviews/questions/{question_id}/ai-review/apply
+POST /api/interviews/questions/ai-review-batch
+POST /api/interviews/questions/publish-batch
+POST /api/interviews/questions/reject-batch
+```
+
+三种审核方式共用 `/interview/review`：人工精审的评分写入 `human_quality_score`，AI 评分写入 `ai_quality_score` 和结构化审核结果；快速正式化会记录 `manual_override`，但不会伪装成 `verified_by_human`。批量接口每次最多 30 题，单题失败不会中断其余处理。
 
 查询列表、查询详情和删除日记。
 

@@ -34,6 +34,8 @@ class Settings:
         self.frontend_origin = os.getenv("FRONTEND_ORIGIN", "http://127.0.0.1:5173").strip()
         self.allow_question_review = _read_bool("ALLOW_QUESTION_REVIEW")
         self.allow_unverified_question_access = _read_bool("ALLOW_UNVERIFIED_QUESTION_ACCESS")
+        self.allow_ai_question_review = _read_bool("ALLOW_AI_QUESTION_REVIEW")
+        self.allow_question_quick_publish = _read_bool("ALLOW_QUESTION_QUICK_PUBLISH")
 
     @property
     def frontend_origins(self) -> list[str]:

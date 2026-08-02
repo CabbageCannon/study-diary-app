@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Generator
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from app.config import settings
@@ -26,10 +26,40 @@ engine = create_engine(settings.database_url, connect_args=connect_args)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 
+INTERVIEW_REVIEW_COLUMN_DEFINITIONS = {
+    "human_quality_score": "FLOAT",
+    "ai_quality_score": "FLOAT",
+    "review_method": "VARCHAR(32)",
+    "review_model": "VARCHAR(160)",
+    "ai_review_json": "TEXT",
+    "reviewed_at": "DATETIME",
+}
+
+
+def _apply_sqlite_review_metadata_migration() -> None:
+    if engine.dialect.name != "sqlite":
+        return
+    inspector = inspect(engine)
+    if "interview_questions" not in inspector.get_table_names():
+        return
+    existing_columns = {column["name"] for column in inspector.get_columns("interview_questions")}
+    missing_columns = {
+        name: definition
+        for name, definition in INTERVIEW_REVIEW_COLUMN_DEFINITIONS.items()
+        if name not in existing_columns
+    }
+    if not missing_columns:
+        return
+    with engine.begin() as connection:
+        for name, definition in missing_columns.items():
+            connection.exec_driver_sql(f"ALTER TABLE interview_questions ADD COLUMN {name} {definition}")
+
+
 def init_db() -> None:
     from app import models  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
+    _apply_sqlite_review_metadata_migration()
 
 
 def get_db() -> Generator[Session, None, None]:

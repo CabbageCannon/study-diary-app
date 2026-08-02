@@ -9,7 +9,13 @@ from sqlalchemy.orm import Session
 
 from app.database import Base
 from app.models import AlgorithmProblem, InterviewQuestion
-from app.schemas import AlgorithmCatalog, AlgorithmProblemSeed, InterviewQuestionCatalog, InterviewQuestionSeed
+from app.schemas import (
+    AlgorithmCatalog,
+    AlgorithmProblemSeed,
+    InterviewQuestionAIReview,
+    InterviewQuestionCatalog,
+    InterviewQuestionSeed,
+)
 from app.services.algorithm_catalog_service import CatalogBuildError, write_json
 from app.services.data_import_service import import_algorithms, import_interviews
 
@@ -105,3 +111,52 @@ class SeedImportTests(unittest.TestCase):
             with self.assertRaises(CatalogBuildError):
                 import_algorithms(self.session, algorithms)
         self.assertEqual(len(self.session.scalars(select(AlgorithmProblem)).all()), 0)
+
+    def test_reimport_preserves_review_metadata_unless_explicitly_overwritten(self) -> None:
+        interviews = self.root / "interviews.json"
+        payload = interview_payload()
+        write_json(interviews, InterviewQuestionCatalog(questions=[InterviewQuestionSeed(**payload)]).model_dump(mode="json"))
+        import_interviews(self.session, interviews)
+
+        stored = self.session.get(InterviewQuestion, payload["id"])
+        assert stored is not None
+        stored.review_status = "verified"
+        stored.verified_by_human = True
+        stored.human_quality_score = 91
+        stored.quality_score = 91
+        stored.ai_quality_score = 88
+        stored.review_method = "human"
+        stored.review_model = "review-model"
+        stored.ai_review_json = InterviewQuestionAIReview(
+            quality_score=88,
+            clarity_score=87,
+            technical_score=89,
+            interview_value_score=90,
+            source_support_score=85,
+            factual_risk=False,
+            duplicate_risk=False,
+            issues=[],
+            suggested_changes=[],
+            recommended_status="verified",
+        ).model_dump_json()
+        self.session.commit()
+
+        payload["question"] = "Why does blocking work inside asyncio reduce concurrency in a FastAPI service?"
+        write_json(interviews, InterviewQuestionCatalog(questions=[InterviewQuestionSeed(**payload)]).model_dump(mode="json"))
+        result = import_interviews(self.session, interviews)
+        preserved = self.session.get(InterviewQuestion, payload["id"])
+        assert preserved is not None
+        self.assertEqual(preserved.question, payload["question"])
+        self.assertEqual(preserved.review_status, "verified")
+        self.assertEqual(preserved.human_quality_score, 91)
+        self.assertEqual(preserved.ai_quality_score, 88)
+        self.assertEqual(preserved.review_method, "human")
+        self.assertEqual(result.question_changes[0]["review_metadata"], "preserved")
+
+        overwritten = import_interviews(self.session, interviews, overwrite_review_metadata=True)
+        replaced = self.session.get(InterviewQuestion, payload["id"])
+        assert replaced is not None
+        self.assertEqual(replaced.review_status, "pending")
+        self.assertIsNone(replaced.human_quality_score)
+        self.assertIsNone(replaced.ai_quality_score)
+        self.assertEqual(overwritten.question_changes[0]["review_metadata"], "overwritten_from_seed")

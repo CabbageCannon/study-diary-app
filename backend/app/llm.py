@@ -8,12 +8,14 @@ from app.models import InterviewQuestion
 from app.prompts import (
     DRAFT_SYSTEM_PROMPT,
     INTERVIEW_EVALUATION_SYSTEM_PROMPT,
+    INTERVIEW_QUESTION_REVIEW_SYSTEM_PROMPT,
     REWRITE_SYSTEM_PROMPT,
     build_draft_user_prompt,
     build_interview_evaluation_prompt,
+    build_interview_question_review_prompt,
     build_rewrite_user_prompt,
 )
-from app.schemas import AnswerEvaluation, DiaryDraftContent
+from app.schemas import AnswerEvaluation, DiaryDraftContent, InterviewQuestionAIReview
 
 
 class LLMError(RuntimeError):
@@ -114,6 +116,38 @@ async def rewrite_learning_diary_draft(
             feedback=feedback,
         ),
     )
+
+
+async def review_interview_question(question: InterviewQuestion) -> tuple[InterviewQuestionAIReview, str]:
+    """Return a validated AI review without changing question content or metadata."""
+
+    prompt = build_interview_question_review_prompt(
+        question=question.question,
+        domain=question.domain,
+        topic=question.topic,
+        difficulty=question.difficulty,
+        reference_points_json=json.dumps(question.reference_points, ensure_ascii=False),
+        evaluation_rubric_json=json.dumps(question.evaluation_rubric, ensure_ascii=False),
+        common_mistakes_json=json.dumps(question.common_mistakes, ensure_ascii=False),
+        oral_answer_outline_json=json.dumps(question.oral_answer_outline, ensure_ascii=False),
+        reference_answer=question.reference_answer,
+        follow_up_questions_json=json.dumps(question.follow_up_questions, ensure_ascii=False),
+        sources_json=json.dumps(question.sources, ensure_ascii=False),
+    )
+    last_error = ""
+    for attempt in range(2):
+        repair_instruction = "" if attempt == 0 else f"上一次输出未通过结构校验：{last_error}。请只返回符合要求的 JSON。"
+        try:
+            parsed, _ = await _request_json_content(
+                INTERVIEW_QUESTION_REVIEW_SYSTEM_PROMPT,
+                f"{prompt}\n{repair_instruction}",
+            )
+            review = InterviewQuestionAIReview.model_validate(parsed)
+            return review, json.dumps(parsed, ensure_ascii=False)
+        except (LLMFormatError, ValidationError) as exc:
+            last_error = str(exc)
+
+    raise LLMError("AI 审核结果格式错误，已进行一次修复重试。")
 
 
 async def evaluate_interview_answer(question: InterviewQuestion, user_answer: str) -> tuple[AnswerEvaluation, str]:

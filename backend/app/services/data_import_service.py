@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 from pydantic import ValidationError
@@ -21,11 +21,12 @@ class ImportResult:
     skipped: int = 0
     errors: int = 0
     dry_run: bool = False
+    question_changes: list[dict[str, object]] = field(default_factory=list)
 
     def record(self, action: str) -> None:
         setattr(self, action, getattr(self, action) + 1)
 
-    def as_dict(self) -> dict[str, int | bool]:
+    def as_dict(self) -> dict[str, object]:
         return asdict(self)
 
 
@@ -93,13 +94,24 @@ def import_algorithms(db: Session, catalog_path: Path, dry_run: bool = False) ->
     return result
 
 
-def import_interviews(db: Session, catalog_path: Path, dry_run: bool = False) -> ImportResult:
+def import_interviews(
+    db: Session,
+    catalog_path: Path,
+    dry_run: bool = False,
+    *,
+    overwrite_review_metadata: bool = False,
+) -> ImportResult:
     catalog = _load_interview_catalog(catalog_path)
     result = ImportResult(dry_run=dry_run)
     try:
         for question in catalog.questions:
-            _, action = upsert_question(db, question)
+            _, action, changes = upsert_question(
+                db,
+                question,
+                overwrite_review_metadata=overwrite_review_metadata,
+            )
             result.record(action)
+            result.question_changes.append({"question_id": question.id, "action": action, **changes})
         db.flush()
         if dry_run:
             db.rollback()

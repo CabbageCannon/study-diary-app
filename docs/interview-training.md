@@ -24,9 +24,21 @@
 
 SQLite 项目继续通过 `Base.metadata.create_all()` 创建新表，已有日记数据库无需迁移，现有记录也不会被重置。
 
-## 本地审核
+## 审核工作流
 
-审核员可编辑题干、难度、标签、参考要点、评分 rubric、常见误区、口语提纲、标准回答和质量分。只有质量分不低于 70、来源满足要求、评分标准权重合计为 100 且关键字段完整时，后端才允许将题目标记为 `verified` 并记录审核人字段。普通题库查询接口不会改变任何审核数据。
+`/interview/review` 是唯一审核工作区，提供三条彼此可追溯的路径：
+
+- 人工精审：审核员可编辑题干、难度、标签、参考要点、评分 rubric、常见误区、口语提纲、标准回答和人工质量分。只有人工评分不低于 70、来源满足要求、评分标准权重合计为 100 且关键字段完整时，后端才允许标记为 `verified`。
+- AI 审核：`ALLOW_AI_QUESTION_REVIEW=true` 与 `VITE_ENABLE_AI_QUESTION_REVIEW=true` 时可用。模型仅返回严格 Pydantic JSON，不会改写题目或补造来源。仅当总分不低于 85、建议通过、无事实风险和重复风险，并且基础数据校验通过时，才可自动进入训练池；其他情况始终保持 `pending`，不会自动拒绝。
+- 快速正式化：`ALLOW_QUESTION_QUICK_PUBLISH=true` 与 `VITE_ENABLE_QUESTION_QUICK_PUBLISH=true` 时可用。后端先进行同样的基础数据校验，再以 `manual_override` 标记进入训练池，并保持 `verified_by_human=false`。
+
+`human_quality_score`、`ai_quality_score`、`review_method`、`review_model`、`ai_review_json`、`reviewed_at` 将三种路径分开保存；旧字段 `quality_score` 继续镜像人工评分以兼容已有数据。普通题库查询接口不会改变任何审核数据。
+
+## 批量操作与导入保护
+
+- AI 评估、快速正式化和批量拒绝每次最多 30 题。每题独立提交，单题模型或数据错误不会回滚其他题目的结果；已人工通过和已拒绝题目默认跳过 AI 批处理。
+- `scripts/import_seed_data.py --interviews` 对已有题目只更新题目内容，不会覆盖审核状态、评分、审核方式、模型名或 AI 结果。用 `--overwrite-review-metadata` 才会显式以种子数据覆盖审核元数据。
+- `--dry-run` 输出每题变更细节，包括“内容字段更新”和“审核元数据保留/覆盖”的区别，随后回滚事务。
 
 ## 检查命令
 
@@ -36,6 +48,7 @@ cd backend
 .venv\Scripts\python.exe -m unittest discover -s tests -v
 .venv\Scripts\python.exe scripts\validate_seed_data.py
 .venv\Scripts\python.exe scripts\build_interview_manual_review_report.py
+.venv\Scripts\python.exe scripts\import_seed_data.py --interviews --dry-run
 
 cd ..\frontend
 npm run build

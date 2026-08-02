@@ -1,5 +1,6 @@
 export type Difficulty = "easy" | "medium" | "hard";
 export type ReviewStatus = "pending" | "verified" | "rejected";
+export type ReviewMethod = "human" | "ai_auto" | "manual_override";
 export type QuestionDomain = "agent" | "rag" | "llm_application" | "python" | "network" | "ai_engineering";
 export type AnswerSource = "voice" | "text";
 export type QuestionSetStatus = "active" | "completed" | "abandoned";
@@ -38,6 +39,12 @@ export interface InterviewQuestion {
   sources: InterviewQuestionSource[];
   review_status: ReviewStatus;
   verified_by_human: boolean;
+  human_quality_score: number | null;
+  ai_quality_score: number | null;
+  review_method: ReviewMethod | null;
+  review_model: string | null;
+  ai_review: InterviewQuestionAIReview | null;
+  reviewed_at: string | null;
   quality_score: number | null;
   is_active: boolean;
   created_at: string;
@@ -56,7 +63,45 @@ export interface InterviewQuestionReviewUpdate {
   reference_answer?: string;
   follow_up_questions?: string[];
   review_status?: ReviewStatus;
+  human_quality_score?: number | null;
   quality_score?: number | null;
+}
+
+export interface InterviewQuestionAIReview {
+  quality_score: number;
+  clarity_score: number;
+  technical_score: number;
+  interview_value_score: number;
+  source_support_score: number;
+  factual_risk: boolean;
+  duplicate_risk: boolean;
+  issues: string[];
+  suggested_changes: string[];
+  recommended_status: "pending" | "verified";
+}
+
+export interface InterviewQuestionAIReviewResult {
+  question: InterviewQuestion;
+  review: InterviewQuestionAIReview;
+  published: boolean;
+  review_model: string;
+}
+
+export interface InterviewQuestionBatchItemResult {
+  question_id: string;
+  outcome: "reviewed" | "published" | "kept_pending" | "skipped" | "failed";
+  message: string | null;
+  review: InterviewQuestionAIReview | null;
+}
+
+export interface InterviewQuestionBatchResult {
+  total: number;
+  reviewed: number;
+  published: number;
+  kept_pending: number;
+  failed: number;
+  skipped: number;
+  items: InterviewQuestionBatchItemResult[];
 }
 
 export interface InterviewQuestionForTraining {

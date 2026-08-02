@@ -146,6 +146,7 @@ class DiaryRead(BaseModel):
 
 Difficulty = Literal["easy", "medium", "hard"]
 ReviewStatus = Literal["pending", "verified", "rejected"]
+ReviewMethod = Literal["human", "ai_auto", "manual_override"]
 QuestionDomain = Literal["agent", "rag", "llm_application", "python", "network", "ai_engineering"]
 
 
@@ -260,6 +261,26 @@ class EvaluationRubricItem(BaseModel):
     mandatory: bool = False
 
 
+class InterviewQuestionAIReview(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    quality_score: int = Field(ge=0, le=100)
+    clarity_score: int = Field(ge=0, le=100)
+    technical_score: int = Field(ge=0, le=100)
+    interview_value_score: int = Field(ge=0, le=100)
+    source_support_score: int = Field(ge=0, le=100)
+    factual_risk: bool
+    duplicate_risk: bool
+    issues: list[str] = Field(default_factory=list, max_length=8)
+    suggested_changes: list[str] = Field(default_factory=list, max_length=8)
+    recommended_status: Literal["pending", "verified"] = "pending"
+
+    @field_validator("issues", "suggested_changes")
+    @classmethod
+    def normalize_review_lists(cls, value: list[str]) -> list[str]:
+        return [item.strip() for item in value if item.strip()]
+
+
 class InterviewQuestionSeed(BaseModel):
     id: str = Field(min_length=1, max_length=160, pattern=r"^[a-z0-9][a-z0-9-]*$")
     domain: QuestionDomain
@@ -279,6 +300,12 @@ class InterviewQuestionSeed(BaseModel):
     sources: list[InterviewSourceReference] = Field(min_length=1)
     review_status: ReviewStatus = "pending"
     verified_by_human: bool = False
+    human_quality_score: float | None = Field(default=None, ge=0, le=100)
+    ai_quality_score: float | None = Field(default=None, ge=0, le=100)
+    review_method: ReviewMethod | None = None
+    review_model: str | None = Field(default=None, max_length=160)
+    ai_review_json: InterviewQuestionAIReview | None = None
+    reviewed_at: datetime | None = None
     quality_score: float | None = Field(default=None, ge=0, le=100)
 
     @field_validator("topic", "subtopic", "question_type")
@@ -319,9 +346,13 @@ class InterviewQuestionSeed(BaseModel):
         return value
 
     def model_post_init(self, __context: Any) -> None:
+        if self.human_quality_score is None and self.quality_score is not None:
+            self.human_quality_score = self.quality_score
+        if self.quality_score is None and self.human_quality_score is not None:
+            self.quality_score = self.human_quality_score
         if self.difficulty in {"medium", "hard"} and not self.follow_up_questions:
             raise ValueError("medium 和 hard 题必须提供 follow_up_questions")
-        if self.review_status == "verified" and not self.verified_by_human:
+        if self.review_status == "verified" and not self.verified_by_human and self.review_method not in {"ai_auto", "manual_override"}:
             raise ValueError("verified 题目必须由人工确认")
         if self.review_status != "verified" and self.verified_by_human:
             raise ValueError("只有 verified 题目可以标记 verified_by_human")
@@ -375,6 +406,12 @@ class InterviewQuestionRead(BaseModel):
     sources: list[InterviewQuestionSource]
     review_status: ReviewStatus
     verified_by_human: bool
+    human_quality_score: float | None
+    ai_quality_score: float | None
+    review_method: ReviewMethod | None
+    review_model: str | None
+    ai_review: InterviewQuestionAIReview | None
+    reviewed_at: datetime | None
     quality_score: float | None
     is_active: bool
     created_at: datetime
@@ -415,6 +452,7 @@ class InterviewQuestionReviewUpdate(BaseModel):
     reference_answer: str | None = Field(default=None, min_length=40, max_length=1200)
     follow_up_questions: list[str] | None = None
     review_status: ReviewStatus | None = None
+    human_quality_score: float | None = Field(default=None, ge=0, le=100)
     quality_score: float | None = Field(default=None, ge=0, le=100)
 
     @field_validator(
@@ -438,6 +476,52 @@ class InterviewQuestionReviewUpdate(BaseModel):
         if value is not None and sum(item.weight for item in value) != 100:
             raise ValueError("evaluation_rubric 的 weight 总和必须为 100")
         return value
+
+
+class InterviewQuestionAIReviewRequest(BaseModel):
+    auto_publish: bool = False
+
+
+class InterviewQuestionAIReviewResult(BaseModel):
+    question: InterviewQuestionRead
+    review: InterviewQuestionAIReview
+    published: bool
+    review_model: str
+
+
+class InterviewQuestionIdsRequest(BaseModel):
+    question_ids: list[str] = Field(min_length=1, max_length=30)
+
+    @field_validator("question_ids")
+    @classmethod
+    def validate_question_ids(cls, value: list[str]) -> list[str]:
+        normalized = [item.strip() for item in value if item.strip()]
+        if not normalized:
+            raise ValueError("question_ids cannot be empty")
+        if len(normalized) != len(set(normalized)):
+            raise ValueError("question_ids must be unique")
+        return normalized
+
+
+class InterviewQuestionAIReviewBatchRequest(InterviewQuestionIdsRequest):
+    auto_publish: bool = False
+
+
+class InterviewQuestionBatchItemResult(BaseModel):
+    question_id: str
+    outcome: Literal["reviewed", "published", "kept_pending", "skipped", "failed"]
+    message: str | None = None
+    review: InterviewQuestionAIReview | None = None
+
+
+class InterviewQuestionBatchResult(BaseModel):
+    total: int
+    reviewed: int
+    published: int
+    kept_pending: int
+    failed: int
+    skipped: int
+    items: list[InterviewQuestionBatchItemResult]
 
 
 class InterviewQuestionForTraining(BaseModel):

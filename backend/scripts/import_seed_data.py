@@ -21,11 +21,16 @@ def main() -> int:
     selection.add_argument("--interviews", action="store_true", help="只导入八股题")
     selection.add_argument("--all", action="store_true", help="导入全部题库")
     parser.add_argument("--dry-run", action="store_true", help="执行校验和导入流程后回滚事务")
+    parser.add_argument(
+        "--overwrite-review-metadata",
+        action="store_true",
+        help="Allow seed JSON to overwrite review metadata on existing interview questions.",
+    )
     args = parser.parse_args()
 
     init_db()
     db = SessionLocal()
-    results: dict[str, dict[str, int | bool]] = {}
+    results: dict[str, dict[str, object]] = {}
     try:
         if args.algorithms or args.all:
             results["algorithms"] = import_algorithms(
@@ -33,7 +38,10 @@ def main() -> int:
             ).as_dict()
         if args.interviews or args.all:
             results["interviews"] = import_interviews(
-                db, BACKEND_DIR / "data" / "interview_question_bank.json", args.dry_run
+                db,
+                BACKEND_DIR / "data" / "interview_question_bank.json",
+                args.dry_run,
+                overwrite_review_metadata=args.overwrite_review_metadata,
             ).as_dict()
     except CatalogBuildError as exc:
         print(f"导入失败:\n{exc}", file=sys.stderr)

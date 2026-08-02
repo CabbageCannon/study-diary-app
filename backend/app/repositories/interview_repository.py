@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import json
 import random
+from typing import Any
 
 from sqlalchemy import Select, select
 from sqlalchemy.orm import Session
 
-from app.models import InterviewQuestion
+from app.models import InterviewQuestion, utc_now
 from app.schemas import InterviewQuestionReviewUpdate, InterviewQuestionSeed
 from app.services.interview_bank_service import question_hash
 
@@ -60,8 +61,21 @@ def _question_seed_payload(question: InterviewQuestion) -> dict[str, object]:
         "sources": question.sources,
         "review_status": question.review_status,
         "verified_by_human": question.verified_by_human,
+        "human_quality_score": question.human_quality_score,
+        "ai_quality_score": question.ai_quality_score,
+        "review_method": question.review_method,
+        "review_model": question.review_model,
+        "ai_review_json": question.ai_review,
+        "reviewed_at": question.reviewed_at,
         "quality_score": question.quality_score,
     }
+
+
+def validate_question_for_publication(question: InterviewQuestion) -> None:
+    try:
+        InterviewQuestionSeed(**_question_seed_payload(question))
+    except Exception as exc:
+        raise ValueError(f"题目未通过基础 Schema 校验：{exc}") from exc
 
 
 def apply_review_update(
@@ -73,12 +87,27 @@ def apply_review_update(
 ) -> InterviewQuestion:
     values = _question_seed_payload(question)
     updates = payload.model_dump(exclude_unset=True)
+    if "quality_score" in updates and "human_quality_score" not in updates:
+        updates["human_quality_score"] = updates["quality_score"]
+    if "human_quality_score" in updates:
+        updates["quality_score"] = updates["human_quality_score"]
     values.update(updates)
     target_status = values["review_status"]
-    values["verified_by_human"] = target_status == "verified"
+    requested_status = updates.get("review_status")
+
+    if requested_status == "verified":
+        values["verified_by_human"] = True
+        values["review_method"] = "human"
+        values["reviewed_at"] = utc_now()
+    elif requested_status == "rejected":
+        values["verified_by_human"] = False
+        values["review_method"] = "human"
+        values["reviewed_at"] = utc_now()
+    elif requested_status == "pending":
+        values["verified_by_human"] = False
 
     if target_status == "verified":
-        quality_score = values.get("quality_score")
+        quality_score = values.get("human_quality_score")
         if quality_score is None or float(quality_score) < verified_quality_threshold:
             raise ValueError(f"标记 verified 前 quality_score 必须不低于 {verified_quality_threshold:g}")
         if len(values["reference_points"]) < 3:
@@ -118,6 +147,14 @@ def apply_review_update(
         "follow_up_questions_json": json.dumps(candidate.follow_up_questions, ensure_ascii=False),
         "review_status": candidate.review_status,
         "verified_by_human": candidate.verified_by_human,
+        "human_quality_score": candidate.human_quality_score,
+        "ai_quality_score": candidate.ai_quality_score,
+        "review_method": candidate.review_method,
+        "review_model": candidate.review_model,
+        "ai_review_json": json.dumps(candidate.ai_review_json.model_dump(), ensure_ascii=False)
+        if candidate.ai_review_json
+        else None,
+        "reviewed_at": candidate.reviewed_at,
         "quality_score": candidate.quality_score,
     }
     for name, value in values_to_store.items():
@@ -127,9 +164,8 @@ def apply_review_update(
     return question
 
 
-def upsert_question(db: Session, payload: InterviewQuestionSeed) -> tuple[InterviewQuestion, str]:
-    question = db.get(InterviewQuestion, payload.id)
-    values = {
+def _content_values(payload: InterviewQuestionSeed) -> dict[str, Any]:
+    return {
         "domain": payload.domain,
         "topic": payload.topic,
         "subtopic": payload.subtopic,
@@ -148,18 +184,59 @@ def upsert_question(db: Session, payload: InterviewQuestionSeed) -> tuple[Interv
         "reference_answer": payload.reference_answer,
         "follow_up_questions_json": json.dumps(payload.follow_up_questions, ensure_ascii=False),
         "sources_json": json.dumps([item.model_dump(exclude_none=True) for item in payload.sources], ensure_ascii=False),
-        "review_status": payload.review_status,
-        "verified_by_human": payload.verified_by_human,
-        "quality_score": payload.quality_score,
         "is_active": True,
     }
+
+
+def _review_metadata_values(payload: InterviewQuestionSeed) -> dict[str, Any]:
+    human_quality_score = payload.human_quality_score if payload.human_quality_score is not None else payload.quality_score
+    return {
+        "review_status": payload.review_status,
+        "verified_by_human": payload.verified_by_human,
+        "human_quality_score": human_quality_score,
+        "ai_quality_score": payload.ai_quality_score,
+        "review_method": payload.review_method or ("human" if payload.verified_by_human else None),
+        "review_model": payload.review_model,
+        "ai_review_json": json.dumps(payload.ai_review_json.model_dump(), ensure_ascii=False)
+        if payload.ai_review_json
+        else None,
+        "reviewed_at": payload.reviewed_at,
+        # Kept as a compatibility mirror for older API clients and databases.
+        "quality_score": human_quality_score,
+    }
+
+
+def upsert_question(
+    db: Session,
+    payload: InterviewQuestionSeed,
+    *,
+    overwrite_review_metadata: bool = False,
+) -> tuple[InterviewQuestion, str, dict[str, object]]:
+    question = db.get(InterviewQuestion, payload.id)
+    content_values = _content_values(payload)
+    review_values = _review_metadata_values(payload)
+    review_fields = list(review_values)
     if question is None:
-        question = InterviewQuestion(id=payload.id, **values)
+        question = InterviewQuestion(id=payload.id, **content_values, **review_values)
         db.add(question)
-        return question, "created"
-    changed = any(getattr(question, name) != value for name, value in values.items())
-    if not changed:
-        return question, "skipped"
-    for name, value in values.items():
+        return question, "created", {
+            "content_fields": list(content_values),
+            "review_metadata": "applied_from_seed",
+            "review_fields": review_fields,
+        }
+
+    values_to_apply = {**content_values, **review_values} if overwrite_review_metadata else content_values
+    changed_fields = [name for name, value in values_to_apply.items() if getattr(question, name) != value]
+    if not changed_fields:
+        return question, "skipped", {
+            "content_fields": [],
+            "review_metadata": "overwritten_from_seed" if overwrite_review_metadata else "preserved",
+            "review_fields": review_fields,
+        }
+    for name, value in values_to_apply.items():
         setattr(question, name, value)
-    return question, "updated"
+    return question, "updated", {
+        "content_fields": [name for name in changed_fields if name in content_values],
+        "review_metadata": "overwritten_from_seed" if overwrite_review_metadata else "preserved",
+        "review_fields": review_fields,
+    }

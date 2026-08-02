@@ -3,6 +3,8 @@ import type {
   CreateQuestionSetPayload,
   InterviewAnswerSubmission,
   InterviewQuestion,
+  InterviewQuestionAIReviewResult,
+  InterviewQuestionBatchResult,
   InterviewQuestionReviewUpdate,
   InterviewQuestionSet,
   InterviewQuestionSetSummary,
@@ -46,6 +48,38 @@ export function reviewInterviewQuestion(questionId: string, payload: InterviewQu
   return request<InterviewQuestion>(`/api/interviews/questions/${questionId}/review`, {
     method: "PATCH",
     body: JSON.stringify(payload),
+  });
+}
+
+export function aiReviewInterviewQuestion(questionId: string, autoPublish = false): Promise<InterviewQuestionAIReviewResult> {
+  return request<InterviewQuestionAIReviewResult>(`/api/interviews/questions/${questionId}/ai-review`, {
+    method: "POST",
+    body: JSON.stringify({ auto_publish: autoPublish }),
+  });
+}
+
+export function applyAiInterviewReview(questionId: string): Promise<InterviewQuestionAIReviewResult> {
+  return request<InterviewQuestionAIReviewResult>(`/api/interviews/questions/${questionId}/ai-review/apply`, { method: "POST" });
+}
+
+export function batchAiReviewInterviewQuestions(questionIds: string[], autoPublish = false): Promise<InterviewQuestionBatchResult> {
+  return request<InterviewQuestionBatchResult>("/api/interviews/questions/ai-review-batch", {
+    method: "POST",
+    body: JSON.stringify({ question_ids: questionIds, auto_publish: autoPublish }),
+  });
+}
+
+export function quickPublishInterviewQuestions(questionIds: string[]): Promise<InterviewQuestionBatchResult> {
+  return request<InterviewQuestionBatchResult>("/api/interviews/questions/publish-batch", {
+    method: "POST",
+    body: JSON.stringify({ question_ids: questionIds }),
+  });
+}
+
+export function rejectInterviewQuestions(questionIds: string[]): Promise<InterviewQuestionBatchResult> {
+  return request<InterviewQuestionBatchResult>("/api/interviews/questions/reject-batch", {
+    method: "POST",
+    body: JSON.stringify({ question_ids: questionIds }),
   });
 }
 
