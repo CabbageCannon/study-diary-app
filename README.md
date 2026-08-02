@@ -1,6 +1,6 @@
 # 学习日记记录系统
 
-一个本地运行的 MVP Web 应用：前端使用 React + TypeScript + Vite，后端使用 FastAPI + SQLite + SQLAlchemy，通过 OpenAI-compatible API 将口语化学习记录整理成中文学习日记。
+一个本地运行的学习日记 Web 应用：前端使用 React + TypeScript + Vite，后端使用 FastAPI + SQLite + SQLAlchemy，通过 OpenAI-compatible API 将口语化学习记录整理成可检查、可修改、可归档的中文学习日记。
 
 ## 项目结构
 
@@ -29,6 +29,7 @@
       ├─ App.tsx
       ├─ api/
       ├─ components/
+      ├─ layout/
       ├─ pages/
       ├─ styles/
       └─ types/
@@ -64,6 +65,11 @@ npm run dev
 
 浏览器打开 `http://localhost:5173`。
 
+前端页面：
+
+- `/write`：写日记，支持语音/手动输入、生成草稿、编辑草稿、按反馈重新生成、确认保存。
+- `/history`：历史日记，支持列表、详情预览和删除。
+
 ## 环境变量
 
 后端 `backend/.env`：
@@ -87,11 +93,42 @@ VITE_API_BASE_URL=http://localhost:8000
 ## 已完成功能
 
 - 使用 Web Speech API 进行中文语音识别，浏览器不支持时可手动输入。
-- 可编辑原始学习记录，并提交给后端生成学习日记。
-- 后端调用 OpenAI-compatible Chat Completions API，并要求模型返回严格 JSON。
-- 使用 SQLite 持久化保存日记。
-- 支持日记列表、详情查看和删除。
+- 写日记和历史日记拆成独立页面，并提供应用级导航。
+- 生成草稿时只调用大模型，不写入数据库。
+- 草稿可手动编辑标题、正文、总结和标签。
+- 可输入反馈，让大模型基于原始输入和当前草稿重新生成。
+- 用户确认后再保存草稿，保存接口不重复调用大模型。
+- 使用 SQLite 持久化保存已确认日记。
+- 历史页支持列表、详情查看和删除。
 - 前后端都有基础错误提示。
+
+## API 概览
+
+```http
+POST /api/diaries/draft
+```
+
+根据 `date` 和 `raw_text` 生成草稿，不入库。
+
+```http
+POST /api/diaries/draft/rewrite
+```
+
+根据原始输入、当前草稿和用户反馈重新生成草稿，不入库。
+
+```http
+POST /api/diaries
+```
+
+保存用户确认后的草稿，写入 SQLite，不再次调用大模型。
+
+```http
+GET /api/diaries
+GET /api/diaries/{diary_id}
+DELETE /api/diaries/{diary_id}
+```
+
+查询列表、查询详情和删除日记。
 
 ## 常用检查命令
 

@@ -1,4 +1,4 @@
-import type { CreateDiaryPayload, Diary } from "../types/diary";
+import type { CreateDiaryDraftPayload, Diary, DiaryDraft, RewriteDiaryDraftPayload, SaveDiaryPayload } from "../types/diary";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
@@ -55,7 +55,21 @@ export function getDiary(id: number): Promise<Diary> {
   return request<Diary>(`/api/diaries/${id}`);
 }
 
-export function createDiary(payload: CreateDiaryPayload): Promise<Diary> {
+export function createDiaryDraft(payload: CreateDiaryDraftPayload): Promise<DiaryDraft> {
+  return request<DiaryDraft>("/api/diaries/draft", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function rewriteDiaryDraft(payload: RewriteDiaryDraftPayload): Promise<DiaryDraft> {
+  return request<DiaryDraft>("/api/diaries/draft/rewrite", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function saveDiary(payload: SaveDiaryPayload): Promise<Diary> {
   return request<Diary>("/api/diaries", {
     method: "POST",
     body: JSON.stringify(payload),

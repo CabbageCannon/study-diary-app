@@ -4,17 +4,17 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models import Diary
-from app.schemas import DiaryCreate, PolishedDiary
+from app.schemas import DiarySave
 
 
-def create_diary(db: Session, payload: DiaryCreate, polished: PolishedDiary) -> Diary:
+def create_diary(db: Session, payload: DiarySave) -> Diary:
     diary = Diary(
         date=payload.date,
-        title=polished.title,
+        title=payload.title,
         raw_text=payload.raw_text,
-        polished_text=polished.polished_text,
-        summary=polished.summary,
-        tags_json=json.dumps(polished.tags, ensure_ascii=False),
+        polished_text=payload.polished_text,
+        summary=payload.summary,
+        tags_json=json.dumps(payload.tags, ensure_ascii=False),
     )
     db.add(diary)
     db.commit()

@@ -11,7 +11,7 @@ export function TagList({ tags }: TagListProps) {
     <div className="tag-list" aria-label="标签">
       {tags.map((tag) => (
         <span className="tag" key={tag}>
-          {tag}
+          #{tag}
         </span>
       ))}
     </div>

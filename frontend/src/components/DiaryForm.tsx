@@ -3,27 +3,28 @@ import { VoiceInput } from "./VoiceInput";
 interface DiaryFormProps {
   date: string;
   rawText: string;
-  isSubmitting: boolean;
+  isGenerating: boolean;
   error: string;
   onDateChange: (date: string) => void;
   onRawTextChange: (text: string) => void;
-  onSubmit: () => void;
+  onGenerateDraft: () => void;
 }
 
 export function DiaryForm({
   date,
   rawText,
-  isSubmitting,
+  isGenerating,
   error,
   onDateChange,
   onRawTextChange,
-  onSubmit,
+  onGenerateDraft,
 }: DiaryFormProps) {
   return (
-    <section className="tool-panel" aria-labelledby="composer-title">
+    <section className="workspace-section input-section" aria-labelledby="composer-title">
       <div className="section-heading">
-        <p className="eyebrow">输入</p>
-        <h2 id="composer-title">记录今天学到的内容</h2>
+        <span>原始输入</span>
+        <h2 id="composer-title">先把今天学到的事写下来</h2>
+        <p>可以语音识别，也可以直接输入。草稿生成前不会写入历史记录。</p>
       </div>
 
       <div className="form-grid">
@@ -47,8 +48,8 @@ export function DiaryForm({
 
       {error ? <p className="field-error">{error}</p> : null}
 
-      <button className="button button-primary submit-button" disabled={isSubmitting} onClick={onSubmit} type="button">
-        {isSubmitting ? "正在生成..." : "生成学习日记"}
+      <button className="button button-primary submit-button" disabled={isGenerating} onClick={onGenerateDraft} type="button">
+        {isGenerating ? "正在生成草稿..." : "生成草稿"}
       </button>
     </section>
   );

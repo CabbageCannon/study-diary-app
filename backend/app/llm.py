@@ -4,8 +4,8 @@ import httpx
 from pydantic import ValidationError
 
 from app.config import settings
-from app.prompts import SYSTEM_PROMPT, build_user_prompt
-from app.schemas import PolishedDiary
+from app.prompts import DRAFT_SYSTEM_PROMPT, REWRITE_SYSTEM_PROMPT, build_draft_user_prompt, build_rewrite_user_prompt
+from app.schemas import DiaryDraftContent
 
 
 class LLMError(RuntimeError):
@@ -33,15 +33,15 @@ def _parse_json_content(content: str) -> dict:
     return parsed
 
 
-async def polish_learning_diary(date: str, raw_text: str) -> PolishedDiary:
+async def _request_polished_content(system_prompt: str, user_prompt: str) -> DiaryDraftContent:
     if not settings.llm_api_key or settings.llm_api_key == "your_api_key_here":
         raise LLMError("未配置 LLM_API_KEY，请在 backend/.env 中填写可用的大模型 API Key。")
 
     payload = {
         "model": settings.llm_model,
         "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": build_user_prompt(date=date, raw_text=raw_text)},
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
         ],
         "temperature": 0.3,
         "response_format": {"type": "json_object"},
@@ -68,6 +68,31 @@ async def polish_learning_diary(date: str, raw_text: str) -> PolishedDiary:
         raise LLMError("大模型响应格式不符合 OpenAI-compatible Chat Completions 结构。") from exc
 
     try:
-        return PolishedDiary.model_validate(_parse_json_content(content))
+        return DiaryDraftContent.model_validate(_parse_json_content(content))
     except ValidationError as exc:
         raise LLMError(f"大模型返回字段不完整或格式错误：{exc.errors()}") from exc
+
+
+async def generate_learning_diary_draft(date: str, raw_text: str) -> DiaryDraftContent:
+    return await _request_polished_content(
+        system_prompt=DRAFT_SYSTEM_PROMPT,
+        user_prompt=build_draft_user_prompt(date=date, raw_text=raw_text),
+    )
+
+
+async def rewrite_learning_diary_draft(
+    date: str,
+    raw_text: str,
+    current_draft: DiaryDraftContent,
+    feedback: str,
+) -> DiaryDraftContent:
+    current_draft_json = current_draft.model_dump_json()
+    return await _request_polished_content(
+        system_prompt=REWRITE_SYSTEM_PROMPT,
+        user_prompt=build_rewrite_user_prompt(
+            date=date,
+            raw_text=raw_text,
+            current_draft_json=current_draft_json,
+            feedback=feedback,
+        ),
+    )

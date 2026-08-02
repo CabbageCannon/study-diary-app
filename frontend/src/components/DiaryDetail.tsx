@@ -11,7 +11,7 @@ export function DiaryDetail({ diary, title, emptyText }: DiaryDetailProps) {
   return (
     <section className="detail-panel" aria-labelledby={`${title}-title`}>
       <div className="section-heading">
-        <p className="eyebrow">{title}</p>
+        <span>{title}</span>
         <h2 id={`${title}-title`}>{diary ? diary.title : "暂无日记"}</h2>
       </div>
 

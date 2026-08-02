@@ -10,7 +10,28 @@ export interface Diary {
   updated_at: string;
 }
 
-export interface CreateDiaryPayload {
+export interface DiaryDraftContent {
+  title: string;
+  polished_text: string;
+  summary: string;
+  tags: string[];
+}
+
+export interface DiaryDraft extends DiaryDraftContent {
   date: string;
   raw_text: string;
 }
+
+export interface CreateDiaryDraftPayload {
+  date: string;
+  raw_text: string;
+}
+
+export interface RewriteDiaryDraftPayload {
+  date: string;
+  raw_text: string;
+  current_draft: DiaryDraftContent;
+  feedback: string;
+}
+
+export type SaveDiaryPayload = DiaryDraft;
