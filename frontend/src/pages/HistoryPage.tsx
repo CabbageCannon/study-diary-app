@@ -17,6 +17,7 @@ export function HistoryPage() {
   const [error, setError] = useState("");
 
   const preferredDiaryId = Number(searchParams.get("diaryId"));
+  const didJustSave = searchParams.get("saved") === "1";
 
   const loadDiaries = useCallback(async () => {
     setIsLoading(true);
@@ -75,13 +76,19 @@ export function HistoryPage() {
     <div className="page-stack">
       <header className="page-header">
         <div>
-          <span className="page-kicker">Archive</span>
-          <h1>安静地回看学过的内容</h1>
+          <span className="page-kicker">历史日记</span>
+          <h1>学习归档</h1>
         </div>
-        <p>历史日记只展示已经确认保存的内容，草稿不会出现在这里。</p>
+        <p>回看已经沉淀下来的内容，确认过的日记会一直保存在这里。</p>
       </header>
 
-      <div className="history-layout">
+      {didJustSave ? (
+        <p className="save-notice" role="status">
+          日记已保存，并加入学习归档。
+        </p>
+      ) : null}
+
+      <div className="history-workbench">
         <DiaryList
           diaries={diaries}
           selectedId={selectedDiary?.id}
@@ -98,7 +105,11 @@ export function HistoryPage() {
         <DiaryDetail diary={selectedDiary} title="详情" emptyText="选择左侧的一篇日记，完整内容会在这里展开。" />
       </div>
 
-      {error ? <p className="field-error page-error">{error}</p> : null}
+      {error ? (
+        <p className="field-error page-error" role="alert">
+          {error}
+        </p>
+      ) : null}
 
       <ConfirmDeleteDialog
         diary={deleteTarget}

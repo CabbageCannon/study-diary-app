@@ -12,7 +12,7 @@ export function Navigation() {
         <span className="brand-mark" aria-hidden="true" />
         <div>
           <strong>学习日记</strong>
-          <span>Daily Notes</span>
+          <span>Study Diary</span>
         </div>
       </div>
 

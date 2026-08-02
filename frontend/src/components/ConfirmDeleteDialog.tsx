@@ -28,10 +28,19 @@ export function ConfirmDeleteDialog({ diary, isDeleting, onCancel, onConfirm }: 
   }, [diary]);
 
   return (
-    <dialog className="confirm-dialog" ref={dialogRef} onCancel={onCancel} role="alertdialog" aria-labelledby="delete-title">
+    <dialog
+      className="confirm-dialog"
+      ref={dialogRef}
+      onCancel={onCancel}
+      role="alertdialog"
+      aria-labelledby="delete-title"
+      aria-describedby="delete-description"
+    >
       <form method="dialog" className="confirm-dialog-body">
         <h2 id="delete-title">删除这篇学习日记？</h2>
-        <p>{diary ? `《${diary.title}》删除后无法在系统中查看。` : "删除后无法在系统中查看。"}</p>
+        <p id="delete-description">
+          {diary ? `《${diary.title}》删除后无法在系统中查看。` : "删除后无法在系统中查看。"}
+        </p>
         <div className="confirm-dialog-actions">
           <button className="button button-secondary" disabled={isDeleting} onClick={onCancel} type="button">
             取消

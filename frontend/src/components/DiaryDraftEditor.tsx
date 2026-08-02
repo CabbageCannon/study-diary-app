@@ -36,19 +36,18 @@ export function DiaryDraftEditor({
 
   useEffect(() => {
     setTagText(draft.tags.join(", "));
-  }, [draft]);
+  }, [draft.tags]);
 
   function updateDraft(nextPatch: Partial<DiaryDraft>) {
     onDraftChange({ ...draft, ...nextPatch });
   }
 
   return (
-    <section className="workspace-section draft-editor" aria-labelledby="draft-title">
-      <div className="section-heading section-heading-row">
+    <section className="draft-pane" aria-labelledby="draft-title" aria-busy={isRewriting || isSaving}>
+      <div className="pane-header">
         <div>
-          <span>草稿检查</span>
+          <span className="pane-label">草稿检查</span>
           <h2 id="draft-title">确认后再归档</h2>
-          <p>这里的标题、正文、总结和标签都可以手动调整，保存时会以你看到的版本为准。</p>
         </div>
         <time className="draft-date" dateTime={draft.date}>
           {draft.date}
@@ -57,11 +56,14 @@ export function DiaryDraftEditor({
 
       <label className="editor-field editor-field-title">
         <span>标题</span>
-        <input value={draft.title} onChange={(event) => updateDraft({ title: event.target.value })} />
+        <input value={draft.title} onChange={(event) => updateDraft({ title: event.target.value })} aria-label="草稿标题" />
       </label>
 
       <label className="editor-field">
-        <span>正文</span>
+        <span className="field-label-row">
+          <span>正文</span>
+          <span className="character-count">{draft.polished_text.length} 字</span>
+        </span>
         <textarea
           className="draft-body"
           value={draft.polished_text}
@@ -81,7 +83,11 @@ export function DiaryDraftEditor({
           <input
             value={tagText}
             onBlur={() => updateDraft({ tags: parseTags(tagText) })}
-            onChange={(event) => setTagText(event.target.value)}
+            onChange={(event) => {
+              const nextTagText = event.target.value;
+              setTagText(nextTagText);
+              updateDraft({ tags: parseTags(nextTagText) });
+            }}
             placeholder="React, FastAPI, 前后端交互"
           />
           <small>用英文逗号分隔，保存时会转成标签列表。</small>
@@ -98,14 +104,17 @@ export function DiaryDraftEditor({
             rows={4}
           />
         </label>
+        <div className="rewrite-actions">
+          <p>重新生成只会更新当前草稿，不会写入历史记录。</p>
+          <button className="button button-secondary" disabled={isRewriting || isSaving} onClick={onRewrite} type="button">
+            {isRewriting ? "正在重新整理..." : "重新生成"}
+          </button>
+        </div>
       </div>
 
       {error ? <p className="field-error">{error}</p> : null}
 
       <div className="draft-actions">
-        <button className="button button-secondary" disabled={isRewriting || isSaving} onClick={onRewrite} type="button">
-          {isRewriting ? "重新生成中..." : "重新生成"}
-        </button>
         <button className="button button-primary" disabled={isRewriting || isSaving} onClick={onSave} type="button">
           {isSaving ? "保存中..." : "保存日记"}
         </button>

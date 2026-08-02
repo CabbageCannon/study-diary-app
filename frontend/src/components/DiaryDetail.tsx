@@ -9,23 +9,19 @@ interface DiaryDetailProps {
 
 export function DiaryDetail({ diary, title, emptyText }: DiaryDetailProps) {
   return (
-    <section className="detail-panel" aria-labelledby={`${title}-title`}>
-      <div className="section-heading">
-        <span>{title}</span>
-        <h2 id={`${title}-title`}>{diary ? diary.title : "暂无日记"}</h2>
-      </div>
-
+    <section className="detail-panel" aria-label={title}>
       {diary ? (
         <article className="diary-detail">
-          <div className="detail-meta">
+          <header className="detail-header">
             <time dateTime={diary.date}>{diary.date}</time>
-            <TagList tags={diary.tags} />
-          </div>
-          <p className="polished-text">{diary.polished_text}</p>
+            <h2>{diary.title}</h2>
+          </header>
+          <div className="polished-text">{diary.polished_text}</div>
           <div className="summary-box">
             <span>总结</span>
             <p>{diary.summary}</p>
           </div>
+          <TagList tags={diary.tags} />
         </article>
       ) : (
         <div className="empty-state">

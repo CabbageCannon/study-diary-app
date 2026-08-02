@@ -131,7 +131,7 @@ export function WriteDiaryPage() {
         summary: draft.summary.trim(),
         tags: draft.tags.map((tag) => tag.trim()).filter(Boolean),
       });
-      navigate(`/history?diaryId=${saved.id}`);
+      navigate(`/history?diaryId=${saved.id}&saved=1`);
     } catch (error) {
       setDraftError(error instanceof Error ? error.message : "保存失败，请稍后重试。");
     } finally {
@@ -143,39 +143,45 @@ export function WriteDiaryPage() {
     <div className="page-stack write-page">
       <header className="page-header">
         <div>
-          <span className="page-kicker">Write</span>
-          <h1>写一篇可以先检查的学习日记</h1>
+          <span className="page-kicker">写日记</span>
+          <h1>记录今天的学习</h1>
         </div>
-        <p>先把原始记录整理成草稿，确认、修改或重写后，再保存到历史归档。</p>
+        <p>先写下真实想法，再整理成一篇可以长期回看的学习日记。</p>
       </header>
 
-      <DiaryForm
-        date={date}
-        rawText={rawText}
-        isGenerating={isGenerating}
-        error={inputError}
-        onDateChange={handleDateChange}
-        onRawTextChange={handleRawTextChange}
-        onGenerateDraft={handleGenerateDraft}
-      />
-
-      {draft ? (
-        <DiaryDraftEditor
-          draft={draft}
-          feedback={feedback}
-          isRewriting={isRewriting}
-          isSaving={isSaving}
-          error={draftError}
-          onDraftChange={setDraft}
-          onFeedbackChange={setFeedback}
-          onRewrite={handleRewriteDraft}
-          onSave={handleSaveDraft}
+      <div className={draft ? "write-workbench write-workbench-active" : "write-workbench"}>
+        <DiaryForm
+          date={date}
+          rawText={rawText}
+          isGenerating={isGenerating}
+          error={inputError}
+          onDateChange={handleDateChange}
+          onRawTextChange={handleRawTextChange}
+          onGenerateDraft={handleGenerateDraft}
         />
-      ) : (
-        <section className="quiet-note" aria-label="草稿状态">
-          <p>草稿会在生成后出现在这里。当前内容只停留在编辑区，还没有保存进历史记录。</p>
-        </section>
-      )}
+
+        {draft ? (
+          <DiaryDraftEditor
+            draft={draft}
+            feedback={feedback}
+            isRewriting={isRewriting}
+            isSaving={isSaving}
+            error={draftError}
+            onDraftChange={setDraft}
+            onFeedbackChange={setFeedback}
+            onRewrite={handleRewriteDraft}
+            onSave={handleSaveDraft}
+          />
+        ) : (
+          <section className="draft-placeholder" aria-labelledby="draft-placeholder-title">
+            <div className="draft-placeholder-content">
+              <span className="pane-label">草稿检查</span>
+              <h2 id="draft-placeholder-title">整理后的内容会出现在这里</h2>
+              <p>生成草稿不会保存记录。你可以先检查标题、正文、总结和标签，再决定是否归档。</p>
+            </div>
+          </section>
+        )}
+      </div>
     </div>
   );
 }

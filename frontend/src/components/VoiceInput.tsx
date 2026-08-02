@@ -96,19 +96,20 @@ export function VoiceInput({ text, onTextChange }: VoiceInputProps) {
   }
 
   return (
-    <div className="voice-input">
-      <div className="voice-actions">
-        <button className="button button-secondary" disabled={!isSupported || isListening} onClick={startListening} type="button">
-          开始语音输入
-        </button>
-        <button className="button button-secondary" disabled={!isListening} onClick={stopListening} type="button">
-          停止语音输入
-        </button>
-      </div>
-      <p className="voice-status" aria-live="polite">
-        语音状态：{statusText[status]}
-      </p>
-      {status === "unsupported" ? <p className="field-error">当前浏览器不支持语音识别，请直接手动输入。</p> : null}
+    <div className="voice-input" data-listening={isListening || undefined}>
+      <button
+        className="button button-secondary voice-button"
+        disabled={!isSupported}
+        onClick={isListening ? stopListening : startListening}
+        type="button"
+        aria-pressed={isListening}
+      >
+        {isListening ? "停止语音" : "开始语音"}
+      </button>
+      <span className="voice-status" aria-live="polite">
+        {statusText[status]}
+      </span>
+      {status === "unsupported" ? <p className="field-error">当前浏览器不支持语音识别，可以继续手动输入。</p> : null}
       {error ? <p className="field-error">{error}</p> : null}
     </div>
   );
