@@ -1,0 +1,69 @@
+import type { CreateDiaryPayload, Diary } from "../types/diary";
+
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
+
+async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options?.headers ?? {}),
+    },
+  });
+
+  if (!response.ok) {
+    const message = await readErrorMessage(response);
+    throw new Error(message);
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  return response.json() as Promise<T>;
+}
+
+async function readErrorMessage(response: Response): Promise<string> {
+  try {
+    const data = await response.json();
+    if (typeof data.detail === "string") {
+      return data.detail;
+    }
+    if (Array.isArray(data.detail)) {
+      return data.detail.map(formatApiErrorItem).join("；");
+    }
+  } catch {
+    // Fall back to status text below.
+  }
+
+  return response.statusText || "请求失败，请稍后重试";
+}
+
+function formatApiErrorItem(item: unknown): string {
+  if (typeof item === "object" && item !== null && "msg" in item) {
+    return String((item as { msg: unknown }).msg);
+  }
+
+  return JSON.stringify(item);
+}
+
+export function listDiaries(): Promise<Diary[]> {
+  return request<Diary[]>("/api/diaries");
+}
+
+export function getDiary(id: number): Promise<Diary> {
+  return request<Diary>(`/api/diaries/${id}`);
+}
+
+export function createDiary(payload: CreateDiaryPayload): Promise<Diary> {
+  return request<Diary>("/api/diaries", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteDiary(id: number): Promise<void> {
+  return request<void>(`/api/diaries/${id}`, {
+    method: "DELETE",
+  });
+}

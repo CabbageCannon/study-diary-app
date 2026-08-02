@@ -1,0 +1,1 @@
+"""Study diary backend package."""
