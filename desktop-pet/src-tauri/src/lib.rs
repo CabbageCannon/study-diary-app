@@ -4,12 +4,12 @@ use tauri::{
     AppHandle, Emitter, Manager, WebviewWindow,
 };
 
-struct TrayMenuState {
-    autostart: CheckMenuItem,
-    always_on_top: CheckMenuItem,
-    mouse_through: CheckMenuItem,
-    pause_resume: MenuItem,
-    complete: MenuItem,
+struct TrayMenuState<R: tauri::Runtime> {
+    autostart: CheckMenuItem<R>,
+    always_on_top: CheckMenuItem<R>,
+    mouse_through: CheckMenuItem<R>,
+    pause_resume: MenuItem<R>,
+    complete: MenuItem<R>,
 }
 
 fn emit_command(app: &AppHandle, command: &str) {
@@ -39,7 +39,7 @@ fn apply_window_preferences(
     window
         .set_ignore_cursor_events(mouse_through)
         .map_err(|error| error.to_string())?;
-    let state = app.state::<TrayMenuState>();
+    let state = app.state::<TrayMenuState<tauri::Wry>>();
     state
         .always_on_top
         .set_checked(always_on_top)
@@ -53,7 +53,7 @@ fn apply_window_preferences(
 
 #[tauri::command]
 fn set_autostart_checked(app: AppHandle, enabled: bool) -> Result<(), String> {
-    app.state::<TrayMenuState>()
+    app.state::<TrayMenuState<tauri::Wry>>()
         .autostart
         .set_checked(enabled)
         .map_err(|error| error.to_string())
@@ -61,7 +61,7 @@ fn set_autostart_checked(app: AppHandle, enabled: bool) -> Result<(), String> {
 
 #[tauri::command]
 fn update_study_status(app: AppHandle, study_status: String) -> Result<(), String> {
-    let state = app.state::<TrayMenuState>();
+    let state = app.state::<TrayMenuState<tauri::Wry>>();
     let (label, can_complete) = match study_status.as_str() {
         "running" => ("暂停学习", true),
         "paused" => ("继续学习", true),
@@ -93,7 +93,7 @@ pub fn run() {
             #[cfg(desktop)]
             app.handle().plugin(tauri_plugin_autostart::init(
                 tauri_plugin_autostart::MacosLauncher::LaunchAgent,
-                None::<Vec<String>>,
+                None::<Vec<&str>>,
             ))?;
 
             let show_hide = MenuItem::with_id(app, "toggle_visibility", "显示 / 隐藏桌宠", true, None::<&str>)?;
@@ -125,7 +125,7 @@ pub fn run() {
                     &quit,
                 ],
             )?;
-            app.manage(TrayMenuState {
+            app.manage(TrayMenuState::<tauri::Wry> {
                 autostart,
                 always_on_top,
                 mouse_through,
