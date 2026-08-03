@@ -35,8 +35,11 @@ def list_verified_questions(
     return list(db.scalars(statement.order_by(InterviewQuestion.id)).all())
 
 
-def get_question_set(db: Session, question_set_id: int) -> InterviewQuestionSet | None:
-    return db.get(InterviewQuestionSet, question_set_id)
+def get_question_set(db: Session, question_set_id: int, *, include_deleted: bool = False) -> InterviewQuestionSet | None:
+    question_set = db.get(InterviewQuestionSet, question_set_id)
+    if question_set is None or (question_set.deleted_at is not None and not include_deleted):
+        return None
+    return question_set
 
 
 def list_set_items(db: Session, question_set_id: int) -> list[InterviewQuestionSetItem]:
@@ -73,6 +76,13 @@ def get_latest_answer_for_question_set(db: Session, question_set_id: int, questi
         .order_by(InterviewAnswer.attempt_index.desc())
     )
     return db.scalar(statement)
+
+
+def get_latest_answer_for_question(db: Session, question_id: str, *, excluding_question_set_id: int | None = None) -> InterviewAnswer | None:
+    statement = select(InterviewAnswer).where(InterviewAnswer.question_id == question_id)
+    if excluding_question_set_id is not None:
+        statement = statement.where(InterviewAnswer.question_set_id != excluding_question_set_id)
+    return db.scalar(statement.order_by(InterviewAnswer.created_at.desc(), InterviewAnswer.attempt_index.desc()))
 
 
 def get_latest_answer_times(db: Session, question_ids: list[str]) -> dict[str, datetime]:
@@ -120,6 +130,19 @@ def list_due_schedules(
     return list(db.execute(statement).all())
 
 
-def list_question_sets(db: Session, limit: int) -> list[InterviewQuestionSet]:
-    statement = select(InterviewQuestionSet).order_by(InterviewQuestionSet.created_at.desc()).limit(limit)
+def list_question_sets(db: Session, limit: int, *, status: str | None = None) -> list[InterviewQuestionSet]:
+    statement = select(InterviewQuestionSet).where(InterviewQuestionSet.deleted_at.is_(None))
+    if status:
+        statement = statement.where(InterviewQuestionSet.status == status)
+    statement = statement.order_by(InterviewQuestionSet.last_active_at.desc(), InterviewQuestionSet.id.desc()).limit(limit)
     return list(db.scalars(statement).all())
+
+
+def list_question_sets_for_stats(db: Session) -> list[InterviewQuestionSet]:
+    return list(
+        db.scalars(
+            select(InterviewQuestionSet)
+            .where(InterviewQuestionSet.deleted_at.is_(None))
+            .order_by(InterviewQuestionSet.last_active_at.desc(), InterviewQuestionSet.id.desc())
+        ).all()
+    )

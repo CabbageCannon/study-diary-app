@@ -1,10 +1,10 @@
 {
   "list_id": "blind75",
-  "name": "Blind 75",
-  "source": {
-    "type": "upstream_metadata_flag",
-    "url": "https://github.com/neetcode-gh/leetcode",
-    "license": "MIT"
-  },
-  "problem_slugs": []
+  "name": "Blind 75 示例子集",
+  "source": {"type": "manual_curated_subset", "url": "", "license": "metadata only"},
+  "problem_slugs": [
+    "two-sum", "contains-duplicate", "group-anagrams", "product-of-array-except-self",
+    "longest-substring-without-repeating-characters", "3sum", "valid-parentheses", "binary-search",
+    "reverse-linked-list", "merge-two-sorted-lists", "maximum-depth-of-binary-tree", "number-of-islands", "combination-sum", "coin-change"
+  ]
 }

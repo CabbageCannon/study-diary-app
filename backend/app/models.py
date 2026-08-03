@@ -77,6 +77,128 @@ class AlgorithmProblem(Base):
         return self._json_list(self.source_lists_json)
 
 
+class AlgorithmPracticeSession(Base):
+    """A persisted algorithm training run with a fixed problem order."""
+
+    __tablename__ = "algorithm_practice_sessions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    mode: Mapped[str] = mapped_column(String(32), index=True)
+    status: Mapped[str] = mapped_column(String(20), default="in_progress", index=True)
+    requested_count: Mapped[int] = mapped_column(Integer)
+    current_index: Mapped[int] = mapped_column(Integer, default=0)
+    filters_json: Mapped[str] = mapped_column("filters", Text, default="{}")
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    last_active_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    abandoned_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+    @property
+    def filters(self) -> dict[str, object]:
+        try:
+            value = json.loads(self.filters_json or "{}")
+        except json.JSONDecodeError:
+            return {}
+        return value if isinstance(value, dict) else {}
+
+
+class AlgorithmPracticeSessionItem(Base):
+    __tablename__ = "algorithm_practice_session_items"
+    __table_args__ = (
+        UniqueConstraint("session_id", "position", name="uq_algorithm_session_item_position"),
+        UniqueConstraint("session_id", "problem_id", name="uq_algorithm_session_item_problem"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    session_id: Mapped[str] = mapped_column(
+        ForeignKey("algorithm_practice_sessions.id", ondelete="CASCADE"), index=True
+    )
+    problem_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problems.id"), index=True)
+    position: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    skipped_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class AlgorithmAttempt(Base):
+    __tablename__ = "algorithm_attempts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    problem_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problems.id"), index=True)
+    session_id: Mapped[str | None] = mapped_column(
+        ForeignKey("algorithm_practice_sessions.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    session_item_id: Mapped[int | None] = mapped_column(
+        ForeignKey("algorithm_practice_session_items.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    duration_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    result: Mapped[str] = mapped_column(String(24), index=True)
+    language: Mapped[str | None] = mapped_column(String(48), nullable=True)
+    approach: Mapped[str] = mapped_column(Text, default="")
+    time_complexity: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    space_complexity: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    code: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reflection: Mapped[str | None] = mapped_column(Text, nullable=True)
+    mistakes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    edge_cases: Mapped[str | None] = mapped_column(Text, nullable=True)
+    hint_count: Mapped[int] = mapped_column(Integer, default=0)
+    needs_review: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    ai_feedback_json: Mapped[str | None] = mapped_column("ai_feedback", Text, nullable=True)
+    ai_feedback_status: Mapped[str] = mapped_column(String(20), default="not_requested", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+    @property
+    def ai_feedback(self) -> dict[str, object] | None:
+        if not self.ai_feedback_json:
+            return None
+        try:
+            value = json.loads(self.ai_feedback_json)
+        except json.JSONDecodeError:
+            return None
+        return value if isinstance(value, dict) else None
+
+
+class AlgorithmReviewSchedule(Base):
+    __tablename__ = "algorithm_review_schedules"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    problem_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problems.id"), unique=True, index=True)
+    last_attempt_id: Mapped[int] = mapped_column(ForeignKey("algorithm_attempts.id"), index=True)
+    next_review_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    interval_days: Mapped[int] = mapped_column(Integer)
+    review_count: Mapped[int] = mapped_column(Integer, default=1)
+    mastery_level: Mapped[int] = mapped_column(Integer, default=0)
+    reason: Mapped[str] = mapped_column(String(80))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class AlgorithmProblemProgress(Base):
+    __tablename__ = "algorithm_problem_progress"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    problem_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problems.id"), unique=True, index=True)
+    status: Mapped[str] = mapped_column(String(24), default="unseen", index=True)
+    attempt_count: Mapped[int] = mapped_column(Integer, default=0)
+    solved_count: Mapped[int] = mapped_column(Integer, default=0)
+    best_duration_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    last_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_result: Mapped[str | None] = mapped_column(String(24), nullable=True)
+    needs_review: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    mastery_level: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
 class InterviewQuestion(Base):
     """Auditable interview question content used by future training flows."""
 
@@ -203,10 +325,18 @@ class InterviewQuestionSet(Base):
     topic: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
     difficulty: Mapped[str | None] = mapped_column(String(20), nullable=True, index=True)
     question_count: Mapped[int] = mapped_column(Integer)
-    status: Mapped[str] = mapped_column(String(20), default="active", index=True)
+    status: Mapped[str] = mapped_column(String(20), default="in_progress", index=True)
     current_index: Mapped[int] = mapped_column(Integer, default=0)
+    last_active_question_id: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    include_due_reviews: Mapped[bool] = mapped_column(Boolean, default=True)
+    random_order: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    last_active_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    abandoned_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 
 
 class InterviewQuestionSetItem(Base):

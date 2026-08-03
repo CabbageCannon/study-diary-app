@@ -1,15 +1,15 @@
 {
-  "total": 0,
+  "total": 18,
   "by_difficulty": {
-    "easy": 0,
-    "medium": 0,
+    "easy": 7,
+    "medium": 11,
     "hard": 0
   },
-  "by_source_list": {},
+  "by_source_list": {
+    "blind75": 14,
+    "hot100": 15,
+    "neetcode150": 18
+  },
   "unknown_patterns": [],
-  "validation_errors": [],
-  "notes": [
-    "尚未提供本地 .problemSiteData.json，因此没有生成算法题记录。",
-    "请使用 build_problem_catalog.py 读取人工下载或许可清晰的数据源，运行时不会联网获取题目。"
-  ]
+  "validation_errors": []
 }

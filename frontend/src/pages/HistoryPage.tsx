@@ -73,7 +73,7 @@ export function HistoryPage() {
   }
 
   return (
-    <div className="page-stack">
+    <div className={didJustSave ? "page-stack history-page history-page-with-notice" : "page-stack history-page"}>
       <header className="page-header">
         <div>
           <span className="page-kicker">历史日记</span>

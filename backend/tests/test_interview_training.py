@@ -4,10 +4,11 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
+from app import database
 from app.config import settings
 from app.database import Base, get_db
 from app.llm import LLMError
@@ -226,3 +227,162 @@ class InterviewTrainingApiTests(unittest.TestCase):
         self.assertEqual(due.status_code, 200)
         self.assertEqual(due.json()[0]["review_interval_days"], 1)
         self.assertEqual([review_interval_days(score) for score in (59, 60, 80, 90)], [1, 3, 7, 14])
+
+
+class InterviewSessionStateApiTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.engine = create_engine(
+            "sqlite://",
+            connect_args={"check_same_thread": False},
+            poolclass=StaticPool,
+        )
+        Base.metadata.create_all(self.engine)
+        self.session = Session(self.engine)
+        for question_id in ("session-state-001", "session-state-002", "session-state-003"):
+            upsert_question(self.session, question_payload(question_id, "verified"))
+        self.session.commit()
+
+        def override_db():
+            yield self.session
+
+        app.dependency_overrides[get_db] = override_db
+        self.client = TestClient(app)
+
+    def tearDown(self) -> None:
+        app.dependency_overrides.clear()
+        self.client.close()
+        self.session.close()
+
+    def create_set(self) -> dict[str, object]:
+        response = self.client.post(
+            "/api/interviews/question-sets",
+            json={"domain": "python", "topic": "asyncio", "question_count": 3, "random_order": False},
+        )
+        self.assertEqual(response.status_code, 201)
+        return response.json()
+
+    def skip_all_questions(self, set_id: int) -> None:
+        for _ in range(3):
+            response = self.client.post(f"/api/interviews/question-sets/{set_id}/skip")
+            self.assertEqual(response.status_code, 200)
+
+    def test_new_set_progress_and_reload_use_persistent_in_progress_state(self) -> None:
+        created = self.create_set()
+        self.assertEqual(created["status"], "in_progress")
+        second = created["items"][1]
+        update = self.client.patch(
+            f"/api/interviews/question-sets/{created['id']}/progress",
+            json={"current_index": 1, "last_active_question_id": second["question"]["id"]},
+        )
+        self.assertEqual(update.status_code, 200)
+        self.assertEqual(update.json()["current_index"], 1)
+
+        restored = self.client.get(f"/api/interviews/question-sets/{created['id']}")
+        self.assertEqual(restored.status_code, 200)
+        self.assertEqual(restored.json()["current_question"]["id"], second["question"]["id"])
+        self.assertEqual(restored.json()["last_active_question_id"], second["question"]["id"])
+
+    def test_complete_and_abandon_have_guarded_lifecycle(self) -> None:
+        created = self.create_set()
+        set_id = created["id"]
+        incomplete = self.client.post(f"/api/interviews/question-sets/{set_id}/complete")
+        self.assertEqual(incomplete.status_code, 409)
+
+        self.skip_all_questions(set_id)
+        completed = self.client.post(f"/api/interviews/question-sets/{set_id}/complete")
+        self.assertEqual(completed.status_code, 200)
+        self.assertEqual(completed.json()["status"], "completed")
+        self.assertIsNotNone(completed.json()["completed_at"])
+        self.assertEqual(
+            self.client.patch(f"/api/interviews/question-sets/{set_id}/progress", json={"current_index": 0}).status_code,
+            409,
+        )
+
+        in_progress = self.create_set()
+        abandoned = self.client.post(f"/api/interviews/question-sets/{in_progress['id']}/abandon")
+        self.assertEqual(abandoned.status_code, 200)
+        self.assertEqual(abandoned.json()["status"], "abandoned")
+        self.assertIsNotNone(abandoned.json()["abandoned_at"])
+
+    def test_status_filters_restart_and_delete_preserve_original_questions(self) -> None:
+        created = self.create_set()
+        set_id = created["id"]
+        in_progress = self.client.get("/api/interviews/question-sets?status=in_progress")
+        self.assertEqual(in_progress.status_code, 200)
+        self.assertIn(set_id, [item["id"] for item in in_progress.json()])
+
+        with patch("app.services.interview_training_service.evaluate_interview_answer", successful_evaluation):
+            submitted = self.client.post(
+                f"/api/interviews/question-sets/{set_id}/answers",
+                json={
+                    "question_id": created["items"][0]["question"]["id"],
+                    "answer_text": "这是一条会在删除训练记录时被一并清理的回答。",
+                    "answer_source": "text",
+                },
+            )
+        self.assertEqual(submitted.status_code, 201)
+        restarted = self.client.post(f"/api/interviews/question-sets/{set_id}/restart")
+        self.assertEqual(restarted.status_code, 201)
+        self.assertNotEqual(restarted.json()["id"], set_id)
+        self.assertFalse(any(item["latest_answer"] for item in restarted.json()["items"]))
+
+        deleted = self.client.delete(f"/api/interviews/question-sets/{set_id}")
+        self.assertEqual(deleted.status_code, 204)
+        self.assertEqual(self.client.get(f"/api/interviews/question-sets/{set_id}").status_code, 404)
+        self.assertEqual(
+            self.client.get("/api/interviews/questions/session-state-001").status_code,
+            200,
+        )
+
+    def test_stats_uses_persisted_answers_and_pending_sessions(self) -> None:
+        created = self.create_set()
+        with patch("app.services.interview_training_service.evaluate_interview_answer", successful_evaluation):
+            response = self.client.post(
+                f"/api/interviews/question-sets/{created['id']}/answers",
+                json={
+                    "question_id": created["items"][0]["question"]["id"],
+                    "answer_text": "这是一条用于验证学习统计聚合接口的有效回答。",
+                    "answer_source": "text",
+                },
+            )
+        self.assertEqual(response.status_code, 201)
+        stats = self.client.get("/api/interviews/stats")
+        self.assertEqual(stats.status_code, 200)
+        body = stats.json()
+        self.assertEqual(body["today_answered_count"], 1)
+        self.assertEqual(body["total_answered_count"], 1)
+        self.assertEqual(body["in_progress_count"], 1)
+        self.assertEqual(body["domains"][0]["domain"], "python")
+
+
+class InterviewSessionMigrationTests(unittest.TestCase):
+    def test_existing_sqlite_question_sets_receive_session_columns_and_active_status_is_upgraded(self) -> None:
+        engine = create_engine("sqlite://")
+        with engine.begin() as connection:
+            connection.exec_driver_sql(
+                "CREATE TABLE interview_question_sets ("
+                "id INTEGER PRIMARY KEY, date VARCHAR(10), domain VARCHAR(80), topic VARCHAR(100), "
+                "difficulty VARCHAR(20), question_count INTEGER, status VARCHAR(20), current_index INTEGER, "
+                "created_at DATETIME, completed_at DATETIME)"
+            )
+            connection.exec_driver_sql(
+                "INSERT INTO interview_question_sets "
+                "(id, date, question_count, status, current_index, created_at) "
+                "VALUES (1, '2026-08-03', 5, 'active', 0, CURRENT_TIMESTAMP)"
+            )
+
+        original_engine = database.engine
+        database.engine = engine
+        try:
+            database._apply_sqlite_interview_session_migration()
+        finally:
+            database.engine = original_engine
+
+        columns = {column["name"] for column in inspect(engine).get_columns("interview_question_sets")}
+        self.assertTrue(set(database.INTERVIEW_QUESTION_SET_COLUMN_DEFINITIONS).issubset(columns))
+        with engine.connect() as connection:
+            row = connection.exec_driver_sql(
+                "SELECT status, started_at, last_active_at, updated_at FROM interview_question_sets WHERE id = 1"
+            ).one()
+        self.assertEqual(row.status, "in_progress")
+        self.assertTrue(all(value is not None for value in row[1:]))

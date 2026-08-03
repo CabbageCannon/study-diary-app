@@ -2,6 +2,8 @@ import { request } from "./client";
 import type {
   CreateQuestionSetPayload,
   InterviewAnswerSubmission,
+  InterviewBatchJob,
+  InterviewBatchJobCreatePayload,
   InterviewQuestion,
   InterviewQuestionAIReviewResult,
   InterviewQuestionBatchResult,
@@ -11,6 +13,9 @@ import type {
   InterviewReviewSchedule,
   ReviewStatus,
   SubmitInterviewAnswerPayload,
+  InterviewTrainingStats,
+  QuestionSetStatus,
+  UpdateInterviewQuestionSetProgressPayload,
 } from "../types/interview";
 
 interface QuestionFilters {
@@ -32,7 +37,7 @@ function toQuery(params: Record<string, string | number | boolean | undefined>) 
   return value ? `?${value}` : "";
 }
 
-export function listInterviewQuestions(filters: QuestionFilters = {}): Promise<InterviewQuestion[]> {
+export function listInterviewQuestions(filters: QuestionFilters = {}, signal?: AbortSignal): Promise<InterviewQuestion[]> {
   return request<InterviewQuestion[]>(
     `/api/interviews/questions${toQuery({
       domain: filters.domain,
@@ -41,6 +46,7 @@ export function listInterviewQuestions(filters: QuestionFilters = {}): Promise<I
       review_status: filters.reviewStatus,
       count: filters.count ?? 100,
     })}`,
+    { signal },
   );
 }
 
@@ -83,6 +89,17 @@ export function rejectInterviewQuestions(questionIds: string[]): Promise<Intervi
   });
 }
 
+export function createInterviewBatchJob(payload: InterviewBatchJobCreatePayload): Promise<InterviewBatchJob> {
+  return request<InterviewBatchJob>("/api/interviews/batch-jobs", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function listInterviewBatchJobs(signal?: AbortSignal): Promise<InterviewBatchJob[]> {
+  return request<InterviewBatchJob[]>("/api/interviews/batch-jobs?limit=12", { signal });
+}
+
 export function createInterviewQuestionSet(payload: CreateQuestionSetPayload): Promise<InterviewQuestionSet> {
   return request<InterviewQuestionSet>("/api/interviews/question-sets", {
     method: "POST",
@@ -90,12 +107,45 @@ export function createInterviewQuestionSet(payload: CreateQuestionSetPayload): P
   });
 }
 
-export function getInterviewQuestionSet(setId: number): Promise<InterviewQuestionSet> {
-  return request<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}`);
+export function getInterviewQuestionSet(setId: number, signal?: AbortSignal): Promise<InterviewQuestionSet> {
+  return request<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}`, { signal });
 }
 
-export function listInterviewQuestionSets(): Promise<InterviewQuestionSetSummary[]> {
-  return request<InterviewQuestionSetSummary[]>("/api/interviews/question-sets?limit=50");
+export function listInterviewQuestionSets(options: { status?: QuestionSetStatus; limit?: number; signal?: AbortSignal } = {}): Promise<InterviewQuestionSetSummary[]> {
+  return request<InterviewQuestionSetSummary[]>(
+    `/api/interviews/question-sets${toQuery({ status: options.status, limit: options.limit ?? 50 })}`,
+    { signal: options.signal },
+  );
+}
+
+export function getInterviewTrainingStats(signal?: AbortSignal): Promise<InterviewTrainingStats> {
+  return request<InterviewTrainingStats>("/api/interviews/stats", { signal });
+}
+
+export function updateInterviewQuestionSetProgress(
+  setId: number,
+  payload: UpdateInterviewQuestionSetProgressPayload,
+): Promise<InterviewQuestionSet> {
+  return request<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}/progress`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function completeInterviewQuestionSet(setId: number): Promise<InterviewQuestionSet> {
+  return request<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}/complete`, { method: "POST" });
+}
+
+export function abandonInterviewQuestionSet(setId: number): Promise<InterviewQuestionSet> {
+  return request<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}/abandon`, { method: "POST" });
+}
+
+export function restartInterviewQuestionSet(setId: number): Promise<InterviewQuestionSet> {
+  return request<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}/restart`, { method: "POST" });
+}
+
+export function deleteInterviewQuestionSet(setId: number): Promise<void> {
+  return request<void>(`/api/interviews/question-sets/${setId}`, { method: "DELETE" });
 }
 
 export function skipInterviewQuestion(setId: number): Promise<InterviewQuestionSet> {

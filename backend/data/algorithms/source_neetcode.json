@@ -1,7 +1,23 @@
 {
-  "name": "neetcode-gh/leetcode",
-  "url": "https://github.com/neetcode-gh/leetcode",
-  "license": "MIT",
-  "imported_fields": ["problem", "pattern", "link", "difficulty", "neetcode150", "blind75"],
-  "notes": "运行时不访问该仓库。请先由人工下载或以许可明确的方式提供 .problemSiteData.json，再运行 build_problem_catalog.py。"
+  "catalog_note": "Small manually verified metadata subset for the MVP. It is not a complete Hot 100, Blind 75, or NeetCode 150 dataset.",
+  "problems": [
+    {"id": 1, "title": "Two Sum", "title_zh": "两数之和", "slug": "two-sum", "difficulty": "easy", "pattern": "Arrays & Hashing"},
+    {"id": 49, "title": "Group Anagrams", "title_zh": "字母异位词分组", "slug": "group-anagrams", "difficulty": "medium", "pattern": "Arrays & Hashing"},
+    {"id": 217, "title": "Contains Duplicate", "title_zh": "存在重复元素", "slug": "contains-duplicate", "difficulty": "easy", "pattern": "Arrays & Hashing"},
+    {"id": 238, "title": "Product of Array Except Self", "title_zh": "除自身以外数组的乘积", "slug": "product-of-array-except-self", "difficulty": "medium", "pattern": "Arrays & Hashing"},
+    {"id": 3, "title": "Longest Substring Without Repeating Characters", "title_zh": "无重复字符的最长子串", "slug": "longest-substring-without-repeating-characters", "difficulty": "medium", "pattern": "Sliding Window"},
+    {"id": 15, "title": "3Sum", "title_zh": "三数之和", "slug": "3sum", "difficulty": "medium", "pattern": "Two Pointers"},
+    {"id": 11, "title": "Container With Most Water", "title_zh": "盛最多水的容器", "slug": "container-with-most-water", "difficulty": "medium", "pattern": "Two Pointers"},
+    {"id": 20, "title": "Valid Parentheses", "title_zh": "有效的括号", "slug": "valid-parentheses", "difficulty": "easy", "pattern": "Arrays & Hashing"},
+    {"id": 704, "title": "Binary Search", "title_zh": "二分查找", "slug": "binary-search", "difficulty": "easy", "pattern": "Binary Search"},
+    {"id": 33, "title": "Search in Rotated Sorted Array", "title_zh": "搜索旋转排序数组", "slug": "search-in-rotated-sorted-array", "difficulty": "medium", "pattern": "Binary Search"},
+    {"id": 206, "title": "Reverse Linked List", "title_zh": "反转链表", "slug": "reverse-linked-list", "difficulty": "easy", "pattern": "Linked List"},
+    {"id": 21, "title": "Merge Two Sorted Lists", "title_zh": "合并两个有序链表", "slug": "merge-two-sorted-lists", "difficulty": "easy", "pattern": "Linked List"},
+    {"id": 104, "title": "Maximum Depth of Binary Tree", "title_zh": "二叉树的最大深度", "slug": "maximum-depth-of-binary-tree", "difficulty": "easy", "pattern": "Trees"},
+    {"id": 200, "title": "Number of Islands", "title_zh": "岛屿数量", "slug": "number-of-islands", "difficulty": "medium", "pattern": "Graphs"},
+    {"id": 39, "title": "Combination Sum", "title_zh": "组合总和", "slug": "combination-sum", "difficulty": "medium", "pattern": "Backtracking"},
+    {"id": 198, "title": "House Robber", "title_zh": "打家劫舍", "slug": "house-robber", "difficulty": "medium", "pattern": "Dynamic Programming"},
+    {"id": 322, "title": "Coin Change", "title_zh": "零钱兑换", "slug": "coin-change", "difficulty": "medium", "pattern": "Dynamic Programming"},
+    {"id": 55, "title": "Jump Game", "title_zh": "跳跃游戏", "slug": "jump-game", "difficulty": "medium", "pattern": "Greedy"}
+  ]
 }

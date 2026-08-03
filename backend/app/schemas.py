@@ -382,6 +382,227 @@ class AlgorithmProblemRead(BaseModel):
     source_license: str
     is_active: bool
     created_at: datetime
+
+
+AlgorithmTrainingMode = Literal[
+    "daily", "hot100", "topic", "difficulty", "random", "weakness", "wrong", "similar", "custom", "review"
+]
+AlgorithmSessionStatus = Literal["in_progress", "completed", "abandoned"]
+AlgorithmSessionItemStatus = Literal["pending", "in_progress", "solved", "needs_review", "skipped"]
+AlgorithmAttemptResult = Literal["solved", "partially_solved", "failed", "gave_up"]
+
+
+class AlgorithmPracticeSessionCreate(BaseModel):
+    mode: AlgorithmTrainingMode
+    count: int = Field(default=5, ge=1, le=20)
+    topics: list[str] = Field(default_factory=list, max_length=8)
+    difficulty: list[Difficulty] = Field(default_factory=list, max_length=3)
+    source_lists: list[str] = Field(default_factory=list, max_length=5)
+    problem_ids: list[str] = Field(default_factory=list, max_length=20)
+    exclude_solved: bool = False
+    prioritize_due_review: bool = True
+    reference_problem_id: str | None = Field(default=None, max_length=160)
+
+    @field_validator("topics", "source_lists", "problem_ids")
+    @classmethod
+    def normalize_filter_values(cls, values: list[str]) -> list[str]:
+        normalized: list[str] = []
+        for value in values:
+            item = str(value).strip()
+            if item and item not in normalized:
+                normalized.append(item)
+        return normalized
+
+
+class AlgorithmPracticeSessionProgressUpdate(BaseModel):
+    current_index: int = Field(ge=0)
+    item_status: AlgorithmSessionItemStatus | None = None
+
+
+class AlgorithmAttemptCreate(BaseModel):
+    problem_id: int
+    session_id: str | None = Field(default=None, max_length=36)
+    duration_seconds: int | None = Field(default=None, ge=0, le=86_400)
+    result: AlgorithmAttemptResult
+    language: str | None = Field(default=None, max_length=48)
+    approach: str = Field(default="", max_length=12_000)
+    time_complexity: str | None = Field(default=None, max_length=160)
+    space_complexity: str | None = Field(default=None, max_length=160)
+    code: str | None = Field(default=None, max_length=40_000)
+    reflection: str | None = Field(default=None, max_length=12_000)
+    mistakes: str | None = Field(default=None, max_length=8_000)
+    edge_cases: str | None = Field(default=None, max_length=8_000)
+    needs_review: bool = False
+
+    @field_validator("language", "time_complexity", "space_complexity", "approach", "code", "reflection", "mistakes", "edge_cases")
+    @classmethod
+    def trim_optional_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        return value.strip()
+
+
+class AlgorithmAttemptUpdate(BaseModel):
+    approach: str | None = Field(default=None, max_length=12_000)
+    time_complexity: str | None = Field(default=None, max_length=160)
+    space_complexity: str | None = Field(default=None, max_length=160)
+    code: str | None = Field(default=None, max_length=40_000)
+    reflection: str | None = Field(default=None, max_length=12_000)
+    mistakes: str | None = Field(default=None, max_length=8_000)
+    edge_cases: str | None = Field(default=None, max_length=8_000)
+    needs_review: bool | None = None
+
+
+class AlgorithmComplexityAssessment(BaseModel):
+    user_claim: str = ""
+    suggested: str = ""
+    is_likely_correct: bool = False
+    reason: str = ""
+
+
+class AlgorithmCodeReview(BaseModel):
+    has_code: bool = False
+    possible_bugs: list[str] = Field(default_factory=list, max_length=8)
+    readability_suggestions: list[str] = Field(default_factory=list, max_length=8)
+
+
+class AlgorithmAIReview(BaseModel):
+    summary: str = Field(min_length=1, max_length=2_000)
+    approach_assessment: str = Field(min_length=1, max_length=4_000)
+    correct_parts: list[str] = Field(default_factory=list, max_length=12)
+    issues: list[str] = Field(default_factory=list, max_length=12)
+    missing_edge_cases: list[str] = Field(default_factory=list, max_length=12)
+    time_complexity_assessment: AlgorithmComplexityAssessment
+    space_complexity_assessment: AlgorithmComplexityAssessment
+    code_review: AlgorithmCodeReview
+    better_approach: str = Field(default="", max_length=4_000)
+    reflection_prompt: str = Field(default="", max_length=1_000)
+    needs_review: bool = True
+    weak_topics: list[str] = Field(default_factory=list, max_length=8)
+    recommended_problem_ids: list[int] = Field(default_factory=list, max_length=5)
+
+
+class AlgorithmHintRequest(BaseModel):
+    hint_level: int = Field(ge=1, le=4)
+    approach: str = Field(default="", max_length=8_000)
+
+
+class AlgorithmHintRead(BaseModel):
+    hint_level: int
+    content: str
+    remaining_hint_levels: int
+
+
+class AlgorithmHintContent(BaseModel):
+    content: str = Field(min_length=1, max_length=2_000)
+
+
+class AlgorithmAttemptRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    problem_id: int
+    session_id: str | None
+    session_item_id: int | None
+    started_at: datetime
+    submitted_at: datetime | None
+    duration_seconds: int | None
+    result: AlgorithmAttemptResult
+    language: str | None
+    approach: str
+    time_complexity: str | None
+    space_complexity: str | None
+    code: str | None
+    reflection: str | None
+    mistakes: str | None
+    edge_cases: str | None
+    hint_count: int
+    needs_review: bool
+    ai_feedback: dict[str, object] | None
+    ai_feedback_status: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class AlgorithmPracticeSessionItemRead(BaseModel):
+    id: int
+    problem_id: int
+    position: int
+    status: AlgorithmSessionItemStatus
+    started_at: datetime | None
+    completed_at: datetime | None
+    skipped_at: datetime | None
+    problem: AlgorithmProblemRead
+    latest_attempt: AlgorithmAttemptRead | None = None
+    attempt_count: int = 0
+
+
+class AlgorithmPracticeSessionRead(BaseModel):
+    id: str
+    mode: AlgorithmTrainingMode
+    status: AlgorithmSessionStatus
+    requested_count: int
+    question_count: int
+    current_index: int
+    filters: dict[str, object]
+    started_at: datetime
+    last_active_at: datetime
+    completed_at: datetime | None
+    abandoned_at: datetime | None
+    created_at: datetime
+    updated_at: datetime
+    items: list[AlgorithmPracticeSessionItemRead]
+    available_problem_count: int = 0
+    availability_message: str | None = None
+
+
+class AlgorithmPracticeSessionSummary(BaseModel):
+    id: str
+    mode: AlgorithmTrainingMode
+    status: AlgorithmSessionStatus
+    question_count: int
+    solved_count: int
+    needs_review_count: int
+    current_index: int
+    started_at: datetime
+    last_active_at: datetime
+    completed_at: datetime | None
+
+
+class AlgorithmReviewScheduleRead(BaseModel):
+    problem: AlgorithmProblemRead
+    next_review_at: datetime
+    interval_days: int
+    review_count: int
+    mastery_level: int
+    reason: str
+    last_attempt: AlgorithmAttemptRead | None = None
+
+
+class AlgorithmStatsRead(BaseModel):
+    current_streak_days: int
+    today_completed_count: int
+    total_attempt_count: int
+    unique_solved_count: int
+    completed_by_difficulty: dict[str, int]
+    completed_by_topic: dict[str, int]
+    success_rate_by_topic: dict[str, float]
+    average_duration_seconds: int | None
+    due_review_count: int
+    wrong_problem_count: int
+    in_progress_session_count: int
+    recent_7_days: list[dict[str, int | str]]
+    recent_30_days: list[dict[str, int | str]]
+
+
+class AlgorithmWeaknessRead(BaseModel):
+    topic: str
+    attempt_count: int
+    success_rate: float
+    average_duration_seconds: int | None
+    needs_review_count: int
+    due_review_count: int
+    mastery_score: int
     updated_at: datetime
 
 
@@ -435,7 +656,7 @@ class AnswerEvaluation(BaseModel):
         return [item.strip() for item in value if item.strip()]
 
 
-QuestionSetStatus = Literal["active", "completed", "abandoned"]
+QuestionSetStatus = Literal["in_progress", "completed", "abandoned"]
 QuestionSetItemStatus = Literal["pending", "answered", "skipped"]
 AnswerSource = Literal["voice", "text"]
 
@@ -657,6 +878,11 @@ class InterviewQuestionSetItemRead(BaseModel):
     next_review_at: datetime | None = None
 
 
+class InterviewQuestionSetProgressUpdate(BaseModel):
+    current_index: int = Field(ge=0)
+    last_active_question_id: str | None = Field(default=None, min_length=1, max_length=160)
+
+
 class InterviewQuestionSetRead(BaseModel):
     id: int
     date: str
@@ -668,8 +894,15 @@ class InterviewQuestionSetRead(BaseModel):
     availability_message: str | None = None
     status: QuestionSetStatus
     current_index: int
+    last_active_question_id: str | None
+    include_due_reviews: bool
+    random_order: bool
     created_at: datetime
+    started_at: datetime
+    last_active_at: datetime
     completed_at: datetime | None
+    abandoned_at: datetime | None
+    updated_at: datetime
     items: list[InterviewQuestionSetItemRead]
     current_question: InterviewQuestionForTraining | None
 
@@ -682,10 +915,30 @@ class InterviewQuestionSetSummary(BaseModel):
     difficulty: Difficulty | None
     question_count: int
     answered_count: int
+    skipped_count: int
     status: QuestionSetStatus
     average_score: float | None
     created_at: datetime
+    last_active_at: datetime
     completed_at: datetime | None
+    abandoned_at: datetime | None
+
+
+class InterviewTrainingDomainStat(BaseModel):
+    domain: QuestionDomain
+    answered_count: int
+    average_score: float | None
+
+
+class InterviewTrainingStats(BaseModel):
+    streak_days: int
+    today_answered_count: int
+    total_answered_count: int
+    due_review_count: int
+    recent_average_score: float | None
+    in_progress_count: int
+    last_training_at: datetime | None
+    domains: list[InterviewTrainingDomainStat]
 
 
 class InterviewReviewScheduleRead(BaseModel):

@@ -4,18 +4,22 @@ import httpx
 from pydantic import ValidationError
 
 from app.config import settings
-from app.models import InterviewQuestion
+from app.models import AlgorithmAttempt, AlgorithmProblem, InterviewQuestion
 from app.prompts import (
+    ALGORITHM_AI_REVIEW_SYSTEM_PROMPT,
+    ALGORITHM_HINT_SYSTEM_PROMPT,
     DRAFT_SYSTEM_PROMPT,
     INTERVIEW_EVALUATION_SYSTEM_PROMPT,
     INTERVIEW_QUESTION_REVIEW_SYSTEM_PROMPT,
     REWRITE_SYSTEM_PROMPT,
+    build_algorithm_ai_review_prompt,
+    build_algorithm_hint_prompt,
     build_draft_user_prompt,
     build_interview_evaluation_prompt,
     build_interview_question_review_prompt,
     build_rewrite_user_prompt,
 )
-from app.schemas import AnswerEvaluation, DiaryDraftContent, InterviewQuestionAIReview
+from app.schemas import AlgorithmAIReview, AlgorithmHintContent, AnswerEvaluation, DiaryDraftContent, InterviewQuestionAIReview
 
 
 class LLMError(RuntimeError):
@@ -174,3 +178,60 @@ async def evaluate_interview_answer(question: InterviewQuestion, user_answer: st
             last_error = str(exc)
 
     raise LLMError("大模型评价结果格式错误，已进行一次修复重试。")
+
+
+async def generate_algorithm_hint(*, problem: AlgorithmProblem, approach: str, hint_level: int) -> str:
+    """Return one progressive hint; never request or expose a copied full solution."""
+
+    prompt = build_algorithm_hint_prompt(
+        title=problem.title,
+        title_zh=problem.title_zh or "",
+        difficulty=problem.difficulty,
+        topics_json=json.dumps(problem.topics, ensure_ascii=False),
+        approach=approach,
+        hint_level=hint_level,
+    )
+    last_error = ""
+    for repair_attempt in range(2):
+        repair_instruction = "" if repair_attempt == 0 else f"上一份输出未通过 JSON 校验：{last_error}。只返回符合 Schema 的 JSON。"
+        try:
+            parsed, _ = await _request_json_content(ALGORITHM_HINT_SYSTEM_PROMPT, f"{prompt}\n{repair_instruction}")
+            return AlgorithmHintContent.model_validate(parsed).content
+        except (LLMFormatError, ValidationError) as exc:
+            last_error = str(exc)
+    raise LLMError("AI 提示结果格式错误，已进行一次修复重试。")
+
+
+async def generate_algorithm_ai_review(
+    *,
+    problem: AlgorithmProblem,
+    attempt: AlgorithmAttempt,
+    candidate_problem_ids: list[int],
+) -> AlgorithmAIReview:
+    """Review text only. Candidate IDs are supplied by the local catalog, never invented by the model."""
+
+    prompt = build_algorithm_ai_review_prompt(
+        title=problem.title,
+        title_zh=problem.title_zh or "",
+        difficulty=problem.difficulty,
+        topics_json=json.dumps(problem.topics, ensure_ascii=False),
+        result=attempt.result,
+        approach=attempt.approach,
+        time_complexity=attempt.time_complexity or "",
+        space_complexity=attempt.space_complexity or "",
+        code=attempt.code or "",
+        reflection=attempt.reflection or "",
+        mistakes=attempt.mistakes or "",
+        edge_cases=attempt.edge_cases or "",
+        hint_count=attempt.hint_count,
+        candidate_problem_ids_json=json.dumps(candidate_problem_ids),
+    )
+    last_error = ""
+    for repair_attempt in range(2):
+        repair_instruction = "" if repair_attempt == 0 else f"上一份输出未通过 JSON 校验：{last_error}。只返回符合 Schema 的 JSON。"
+        try:
+            parsed, _ = await _request_json_content(ALGORITHM_AI_REVIEW_SYSTEM_PROMPT, f"{prompt}\n{repair_instruction}")
+            return AlgorithmAIReview.model_validate(parsed)
+        except (LLMFormatError, ValidationError) as exc:
+            last_error = str(exc)
+    raise LLMError("AI 复盘结果格式错误，已进行一次修复重试。")

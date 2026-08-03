@@ -18,6 +18,7 @@ ALLOW_QUESTION_REVIEW=true
 ALLOW_UNVERIFIED_QUESTION_ACCESS=true
 ALLOW_AI_QUESTION_REVIEW=true
 ALLOW_QUESTION_QUICK_PUBLISH=true
+BATCH_AI_REVIEW_CONCURRENCY=2
 
 # frontend/.env
 VITE_ENABLE_QUESTION_REVIEW=true
@@ -33,7 +34,9 @@ cd backend
 .venv\Scripts\python.exe scripts\import_seed_data.py --interviews --overwrite-review-metadata
 ```
 
-训练接口包括 `POST /api/interviews/question-sets`、`POST /api/interviews/question-sets/{id}/answers`、`POST /api/interviews/answers/{id}/retry`、`POST /api/interviews/answers/{id}/evaluate`、`GET /api/interviews/question-sets` 和 `GET /api/interviews/reviews/due`。评分按正确性 35%、完整性 30%、结构性 20%、口语表达 15% 加权，并按 1 / 3 / 7 / 14 天安排复习。
+训练题集有 `in_progress`、`completed`、`abandoned` 三种状态。训练进度、当前题目、题目顺序、已答/跳过状态、回答和评分以 SQLite 为准；未提交文本草稿仅保存在浏览器 localStorage，并按题集与题目隔离。首页和历史页均可继续未完成训练，历史页支持放弃、再次练习和删除训练记录；删除不会影响八股题库原题。
+
+训练接口包括 `POST /api/interviews/question-sets`、`GET /api/interviews/question-sets?status=in_progress`、`GET /api/interviews/question-sets/{id}`、`PATCH /api/interviews/question-sets/{id}/progress`、`POST /api/interviews/question-sets/{id}/complete`、`POST /api/interviews/question-sets/{id}/abandon`、`POST /api/interviews/question-sets/{id}/restart`、`DELETE /api/interviews/question-sets/{id}`、`POST /api/interviews/question-sets/{id}/answers`、`POST /api/interviews/answers/{id}/retry`、`POST /api/interviews/answers/{id}/evaluate`、`GET /api/interviews/stats` 和 `GET /api/interviews/reviews/due`。评分按正确性 35%、完整性 30%、结构性 20%、口语表达 15% 加权，并按 1 / 3 / 7 / 14 天安排复习。
 
 一个本地运行的学习日记 Web 应用：前端使用 React + TypeScript + Vite，后端使用 FastAPI + SQLite + SQLAlchemy，通过 OpenAI-compatible API 将口语化学习记录整理成可检查、可修改、可归档的中文学习日记。
 
@@ -223,9 +226,14 @@ POST /api/interviews/questions/{question_id}/ai-review/apply
 POST /api/interviews/questions/ai-review-batch
 POST /api/interviews/questions/publish-batch
 POST /api/interviews/questions/reject-batch
+POST /api/interviews/batch-jobs
+GET /api/interviews/batch-jobs
+GET /api/interviews/batch-jobs/{job_id}
 ```
 
 三种审核方式共用 `/interview/review`：人工精审的评分写入 `human_quality_score`，AI 评分写入 `ai_quality_score` 和结构化审核结果；快速正式化会记录 `manual_override`，但不会伪装成 `verified_by_human`。批量接口每次最多 30 题，单题失败不会中断其余处理。
+
+批量操作会先创建持久化后台任务并立即返回。任务状态和逐题结果保存于 SQLite，前端右下角任务中心会跨页面轮询显示进度、完成提示和失败原因。AI 审核默认最多并发 2 个模型调用，可通过 `BATCH_AI_REVIEW_CONCURRENCY` 在 1 到 3 之间调整。服务重启时未完成任务会标记为失败，避免长期显示为处理中。
 
 查询列表、查询详情和删除日记。
 
@@ -259,3 +267,7 @@ cd backend
 - 增加本地导出 Markdown / PDF。
 - 增加模型调用重试、流式生成和本地演示模式。
 - 增加用户登录后支持多设备同步。
+
+## PWA 与生产部署
+
+移动端 PWA、Cloudflare/Vercel SPA 回退、PostgreSQL/Alembic、SQLite 迁移和公网访问保护说明见 [docs/deployment.md](docs/deployment.md)。

@@ -3,7 +3,7 @@ export type ReviewStatus = "pending" | "verified" | "rejected";
 export type ReviewMethod = "human" | "ai_auto" | "manual_override";
 export type QuestionDomain = "agent" | "rag" | "llm_application" | "python" | "network" | "ai_engineering";
 export type AnswerSource = "voice" | "text";
-export type QuestionSetStatus = "active" | "completed" | "abandoned";
+export type QuestionSetStatus = "in_progress" | "completed" | "abandoned";
 export type QuestionSetItemStatus = "pending" | "answered" | "skipped";
 
 export interface EvaluationRubricItem {
@@ -104,6 +104,47 @@ export interface InterviewQuestionBatchResult {
   items: InterviewQuestionBatchItemResult[];
 }
 
+export type InterviewBatchJobType = "ai_review" | "quick_publish" | "reject";
+export type InterviewBatchJobStatus = "queued" | "running" | "completed" | "partial_failed" | "failed";
+export type InterviewBatchJobItemStatus = "pending" | "running" | "succeeded" | "skipped" | "failed";
+
+export interface InterviewBatchJobCreatePayload {
+  type: InterviewBatchJobType;
+  question_ids: string[];
+  auto_publish?: boolean;
+}
+
+export interface InterviewBatchJobItem {
+  id: number;
+  question_id: string;
+  status: InterviewBatchJobItemStatus;
+  outcome: string | null;
+  message: string | null;
+  created_at: string;
+  started_at: string | null;
+  completed_at: string | null;
+}
+
+export interface InterviewBatchJob {
+  id: string;
+  type: InterviewBatchJobType;
+  status: InterviewBatchJobStatus;
+  auto_publish: boolean;
+  total: number;
+  processed_count: number;
+  succeeded_count: number;
+  skipped_count: number;
+  failed_count: number;
+  published_count: number;
+  kept_pending_count: number;
+  error: string | null;
+  created_at: string;
+  started_at: string | null;
+  completed_at: string | null;
+  updated_at: string;
+  items: InterviewBatchJobItem[];
+}
+
 export interface InterviewQuestionForTraining {
   id: string;
   domain: QuestionDomain;
@@ -172,8 +213,15 @@ export interface InterviewQuestionSet {
   availability_message: string | null;
   status: QuestionSetStatus;
   current_index: number;
+  last_active_question_id: string | null;
+  include_due_reviews: boolean;
+  random_order: boolean;
   created_at: string;
+  started_at: string;
+  last_active_at: string;
   completed_at: string | null;
+  abandoned_at: string | null;
+  updated_at: string;
   items: InterviewQuestionSetItem[];
   current_question: InterviewQuestionForTraining | null;
 }
@@ -186,10 +234,30 @@ export interface InterviewQuestionSetSummary {
   difficulty: Difficulty | null;
   question_count: number;
   answered_count: number;
+  skipped_count: number;
   status: QuestionSetStatus;
   average_score: number | null;
   created_at: string;
+  last_active_at: string;
   completed_at: string | null;
+  abandoned_at: string | null;
+}
+
+export interface InterviewTrainingDomainStat {
+  domain: QuestionDomain;
+  answered_count: number;
+  average_score: number | null;
+}
+
+export interface InterviewTrainingStats {
+  streak_days: number;
+  today_answered_count: number;
+  total_answered_count: number;
+  due_review_count: number;
+  recent_average_score: number | null;
+  in_progress_count: number;
+  last_training_at: string | null;
+  domains: InterviewTrainingDomainStat[];
 }
 
 export interface InterviewReviewSchedule {
@@ -217,4 +285,9 @@ export interface SubmitInterviewAnswerPayload {
   answer_text: string;
   answer_source: AnswerSource;
   duration_seconds?: number;
+}
+
+export interface UpdateInterviewQuestionSetProgressPayload {
+  current_index: number;
+  last_active_question_id?: string;
 }

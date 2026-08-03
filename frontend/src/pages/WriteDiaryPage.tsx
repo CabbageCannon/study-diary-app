@@ -144,7 +144,7 @@ export function WriteDiaryPage() {
       <header className="page-header">
         <div>
           <span className="page-kicker">写日记</span>
-          <h1>记录今天的学习</h1>
+          <h1>写日记</h1>
         </div>
         <p>先写下真实想法，再整理成一篇可以长期回看的学习日记。</p>
       </header>

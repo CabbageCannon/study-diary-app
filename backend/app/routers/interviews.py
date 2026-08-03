@@ -21,9 +21,11 @@ from app.schemas import (
     InterviewQuestionRead,
     InterviewQuestionReviewUpdate,
     InterviewQuestionSetCreate,
+    InterviewQuestionSetProgressUpdate,
     InterviewQuestionSetRead,
     InterviewQuestionSetSummary,
     InterviewReviewScheduleRead,
+    InterviewTrainingStats,
 )
 from app.services.interview_question_review_service import (
     apply_ai_recommendation,
@@ -35,12 +37,18 @@ from app.services.interview_question_review_service import (
 from app.services.interview_batch_job_service import create_batch_job, get_batch_job, list_batch_jobs, run_batch_job, serialize_batch_job
 from app.services.interview_training_service import (
     create_question_set,
+    abandon_question_set,
+    complete_question_set,
+    delete_question_set,
+    get_training_stats,
     get_question_set_read,
     list_due_reviews,
     list_question_set_summaries,
+    restart_question_set,
     retry_evaluation,
     skip_current_question,
     submit_and_evaluate,
+    update_question_set_progress,
 )
 
 
@@ -251,10 +259,16 @@ def create_interview_question_set(
 
 @router.get("/question-sets", response_model=list[InterviewQuestionSetSummary])
 def list_interview_question_sets(
+    status_filter: Literal["in_progress", "completed", "abandoned"] | None = Query(default=None, alias="status"),
     limit: int = Query(default=30, ge=1, le=100),
     db: Session = Depends(get_db),
 ) -> list[InterviewQuestionSetSummary]:
-    return list_question_set_summaries(db, limit)
+    return list_question_set_summaries(db, limit, status=status_filter)
+
+
+@router.get("/stats", response_model=InterviewTrainingStats)
+def get_interview_training_stats(db: Session = Depends(get_db)) -> InterviewTrainingStats:
+    return get_training_stats(db)
 
 
 @router.get("/question-sets/{question_set_id}", response_model=InterviewQuestionSetRead)
@@ -263,6 +277,66 @@ def get_interview_question_set(question_set_id: int, db: Session = Depends(get_d
     if question_set is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="训练题集不存在")
     return get_question_set_read(db, question_set)
+
+
+@router.patch("/question-sets/{question_set_id}/progress", response_model=InterviewQuestionSetRead)
+def update_interview_question_set_progress(
+    question_set_id: int,
+    payload: InterviewQuestionSetProgressUpdate,
+    db: Session = Depends(get_db),
+) -> InterviewQuestionSetRead:
+    question_set = training_repository.get_question_set(db, question_set_id)
+    if question_set is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="训练题集不存在")
+    try:
+        updated = update_question_set_progress(db, question_set, payload)
+        return get_question_set_read(db, updated)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+
+
+@router.post("/question-sets/{question_set_id}/complete", response_model=InterviewQuestionSetRead)
+def complete_interview_question_set(question_set_id: int, db: Session = Depends(get_db)) -> InterviewQuestionSetRead:
+    question_set = training_repository.get_question_set(db, question_set_id)
+    if question_set is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="训练题集不存在")
+    try:
+        completed = complete_question_set(db, question_set)
+        return get_question_set_read(db, completed)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+
+
+@router.post("/question-sets/{question_set_id}/abandon", response_model=InterviewQuestionSetRead)
+def abandon_interview_question_set(question_set_id: int, db: Session = Depends(get_db)) -> InterviewQuestionSetRead:
+    question_set = training_repository.get_question_set(db, question_set_id)
+    if question_set is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="训练题集不存在")
+    try:
+        abandoned = abandon_question_set(db, question_set)
+        return get_question_set_read(db, abandoned)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+
+
+@router.post("/question-sets/{question_set_id}/restart", response_model=InterviewQuestionSetRead, status_code=status.HTTP_201_CREATED)
+def restart_interview_question_set(question_set_id: int, db: Session = Depends(get_db)) -> InterviewQuestionSetRead:
+    question_set = training_repository.get_question_set(db, question_set_id)
+    if question_set is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="训练题集不存在")
+    try:
+        restarted, message = restart_question_set(db, question_set)
+        return get_question_set_read(db, restarted, message)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+
+
+@router.delete("/question-sets/{question_set_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_interview_question_set(question_set_id: int, db: Session = Depends(get_db)) -> None:
+    question_set = training_repository.get_question_set(db, question_set_id)
+    if question_set is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="训练题集不存在")
+    delete_question_set(db, question_set)
 
 
 @router.post("/question-sets/{question_set_id}/skip", response_model=InterviewQuestionSetRead)

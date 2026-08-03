@@ -144,3 +144,79 @@ def build_interview_question_review_prompt(
 已有来源：
 {sources_json}
 """
+
+
+ALGORITHM_HINT_SYSTEM_PROMPT = """你是算法学习教练，不是题库来源、在线判题器或答案泄露工具。
+只能基于输入的本地题目元数据和学习者已有思路，给出一个渐进式提示。不要生成题目链接、完整题面、完整代码或逐行答案；提示应帮助学习者自己继续推理。输出必须是严格 JSON：{"content":""}。"""
+
+
+ALGORITHM_AI_REVIEW_SYSTEM_PROMPT = """你是算法解题复盘教练。只分析输入的本地题目元数据和学习者提交的文本；代码只做静态文本分析，绝不执行，也不能声称通过在线判题。
+不要生成题目、URL、完整受版权保护题面或未经给定候选集合验证的新推荐题目。recommended_problem_ids 只能从输入给出的 candidate_problem_ids 中选择。
+输出必须是严格 JSON，字段必须为 summary、approach_assessment、correct_parts、issues、missing_edge_cases、time_complexity_assessment、space_complexity_assessment、code_review、better_approach、reflection_prompt、needs_review、weak_topics、recommended_problem_ids。"""
+
+
+def build_algorithm_hint_prompt(
+    *,
+    title: str,
+    title_zh: str,
+    difficulty: str,
+    topics_json: str,
+    approach: str,
+    hint_level: int,
+) -> str:
+    hint_focus = {
+        1: "澄清观察方向，不要给出算法名称或步骤。",
+        2: "指出值得考虑的数据结构或算法范式，不要给出完整流程。",
+        3: "说明接近解法的关键状态、循环不变量或决策步骤，但不要给出完整代码。",
+        4: "给出参考思路的高层步骤与复杂度方向，不要给出可直接复制的完整实现。",
+    }[hint_level]
+    return f"""本地题目元数据：
+标题：{title}
+中文标题：{title_zh}
+难度：{difficulty}
+主题：{topics_json}
+
+学习者当前思路：
+{approach or "尚未记录思路"}
+
+当前请求提示等级：{hint_level}
+提示要求：{hint_focus}
+"""
+
+
+def build_algorithm_ai_review_prompt(
+    *,
+    title: str,
+    title_zh: str,
+    difficulty: str,
+    topics_json: str,
+    result: str,
+    approach: str,
+    time_complexity: str,
+    space_complexity: str,
+    code: str,
+    reflection: str,
+    mistakes: str,
+    edge_cases: str,
+    hint_count: int,
+    candidate_problem_ids_json: str,
+) -> str:
+    return f"""本地题目元数据：
+标题：{title}
+中文标题：{title_zh}
+难度：{difficulty}
+主题：{topics_json}
+
+学习记录：
+结果：{result}
+思路：{approach}
+时间复杂度：{time_complexity}
+空间复杂度：{space_complexity}
+代码（只做静态文本分析）：{code}
+反思：{reflection}
+卡点/错误：{mistakes}
+边界情况：{edge_cases}
+已请求提示次数：{hint_count}
+
+本地 catalog 提供的相似题候选 ID：{candidate_problem_ids_json}
+"""

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>八股训练设计方案 C - Quiet Premium</title>
+    <link rel="stylesheet" href="interview-proposals.css" />
+  </head>
+  <body class="proposal-c">
+    <div class="proposal-shell">
+      <aside class="proposal-nav"><div class="proposal-brand"><strong>学习日记</strong><span>Quiet Premium</span></div><nav><a href="#home" class="active">训练</a><a href="#session">当前会话</a><a href="#history">历史</a><a href="#review">审核</a></nav></aside>
+      <main class="proposal-main">
+        <header class="proposal-intro"><div><span class="eyebrow">QUIET PREMIUM</span><h1>留一点安静，给真正重要的表达。</h1></div><p>低亮度中性色与极细层级构成成熟的个人知识产品。页面不追逐刺激，重点放在专注、回顾与节奏。</p></header>
+        <div class="screen-stack">
+          <section class="screen" id="home"><div class="screen-label"><b>训练首页</b><span>深色中性色与温和绿色重点</span></div><div class="screen-header"><div><span class="eyebrow">八股训练</span><h2>今天的练习节奏</h2><p>连续 6 天 · 今日 8 题 · 待复习 12 题</p></div><button class="btn primary">开始一组训练</button></div><div class="metric-row"><div class="metric"><b>06</b><span>连续学习</span></div><div class="metric"><b>08</b><span>今日表达</span></div><div class="metric"><b>124</b><span>累计完成</span></div><div class="metric"><b>83.6</b><span>最近均分</span></div></div><div class="split"><div><div class="configuration"><label class="field">方向<select><option>AI 工程</option></select></label><label class="field">主题<select><option>可观测性</option></select></label><label class="field">难度<select><option>中等</option></select></label><label class="field">数量<select><option>5 题</option></select></label></div><div class="check-list"><span>优先回到到期的复习题</span><span>让题目顺序保持一点意外</span></div></div><aside class="configuration-side"><span class="eyebrow">下一段专注</span><b>12</b><p>题在复习队列中。把它们安排进这一组，重新稳住记忆。</p></aside></div></section>
+          <section class="screen"><div class="screen-label"><b>未完成训练</b><span>自然出现，不做强打断</span></div><div class="resume-strip"><div><span class="eyebrow">上次训练仍在这里</span><h3>还剩 6 / 10 题</h3><p>Tool Calling · 最后活动于昨天 21:40</p></div><div><button class="btn primary">继续训练</button> <button class="btn">重新开始</button> <button class="btn danger">放弃</button></div></div></section>
+          <section class="screen" id="session"><div class="screen-label"><b>训练会话</b><span>屏蔽杂讯，保留结构</span></div><div class="screen-header"><div><span class="eyebrow">第 4 题 · Agent</span><h2>专注回答</h2></div><p>已回答 3 · 已跳过 0 · 草稿已保存</p></div><div class="session-layout"><article class="question-area"><div class="question-tags"><span>Tool Calling</span><span>容错</span><span>中等</span><span>180 秒</span></div><h3>如何为具有外部副作用的工具调用设定重试边界，并让 Agent 能够解释自己的恢复决策？</h3><div class="answer-space">从调用身份、幂等标识和状态机开始。清楚区分可重试、需要确认和必须停止的错误，再将决策记录到可观测链路中。</div></article><aside class="session-rail"><span class="eyebrow">本题时间</span><b>02:18</b><p>未提交草稿仅保存在这台设备。提交后，以训练记录为准。</p><div class="stack-buttons"><button class="btn primary">提交回答</button><button class="btn">跳过</button><button class="btn">题目导航</button></div></aside></div></section>
+          <section class="screen" id="history"><div class="screen-label"><b>答题历史</b><span>安静的个人档案</span></div><div class="history-layout"><aside class="record-list"><div class="record active"><span class="meta">已完成</span><b>Agent · Tool Calling</b><span class="meta">8月2日 · 84.5 分</span></div><div class="record"><span class="meta">进行中</span><b>RAG · 检索评估</b><span class="meta">8月1日 · 还剩 4 题</span></div><div class="record"><span class="meta">已放弃</span><b>Python · asyncio</b><span class="meta">7月30日 · 1 题已答</span></div></aside><article class="record-detail"><span class="eyebrow">训练摘录</span><h3>让工具选择建立在清晰的能力边界上</h3><p>回答、评分和下一次复习被保留成一段可回看的训练轨迹。已完成会话始终以只读方式打开。</p><div class="review-actions"><button class="btn primary">再次练习</button><button class="btn">查看详情</button><button class="btn danger">删除</button></div></article></div></section>
+          <section class="screen" id="review"><div class="screen-label"><b>题库审核</b><span>深色阅读面板中的轻量工作流</span></div><div class="review-layout"><aside class="review-list"><div class="active"><b>工具调用的容错策略</b><span class="meta">等待人工确认</span></div><div><b>检索质量的监控指标</b><span class="meta">等待人工确认</span></div><div><b>协程取消与资源回收</b><span class="meta">AI 审核已完成</span></div></aside><article class="review-main"><span class="eyebrow">人工精审</span><h3>当下游工具出现部分成功时，参考答案是否明确说明了幂等和人工确认的边界？</h3><div class="review-lines"><span></span><span></span><span></span></div><div class="review-actions"><button class="btn primary">保存审核</button><button class="btn">AI 审核</button><button class="btn danger">拒绝题目</button></div></article></div><div class="task-toast"><div><b>后台任务正在继续</b><p>AI 审核 12 / 30 · 失败项不会中断其余题目。</p></div><button class="btn">展开</button></div></section>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

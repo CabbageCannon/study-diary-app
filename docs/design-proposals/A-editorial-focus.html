@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>八股训练设计方案 A - Editorial Focus</title>
+    <link rel="stylesheet" href="interview-proposals.css" />
+  </head>
+  <body class="proposal-a">
+    <div class="proposal-shell">
+      <aside class="proposal-nav">
+        <div class="proposal-brand"><strong>学习日记</strong><span>Study Diary</span></div>
+        <nav><a href="#home" class="active">八股训练</a><a href="#session">当前训练</a><a href="#history">训练历史</a><a href="#review">题库审核</a></nav>
+      </aside>
+      <main class="proposal-main">
+        <header class="proposal-intro"><div><span class="eyebrow">EDITORIAL FOCUS</span><h1>把问题和表达留在视线中央。</h1></div><p>以高质量知识工具为参照：大留白、强文字层级、少容器，让训练过程更接近阅读与复述。</p></header>
+        <div class="screen-stack">
+          <section class="screen" id="home">
+            <div class="screen-label"><b>八股训练首页</b><span>克制的统计行与开始入口</span></div>
+            <div class="screen-header"><div><span class="eyebrow">八股训练</span><h2>今天，继续把一题讲清楚。</h2><p>连续 6 天 · 今日 8 题 · 待复习 12 题</p></div><button class="btn primary">开始训练</button></div>
+            <div class="metric-row"><div class="metric"><b>06</b><span>连续学习天数</span></div><div class="metric"><b>08</b><span>今日已练</span></div><div class="metric"><b>124</b><span>累计完成</span></div><div class="metric"><b>83.6</b><span>最近平均分</span></div></div>
+            <div class="split"><div><div class="configuration"><label class="field">方向<select><option>Agent</option></select></label><label class="field">主题<select><option>Tool Calling</option></select></label><label class="field">难度<select><option>中等</option></select></label><label class="field">题目数量<select><option>5 题</option></select></label></div><div class="check-list"><span>优先安排到期复习题</span><span>随机题目顺序</span></div></div><aside class="configuration-side"><span class="eyebrow">复习队列</span><b>12</b><p>先回到遗忘边缘，再练新的表达。</p></aside></div>
+          </section>
+          <section class="screen"><div class="screen-label"><b>未完成训练恢复</b><span>页内提示，不打断开始动作</span></div><div class="resume-strip"><div><span class="eyebrow">未完成训练</span><h3>还剩 6 / 10 题</h3><p>最后练习：Tool Calling · 昨天 21:40</p></div><div><button class="btn primary">继续上次训练</button> <button class="btn">重新开始</button> <button class="btn danger">放弃训练</button></div></div></section>
+          <section class="screen" id="session">
+            <div class="screen-label"><b>训练会话</b><span>阅读优先的单题页面</span></div>
+            <div class="screen-header"><div><span class="eyebrow">Agent · Tool Calling · 中等</span><h2>第 4 题 / 10 题</h2></div><p>已回答 3 · 已跳过 0</p></div>
+            <div class="session-layout"><div class="question-area"><h3>当一个 Agent 同时拥有多个工具时，你如何设计工具选择、参数校验和失败后的恢复策略？</h3><div class="question-tags"><span>工具契约</span><span>参数校验</span><span>重试边界</span><span>建议 180 秒</span></div><div class="answer-space">从工具描述的区分度开始回答。说明模型如何选择工具，再补充 Schema 校验、幂等性、超时和人工兜底。</div></div><aside class="session-rail"><span class="eyebrow">回答计时</span><b>02:18</b><p>草稿已保存到本地</p><div class="stack-buttons"><button class="btn primary">提交回答</button><button class="btn">跳过本题</button><button class="btn">上一题 / 下一题</button></div></aside></div>
+          </section>
+          <section class="screen" id="history">
+            <div class="screen-label"><b>答题历史</b><span>历史是可读的训练档案</span></div>
+            <div class="history-layout"><div class="record-list"><div class="record active"><span class="meta">2026年8月2日</span><b>Agent · Tool Calling</b><span class="meta">8 / 10 题 · 84.5 分 · 已完成</span></div><div class="record"><span class="meta">2026年8月1日</span><b>RAG · 检索评估</b><span class="meta">4 / 8 题 · 进行中</span></div><div class="record"><span class="meta">2026年7月31日</span><b>Python · asyncio</b><span class="meta">5 / 5 题 · 已完成</span></div></div><article class="record-detail"><span class="eyebrow">第 4 题 · 已回答</span><h3>当一个 Agent 同时拥有多个工具时，如何避免工具选择变成不可控的猜测？</h3><p>我会先让工具边界足够清晰，使用结构化描述和参数 Schema。模型选工具后，服务端仍要完成权限、参数和语义校验……</p><p><b>总分 87.5</b> · 下次复习 8月9日</p></article></div>
+          </section>
+          <section class="screen" id="review">
+            <div class="screen-label"><b>题库审核</b><span>双栏审阅，内容优先于控件</span></div>
+            <div class="review-layout"><aside class="review-list"><div class="active"><b>Agent 工具调用的容错策略</b><span class="meta">待审核 · 质量 78</span></div><div><b>如何判断 RAG 的检索已经失效</b><span class="meta">待审核 · 质量 74</span></div><div><b>asyncio 中的取消传播</b><span class="meta">AI 已审核 · 质量 86</span></div></aside><div class="review-main"><span class="eyebrow">待审核题目</span><h3>当工具调用返回不完整结果时，Agent 应如何在不重复执行副作用的前提下恢复？</h3><div class="review-lines"><span></span><span></span><span></span></div><div class="review-actions"><button class="btn primary">保存审核</button><button class="btn">AI 审核</button><button class="btn danger">拒绝题目</button></div></div></div>
+            <div class="task-toast"><div><b>后台批量审核</b><p>12 / 30 题已完成，剩余任务将在后台继续。</p></div><button class="btn">查看</button></div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

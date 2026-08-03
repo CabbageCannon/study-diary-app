@@ -1,4 +1,454 @@
 {
   "catalog_version": 1,
-  "problems": []
+  "problems": [
+    {
+      "id": "leetcode-15",
+      "platform": "leetcode",
+      "external_id": "15",
+      "title": "3Sum",
+      "title_zh": "三数之和",
+      "slug": "3sum",
+      "url": "https://leetcode.cn/problems/3sum/",
+      "difficulty": "medium",
+      "pattern_key": "two_pointers",
+      "topics": [
+        "双指针"
+      ],
+      "source_lists": [
+        "blind75",
+        "hot100",
+        "neetcode150"
+      ],
+      "is_active": true,
+      "source": {
+        "name": "neetcode-gh/leetcode",
+        "license": "MIT",
+        "url": "https://github.com/neetcode-gh/leetcode"
+      }
+    },
+    {
+      "id": "leetcode-704",
+      "platform": "leetcode",
+      "external_id": "704",
+      "title": "Binary Search",
+      "title_zh": "二分查找",
+      "slug": "binary-search",
+      "url": "https://leetcode.cn/problems/binary-search/",
+      "difficulty": "easy",
+      "pattern_key": "binary_search",
+      "topics": [
+        "二分查找"
+      ],
+      "source_lists": [
+        "blind75",
+        "neetcode150"
+      ],
+      "is_active": true,
+      "source": {
+        "name": "neetcode-gh/leetcode",
+        "license": "MIT",
+        "url": "https://github.com/neetcode-gh/leetcode"
+      }
+    },
+    {
+      "id": "leetcode-322",
+      "platform": "leetcode",
+      "external_id": "322",
+      "title": "Coin Change",
+      "title_zh": "零钱兑换",
+      "slug": "coin-change",
+      "url": "https://leetcode.cn/problems/coin-change/",
+      "difficulty": "medium",
+      "pattern_key": "dynamic_programming",
+      "topics": [
+        "动态规划"
+      ],
+      "source_lists": [
+        "blind75",
+        "hot100",
+        "neetcode150"
+      ],
+      "is_active": true,
+      "source": {
+        "name": "neetcode-gh/leetcode",
+        "license": "MIT",
+        "url": "https://github.com/neetcode-gh/leetcode"
+      }
+    },
+    {
+      "id": "leetcode-39",
+      "platform": "leetcode",
+      "external_id": "39",
+      "title": "Combination Sum",
+      "title_zh": "组合总和",
+      "slug": "combination-sum",
+      "url": "https://leetcode.cn/problems/combination-sum/",
+      "difficulty": "medium",
+      "pattern_key": "backtracking",
+      "topics": [
+        "回溯"
+      ],
+      "source_lists": [
+        "blind75",
+        "hot100",
+        "neetcode150"
+      ],
+      "is_active": true,
+      "source": {
+        "name": "neetcode-gh/leetcode",
+        "license": "MIT",
+        "url": "https://github.com/neetcode-gh/leetcode"
+      }
+    },
+    {
+      "id": "leetcode-11",
+      "platform": "leetcode",
+      "external_id": "11",
+      "title": "Container With Most Water",
+      "title_zh": "盛最多水的容器",
+      "slug": "container-with-most-water",
+      "url": "https://leetcode.cn/problems/container-with-most-water/",
+      "difficulty": "medium",
+      "pattern_key": "two_pointers",
+      "topics": [
+        "双指针"
+      ],
+      "source_lists": [
+        "hot100",
+        "neetcode150"
+      ],
+      "is_active": true,
+      "source": {
+        "name": "neetcode-gh/leetcode",
+        "license": "MIT",
+        "url": "https://github.com/neetcode-gh/leetcode"
+      }
+    },
+    {
+      "id": "leetcode-217",
+      "platform": "leetcode",
+      "external_id": "217",
+      "title": "Contains Duplicate",
+      "title_zh": "存在重复元素",
+      "slug": "contains-duplicate",
+      "url": "https://leetcode.cn/problems/contains-duplicate/",
+      "difficulty": "easy",
+      "pattern_key": "arrays_hashing",
+      "topics": [
+        "数组",
+        "哈希表"
+      ],
+      "source_lists": [
+        "blind75",
+        "neetcode150"
+      ],
+      "is_active": true,
+      "source": {
+        "name": "neetcode-gh/leetcode",
+        "license": "MIT",
+        "url": "https://github.com/neetcode-gh/leetcode"
+      }
+    },
+    {
+      "id": "leetcode-49",
+      "platform": "leetcode",
+      "external_id": "49",
+      "title": "Group Anagrams",
+      "title_zh": "字母异位词分组",
+      "slug": "group-anagrams",
+      "url": "https://leetcode.cn/problems/group-anagrams/",
+      "difficulty": "medium",
+      "pattern_key": "arrays_hashing",
+      "topics": [
+        "数组",
+        "哈希表"
+      ],
+      "source_lists": [
+        "blind75",
+        "hot100",
+        "neetcode150"
+      ],
+      "is_active": true,
+      "source": {
+        "name": "neetcode-gh/leetcode",
+        "license": "MIT",
+        "url": "https://github.com/neetcode-gh/leetcode"
+      }
+    },
+    {
+      "id": "leetcode-198",
+      "platform": "leetcode",
+      "external_id": "198",
+      "title": "House Robber",
+      "title_zh": "打家劫舍",
+      "slug": "house-robber",
+      "url": "https://leetcode.cn/problems/house-robber/",
+      "difficulty": "medium",
+      "pattern_key": "dynamic_programming",
+      "topics": [
+        "动态规划"
+      ],
+      "source_lists": [
+        "hot100",
+        "neetcode150"
+      ],
+      "is_active": true,
+      "source": {
+        "name": "neetcode-gh/leetcode",
+        "license": "MIT",
+        "url": "https://github.com/neetcode-gh/leetcode"
+      }
+    },
+    {
+      "id": "leetcode-55",
+      "platform": "leetcode",
+      "external_id": "55",
+      "title": "Jump Game",
+      "title_zh": "跳跃游戏",
+      "slug": "jump-game",
+      "url": "https://leetcode.cn/problems/jump-game/",
+      "difficulty": "medium",
+      "pattern_key": "greedy",
+      "topics": [
+        "贪心"
+      ],
+      "source_lists": [
+        "hot100",
+        "neetcode150"
+      ],
+      "is_active": true,
+      "source": {
+        "name": "neetcode-gh/leetcode",
+        "license": "MIT",
+        "url": "https://github.com/neetcode-gh/leetcode"
+      }
+    },
+    {
+      "id": "leetcode-3",
+      "platform": "leetcode",
+      "external_id": "3",
+      "title": "Longest Substring Without Repeating Characters",
+      "title_zh": "无重复字符的最长子串",
+      "slug": "longest-substring-without-repeating-characters",
+      "url": "https://leetcode.cn/problems/longest-substring-without-repeating-characters/",
+      "difficulty": "medium",
+      "pattern_key": "sliding_window",
+      "topics": [
+        "滑动窗口"
+      ],
+      "source_lists": [
+        "blind75",
+        "hot100",
+        "neetcode150"
+      ],
+      "is_active": true,
+      "source": {
+        "name": "neetcode-gh/leetcode",
+        "license": "MIT",
+        "url": "https://github.com/neetcode-gh/leetcode"
+      }
+    },
+    {
+      "id": "leetcode-104",
+      "platform": "leetcode",
+      "external_id": "104",
+      "title": "Maximum Depth of Binary Tree",
+      "title_zh": "二叉树的最大深度",
+      "slug": "maximum-depth-of-binary-tree",
+      "url": "https://leetcode.cn/problems/maximum-depth-of-binary-tree/",
+      "difficulty": "easy",
+      "pattern_key": "tree",
+      "topics": [
+        "二叉树",
+        "树"
+      ],
+      "source_lists": [
+        "blind75",
+        "hot100",
+        "neetcode150"
+      ],
+      "is_active": true,
+      "source": {
+        "name": "neetcode-gh/leetcode",
+        "license": "MIT",
+        "url": "https://github.com/neetcode-gh/leetcode"
+      }
+    },
+    {
+      "id": "leetcode-21",
+      "platform": "leetcode",
+      "external_id": "21",
+      "title": "Merge Two Sorted Lists",
+      "title_zh": "合并两个有序链表",
+      "slug": "merge-two-sorted-lists",
+      "url": "https://leetcode.cn/problems/merge-two-sorted-lists/",
+      "difficulty": "easy",
+      "pattern_key": "linked_list",
+      "topics": [
+        "链表"
+      ],
+      "source_lists": [
+        "blind75",
+        "neetcode150"
+      ],
+      "is_active": true,
+      "source": {
+        "name": "neetcode-gh/leetcode",
+        "license": "MIT",
+        "url": "https://github.com/neetcode-gh/leetcode"
+      }
+    },
+    {
+      "id": "leetcode-200",
+      "platform": "leetcode",
+      "external_id": "200",
+      "title": "Number of Islands",
+      "title_zh": "岛屿数量",
+      "slug": "number-of-islands",
+      "url": "https://leetcode.cn/problems/number-of-islands/",
+      "difficulty": "medium",
+      "pattern_key": "graph",
+      "topics": [
+        "图"
+      ],
+      "source_lists": [
+        "blind75",
+        "hot100",
+        "neetcode150"
+      ],
+      "is_active": true,
+      "source": {
+        "name": "neetcode-gh/leetcode",
+        "license": "MIT",
+        "url": "https://github.com/neetcode-gh/leetcode"
+      }
+    },
+    {
+      "id": "leetcode-238",
+      "platform": "leetcode",
+      "external_id": "238",
+      "title": "Product of Array Except Self",
+      "title_zh": "除自身以外数组的乘积",
+      "slug": "product-of-array-except-self",
+      "url": "https://leetcode.cn/problems/product-of-array-except-self/",
+      "difficulty": "medium",
+      "pattern_key": "arrays_hashing",
+      "topics": [
+        "数组",
+        "哈希表"
+      ],
+      "source_lists": [
+        "blind75",
+        "hot100",
+        "neetcode150"
+      ],
+      "is_active": true,
+      "source": {
+        "name": "neetcode-gh/leetcode",
+        "license": "MIT",
+        "url": "https://github.com/neetcode-gh/leetcode"
+      }
+    },
+    {
+      "id": "leetcode-206",
+      "platform": "leetcode",
+      "external_id": "206",
+      "title": "Reverse Linked List",
+      "title_zh": "反转链表",
+      "slug": "reverse-linked-list",
+      "url": "https://leetcode.cn/problems/reverse-linked-list/",
+      "difficulty": "easy",
+      "pattern_key": "linked_list",
+      "topics": [
+        "链表"
+      ],
+      "source_lists": [
+        "blind75",
+        "hot100",
+        "neetcode150"
+      ],
+      "is_active": true,
+      "source": {
+        "name": "neetcode-gh/leetcode",
+        "license": "MIT",
+        "url": "https://github.com/neetcode-gh/leetcode"
+      }
+    },
+    {
+      "id": "leetcode-33",
+      "platform": "leetcode",
+      "external_id": "33",
+      "title": "Search in Rotated Sorted Array",
+      "title_zh": "搜索旋转排序数组",
+      "slug": "search-in-rotated-sorted-array",
+      "url": "https://leetcode.cn/problems/search-in-rotated-sorted-array/",
+      "difficulty": "medium",
+      "pattern_key": "binary_search",
+      "topics": [
+        "二分查找"
+      ],
+      "source_lists": [
+        "hot100",
+        "neetcode150"
+      ],
+      "is_active": true,
+      "source": {
+        "name": "neetcode-gh/leetcode",
+        "license": "MIT",
+        "url": "https://github.com/neetcode-gh/leetcode"
+      }
+    },
+    {
+      "id": "leetcode-1",
+      "platform": "leetcode",
+      "external_id": "1",
+      "title": "Two Sum",
+      "title_zh": "两数之和",
+      "slug": "two-sum",
+      "url": "https://leetcode.cn/problems/two-sum/",
+      "difficulty": "easy",
+      "pattern_key": "arrays_hashing",
+      "topics": [
+        "数组",
+        "哈希表"
+      ],
+      "source_lists": [
+        "blind75",
+        "hot100",
+        "neetcode150"
+      ],
+      "is_active": true,
+      "source": {
+        "name": "neetcode-gh/leetcode",
+        "license": "MIT",
+        "url": "https://github.com/neetcode-gh/leetcode"
+      }
+    },
+    {
+      "id": "leetcode-20",
+      "platform": "leetcode",
+      "external_id": "20",
+      "title": "Valid Parentheses",
+      "title_zh": "有效的括号",
+      "slug": "valid-parentheses",
+      "url": "https://leetcode.cn/problems/valid-parentheses/",
+      "difficulty": "easy",
+      "pattern_key": "arrays_hashing",
+      "topics": [
+        "数组",
+        "哈希表"
+      ],
+      "source_lists": [
+        "blind75",
+        "hot100",
+        "neetcode150"
+      ],
+      "is_active": true,
+      "source": {
+        "name": "neetcode-gh/leetcode",
+        "license": "MIT",
+        "url": "https://github.com/neetcode-gh/leetcode"
+      }
+    }
+  ]
 }

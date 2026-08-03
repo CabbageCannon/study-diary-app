@@ -1,4 +1,7 @@
 import type { CreateQuestionSetPayload, Difficulty, QuestionDomain } from "../../types/interview";
+import { PlayIcon } from "@phosphor-icons/react/Play";
+
+import { HoverSelect, type HoverSelectOption } from "./HoverSelect";
 
 export const domainOptions: Array<{ value: QuestionDomain; label: string }> = [
   { value: "agent", label: "Agent" },
@@ -45,6 +48,18 @@ const topicOptions: Record<QuestionDomain, Array<{ value: string; label: string 
   ],
 };
 
+const difficultyOptions: HoverSelectOption[] = [
+  { value: "", label: "不限难度" },
+  { value: "easy", label: "简单" },
+  { value: "medium", label: "中等" },
+  { value: "hard", label: "困难" },
+];
+
+const questionCountOptions: HoverSelectOption[] = Array.from({ length: 30 }, (_, index) => {
+  const count = index + 1;
+  return { value: String(count), label: `${count} 题` };
+});
+
 interface InterviewSetupFormProps {
   value: CreateQuestionSetPayload;
   isSubmitting: boolean;
@@ -65,61 +80,56 @@ export function InterviewSetupForm({ value, isSubmitting, error, onChange, onSub
       <div className="pane-header">
         <div>
           <span className="pane-label">训练配置</span>
-          <h2 id="interview-setup-title">选一组现在想练的问题</h2>
+          <h2 id="interview-setup-title">新建训练</h2>
         </div>
       </div>
 
       <div className="interview-form-grid">
-        <label className="editor-field">
+        <div className="editor-field">
           <span>方向</span>
-          <select
+          <HoverSelect
+            ariaLabel="训练方向"
+            emptyLabel="不限方向"
+            options={[{ value: "", label: "不限方向" }, ...domainOptions]}
             value={value.domain ?? ""}
-            onChange={(event) => update("domain", (event.target.value || undefined) as QuestionDomain | undefined)}
-          >
-            <option value="">不限方向</option>
-            {domainOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="editor-field">
-          <span>主题</span>
-          <select value={value.topic ?? ""} disabled={!value.domain} onChange={(event) => update("topic", event.target.value || undefined)}>
-            <option value="">不限主题</option>
-            {topics.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="editor-field">
-          <span>难度</span>
-          <select
-            value={value.difficulty ?? ""}
-            onChange={(event) => update("difficulty", (event.target.value || undefined) as Difficulty | undefined)}
-          >
-            <option value="">不限难度</option>
-            <option value="easy">简单</option>
-            <option value="medium">中等</option>
-            <option value="hard">困难</option>
-          </select>
-        </label>
-
-        <label className="editor-field">
-          <span>题目数量</span>
-          <input
-            value={value.question_count}
-            min={1}
-            max={30}
-            onChange={(event) => update("question_count", Math.max(1, Number(event.target.value) || 1))}
-            type="number"
+            onChange={(nextValue) => update("domain", (nextValue || undefined) as QuestionDomain | undefined)}
           />
-        </label>
+        </div>
+
+        <div className="editor-field">
+          <span>主题</span>
+          <HoverSelect
+            ariaLabel="训练主题"
+            disabled={!value.domain}
+            emptyLabel={value.domain ? "不限主题" : "请先选择方向"}
+            options={[{ value: "", label: "不限主题" }, ...topics]}
+            value={value.topic ?? ""}
+            onChange={(nextValue) => update("topic", nextValue || undefined)}
+          />
+        </div>
+
+        <div className="editor-field">
+          <span>难度</span>
+          <HoverSelect
+            ariaLabel="训练难度"
+            emptyLabel="不限难度"
+            options={difficultyOptions}
+            value={value.difficulty ?? ""}
+            onChange={(nextValue) => update("difficulty", (nextValue || undefined) as Difficulty | undefined)}
+          />
+        </div>
+
+        <div className="editor-field">
+          <span>题目数量</span>
+          <HoverSelect
+            ariaLabel="训练题目数量"
+            emptyLabel="选择题目数量"
+            numberGrid
+            options={questionCountOptions}
+            value={String(value.question_count)}
+            onChange={(nextValue) => update("question_count", Number(nextValue))}
+          />
+        </div>
       </div>
 
       <div className="interview-check-list">
@@ -141,6 +151,7 @@ export function InterviewSetupForm({ value, isSubmitting, error, onChange, onSub
 
       <div className="interview-form-actions">
         <button className="button button-primary" disabled={isSubmitting} onClick={onSubmit} type="button">
+          <PlayIcon aria-hidden="true" size={16} weight="fill" />
           {isSubmitting ? "正在创建..." : "开始训练"}
         </button>
       </div>

@@ -1,10 +1,11 @@
 {
   "list_id": "neetcode150",
-  "name": "NeetCode 150",
-  "source": {
-    "type": "upstream_metadata_flag",
-    "url": "https://github.com/neetcode-gh/leetcode",
-    "license": "MIT"
-  },
-  "problem_slugs": []
+  "name": "NeetCode 150 示例子集",
+  "source": {"type": "manual_curated_subset", "url": "", "license": "metadata only"},
+  "problem_slugs": [
+    "two-sum", "contains-duplicate", "group-anagrams", "product-of-array-except-self",
+    "longest-substring-without-repeating-characters", "3sum", "container-with-most-water", "valid-parentheses",
+    "binary-search", "search-in-rotated-sorted-array", "reverse-linked-list", "merge-two-sorted-lists",
+    "maximum-depth-of-binary-tree", "number-of-islands", "combination-sum", "house-robber", "coin-change", "jump-game"
+  ]
 }

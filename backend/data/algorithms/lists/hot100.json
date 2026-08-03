@@ -1,10 +1,10 @@
 {
   "list_id": "hot100",
-  "name": "力扣 Hot 100",
-  "source": {
-    "type": "manual_or_licensed_dataset",
-    "url": "",
-    "license": ""
-  },
-  "problem_slugs": []
+  "name": "LeetCode Hot 100 示例子集",
+  "source": {"type": "manual_curated_subset", "url": "", "license": "metadata only"},
+  "problem_slugs": [
+    "two-sum", "group-anagrams", "product-of-array-except-self", "longest-substring-without-repeating-characters",
+    "3sum", "container-with-most-water", "valid-parentheses", "search-in-rotated-sorted-array",
+    "reverse-linked-list", "maximum-depth-of-binary-tree", "number-of-islands", "combination-sum", "house-robber", "coin-change", "jump-game"
+  ]
 }

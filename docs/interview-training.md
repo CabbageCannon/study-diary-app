@@ -15,6 +15,15 @@
 4. 最终得分按正确性 35%、完整性 30%、结构性 20%、口语表达 15% 加权。低于 60 分为 1 天，60-79 分为 3 天，80-89 分为 7 天，90 分及以上为 14 天。
 5. `/interview/history` 可查看训练集、每次回答和评分；`GET /api/interviews/reviews/due` 返回到期复习题。
 
+## 会话恢复与状态边界
+
+- 题集创建后默认为 `in_progress`，全部题目已答或跳过后由用户明确执行结束操作，状态才变为 `completed`；中途放弃会变为 `abandoned`。已结束题集不能重新写回进行中状态。
+- SQLite 保存题集筛选条件、冻结后的题目顺序、当前题目索引、最后活动题目、已答/跳过状态、回答、评分、开始/最后活动/完成/放弃时间。进入 `/interview/session/:setId` 会重新从后端读取这些状态。
+- 浏览器只保存未提交的文本草稿与最近会话 ID：`study-diary:interview:last-active-session` 和 `study-diary:interview:session:{setId}:question:{questionId}:draft`。草稿在停止输入 750ms 后写入，并在切题、页面隐藏和完成训练时处理；已提交回答始终以服务端为准。
+- 首页默认显示最近的未完成训练。继续训练会回到后端记录的准确题目；重新开始会先明确确认并将旧题集标记为已放弃；完成或放弃后会清理最近会话提示。
+- 历史列表支持按三种状态筛选。删除为本地训练记录的事务性硬删除：关联回答、评分和仅由该回答支撑的复习计划会被清理或回退到上一条有效回答，`InterviewQuestion` 原题不会删除。
+- `GET /api/interviews/stats` 在服务端聚合连续学习天数、当天和累计已答数、待复习数、近 20 次评分均分、进行中数量、领域练习量和最后训练时间；前端不拉取完整历史后自行统计。
+
 ## 新增持久化模型
 
 - `InterviewQuestionSet` 与 `InterviewQuestionSetItem`：冻结训练集与题目顺序。
@@ -36,7 +45,10 @@ SQLite 项目继续通过 `Base.metadata.create_all()` 创建新表，已有日�
 
 ## 批量操作与导入保护
 
-- AI 评估、快速正式化和批量拒绝每次最多 30 题。每题独立提交，单题模型或数据错误不会回滚其他题目的结果；已人工通过和已拒绝题目默认跳过 AI 批处理。
+- AI 评估、快速正式化和批量拒绝每次最多 30 题。`POST /api/interviews/batch-jobs` 会先创建持久化任务，再由 FastAPI 轻量后台任务逐题处理；`GET /api/interviews/batch-jobs` 和 `GET /api/interviews/batch-jobs/{id}` 可查询任务和失败原因。
+- `InterviewBatchJob` 记录 `queued`、`running`、`completed`、`partial_failed`、`failed` 状态；`InterviewBatchJobItem` 分别记录每道题的 `pending`、`running`、`succeeded`、`skipped`、`failed` 状态。AI 任务使用 `BATCH_AI_REVIEW_CONCURRENCY` 限制为 1 至 3 个并发调用，默认 2。
+- 前端任务中心在路由切换后继续轮询进行中的任务，页面刷新后从 SQLite 恢复状态；服务启动时会把上一进程遗留的 `queued` 或 `running` 任务标记为失败，避免永久卡住。
+- 单题模型或数据错误不会回滚其他题目的结果；已人工通过和已拒绝题目默认跳过 AI 批处理。
 - `scripts/import_seed_data.py --interviews` 对已有题目只更新题目内容，不会覆盖审核状态、评分、审核方式、模型名或 AI 结果。用 `--overwrite-review-metadata` 才会显式以种子数据覆盖审核元数据。
 - `--dry-run` 输出每题变更细节，包括“内容字段更新”和“审核元数据保留/覆盖”的区别，随后回滚事务。
 

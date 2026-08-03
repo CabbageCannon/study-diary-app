@@ -13,6 +13,10 @@ def _normalize_sqlite_url(raw_url: str) -> str:
         relative_path = raw_url.removeprefix("sqlite:///./")
         return f"sqlite:///{(BACKEND_DIR / relative_path).as_posix()}"
 
+    if raw_url.startswith("postgres://"):
+        return f"postgresql+psycopg://{raw_url.removeprefix('postgres://')}"
+    if raw_url.startswith("postgresql://"):
+        return f"postgresql+psycopg://{raw_url.removeprefix('postgresql://')}"
     return raw_url
 
 
@@ -39,6 +43,8 @@ class Settings:
             os.getenv("DATABASE_URL", "sqlite:///./data/study_diary.db").strip()
         )
         self.frontend_origin = os.getenv("FRONTEND_ORIGIN", "http://127.0.0.1:5173").strip()
+        self.app_access_token = os.getenv("APP_ACCESS_TOKEN", "").strip()
+        self.ai_rate_limit_per_minute = max(1, _read_int("AI_RATE_LIMIT_PER_MINUTE", 12))
         self.allow_question_review = _read_bool("ALLOW_QUESTION_REVIEW")
         self.allow_unverified_question_access = _read_bool("ALLOW_UNVERIFIED_QUESTION_ACCESS")
         self.allow_ai_question_review = _read_bool("ALLOW_AI_QUESTION_REVIEW")
@@ -48,6 +54,10 @@ class Settings:
     @property
     def frontend_origins(self) -> list[str]:
         return [origin.strip() for origin in self.frontend_origin.split(",") if origin.strip()]
+
+    @property
+    def write_access_enabled(self) -> bool:
+        return bool(self.app_access_token)
 
 
 settings = Settings()

@@ -1,4 +1,5 @@
 import { VoiceInput } from "./VoiceInput";
+import { HoverDatePicker } from "./HoverDatePicker";
 
 interface DiaryFormProps {
   date: string;
@@ -26,10 +27,10 @@ export function DiaryForm({
           <span className="pane-label">原始记录</span>
           <h2 id="composer-title">把今天学到的事写下来</h2>
         </div>
-        <label className="date-field">
+        <div className="date-field">
           <span>学习日期</span>
-          <input value={date} onChange={(event) => onDateChange(event.target.value)} type="date" />
-        </label>
+          <HoverDatePicker value={date} onChange={onDateChange} />
+        </div>
       </div>
 
       <div className="composer-toolbar">

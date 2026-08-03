@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-02T07:51:12.278469+00:00",
-  "algorithm_count": 0,
+  "generated_at": "2026-08-03T06:21:04.740776+00:00",
+  "algorithm_count": 18,
   "interview_question_count": 27,
   "algorithm_sources": [
     "neetcode-gh/leetcode"
@@ -23,8 +23,8 @@
   "files": [
     {
       "path": "data/algorithms/problem_catalog.json",
-      "sha256": "7ad56d6c19bd57f9164445fd0bc744658b46f5a1c657748205542d1e8b332f2f",
-      "record_count": 0
+      "sha256": "234e3b699ab690df6e3c1963bdbeb340263a5c31e29605c697c5bbe90e576ba1",
+      "record_count": 18
     },
     {
       "path": "data/interview_question_bank.json",

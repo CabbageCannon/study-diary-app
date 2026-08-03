@@ -1,12 +1,33 @@
 import type { CreateDiaryDraftPayload, Diary, DiaryDraft, RewriteDiaryDraftPayload, SaveDiaryPayload } from "../types/diary";
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+const ACCESS_TOKEN_STORAGE_KEY = "study-diary:access-token";
+
+function getAccessToken() {
+  return window.sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)?.trim() ?? "";
+}
+
+export function saveAccessToken(value: string) {
+  const nextValue = value.trim();
+  if (nextValue) {
+    window.sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, nextValue);
+    return;
+  }
+  window.sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+}
+
+export function hasAccessToken() {
+  return Boolean(getAccessToken());
+}
 
 export async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const accessToken = getAccessToken();
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
+      ...(accessToken ? { "X-Study-Diary-Access": accessToken } : {}),
       ...(options?.headers ?? {}),
     },
   });
