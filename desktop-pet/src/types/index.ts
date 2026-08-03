@@ -2,6 +2,7 @@ export type PetVisualState = "idle" | "rain" | "studying" | "milestone";
 export type StudyStatus = "idle" | "running" | "paused";
 export type WeatherState = "unknown" | "clear" | "rain";
 export type StudyActivityType = "algorithm" | "interview" | "diary" | "reading" | "course" | "custom";
+export type InteractionMode = "interactive" | "through" | "temporary";
 
 export interface PetRuntimeState {
   visualState: PetVisualState;
@@ -59,7 +60,7 @@ export interface PendingStudyEvent {
 
 export interface LocalWindowPreferences {
   alwaysOnTop: boolean;
-  mouseThrough: boolean;
+  interactionMode: InteractionMode;
   autostart: boolean;
   localNotifications: boolean;
   position: { x: number; y: number } | null;

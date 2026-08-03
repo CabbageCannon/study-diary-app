@@ -1,6 +1,7 @@
 import { LazyStore } from "@tauri-apps/plugin-store";
 
-import type { DesktopPetConfig, LocalWindowPreferences, PendingStudyEvent, StudyTimerState } from "../types";
+import type { DesktopPetConfig, InteractionMode, LocalWindowPreferences, PendingStudyEvent, StudyTimerState } from "../types";
+import { persistentInteractionMode } from "../state/interactionState";
 
 const store = new LazyStore("desktop-pet.json", { autoSave: false });
 const TIMER_KEY = "study-timer";
@@ -10,7 +11,7 @@ const WINDOW_PREFERENCES_KEY = "window-preferences";
 
 export const defaultWindowPreferences: LocalWindowPreferences = {
   alwaysOnTop: true,
-  mouseThrough: false,
+  interactionMode: "interactive",
   autostart: false,
   localNotifications: true,
   position: null,
@@ -21,8 +22,13 @@ async function read<T>(key: string): Promise<T | null> {
 }
 
 async function write<T>(key: string, value: T): Promise<void> {
-  await store.set(key, value);
-  await store.save();
+  try {
+    await store.set(key, value);
+    await store.save();
+  } catch (error) {
+    console.error(`[desktop-pet] Failed to save ${key}.`, error);
+    throw error;
+  }
 }
 
 export const loadStudyTimer = () => read<StudyTimerState>(TIMER_KEY);
@@ -31,5 +37,25 @@ export const loadPendingEvents = async () => (await read<PendingStudyEvent[]>(PE
 export const savePendingEvents = (events: PendingStudyEvent[]) => write(PENDING_EVENTS_KEY, events);
 export const loadCachedConfig = () => read<DesktopPetConfig>(CONFIG_KEY);
 export const saveCachedConfig = (config: DesktopPetConfig) => write(CONFIG_KEY, config);
-export const loadWindowPreferences = async () => ({ ...defaultWindowPreferences, ...(await read<LocalWindowPreferences>(WINDOW_PREFERENCES_KEY) ?? {}) });
-export const saveWindowPreferences = (preferences: LocalWindowPreferences) => write(WINDOW_PREFERENCES_KEY, preferences);
+type StoredWindowPreferences = Partial<LocalWindowPreferences> & { mouseThrough?: boolean };
+
+export async function loadWindowPreferences(): Promise<LocalWindowPreferences> {
+  const stored = await read<StoredWindowPreferences>(WINDOW_PREFERENCES_KEY);
+  const legacyMode: InteractionMode = stored?.mouseThrough ? "through" : "interactive";
+  const interactionMode = persistentInteractionMode(stored?.interactionMode ?? legacyMode);
+  const preferences = {
+    ...defaultWindowPreferences,
+    ...stored,
+    interactionMode,
+  };
+
+  if (stored && (stored.interactionMode === "temporary" || stored.interactionMode === undefined)) {
+    await write(WINDOW_PREFERENCES_KEY, preferences);
+  }
+  return preferences;
+}
+
+export const saveWindowPreferences = (preferences: LocalWindowPreferences) => write(
+  WINDOW_PREFERENCES_KEY,
+  { ...preferences, interactionMode: persistentInteractionMode(preferences.interactionMode) },
+);

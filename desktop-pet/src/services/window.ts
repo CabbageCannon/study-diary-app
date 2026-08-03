@@ -2,8 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { availableMonitors, getCurrentWindow, PhysicalPosition } from "@tauri-apps/api/window";
 import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
 
-import { saveWindowPreferences } from "./storage";
-import type { LocalWindowPreferences } from "../types";
+import type { InteractionMode, LocalWindowPreferences } from "../types";
 
 export function isTauriRuntime(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -11,16 +10,24 @@ export function isTauriRuntime(): boolean {
 
 export async function applyWindowPreferences(preferences: LocalWindowPreferences): Promise<void> {
   if (!isTauriRuntime()) return;
-  await invoke("apply_window_preferences", {
-    alwaysOnTop: preferences.alwaysOnTop,
-    mouseThrough: preferences.mouseThrough,
-  });
+  await applyInteractionMode(preferences.alwaysOnTop, preferences.interactionMode);
   if (preferences.autostart) await enable();
   else await disable();
   await invoke("set_autostart_checked", { enabled: preferences.autostart });
 }
 
-export async function restoreWindowPreferences(preferences: LocalWindowPreferences): Promise<() => void> {
+export async function applyInteractionMode(alwaysOnTop: boolean, interactionMode: InteractionMode): Promise<void> {
+  if (!isTauriRuntime()) return;
+  await invoke("apply_window_preferences", {
+    alwaysOnTop,
+    interactionMode,
+  });
+}
+
+export async function restoreWindowPreferences(
+  preferences: LocalWindowPreferences,
+  onPositionChange: (position: { x: number; y: number }) => Promise<void>,
+): Promise<() => void> {
   if (!isTauriRuntime()) return () => undefined;
   await applyWindowPreferences(preferences);
   const appWindow = getCurrentWindow();
@@ -45,8 +52,11 @@ export async function restoreWindowPreferences(preferences: LocalWindowPreferenc
     if (timer !== null) window.clearTimeout(timer);
     timer = window.setTimeout(async () => {
       const position = await appWindow.outerPosition();
-      const next = { ...preferences, position: { x: position.x, y: position.y } };
-      await saveWindowPreferences(next);
+      try {
+        await onPositionChange({ x: position.x, y: position.y });
+      } catch (error) {
+        console.error("[desktop-pet] Failed to save the pet window position.", error);
+      }
     }, 600);
   });
   return () => {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 
 import { PetAvatar } from "./components/PetAvatar";
@@ -8,6 +8,7 @@ import { QuickActions } from "./components/QuickActions";
 import { StudyTimerPanel } from "./components/StudyTimerPanel";
 import { SyncStatus } from "./components/SyncStatus";
 import { useDesktopPetConfig } from "./hooks/useDesktopPetConfig";
+import { useInteractionMode } from "./hooks/useInteractionMode";
 import { useMilestoneScheduler } from "./hooks/useMilestoneScheduler";
 import { useOfflineSync } from "./hooks/useOfflineSync";
 import { usePetStateMachine } from "./hooks/usePetStateMachine";
@@ -18,31 +19,68 @@ import { openActivityPage, openStudyApp } from "./services/appLinks";
 import { notifyMilestone } from "./services/notifications";
 import { loadWindowPreferences, saveWindowPreferences } from "./services/storage";
 import { applyWindowPreferences, readAutostartState, restoreWindowPreferences, updateTrayStudyStatus } from "./services/window";
-import type { LocalWindowPreferences, StudyActivityType } from "./types";
+import type { InteractionMode, LocalWindowPreferences, StudyActivityType } from "./types";
 
 type BubbleView = "actions" | "settings";
+
+const initialPreferences: LocalWindowPreferences = {
+  alwaysOnTop: true,
+  interactionMode: "interactive",
+  autostart: false,
+  localNotifications: true,
+  position: null,
+};
 
 export default function App() {
   const [accessToken, setAccessTokenState] = useState(getAccessToken());
   const [bubbleOpen, setBubbleOpen] = useState(false);
   const [bubbleView, setBubbleView] = useState<BubbleView>("actions");
-  const [preferences, setPreferences] = useState<LocalWindowPreferences>({ alwaysOnTop: true, mouseThrough: false, autostart: false, localNotifications: true, position: null });
+  const [preferences, setPreferences] = useState<LocalWindowPreferences>(initialPreferences);
+  const preferencesRef = useRef(preferences);
   const { state: petState, clearMilestone, setStudyStatus, setWeatherState, triggerMilestone } = usePetStateMachine();
   const configState = useDesktopPetConfig(accessToken);
   const weatherState = useWeatherState(configState.config, accessToken);
   const timerState = useStudyTimer(accessToken);
   const syncState = useOfflineSync(accessToken, timerState.setRemoteSessionId);
 
+  const updatePreferences = useCallback(async (next: LocalWindowPreferences) => {
+    preferencesRef.current = next;
+    setPreferences(next);
+    try {
+      await saveWindowPreferences(next);
+      await applyWindowPreferences(next);
+    } catch (error) {
+      console.error("[desktop-pet] Failed to apply window preferences.", error);
+      throw error;
+    }
+  }, []);
+
+  const saveWindowPosition = useCallback(async (position: { x: number; y: number }) => {
+    const next = { ...preferencesRef.current, position };
+    preferencesRef.current = next;
+    setPreferences(next);
+    await saveWindowPreferences(next);
+  }, []);
+
+  const {
+    changeInteractionMode,
+    feedback: interactionFeedback,
+    interactionMode,
+    restoreInteractive,
+    toggleThrough,
+  } = useInteractionMode({ preferences, onPreferencesChange: updatePreferences });
+
   useEffect(() => {
     let dispose: () => void = () => {};
     void loadWindowPreferences().then(async (stored) => {
       const autostart = await readAutostartState();
       const next = { ...stored, autostart: autostart || stored.autostart };
+      preferencesRef.current = next;
       setPreferences(next);
-      dispose = await restoreWindowPreferences(next);
-    });
+      dispose = await restoreWindowPreferences(next, saveWindowPosition);
+    }).catch((error) => console.error("[desktop-pet] Failed to restore window preferences.", error));
     return () => dispose();
-  }, []);
+  }, [saveWindowPosition]);
 
   useEffect(() => {
     setStudyStatus(timerState.timer?.status ?? "idle");
@@ -80,12 +118,6 @@ export default function App() {
     if (configState.config.open_page_on_study_start) await openActivityPage(activity);
   }, [configState.config.open_page_on_study_start, timerState]);
 
-  const updatePreferences = useCallback(async (next: LocalWindowPreferences) => {
-    setPreferences(next);
-    await saveWindowPreferences(next);
-    await applyWindowPreferences(next);
-  }, []);
-
   const saveAccessCode = useCallback((value: string) => {
     setAccessToken(value);
     setAccessTokenState(getAccessToken());
@@ -98,6 +130,15 @@ export default function App() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
+
+  useEffect(() => {
+    let unlisten: () => void = () => {};
+    void listen<InteractionMode>("interaction-mode-command", (event) => {
+      if (event.payload === "temporary") void restoreInteractive();
+      else if (event.payload === "interactive" || event.payload === "through") void changeInteractionMode(event.payload);
+    }).then((dispose) => { unlisten = dispose; });
+    return () => unlisten();
+  }, [changeInteractionMode, restoreInteractive]);
 
   useEffect(() => {
     let unlisten: () => void = () => {};
@@ -121,18 +162,49 @@ export default function App() {
           void openStudyApp("/settings/desktop-pet");
           break;
         case "autostart":
-          void updatePreferences({ ...preferences, autostart: !preferences.autostart });
+          void updatePreferences({ ...preferencesRef.current, autostart: !preferencesRef.current.autostart });
           break;
         case "always_on_top":
-          void updatePreferences({ ...preferences, alwaysOnTop: !preferences.alwaysOnTop });
+          void updatePreferences({ ...preferencesRef.current, alwaysOnTop: !preferencesRef.current.alwaysOnTop });
           break;
         case "mouse_through":
-          void updatePreferences({ ...preferences, mouseThrough: !preferences.mouseThrough });
+          toggleThrough();
+          break;
+        case "restore_interaction":
+          void restoreInteractive();
           break;
       }
     }).then((dispose) => { unlisten = dispose; });
     return () => unlisten();
-  }, [preferences, startStudy, timerState, updatePreferences]);
+  }, [restoreInteractive, startStudy, timerState, toggleThrough, updatePreferences]);
 
-  return <main className="pet-app"><div className="pet-stage">{bubbleOpen ? <PetBubble onClose={() => setBubbleOpen(false)}>{bubbleView === "settings" ? <PetSettingsPanel accessTokenSet={Boolean(accessToken)} onAccessTokenSave={saveAccessCode} onPreferencesChange={updatePreferences} preferences={preferences} /> : <><StudyTimerPanel elapsed={timerState.elapsed} onComplete={timerState.complete} onPause={timerState.pause} onResume={timerState.resume} onStart={startStudy} timer={timerState.timer} /><QuickActions onOpenAlgorithms={() => void openStudyApp("/algorithms")} onOpenDashboard={() => void openStudyApp("/")} onOpenDiary={() => void openStudyApp("/write")} onOpenInterview={() => void openStudyApp("/interview")} onOpenSettings={openSettings} /><SyncStatus error={timerState.syncError || configState.error} isSyncing={syncState.isSyncing} pendingCount={syncState.pendingCount} /></>}</PetBubble> : null}<PetAvatar onClick={() => { setBubbleView("actions"); setBubbleOpen((open) => !open); }} onDoubleClick={() => void openStudyApp("/")} visualState={petState.visualState} /></div><div className="pet-status-line"><span>{petState.currentMilestoneMinutes ? `已完成 ${petState.currentMilestoneMinutes} 分钟` : weatherState.weather?.is_raining ? "下雨模式" : timerState.timer?.status === "running" ? "专注中" : "准备就绪"}</span></div></main>;
+  return (
+    <main className="pet-app">
+      <div className="pet-stage">
+        {bubbleOpen ? (
+          <PetBubble onClose={() => setBubbleOpen(false)}>
+            {bubbleView === "settings" ? (
+              <PetSettingsPanel
+                accessTokenSet={Boolean(accessToken)}
+                interactionMode={interactionMode}
+                onAccessTokenSave={saveAccessCode}
+                onInteractionModeChange={changeInteractionMode}
+                onPreferencesChange={updatePreferences}
+                preferences={preferences}
+              />
+            ) : (
+              <>
+                <StudyTimerPanel elapsed={timerState.elapsed} onComplete={timerState.complete} onPause={timerState.pause} onResume={timerState.resume} onStart={startStudy} timer={timerState.timer} />
+                <QuickActions onOpenAlgorithms={() => void openStudyApp("/algorithms")} onOpenDashboard={() => void openStudyApp("/")} onOpenDiary={() => void openStudyApp("/write")} onOpenInterview={() => void openStudyApp("/interview")} onOpenSettings={openSettings} />
+                <SyncStatus error={timerState.syncError || configState.error} isSyncing={syncState.isSyncing} pendingCount={syncState.pendingCount} />
+              </>
+            )}
+          </PetBubble>
+        ) : null}
+        <PetAvatar onClick={() => { setBubbleView("actions"); setBubbleOpen((open) => !open); }} onDoubleClick={() => void openStudyApp("/")} visualState={petState.visualState} />
+      </div>
+      {interactionFeedback ? <div aria-live="polite" className="interaction-feedback">{interactionFeedback}</div> : null}
+      <div className="pet-status-line"><span>{petState.currentMilestoneMinutes ? `已完成 ${petState.currentMilestoneMinutes} 分钟` : weatherState.weather?.is_raining ? "下雨模式" : timerState.timer?.status === "running" ? "专注中" : "准备就绪"}</span></div>
+    </main>
+  );
 }

@@ -3,11 +3,14 @@ use tauri::{
     tray::TrayIconBuilder,
     AppHandle, Emitter, Manager, WebviewWindow,
 };
+use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 
 struct TrayMenuState<R: tauri::Runtime> {
     autostart: CheckMenuItem<R>,
     always_on_top: CheckMenuItem<R>,
     mouse_through: CheckMenuItem<R>,
+    interaction_status: MenuItem<R>,
+    restore_interaction: MenuItem<R>,
     pause_resume: MenuItem<R>,
     complete: MenuItem<R>,
 }
@@ -22,7 +25,55 @@ fn toggle_window_visibility(app: &AppHandle) {
             let _ = window.hide();
         } else {
             let _ = window.show();
+            let _ = window.set_focus();
         }
+    }
+}
+
+fn set_window_interaction_mode(
+    app: &AppHandle,
+    window: &WebviewWindow,
+    interaction_mode: &str,
+) -> Result<(), String> {
+    let mouse_through = match interaction_mode {
+        "interactive" | "temporary" => false,
+        "through" => true,
+        _ => return Err(format!("Unsupported interaction mode: {interaction_mode}")),
+    };
+
+    window
+        .set_ignore_cursor_events(mouse_through)
+        .map_err(|error| error.to_string())?;
+
+    let state = app.state::<TrayMenuState<tauri::Wry>>();
+    let status = match interaction_mode {
+        "through" => "交互状态：专注穿透",
+        "temporary" => "交互状态：已恢复交互",
+        _ => "交互状态：可操作",
+    };
+    state
+        .mouse_through
+        .set_checked(mouse_through)
+        .map_err(|error| error.to_string())?;
+    state
+        .interaction_status
+        .set_text(status)
+        .map_err(|error| error.to_string())?;
+    state
+        .restore_interaction
+        .set_enabled(mouse_through)
+        .map_err(|error| error.to_string())?;
+    Ok(())
+}
+
+fn restore_interactive_mode(app: &AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        if let Err(error) = set_window_interaction_mode(app, &window, "temporary") {
+            eprintln!("Failed to restore desktop pet interaction: {error}");
+            return;
+        }
+        let _ = window.show();
+        let _ = app.emit("interaction-mode-command", "temporary");
     }
 }
 
@@ -31,24 +82,16 @@ fn apply_window_preferences(
     app: AppHandle,
     window: WebviewWindow,
     always_on_top: bool,
-    mouse_through: bool,
+    interaction_mode: String,
 ) -> Result<(), String> {
     window
         .set_always_on_top(always_on_top)
         .map_err(|error| error.to_string())?;
-    window
-        .set_ignore_cursor_events(mouse_through)
-        .map_err(|error| error.to_string())?;
-    let state = app.state::<TrayMenuState<tauri::Wry>>();
-    state
+    set_window_interaction_mode(&app, &window, &interaction_mode)?;
+    app.state::<TrayMenuState<tauri::Wry>>()
         .always_on_top
         .set_checked(always_on_top)
-        .map_err(|error| error.to_string())?;
-    state
-        .mouse_through
-        .set_checked(mouse_through)
-        .map_err(|error| error.to_string())?;
-    Ok(())
+        .map_err(|error| error.to_string())
 }
 
 #[tauri::command]
@@ -83,6 +126,15 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(
+            tauri_plugin_global_shortcut::Builder::new()
+                .with_handler(|app, _shortcut, event| {
+                    if event.state() == ShortcutState::Pressed {
+                        restore_interactive_mode(app);
+                    }
+                })
+                .build(),
+        )
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.show();
@@ -96,15 +148,53 @@ pub fn run() {
                 None::<Vec<&str>>,
             ))?;
 
-            let show_hide = MenuItem::with_id(app, "toggle_visibility", "显示 / 隐藏桌宠", true, None::<&str>)?;
+            if let Err(error) = app.global_shortcut().register("Ctrl+Shift+P") {
+                eprintln!(
+                    "Unable to register Ctrl+Shift+P for desktop pet interaction recovery: {error}"
+                );
+            }
+
+            let show_hide = MenuItem::with_id(
+                app,
+                "toggle_visibility",
+                "显示 / 隐藏桌宠",
+                true,
+                None::<&str>,
+            )?;
             let start = MenuItem::with_id(app, "start_study", "开始学习", true, None::<&str>)?;
-            let pause_resume = MenuItem::with_id(app, "pause_resume", "暂停 / 继续", true, None::<&str>)?;
-            let complete = MenuItem::with_id(app, "complete_study", "完成学习", true, None::<&str>)?;
+            let pause_resume =
+                MenuItem::with_id(app, "pause_resume", "暂停 / 继续", true, None::<&str>)?;
+            let complete =
+                MenuItem::with_id(app, "complete_study", "完成学习", true, None::<&str>)?;
             let open_app = MenuItem::with_id(app, "open_app", "打开学习系统", true, None::<&str>)?;
-            let open_settings = MenuItem::with_id(app, "open_settings", "打开桌宠设置", true, None::<&str>)?;
-            let autostart = CheckMenuItem::with_id(app, "autostart", "开机启动", true, false, None::<&str>)?;
-            let always_on_top = CheckMenuItem::with_id(app, "always_on_top", "始终置顶", true, true, None::<&str>)?;
-            let mouse_through = CheckMenuItem::with_id(app, "mouse_through", "鼠标穿透", true, false, None::<&str>)?;
+            let open_settings =
+                MenuItem::with_id(app, "open_settings", "打开桌宠设置", true, None::<&str>)?;
+            let interaction_status = MenuItem::with_id(
+                app,
+                "interaction_status",
+                "交互状态：可操作",
+                false,
+                None::<&str>,
+            )?;
+            let restore_interaction = MenuItem::with_id(
+                app,
+                "restore_interaction",
+                "恢复交互 (Ctrl+Shift+P)",
+                false,
+                None::<&str>,
+            )?;
+            let autostart =
+                CheckMenuItem::with_id(app, "autostart", "开机启动", true, false, None::<&str>)?;
+            let always_on_top =
+                CheckMenuItem::with_id(app, "always_on_top", "始终置顶", true, true, None::<&str>)?;
+            let mouse_through = CheckMenuItem::with_id(
+                app,
+                "mouse_through",
+                "专注穿透",
+                true,
+                false,
+                None::<&str>,
+            )?;
             let separator = PredefinedMenuItem::separator(app)?;
             let second_separator = PredefinedMenuItem::separator(app)?;
             let quit = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
@@ -118,6 +208,8 @@ pub fn run() {
                     &open_app,
                     &open_settings,
                     &second_separator,
+                    &interaction_status,
+                    &restore_interaction,
                     &autostart,
                     &always_on_top,
                     &mouse_through,
@@ -129,6 +221,8 @@ pub fn run() {
                 autostart,
                 always_on_top,
                 mouse_through,
+                interaction_status,
+                restore_interaction,
                 pause_resume,
                 complete,
             });
@@ -139,6 +233,7 @@ pub fn run() {
                 .show_menu_on_left_click(false)
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "toggle_visibility" => toggle_window_visibility(app),
+                    "restore_interaction" => restore_interactive_mode(app),
                     "quit" => app.exit(0),
                     command => emit_command(app, command),
                 });
@@ -149,7 +244,11 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![apply_window_preferences, set_autostart_checked, update_study_status])
+        .invoke_handler(tauri::generate_handler![
+            apply_window_preferences,
+            set_autostart_checked,
+            update_study_status
+        ])
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                 api.prevent_close();
