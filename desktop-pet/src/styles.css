@@ -1,0 +1,84 @@
+:root {
+  color: #17201b;
+  font-family: "Segoe UI Variable", "Microsoft YaHei", system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* { box-sizing: border-box; }
+
+html,
+body,
+#root { min-width: 100%; min-height: 100%; margin: 0; background: transparent; }
+
+button,
+input,
+select { font: inherit; }
+
+button { cursor: pointer; }
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible { outline: 2px solid rgb(31 101 76 / 56%); outline-offset: 2px; }
+
+.pet-app { position: relative; min-height: 320px; overflow: hidden; }
+
+.pet-stage { position: relative; min-height: 292px; }
+
+.pet-avatar { position: absolute; right: 7px; bottom: 0; width: 270px; height: 270px; border: 0; background: transparent; padding: 0; }
+
+.pet-gif { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; pointer-events: none; transition: opacity 150ms ease-out; user-select: none; }
+.pet-gif-visible { opacity: 1; }
+
+.pet-status-line { position: absolute; right: 13px; bottom: 9px; left: 13px; pointer-events: none; text-align: center; }
+.pet-status-line span { display: inline-block; border: 1px solid rgb(216 221 216 / 88%); border-radius: 999px; background: rgb(252 253 251 / 88%); color: #455149; padding: 3px 8px; font-size: 11px; }
+
+.pet-bubble { position: absolute; z-index: 2; top: 8px; right: 8px; left: 8px; max-height: 282px; overflow-y: auto; border: 1px solid #bac3bc; border-radius: 6px; background: rgb(252 253 251 / 97%); box-shadow: 0 12px 30px rgb(23 32 27 / 16%); padding: 30px 14px 13px; }
+
+.bubble-close { position: absolute; top: 8px; right: 9px; border: 0; background: transparent; color: #69736c; padding: 2px 3px; font-size: 11px; }
+
+.timer-start-form,
+.timer-running,
+.pet-settings { display: grid; gap: 10px; }
+
+.timer-start-form label,
+.settings-auth label { display: grid; gap: 4px; color: #455149; font-size: 11px; font-weight: 700; }
+
+.timer-start-form input,
+.timer-start-form select,
+.settings-auth input { min-height: 32px; width: 100%; border: 1px solid #bac3bc; border-radius: 4px; background: #fff; color: #17201b; padding: 5px 8px; }
+
+.pet-primary-action,
+.timer-actions button,
+.settings-auth button { min-height: 32px; border: 1px solid #174b39; border-radius: 4px; background: #1f654c; color: #fff; padding: 5px 10px; font-size: 12px; font-weight: 700; }
+.pet-primary-action:active,
+.timer-actions button:active,
+.quick-actions button:active,
+.settings-auth button:active { transform: scale(0.98); }
+
+.timer-running { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+.timer-running > div:first-child { display: grid; gap: 2px; }
+.timer-running span,
+.timer-running small { color: #69736c; font-size: 11px; }
+.timer-running strong { color: #17201b; font-size: 25px; font-variant-numeric: tabular-nums; line-height: 1; }
+.timer-running small { overflow: hidden; max-width: 146px; text-overflow: ellipsis; white-space: nowrap; }
+.timer-actions { display: grid; gap: 6px; }
+.timer-actions button { min-width: 52px; border-color: #bac3bc; background: #fff; color: #174b39; }
+.timer-actions .pet-danger-action { border-color: #c56c62; color: #95362f; }
+
+.quick-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; border-top: 1px solid #d8ddd8; padding-top: 10px; }
+.quick-actions button { min-height: 30px; border: 1px solid #d8ddd8; border-radius: 4px; background: #f6f8f5; color: #455149; padding: 4px 6px; font-size: 11px; }
+.quick-actions button:last-child { grid-column: 1 / -1; }
+
+.sync-status { margin: 0; color: #69736c; font-size: 10px; line-height: 1.4; }
+.sync-status-error { color: #95362f; }
+
+.settings-auth { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+.settings-auth p { grid-column: 1 / -1; }
+.pet-settings > p { margin: -4px 0 0; color: #69736c; font-size: 10px; line-height: 1.45; }
+.local-setting-list { display: grid; gap: 7px; border-top: 1px solid #d8ddd8; padding-top: 10px; }
+.local-setting-list label { display: inline-flex; gap: 7px; align-items: center; color: #455149; font-size: 12px; }
+.local-setting-list input { accent-color: #1f654c; }
+
+@media (prefers-reduced-motion: reduce) { .pet-gif { transition: none; } }
