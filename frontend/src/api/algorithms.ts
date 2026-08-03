@@ -1,6 +1,9 @@
 import { request } from "./client";
 import type {
   AlgorithmAttempt,
+  AlgorithmCatalogOverview,
+  AlgorithmDailyFeed,
+  AlgorithmDailyRecommendationSettings,
   AlgorithmDifficulty,
   AlgorithmHintRead,
   AlgorithmProblem,
@@ -11,9 +14,10 @@ import type {
   AlgorithmWeakness,
   CreateAlgorithmSessionPayload,
   SaveAlgorithmAttemptPayload,
+  UpdateAlgorithmDailyRecommendationSettingsPayload,
 } from "../types/algorithm";
 
-function queryString(values: Record<string, string | number | undefined>) {
+function queryString(values: Record<string, string | number | boolean | undefined>) {
   const search = new URLSearchParams();
   Object.entries(values).forEach(([key, value]) => {
     if (value !== undefined && value !== "") search.set(key, String(value));
@@ -22,7 +26,7 @@ function queryString(values: Record<string, string | number | undefined>) {
   return text ? `?${text}` : "";
 }
 
-export function listAlgorithmProblems(filters: { difficulty?: AlgorithmDifficulty; topic?: string; source_list?: string; limit?: number } = {}) {
+export function listAlgorithmProblems(filters: { difficulty?: AlgorithmDifficulty; topic?: string; source_list?: string; search?: string; completed?: boolean; needs_review?: boolean; limit?: number } = {}) {
   return request<AlgorithmProblem[]>(`/api/algorithms/problems${queryString(filters)}`);
 }
 
@@ -32,6 +36,26 @@ export function getAlgorithmProblem(id: number | string) {
 
 export function getDailyAlgorithmProblem() {
   return request<AlgorithmProblem>("/api/algorithms/daily");
+}
+
+export function getAlgorithmDailyFeed() {
+  return request<AlgorithmDailyFeed>("/api/algorithms/daily-feed");
+}
+
+export function refreshAlgorithmDailyFeed() {
+  return request<AlgorithmDailyFeed>("/api/algorithms/daily-feed/refresh", { method: "POST" });
+}
+
+export function getAlgorithmDailySettings() {
+  return request<AlgorithmDailyRecommendationSettings>("/api/algorithms/daily-settings");
+}
+
+export function updateAlgorithmDailySettings(payload: UpdateAlgorithmDailyRecommendationSettingsPayload) {
+  return request<AlgorithmDailyRecommendationSettings>("/api/algorithms/daily-settings", { method: "PATCH", body: JSON.stringify(payload) });
+}
+
+export function getAlgorithmCatalogOverview() {
+  return request<AlgorithmCatalogOverview>("/api/algorithms/catalog-overview");
 }
 
 export function createAlgorithmSession(payload: CreateAlgorithmSessionPayload) {

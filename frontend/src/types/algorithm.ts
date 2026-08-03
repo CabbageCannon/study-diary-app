@@ -3,6 +3,7 @@ export type AlgorithmTrainingMode = "daily" | "hot100" | "topic" | "difficulty" 
 export type AlgorithmSessionStatus = "in_progress" | "completed" | "abandoned";
 export type AlgorithmItemStatus = "pending" | "in_progress" | "solved" | "needs_review" | "skipped";
 export type AlgorithmAttemptResult = "solved" | "partially_solved" | "failed" | "gave_up";
+export type AlgorithmDailyRecommendationStrategy = "balanced" | "random" | "topic" | "difficulty" | "source_list" | "weakness" | "wrong" | "review_first";
 
 export interface AlgorithmProblem {
   id: number;
@@ -21,6 +22,9 @@ export interface AlgorithmProblem {
   source_license: string;
   is_active: boolean;
   created_at: string;
+  is_completed: boolean;
+  needs_review: boolean;
+  attempt_count: number;
 }
 
 export interface AlgorithmAiReview {
@@ -149,6 +153,49 @@ export interface AlgorithmWeakness {
   needs_review_count: number;
   due_review_count: number;
   mastery_score: number;
+}
+
+export interface AlgorithmDailyRecommendationSettings {
+  id: number;
+  strategy: AlgorithmDailyRecommendationStrategy;
+  topics: string[];
+  difficulties: AlgorithmDifficulty[];
+  source_lists: string[];
+  exclude_solved: boolean;
+  prioritize_due_review: boolean;
+  avoid_recent_days: number;
+  extra_recommendation_count: 4 | 6 | 8;
+  include_adjacent_difficulty: boolean;
+  include_review_items: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type UpdateAlgorithmDailyRecommendationSettingsPayload = Omit<AlgorithmDailyRecommendationSettings, "id" | "created_at" | "updated_at">;
+
+export interface AlgorithmDailyFeed {
+  date: string;
+  primary_problem: AlgorithmProblem;
+  extra_problems: AlgorithmProblem[];
+  strategy: AlgorithmDailyRecommendationStrategy;
+  settings_summary: string;
+  refresh_version: number;
+  generated_at: string;
+  refreshed_at: string | null;
+  warning: string | null;
+  primary_problem_completed: boolean;
+  primary_problem_needs_review: boolean;
+  primary_problem_attempt_count: number;
+}
+
+export interface AlgorithmCatalogOverview {
+  total_problem_count: number;
+  active_problem_count: number;
+  completed_problem_count: number;
+  due_review_count: number;
+  difficulty_counts: Record<AlgorithmDifficulty, number>;
+  source_list_counts: Record<string, number>;
+  topic_counts: Record<string, number>;
 }
 
 export interface CreateAlgorithmSessionPayload {

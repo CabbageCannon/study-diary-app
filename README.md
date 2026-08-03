@@ -192,6 +192,8 @@ DELETE /api/diaries/{diary_id}
 
 构建、校验和导入说明见 [docs/data-import-guide.md](docs/data-import-guide.md)，数据源和许可证说明见 [backend/data/ATTRIBUTIONS.md](backend/data/ATTRIBUTIONS.md)。
 
+算法训练的每日推荐、刷新语义、设置项与接口说明见 [docs/algorithm-daily-feed.md](docs/algorithm-daily-feed.md)。
+
 ```bash
 cd backend
 .venv\Scripts\python.exe scripts\build_interview_bank.py

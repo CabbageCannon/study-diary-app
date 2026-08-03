@@ -382,6 +382,9 @@ class AlgorithmProblemRead(BaseModel):
     source_license: str
     is_active: bool
     created_at: datetime
+    is_completed: bool = False
+    needs_review: bool = False
+    attempt_count: int = 0
 
 
 AlgorithmTrainingMode = Literal[
@@ -604,6 +607,72 @@ class AlgorithmWeaknessRead(BaseModel):
     due_review_count: int
     mastery_score: int
     updated_at: datetime
+
+
+AlgorithmDailyRecommendationStrategy = Literal[
+    "balanced", "random", "topic", "difficulty", "source_list", "weakness", "wrong", "review_first"
+]
+
+
+class AlgorithmDailyRecommendationSettingsUpdate(BaseModel):
+    strategy: AlgorithmDailyRecommendationStrategy = "balanced"
+    topics: list[str] = Field(default_factory=list, max_length=8)
+    difficulties: list[Difficulty] = Field(default_factory=list, max_length=3)
+    source_lists: list[str] = Field(default_factory=list, max_length=5)
+    exclude_solved: bool = False
+    prioritize_due_review: bool = True
+    avoid_recent_days: int = Field(default=14, ge=0, le=90)
+    extra_recommendation_count: int = Field(default=6)
+    include_adjacent_difficulty: bool = False
+    include_review_items: bool = True
+
+    @field_validator("topics", "source_lists")
+    @classmethod
+    def normalize_daily_filter_values(cls, values: list[str]) -> list[str]:
+        normalized: list[str] = []
+        for value in values:
+            item = str(value).strip()
+            if item and item not in normalized:
+                normalized.append(item)
+        return normalized
+
+    @field_validator("extra_recommendation_count")
+    @classmethod
+    def validate_extra_recommendation_count(cls, value: int) -> int:
+        if value not in {4, 6, 8}:
+            raise ValueError("额外推荐数量只能是 4、6 或 8。")
+        return value
+
+
+class AlgorithmDailyRecommendationSettingsRead(AlgorithmDailyRecommendationSettingsUpdate):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+
+class AlgorithmDailyFeedRead(BaseModel):
+    date: str
+    primary_problem: AlgorithmProblemRead
+    extra_problems: list[AlgorithmProblemRead]
+    strategy: AlgorithmDailyRecommendationStrategy
+    settings_summary: str
+    refresh_version: int
+    generated_at: datetime
+    refreshed_at: datetime | None
+    warning: str | None = None
+    primary_problem_completed: bool = False
+    primary_problem_needs_review: bool = False
+    primary_problem_attempt_count: int = 0
+
+
+class AlgorithmCatalogOverviewRead(BaseModel):
+    total_problem_count: int
+    active_problem_count: int
+    completed_problem_count: int
+    due_review_count: int
+    difficulty_counts: dict[str, int]
+    source_list_counts: dict[str, int]
+    topic_counts: dict[str, int]
 
 
 class InterviewQuestionRead(BaseModel):
@@ -950,3 +1019,108 @@ class InterviewReviewScheduleRead(BaseModel):
     review_interval_days: int
     review_count: int
     question: InterviewQuestionForTraining
+
+
+StudyActivityType = Literal["algorithm", "interview", "diary", "reading", "course", "custom"]
+StudySessionStatus = Literal["running", "paused", "completed", "abandoned"]
+
+
+class StudySessionCreate(BaseModel):
+    client_event_id: str = Field(min_length=8, max_length=100)
+    source: Literal["desktop_pet"] = "desktop_pet"
+    activity_type: StudyActivityType = "custom"
+    title: str = Field(default="自主学习", min_length=1, max_length=160)
+    started_at: datetime | None = None
+
+    @field_validator("client_event_id", "title")
+    @classmethod
+    def normalize_study_session_text(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("不能为空")
+        return value
+
+
+class StudySessionAction(BaseModel):
+    accumulated_seconds: int = Field(ge=0, le=86_400)
+    occurred_at: datetime | None = None
+
+
+class StudySessionRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    client_event_id: str
+    source: str
+    activity_type: StudyActivityType
+    title: str
+    status: StudySessionStatus
+    started_at: datetime
+    last_resumed_at: datetime | None
+    paused_at: datetime | None
+    completed_at: datetime | None
+    accumulated_seconds: int
+    created_at: datetime
+    updated_at: datetime
+
+
+class DesktopPetSettingsUpdate(BaseModel):
+    weather_enabled: bool | None = None
+    location_label: str | None = Field(default=None, max_length=120)
+    latitude: float | None = Field(default=None, ge=-90, le=90)
+    longitude: float | None = Field(default=None, ge=-180, le=180)
+    weather_refresh_minutes: int | None = Field(default=None, ge=5, le=120)
+    milestone_minutes: list[int] | None = Field(default=None, max_length=20)
+    milestone_display_seconds: int | None = Field(default=None, ge=3, le=60)
+    show_notifications: bool | None = None
+    open_page_on_study_start: bool | None = None
+
+    @field_validator("location_label")
+    @classmethod
+    def normalize_location_label(cls, value: str | None) -> str | None:
+        return value.strip() if value is not None else None
+
+    @field_validator("milestone_minutes")
+    @classmethod
+    def normalize_milestones(cls, value: list[int] | None) -> list[int] | None:
+        if value is None:
+            return None
+        normalized = sorted({int(item) for item in value})
+        if not normalized or any(item <= 0 or item > 1_440 for item in normalized):
+            raise ValueError("里程碑必须是 1 到 1440 的正整数分钟")
+        if len(normalized) > 20:
+            raise ValueError("里程碑最多 20 个")
+        return normalized
+
+
+class DesktopPetSettingsRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    weather_enabled: bool
+    location_label: str
+    latitude: float | None
+    longitude: float | None
+    weather_refresh_minutes: int
+    milestone_minutes: list[int]
+    milestone_display_seconds: int
+    show_notifications: bool
+    open_page_on_study_start: bool
+    updated_at: datetime
+
+
+class DesktopPetWeatherRead(BaseModel):
+    location: str
+    condition: str
+    is_raining: bool
+    temperature_c: float | None
+    observed_at: datetime | None
+    provider: str
+    stale: bool
+
+
+class DesktopPetDashboardRead(BaseModel):
+    today_study_seconds: int
+    active_session: StudySessionRead | None
+    due_interview_reviews: int
+    due_algorithm_reviews: int
+    recent_study_sessions: list[StudySessionRead]

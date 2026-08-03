@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session
 
 from app.models import (
     AlgorithmAttempt,
+    AlgorithmDailyFeed,
+    AlgorithmDailyRecommendationSettings,
     AlgorithmPracticeSession,
     AlgorithmPracticeSessionItem,
     AlgorithmProblem,
@@ -21,6 +23,25 @@ def get_problem(db: Session, problem_id: int) -> AlgorithmProblem | None:
 
 def list_active_problems(db: Session) -> list[AlgorithmProblem]:
     return list(db.scalars(select(AlgorithmProblem).where(AlgorithmProblem.is_active.is_(True)).order_by(AlgorithmProblem.id)).all())
+
+
+def list_all_problems(db: Session) -> list[AlgorithmProblem]:
+    return list(db.scalars(select(AlgorithmProblem).order_by(AlgorithmProblem.id)).all())
+
+
+def get_daily_recommendation_settings(db: Session) -> AlgorithmDailyRecommendationSettings | None:
+    return db.get(AlgorithmDailyRecommendationSettings, 1)
+
+
+def get_daily_feed(db: Session, recommendation_date: str) -> AlgorithmDailyFeed | None:
+    return db.scalar(select(AlgorithmDailyFeed).where(AlgorithmDailyFeed.recommendation_date == recommendation_date))
+
+
+def list_daily_feeds_since(db: Session, start_date: str, *, before_date: str | None = None) -> list[AlgorithmDailyFeed]:
+    statement = select(AlgorithmDailyFeed).where(AlgorithmDailyFeed.recommendation_date >= start_date)
+    if before_date:
+        statement = statement.where(AlgorithmDailyFeed.recommendation_date < before_date)
+    return list(db.scalars(statement.order_by(AlgorithmDailyFeed.recommendation_date.desc())).all())
 
 
 def get_session(db: Session, session_id: str, *, include_deleted: bool = False) -> AlgorithmPracticeSession | None:

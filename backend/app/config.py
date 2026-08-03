@@ -43,6 +43,10 @@ class Settings:
             os.getenv("DATABASE_URL", "sqlite:///./data/study_diary.db").strip()
         )
         self.frontend_origin = os.getenv("FRONTEND_ORIGIN", "http://127.0.0.1:5173").strip()
+        self.desktop_pet_origins = os.getenv(
+            "DESKTOP_PET_ORIGINS",
+            "http://127.0.0.1:1420,http://tauri.localhost",
+        ).strip()
         self.app_access_token = os.getenv("APP_ACCESS_TOKEN", "").strip()
         self.ai_rate_limit_per_minute = max(1, _read_int("AI_RATE_LIMIT_PER_MINUTE", 12))
         self.allow_question_review = _read_bool("ALLOW_QUESTION_REVIEW")
@@ -53,7 +57,8 @@ class Settings:
 
     @property
     def frontend_origins(self) -> list[str]:
-        return [origin.strip() for origin in self.frontend_origin.split(",") if origin.strip()]
+        origins = [*self.frontend_origin.split(","), *self.desktop_pet_origins.split(",")]
+        return list(dict.fromkeys(origin.strip() for origin in origins if origin.strip()))
 
     @property
     def write_access_enabled(self) -> bool:

@@ -199,6 +199,76 @@ class AlgorithmProblemProgress(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 
 
+class AlgorithmDailyRecommendationSettings(Base):
+    __tablename__ = "algorithm_daily_recommendation_settings"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
+    strategy: Mapped[str] = mapped_column(String(32), default="balanced")
+    topics_json: Mapped[str] = mapped_column("topics", Text, default="[]")
+    difficulties_json: Mapped[str] = mapped_column("difficulties", Text, default="[]")
+    source_lists_json: Mapped[str] = mapped_column("source_lists", Text, default="[]")
+    exclude_solved: Mapped[bool] = mapped_column(Boolean, default=False)
+    prioritize_due_review: Mapped[bool] = mapped_column(Boolean, default=True)
+    avoid_recent_days: Mapped[int] = mapped_column(Integer, default=14)
+    extra_recommendation_count: Mapped[int] = mapped_column(Integer, default=6)
+    include_adjacent_difficulty: Mapped[bool] = mapped_column(Boolean, default=False)
+    include_review_items: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+    @staticmethod
+    def _json_list(value: str) -> list[str]:
+        try:
+            decoded = json.loads(value or "[]")
+        except json.JSONDecodeError:
+            return []
+        return [str(item) for item in decoded] if isinstance(decoded, list) else []
+
+    @property
+    def topics(self) -> list[str]:
+        return self._json_list(self.topics_json)
+
+    @property
+    def difficulties(self) -> list[str]:
+        return self._json_list(self.difficulties_json)
+
+    @property
+    def source_lists(self) -> list[str]:
+        return self._json_list(self.source_lists_json)
+
+
+class AlgorithmDailyFeed(Base):
+    __tablename__ = "algorithm_daily_feeds"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    recommendation_date: Mapped[str] = mapped_column(String(10), unique=True, index=True)
+    primary_problem_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problems.id"), index=True)
+    extra_problem_ids_json: Mapped[str] = mapped_column("extra_problem_ids", Text, default="[]")
+    settings_snapshot_json: Mapped[str] = mapped_column("settings_snapshot", Text, default="{}")
+    refresh_version: Mapped[int] = mapped_column(Integer, default=0)
+    warning: Mapped[str | None] = mapped_column(Text, nullable=True)
+    generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    refreshed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+    @property
+    def extra_problem_ids(self) -> list[int]:
+        try:
+            decoded = json.loads(self.extra_problem_ids_json or "[]")
+        except json.JSONDecodeError:
+            return []
+        return [int(item) for item in decoded if str(item).isdigit()]
+
+    @property
+    def settings_snapshot(self) -> dict[str, object]:
+        try:
+            decoded = json.loads(self.settings_snapshot_json or "{}")
+        except json.JSONDecodeError:
+            return {}
+        return decoded if isinstance(decoded, dict) else {}
+
+
 class InterviewQuestion(Base):
     """Auditable interview question content used by future training flows."""
 
@@ -428,3 +498,56 @@ class InterviewReviewSchedule(Base):
     review_count: Mapped[int] = mapped_column(Integer, default=1)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class StudySession(Base):
+    """A small, source-agnostic record of focused study time.
+
+    Algorithm and interview practice keep their own rich session models.  This
+    model intentionally tracks only the cross-feature timer used by the
+    desktop companion, so neither workflow needs to be coupled to it.
+    """
+
+    __tablename__ = "study_sessions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    client_event_id: Mapped[str] = mapped_column(String(100), unique=True, index=True)
+    source: Mapped[str] = mapped_column(String(32), index=True)
+    activity_type: Mapped[str] = mapped_column(String(32), index=True)
+    title: Mapped[str] = mapped_column(String(160), default="自主学习")
+    status: Mapped[str] = mapped_column(String(20), default="running", index=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    last_resumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    paused_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    accumulated_seconds: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class DesktopPetSettings(Base):
+    """Singleton server-side settings shared by the web app and desktop pet."""
+
+    __tablename__ = "desktop_pet_settings"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
+    weather_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    location_label: Mapped[str] = mapped_column(String(120), default="")
+    latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
+    longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
+    weather_refresh_minutes: Mapped[int] = mapped_column(Integer, default=15)
+    milestone_minutes_json: Mapped[str] = mapped_column("milestone_minutes", Text, default="[10, 20, 50]")
+    milestone_display_seconds: Mapped[int] = mapped_column(Integer, default=10)
+    show_notifications: Mapped[bool] = mapped_column(Boolean, default=True)
+    open_page_on_study_start: Mapped[bool] = mapped_column(Boolean, default=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+    @property
+    def milestone_minutes(self) -> list[int]:
+        try:
+            values = json.loads(self.milestone_minutes_json or "[]")
+        except json.JSONDecodeError:
+            return [10, 20, 50]
+        if not isinstance(values, list):
+            return [10, 20, 50]
+        return [int(value) for value in values if isinstance(value, int) and value > 0]

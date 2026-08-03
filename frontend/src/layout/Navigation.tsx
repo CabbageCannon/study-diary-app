@@ -17,6 +17,7 @@ const desktopNavItems = [
   { to: "/interview", label: "八股训练", matches: (pathname: string) => pathname === "/interview" || pathname.startsWith("/interview/session/") },
   { to: "/algorithms", label: "算法训练", matches: (pathname: string) => pathname === "/algorithms" || pathname.startsWith("/algorithms/") },
   { to: "/interview/history", label: "训练历史", matches: (pathname: string) => pathname === "/interview/history" },
+  { to: "/settings/desktop-pet", label: "桌宠设置", matches: (pathname: string) => pathname === "/settings/desktop-pet" },
 ];
 
 const questionReviewEnabled = import.meta.env.VITE_ENABLE_QUESTION_REVIEW === "true";

@@ -1,5 +1,5 @@
 import unittest
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
 
@@ -12,9 +12,9 @@ from app import database
 from app.database import Base, get_db
 from app.llm import LLMError
 from app.main import app
-from app.models import AlgorithmAttempt, AlgorithmProblem, AlgorithmProblemProgress, AlgorithmReviewSchedule
+from app.models import AlgorithmAttempt, AlgorithmDailyFeed, AlgorithmProblem, AlgorithmProblemProgress, AlgorithmReviewSchedule
 from app.schemas import AlgorithmAIReview
-from app.services.algorithm_practice_service import utc_now
+from app.services.algorithm_practice_service import get_daily_feed, utc_now
 from app.services.data_import_service import import_algorithms
 
 
@@ -77,6 +77,15 @@ class AlgorithmPracticeApiTests(unittest.TestCase):
             },
         )
         self.assertEqual(response.status_code, 201, response.text)
+        return response.json()
+
+    def update_daily_settings(self, **updates: object) -> dict[str, object]:
+        current = self.client.get("/api/algorithms/daily-settings")
+        self.assertEqual(current.status_code, 200, current.text)
+        payload = {key: value for key, value in current.json().items() if key not in {"id", "created_at", "updated_at"}}
+        payload.update(updates)
+        response = self.client.patch("/api/algorithms/daily-settings", json=payload)
+        self.assertEqual(response.status_code, 200, response.text)
         return response.json()
 
     def test_catalog_import_is_idempotent_and_preserves_progress(self) -> None:
@@ -177,3 +186,109 @@ class AlgorithmPracticeApiTests(unittest.TestCase):
         persisted = self.session.get(AlgorithmAttempt, attempt["id"])
         self.assertIsNotNone(persisted)
         self.assertEqual(persisted.ai_feedback_status, "failed")
+
+    def test_daily_feed_initializes_defaults_is_stable_and_keeps_daily_compatibility(self) -> None:
+        settings = self.client.get("/api/algorithms/daily-settings")
+        self.assertEqual(settings.status_code, 200)
+        self.assertEqual(settings.json()["strategy"], "balanced")
+        self.assertEqual(settings.json()["extra_recommendation_count"], 6)
+
+        first = self.client.get("/api/algorithms/daily-feed")
+        second = self.client.get("/api/algorithms/daily-feed")
+        legacy = self.client.get("/api/algorithms/daily")
+        self.assertEqual(first.status_code, 200, first.text)
+        self.assertEqual(first.json()["primary_problem"]["id"], second.json()["primary_problem"]["id"])
+        self.assertEqual(first.json()["primary_problem"]["id"], legacy.json()["id"])
+        feed_ids = [first.json()["primary_problem"]["id"], *[item["id"] for item in first.json()["extra_problems"]]]
+        self.assertEqual(len(feed_ids), len(set(feed_ids)))
+
+    def test_saving_daily_settings_does_not_replace_today_until_explicit_refresh(self) -> None:
+        before = self.client.get("/api/algorithms/daily-feed").json()
+        topic = self.session.query(AlgorithmProblem).filter(AlgorithmProblem.topics_json.contains("数组")).first().topics[0]
+        updated = self.update_daily_settings(strategy="topic", topics=[topic], extra_recommendation_count=4)
+        unchanged = self.client.get("/api/algorithms/daily-feed").json()
+        self.assertEqual(updated["strategy"], "topic")
+        self.assertEqual(before["refresh_version"], unchanged["refresh_version"])
+        self.assertEqual(before["primary_problem"]["id"], unchanged["primary_problem"]["id"])
+
+        refreshed = self.client.post("/api/algorithms/daily-feed/refresh")
+        self.assertEqual(refreshed.status_code, 200, refreshed.text)
+        self.assertEqual(refreshed.json()["refresh_version"], before["refresh_version"] + 1)
+        self.assertIn(topic, refreshed.json()["primary_problem"]["topics"])
+
+    def test_refresh_preserves_existing_session_and_attempt_history(self) -> None:
+        feed = self.client.get("/api/algorithms/daily-feed").json()
+        training = self.create_session("daily", count=1, problem_ids=[str(feed["primary_problem"]["id"])])
+        attempt = self.save_attempt(training, result="solved")
+        refreshed = self.client.post("/api/algorithms/daily-feed/refresh")
+        self.assertEqual(refreshed.status_code, 200, refreshed.text)
+        self.assertEqual(self.client.get(f"/api/algorithms/sessions/{training['id']}").status_code, 200)
+        self.assertIsNotNone(self.session.get(AlgorithmAttempt, attempt["id"]))
+
+    def test_daily_feed_strategies_fallback_and_refresh_validation(self) -> None:
+        self.update_daily_settings(strategy="random", topics=[], difficulties=[], source_lists=[], extra_recommendation_count=4)
+        first = self.client.post("/api/algorithms/daily-feed/refresh")
+        second = self.client.get("/api/algorithms/daily-feed")
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual([item["id"] for item in first.json()["extra_problems"]], [item["id"] for item in second.json()["extra_problems"]])
+
+        self.update_daily_settings(strategy="topic", topics=["不存在的题型"], extra_recommendation_count=4)
+        fallback = self.client.post("/api/algorithms/daily-feed/refresh")
+        self.assertEqual(fallback.status_code, 200)
+        self.assertIsNotNone(fallback.json()["warning"])
+
+        invalid = self.client.patch("/api/algorithms/daily-settings", json={"extra_recommendation_count": 5})
+        self.assertEqual(invalid.status_code, 422)
+
+    def test_daily_feed_generates_a_new_assignment_on_a_new_date(self) -> None:
+        settings = self.client.get("/api/algorithms/daily-settings")
+        self.assertEqual(settings.status_code, 200)
+        first_day = datetime(2026, 8, 3, 9, tzinfo=timezone.utc)
+        second_day = first_day + timedelta(days=1)
+        with patch("app.services.algorithm_practice_service.utc_now", return_value=first_day):
+            first = get_daily_feed(self.session)
+        with patch("app.services.algorithm_practice_service.utc_now", return_value=second_day):
+            second = get_daily_feed(self.session)
+        self.assertNotEqual(first.date, second.date)
+        self.assertNotIn(second.primary_problem.id, {first.primary_problem.id, *[problem.id for problem in first.extra_problems]})
+        self.assertEqual(self.session.query(AlgorithmDailyFeed).count(), 2)
+
+    def test_daily_feed_filters_and_review_priority_use_real_progress(self) -> None:
+        medium_hot = self.session.query(AlgorithmProblem).filter_by(difficulty="medium").filter(AlgorithmProblem.source_lists_json.contains("hot100")).first()
+        self.assertIsNotNone(medium_hot)
+        self.update_daily_settings(strategy="source_list", source_lists=["hot100"], difficulties=["medium"], extra_recommendation_count=4)
+        filtered = self.client.post("/api/algorithms/daily-feed/refresh")
+        self.assertEqual(filtered.status_code, 200, filtered.text)
+        self.assertEqual(filtered.json()["primary_problem"]["difficulty"], "medium")
+        self.assertIn("hot100", filtered.json()["primary_problem"]["source_lists"])
+
+        training = self.create_session("custom", count=1, problem_ids=[str(medium_hot.id)])
+        attempt = self.save_attempt(training, result="failed")
+        schedule = self.session.query(AlgorithmReviewSchedule).filter_by(problem_id=attempt["problem_id"]).one()
+        schedule.next_review_at = utc_now() - timedelta(minutes=1)
+        self.session.commit()
+
+        self.update_daily_settings(strategy="review_first", source_lists=[], difficulties=[], exclude_solved=False, extra_recommendation_count=4)
+        review_first = self.client.post("/api/algorithms/daily-feed/refresh")
+        self.assertEqual(review_first.status_code, 200, review_first.text)
+        self.assertEqual(review_first.json()["primary_problem"]["id"], attempt["problem_id"])
+
+    def test_daily_feed_can_expand_to_adjacent_difficulty_when_needed(self) -> None:
+        desired_count = 5
+        hard_count = self.session.query(AlgorithmProblem).filter_by(difficulty="hard", is_active=True).count()
+        self.update_daily_settings(
+            strategy="difficulty",
+            topics=[],
+            difficulties=["hard"],
+            source_lists=[],
+            extra_recommendation_count=desired_count - 1,
+            include_adjacent_difficulty=True,
+        )
+
+        refreshed = self.client.post("/api/algorithms/daily-feed/refresh")
+        self.assertEqual(refreshed.status_code, 200, refreshed.text)
+        feed = refreshed.json()
+        if hard_count < desired_count:
+            selected = [feed["primary_problem"], *feed["extra_problems"]]
+            self.assertTrue(any(problem["difficulty"] == "medium" for problem in selected))
+            self.assertIn("相邻难度", feed["warning"])

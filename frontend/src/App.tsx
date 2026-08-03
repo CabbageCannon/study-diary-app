@@ -15,6 +15,8 @@ import { AlgorithmHistoryPage } from "./pages/AlgorithmHistoryPage";
 import { AlgorithmProblemPage } from "./pages/AlgorithmProblemPage";
 import { AlgorithmReviewPage } from "./pages/AlgorithmReviewPage";
 import { AlgorithmSessionPage } from "./pages/AlgorithmSessionPage";
+import { AlgorithmSettingsPage } from "./pages/AlgorithmSettingsPage";
+import { DesktopPetSettingsPage } from "./pages/DesktopPetSettingsPage";
 
 const questionReviewEnabled = import.meta.env.VITE_ENABLE_QUESTION_REVIEW === "true";
 
@@ -30,6 +32,7 @@ export default function App() {
               <Route path="/write" element={<WriteDiaryPage />} />
               <Route path="/history" element={<HistoryPage />} />
               <Route path="/algorithms" element={<AlgorithmsPage />} />
+              <Route path="/algorithms/settings" element={<AlgorithmSettingsPage />} />
               <Route path="/algorithms/session/:sessionId" element={<AlgorithmSessionPage />} />
               <Route path="/algorithms/history" element={<AlgorithmHistoryPage />} />
               <Route path="/algorithms/review" element={<AlgorithmReviewPage />} />
@@ -38,6 +41,7 @@ export default function App() {
               <Route path="/interview/session/:setId" element={<InterviewSessionPage />} />
               <Route path="/interview/history" element={<InterviewHistoryPage />} />
               <Route path="/interview/review" element={questionReviewEnabled ? <InterviewReviewPage /> : <Navigate to="/interview" replace />} />
+              <Route path="/settings/desktop-pet" element={<DesktopPetSettingsPage />} />
             </Route>
             </Routes>
           </InterviewBatchJobProvider>

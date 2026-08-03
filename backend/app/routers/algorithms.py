@@ -6,11 +6,15 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.llm import LLMError
 from app.repositories.algorithm_practice_repository import get_problem, list_attempts
-from app.repositories.algorithm_repository import get_by_identifier, list_problems
+from app.repositories.algorithm_repository import get_by_identifier
 from app.schemas import (
     AlgorithmAttemptCreate,
     AlgorithmAttemptRead,
     AlgorithmAttemptUpdate,
+    AlgorithmCatalogOverviewRead,
+    AlgorithmDailyFeedRead,
+    AlgorithmDailyRecommendationSettingsRead,
+    AlgorithmDailyRecommendationSettingsUpdate,
     AlgorithmHintRead,
     AlgorithmHintRequest,
     AlgorithmPracticeSessionCreate,
@@ -24,6 +28,7 @@ from app.schemas import (
 )
 from app.services.algorithm_practice_service import (
     AlgorithmPracticeError,
+    algorithm_catalog_overview,
     algorithm_stats,
     algorithm_weaknesses,
     create_attempt,
@@ -35,14 +40,19 @@ from app.services.algorithm_practice_service import (
     due_reviews,
     finish_session,
     get_attempt_read,
+    get_daily_feed,
+    get_daily_settings,
     get_session_read,
     list_session_summaries,
+    list_catalog_problems,
     mark_ai_review_failed,
     request_ai_review,
     request_hint,
+    refresh_daily_feed,
     similar_problems,
     skip_session_problem,
     update_attempt,
+    update_daily_settings,
     update_session_progress,
 )
 
@@ -61,16 +71,21 @@ def list_algorithm_problems(
     topic: str | None = None,
     source_list: str | None = None,
     exclude_completed: bool = False,
+    search: str | None = None,
+    completed: bool | None = None,
+    needs_review: bool | None = None,
     limit: int = Query(default=20, ge=1, le=100),
     db: Session = Depends(get_db),
 ) -> list[AlgorithmProblemRead]:
-    del exclude_completed
-    return list_problems(
+    return list_catalog_problems(
         db,
         difficulty=difficulty,
         pattern=pattern.strip() if pattern else None,
         topic=topic.strip() if topic else None,
         source_list=source_list.strip() if source_list else None,
+        search=search,
+        completed=False if exclude_completed else completed,
+        needs_review=needs_review,
         limit=limit,
     )
 
@@ -81,6 +96,39 @@ def get_daily_problem(db: Session = Depends(get_db)) -> AlgorithmProblemRead:
         return daily_problem(db)
     except AlgorithmPracticeError as exc:
         raise _domain_error(exc) from exc
+
+
+@router.get("/daily-feed", response_model=AlgorithmDailyFeedRead)
+def get_algorithm_daily_feed(db: Session = Depends(get_db)) -> AlgorithmDailyFeedRead:
+    try:
+        return get_daily_feed(db)
+    except AlgorithmPracticeError as exc:
+        raise _domain_error(exc) from exc
+
+
+@router.post("/daily-feed/refresh", response_model=AlgorithmDailyFeedRead)
+def refresh_algorithm_daily_feed(db: Session = Depends(get_db)) -> AlgorithmDailyFeedRead:
+    try:
+        return refresh_daily_feed(db)
+    except AlgorithmPracticeError as exc:
+        raise _domain_error(exc) from exc
+
+
+@router.get("/daily-settings", response_model=AlgorithmDailyRecommendationSettingsRead)
+def get_algorithm_daily_settings(db: Session = Depends(get_db)) -> AlgorithmDailyRecommendationSettingsRead:
+    return get_daily_settings(db)
+
+
+@router.patch("/daily-settings", response_model=AlgorithmDailyRecommendationSettingsRead)
+def patch_algorithm_daily_settings(
+    payload: AlgorithmDailyRecommendationSettingsUpdate, db: Session = Depends(get_db)
+) -> AlgorithmDailyRecommendationSettingsRead:
+    return update_daily_settings(db, payload)
+
+
+@router.get("/catalog-overview", response_model=AlgorithmCatalogOverviewRead)
+def get_algorithm_catalog_overview(db: Session = Depends(get_db)) -> AlgorithmCatalogOverviewRead:
+    return algorithm_catalog_overview(db)
 
 
 @router.post("/sessions", response_model=AlgorithmPracticeSessionRead, status_code=status.HTTP_201_CREATED)

@@ -12,6 +12,8 @@ from sqlalchemy.orm import Session
 from app.llm import generate_algorithm_ai_review, generate_algorithm_hint
 from app.models import (
     AlgorithmAttempt,
+    AlgorithmDailyFeed,
+    AlgorithmDailyRecommendationSettings,
     AlgorithmPracticeSession,
     AlgorithmPracticeSessionItem,
     AlgorithmProblem,
@@ -20,15 +22,19 @@ from app.models import (
 )
 from app.repositories.algorithm_practice_repository import (
     get_attempt,
+    get_daily_feed as get_daily_feed_record,
+    get_daily_recommendation_settings,
     get_problem,
     get_review_schedule,
     get_session,
     get_session_item,
     latest_attempts_by_problem,
     list_active_problems,
+    list_all_problems,
     list_attempts,
     list_session_items,
     list_sessions,
+    list_daily_feeds_since,
     progress_by_problem,
     review_schedules_by_problem,
 )
@@ -37,6 +43,10 @@ from app.schemas import (
     AlgorithmAIReview,
     AlgorithmAttemptCreate,
     AlgorithmAttemptRead,
+    AlgorithmCatalogOverviewRead,
+    AlgorithmDailyFeedRead,
+    AlgorithmDailyRecommendationSettingsRead,
+    AlgorithmDailyRecommendationSettingsUpdate,
     AlgorithmAttemptUpdate,
     AlgorithmHintRead,
     AlgorithmPracticeSessionCreate,
@@ -142,6 +152,12 @@ def _select_problems(db: Session, request: AlgorithmPracticeSessionCreate, sessi
         request = request.model_copy(update={"source_lists": sorted(set(request.source_lists) | {"hot100"})})
     if request.mode == "daily":
         request = request.model_copy(update={"count": 1})
+        if request.problem_ids:
+            lookup = {problem.stable_key: problem for problem in problems} | {str(problem.id): problem for problem in problems}
+            selected = lookup.get(request.problem_ids[0])
+            if selected is None:
+                raise AlgorithmPracticeError("今日主推荐题目不存在于本地题库。")
+            return [selected], 1
     if request.mode == "custom":
         if not request.problem_ids:
             raise AlgorithmPracticeError("自定义训练需要至少选择一道本地题库中的题目。")
@@ -283,13 +299,373 @@ def create_session(db: Session, request: AlgorithmPracticeSessionCreate) -> Algo
     return session_read(db, session, available_problem_count=available_count)
 
 
-def daily_problem(db: Session) -> AlgorithmProblemRead:
-    selected, _ = _select_problems(
-        db,
-        AlgorithmPracticeSessionCreate(mode="daily", count=1, prioritize_due_review=True),
-        f"daily:{utc_now().date().isoformat()}",
+DAILY_STRATEGY_LABELS = {
+    "balanced": "均衡推荐",
+    "random": "稳定随机",
+    "topic": "按题型推荐",
+    "difficulty": "按难度推荐",
+    "source_list": "按题单推荐",
+    "weakness": "薄弱点优先",
+    "wrong": "错题优先",
+    "review_first": "复习优先",
+}
+
+
+def _settings_snapshot(settings: AlgorithmDailyRecommendationSettings) -> dict[str, object]:
+    return {
+        "strategy": settings.strategy,
+        "topics": settings.topics,
+        "difficulties": settings.difficulties,
+        "source_lists": settings.source_lists,
+        "exclude_solved": settings.exclude_solved,
+        "prioritize_due_review": settings.prioritize_due_review,
+        "avoid_recent_days": settings.avoid_recent_days,
+        "extra_recommendation_count": settings.extra_recommendation_count,
+        "include_adjacent_difficulty": settings.include_adjacent_difficulty,
+        "include_review_items": settings.include_review_items,
+    }
+
+
+def _settings_summary(snapshot: dict[str, object]) -> str:
+    strategy = DAILY_STRATEGY_LABELS.get(str(snapshot.get("strategy")), "均衡推荐")
+    filters: list[str] = []
+    topics = [str(item) for item in snapshot.get("topics", []) if str(item)]
+    difficulties = [str(item) for item in snapshot.get("difficulties", []) if str(item)]
+    source_lists = [str(item) for item in snapshot.get("source_lists", []) if str(item)]
+    if topics:
+        filters.append("、".join(topics[:2]))
+    if difficulties:
+        filters.append("、".join({"easy": "简单", "medium": "中等", "hard": "困难"}.get(item, item) for item in difficulties))
+    if source_lists:
+        filters.append("、".join(source_lists[:2]))
+    detail = " · ".join(filters)
+    review = "优先到期复习" if snapshot.get("prioritize_due_review") else "优先未完成"
+    avoid_days = int(snapshot.get("avoid_recent_days") or 0)
+    avoid = f"，避开最近 {avoid_days} 天重复" if avoid_days else ""
+    return f"{strategy}{' · ' + detail if detail else ''}；{review}{avoid}。"
+
+
+def _daily_settings_read(settings: AlgorithmDailyRecommendationSettings) -> AlgorithmDailyRecommendationSettingsRead:
+    return AlgorithmDailyRecommendationSettingsRead(
+        id=settings.id,
+        **_settings_snapshot(settings),
+        created_at=settings.created_at,
+        updated_at=settings.updated_at,
     )
-    return _problem_read(selected[0])
+
+
+def get_daily_settings(db: Session) -> AlgorithmDailyRecommendationSettingsRead:
+    settings = get_daily_recommendation_settings(db)
+    if settings is None:
+        settings = AlgorithmDailyRecommendationSettings(id=1)
+        db.add(settings)
+        db.commit()
+        db.refresh(settings)
+    return _daily_settings_read(settings)
+
+
+def update_daily_settings(
+    db: Session, payload: AlgorithmDailyRecommendationSettingsUpdate
+) -> AlgorithmDailyRecommendationSettingsRead:
+    settings = get_daily_recommendation_settings(db)
+    if settings is None:
+        settings = AlgorithmDailyRecommendationSettings(id=1)
+        db.add(settings)
+    settings.strategy = payload.strategy
+    settings.topics_json = json.dumps(payload.topics, ensure_ascii=False)
+    settings.difficulties_json = json.dumps(payload.difficulties, ensure_ascii=False)
+    settings.source_lists_json = json.dumps(payload.source_lists, ensure_ascii=False)
+    settings.exclude_solved = payload.exclude_solved
+    settings.prioritize_due_review = payload.prioritize_due_review
+    settings.avoid_recent_days = payload.avoid_recent_days
+    settings.extra_recommendation_count = payload.extra_recommendation_count
+    settings.include_adjacent_difficulty = payload.include_adjacent_difficulty
+    settings.include_review_items = payload.include_review_items
+    db.commit()
+    db.refresh(settings)
+    return _daily_settings_read(settings)
+
+
+def _matches_daily_settings(
+    problem: AlgorithmProblem,
+    settings: AlgorithmDailyRecommendationSettings,
+    *,
+    match_difficulty: bool = True,
+) -> bool:
+    if settings.topics and not set(settings.topics).intersection(problem.topics):
+        return False
+    if match_difficulty and settings.difficulties and problem.difficulty not in settings.difficulties:
+        return False
+    if settings.source_lists and not set(settings.source_lists).intersection(problem.source_lists):
+        return False
+    return True
+
+
+def _recent_daily_assignment_ids(db: Session, recommendation_date: str, avoid_days: int) -> set[int]:
+    if avoid_days <= 0:
+        return set()
+    start_date = (datetime.fromisoformat(recommendation_date) - timedelta(days=avoid_days)).date().isoformat()
+    ids: set[int] = set()
+    for feed in list_daily_feeds_since(db, start_date, before_date=recommendation_date):
+        ids.add(feed.primary_problem_id)
+        ids.update(feed.extra_problem_ids)
+    return ids
+
+
+def _daily_candidates(
+    db: Session,
+    settings: AlgorithmDailyRecommendationSettings,
+    recommendation_date: str,
+    refresh_version: int,
+) -> tuple[list[AlgorithmProblem], str | None]:
+    active_problems = list_active_problems(db)
+    if not active_problems:
+        raise AlgorithmPracticeError("算法题库为空。请先导入经过验证的本地题目元数据。")
+
+    warnings: list[str] = []
+    candidates = [problem for problem in active_problems if _matches_daily_settings(problem, settings)]
+    if settings.include_adjacent_difficulty and settings.difficulties:
+        difficulty_order = ("easy", "medium", "hard")
+        selected_indexes = {
+            difficulty_order.index(difficulty)
+            for difficulty in settings.difficulties
+            if difficulty in difficulty_order
+        }
+        adjacent_difficulties = {
+            difficulty_order[index + offset]
+            for index in selected_indexes
+            for offset in (-1, 1)
+            if 0 <= index + offset < len(difficulty_order)
+        }
+        adjacent_candidates = [
+            problem
+            for problem in active_problems
+            if problem.difficulty in adjacent_difficulties
+            and _matches_daily_settings(problem, settings, match_difficulty=False)
+            and problem.id not in {candidate.id for candidate in candidates}
+        ]
+        if adjacent_candidates and len(candidates) < 1 + settings.extra_recommendation_count:
+            candidates.extend(adjacent_candidates)
+            warnings.append("已在所选难度的题池不足时，补入相邻难度题目。")
+    if not candidates:
+        candidates = active_problems
+        warnings.append("当前筛选没有可用题目，已临时放宽为全部本地题目。")
+
+    progress = progress_by_problem(db, [problem.id for problem in candidates])
+    latest_attempts = latest_attempts_by_problem(db, [problem.id for problem in candidates])
+    due_ids = _due_problem_ids(db, utc_now()) if settings.include_review_items else set()
+
+    if settings.strategy == "weakness":
+        weak_topics = _weak_topics(db, candidates)
+        narrowed = [problem for problem in candidates if weak_topics.intersection(problem.topics)]
+        if narrowed:
+            candidates = narrowed
+        else:
+            warnings.append("暂未形成明确薄弱点，已按当前筛选使用均衡推荐。")
+    elif settings.strategy == "wrong":
+        narrowed = [
+            problem for problem in candidates
+            if progress.get(problem.id) and progress[problem.id].needs_review
+            or latest_attempts.get(problem.id) and latest_attempts[problem.id].result in FAILED_RESULTS
+        ]
+        if narrowed:
+            candidates = narrowed
+        else:
+            warnings.append("暂时没有错题记录，已按当前筛选补充推荐。")
+
+    if settings.exclude_solved:
+        unsolved = [problem for problem in candidates if progress.get(problem.id) is None or progress[problem.id].status != "solved"]
+        if unsolved:
+            candidates = unsolved
+        else:
+            warnings.append("排除已完成后题池为空，已临时允许已完成题目。")
+
+    recent_ids = _recent_daily_assignment_ids(db, recommendation_date, settings.avoid_recent_days)
+    without_recent = [problem for problem in candidates if problem.id not in recent_ids or problem.id in due_ids]
+    desired_count = 1 + settings.extra_recommendation_count
+    if without_recent:
+        candidates = without_recent
+    if len(candidates) < desired_count and recent_ids:
+        current_ids = {problem.id for problem in candidates}
+        candidates = list({problem.id: problem for problem in candidates + [item for item in active_problems if item.id not in current_ids]}.values())
+        warnings.append("当前题池不足，额外列表已放宽最近推荐限制。")
+
+    candidate_progress = progress_by_problem(db, [problem.id for problem in candidates])
+    strategy_seed = f"daily-feed:{recommendation_date}:{settings.strategy}:{refresh_version}"
+
+    def priority(problem: AlgorithmProblem) -> tuple[int, int, str]:
+        record = candidate_progress.get(problem.id)
+        due_rank = 0 if problem.id in due_ids and (settings.prioritize_due_review or settings.strategy == "review_first") else 1
+        if settings.strategy == "review_first":
+            focus_rank = 0 if problem.id in due_ids else 1
+        elif settings.strategy == "wrong":
+            focus_rank = 0 if record and record.needs_review else 1
+        elif settings.strategy == "balanced":
+            focus_rank = 0 if record is None or record.status != "solved" else 1
+        else:
+            focus_rank = 0
+        return due_rank, focus_rank, _stable_sort_key(strategy_seed, problem)
+
+    ordered = sorted(candidates, key=priority)
+    if len(ordered) < desired_count:
+        warnings.append(f"当前条件只找到 {len(ordered)} 道可用题，继续刷列表将显示较少题目。")
+    return ordered[:desired_count], " ".join(dict.fromkeys(warnings)) or None
+
+
+def _daily_feed_read(db: Session, feed: AlgorithmDailyFeed) -> AlgorithmDailyFeedRead:
+    problems = {problem.id: problem for problem in list_active_problems(db)}
+    primary = problems.get(feed.primary_problem_id)
+    if primary is None:
+        raise AlgorithmPracticeError("今日主推荐题目已失效，正在重新生成推荐。")
+    extras = [problems[problem_id] for problem_id in feed.extra_problem_ids if problem_id in problems and problem_id != primary.id]
+    snapshot = feed.settings_snapshot
+    progress = progress_by_problem(db, [primary.id]).get(primary.id)
+    return AlgorithmDailyFeedRead(
+        date=feed.recommendation_date,
+        primary_problem=_problem_read(primary),
+        extra_problems=[_problem_read(problem) for problem in extras],
+        strategy=str(snapshot.get("strategy", "balanced")),
+        settings_summary=_settings_summary(snapshot),
+        refresh_version=feed.refresh_version,
+        generated_at=feed.generated_at,
+        refreshed_at=feed.refreshed_at,
+        warning=feed.warning,
+        primary_problem_completed=bool(progress and progress.status == "solved"),
+        primary_problem_needs_review=bool(progress and progress.needs_review),
+        primary_problem_attempt_count=progress.attempt_count if progress else 0,
+    )
+
+
+def _generate_daily_feed(
+    db: Session,
+    settings: AlgorithmDailyRecommendationSettings,
+    recommendation_date: str,
+    existing: AlgorithmDailyFeed | None,
+) -> AlgorithmDailyFeedRead:
+    refresh_version = (existing.refresh_version + 1) if existing else 0
+    selected, warning = _daily_candidates(db, settings, recommendation_date, refresh_version)
+    if not selected:
+        raise AlgorithmPracticeError("当前题库没有可用于每日推荐的题目。")
+    now = utc_now()
+    snapshot = _settings_snapshot(settings)
+    if existing is None:
+        existing = AlgorithmDailyFeed(
+            recommendation_date=recommendation_date,
+            primary_problem_id=selected[0].id,
+            extra_problem_ids_json=json.dumps([problem.id for problem in selected[1:]], ensure_ascii=False),
+            settings_snapshot_json=json.dumps(snapshot, ensure_ascii=False),
+            refresh_version=refresh_version,
+            warning=warning,
+            generated_at=now,
+        )
+        db.add(existing)
+    else:
+        existing.primary_problem_id = selected[0].id
+        existing.extra_problem_ids_json = json.dumps([problem.id for problem in selected[1:]], ensure_ascii=False)
+        existing.settings_snapshot_json = json.dumps(snapshot, ensure_ascii=False)
+        existing.refresh_version = refresh_version
+        existing.warning = warning
+        existing.refreshed_at = now
+    db.commit()
+    db.refresh(existing)
+    return _daily_feed_read(db, existing)
+
+
+def get_daily_feed(db: Session) -> AlgorithmDailyFeedRead:
+    recommendation_date = utc_now().date().isoformat()
+    settings = get_daily_recommendation_settings(db)
+    if settings is None:
+        get_daily_settings(db)
+        settings = get_daily_recommendation_settings(db)
+    assert settings is not None
+    feed = get_daily_feed_record(db, recommendation_date)
+    if feed is None:
+        return _generate_daily_feed(db, settings, recommendation_date, None)
+    try:
+        return _daily_feed_read(db, feed)
+    except AlgorithmPracticeError:
+        return _generate_daily_feed(db, settings, recommendation_date, feed)
+
+
+def refresh_daily_feed(db: Session) -> AlgorithmDailyFeedRead:
+    recommendation_date = utc_now().date().isoformat()
+    settings = get_daily_recommendation_settings(db)
+    if settings is None:
+        get_daily_settings(db)
+        settings = get_daily_recommendation_settings(db)
+    assert settings is not None
+    return _generate_daily_feed(db, settings, recommendation_date, get_daily_feed_record(db, recommendation_date))
+
+
+def daily_problem(db: Session) -> AlgorithmProblemRead:
+    return get_daily_feed(db).primary_problem
+
+
+def algorithm_catalog_overview(db: Session) -> AlgorithmCatalogOverviewRead:
+    problems = list_all_problems(db)
+    progress = progress_by_problem(db, [problem.id for problem in problems])
+    due_ids = _due_problem_ids(db, utc_now())
+    difficulty_counts = {difficulty: sum(problem.difficulty == difficulty for problem in problems) for difficulty in ("easy", "medium", "hard")}
+    source_counts: dict[str, int] = defaultdict(int)
+    topic_counts: dict[str, int] = defaultdict(int)
+    for problem in problems:
+        for source in problem.source_lists:
+            source_counts[source] += 1
+        for topic in problem.topics:
+            topic_counts[topic] += 1
+    return AlgorithmCatalogOverviewRead(
+        total_problem_count=len(problems),
+        active_problem_count=sum(problem.is_active for problem in problems),
+        completed_problem_count=sum(record.status == "solved" for record in progress.values()),
+        due_review_count=len(due_ids),
+        difficulty_counts=difficulty_counts,
+        source_list_counts=dict(sorted(source_counts.items())),
+        topic_counts=dict(sorted(topic_counts.items(), key=lambda item: (-item[1], item[0]))),
+    )
+
+
+def list_catalog_problems(
+    db: Session,
+    *,
+    difficulty: str | None = None,
+    pattern: str | None = None,
+    topic: str | None = None,
+    source_list: str | None = None,
+    search: str | None = None,
+    completed: bool | None = None,
+    needs_review: bool | None = None,
+    limit: int = 20,
+) -> list[AlgorithmProblemRead]:
+    problems = list_active_problems(db)
+    progress = progress_by_problem(db, [problem.id for problem in problems])
+    search_text = (search or "").casefold().strip()
+    result: list[AlgorithmProblemRead] = []
+    for problem in problems:
+        record = progress.get(problem.id)
+        is_completed = bool(record and record.status == "solved")
+        is_needing_review = bool(record and record.needs_review)
+        if difficulty and problem.difficulty != difficulty:
+            continue
+        if pattern and problem.pattern_key != pattern:
+            continue
+        if topic and topic not in problem.topics:
+            continue
+        if source_list and source_list not in problem.source_lists:
+            continue
+        if search_text and search_text not in " ".join([problem.title, problem.title_zh or "", problem.slug]).casefold():
+            continue
+        if completed is not None and is_completed != completed:
+            continue
+        if needs_review is not None and is_needing_review != needs_review:
+            continue
+        result.append(
+            AlgorithmProblemRead.model_validate(problem).model_copy(
+                update={"is_completed": is_completed, "needs_review": is_needing_review, "attempt_count": record.attempt_count if record else 0}
+            )
+        )
+        if len(result) >= limit:
+            break
+    return result
 
 
 def get_session_read(db: Session, session_id: str) -> AlgorithmPracticeSessionRead:
