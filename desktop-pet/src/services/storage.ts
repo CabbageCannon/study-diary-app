@@ -1,6 +1,7 @@
 import { LazyStore } from "@tauri-apps/plugin-store";
 
-import type { DesktopPetConfig, InteractionMode, LocalWindowPreferences, PendingStudyEvent, StudyTimerState } from "../types";
+import { clampPetScale } from "../types";
+import type { DesktopPetConfig, InteractionMode, LocalWindowPreferences, PendingStudyEvent, PetScale, StudyTimerState } from "../types";
 import { persistentInteractionMode } from "../state/interactionState";
 
 const store = new LazyStore("desktop-pet.json", { autoSave: false });
@@ -15,7 +16,12 @@ export const defaultWindowPreferences: LocalWindowPreferences = {
   autostart: false,
   localNotifications: true,
   position: null,
+  scale: 1,
 };
+
+export function normalizePetScale(value: unknown): PetScale {
+  return clampPetScale(value);
+}
 
 async function read<T>(key: string): Promise<T | null> {
   return (await store.get<T>(key)) ?? null;
@@ -43,13 +49,15 @@ export async function loadWindowPreferences(): Promise<LocalWindowPreferences> {
   const stored = await read<StoredWindowPreferences>(WINDOW_PREFERENCES_KEY);
   const legacyMode: InteractionMode = stored?.mouseThrough ? "through" : "interactive";
   const interactionMode = persistentInteractionMode(stored?.interactionMode ?? legacyMode);
+  const scale = normalizePetScale(stored?.scale);
   const preferences = {
     ...defaultWindowPreferences,
     ...stored,
     interactionMode,
+    scale,
   };
 
-  if (stored && (stored.interactionMode === "temporary" || stored.interactionMode === undefined)) {
+  if (stored && (stored.interactionMode === "temporary" || stored.interactionMode === undefined || stored.scale !== scale)) {
     await write(WINDOW_PREFERENCES_KEY, preferences);
   }
   return preferences;

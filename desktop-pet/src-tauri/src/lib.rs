@@ -11,6 +11,10 @@ struct TrayMenuState<R: tauri::Runtime> {
     mouse_through: CheckMenuItem<R>,
     interaction_status: MenuItem<R>,
     restore_interaction: MenuItem<R>,
+    scale_status: MenuItem<R>,
+    decrease_scale: MenuItem<R>,
+    reset_scale: MenuItem<R>,
+    increase_scale: MenuItem<R>,
     pause_resume: MenuItem<R>,
     complete: MenuItem<R>,
 }
@@ -120,6 +124,34 @@ fn update_study_status(app: AppHandle, study_status: String) -> Result<(), Strin
         .map_err(|error| error.to_string())
 }
 
+#[tauri::command]
+fn update_pet_scale(app: AppHandle, scale: f64) -> Result<(), String> {
+    const MIN_SCALE: f64 = 0.75;
+    const DEFAULT_SCALE: f64 = 1.0;
+    const MAX_SCALE: f64 = 1.5;
+    if !scale.is_finite() || !(MIN_SCALE..=MAX_SCALE).contains(&scale) {
+        return Err(format!("Unsupported desktop pet scale: {scale}"));
+    }
+
+    let state = app.state::<TrayMenuState<tauri::Wry>>();
+    state
+        .scale_status
+        .set_text(format!("桌宠大小：{}%", (scale * 100.0).round()))
+        .map_err(|error| error.to_string())?;
+    state
+        .decrease_scale
+        .set_enabled(scale > MIN_SCALE + f64::EPSILON)
+        .map_err(|error| error.to_string())?;
+    state
+        .reset_scale
+        .set_enabled((scale - DEFAULT_SCALE).abs() > 0.005)
+        .map_err(|error| error.to_string())?;
+    state
+        .increase_scale
+        .set_enabled(scale < MAX_SCALE - f64::EPSILON)
+        .map_err(|error| error.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -183,6 +215,14 @@ pub fn run() {
                 false,
                 None::<&str>,
             )?;
+            let scale_status =
+                MenuItem::with_id(app, "scale_status", "桌宠大小：100%", false, None::<&str>)?;
+            let decrease_scale =
+                MenuItem::with_id(app, "decrease_scale", "缩小桌宠", true, None::<&str>)?;
+            let reset_scale =
+                MenuItem::with_id(app, "reset_scale", "恢复默认大小", false, None::<&str>)?;
+            let increase_scale =
+                MenuItem::with_id(app, "increase_scale", "放大桌宠", true, None::<&str>)?;
             let autostart =
                 CheckMenuItem::with_id(app, "autostart", "开机启动", true, false, None::<&str>)?;
             let always_on_top =
@@ -210,6 +250,10 @@ pub fn run() {
                     &second_separator,
                     &interaction_status,
                     &restore_interaction,
+                    &scale_status,
+                    &decrease_scale,
+                    &reset_scale,
+                    &increase_scale,
                     &autostart,
                     &always_on_top,
                     &mouse_through,
@@ -223,6 +267,10 @@ pub fn run() {
                 mouse_through,
                 interaction_status,
                 restore_interaction,
+                scale_status,
+                decrease_scale,
+                reset_scale,
+                increase_scale,
                 pause_resume,
                 complete,
             });
@@ -247,7 +295,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             apply_window_preferences,
             set_autostart_checked,
-            update_study_status
+            update_study_status,
+            update_pet_scale
         ])
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {

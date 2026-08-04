@@ -3,6 +3,17 @@ export type StudyStatus = "idle" | "running" | "paused";
 export type WeatherState = "unknown" | "clear" | "rain";
 export type StudyActivityType = "algorithm" | "interview" | "diary" | "reading" | "course" | "custom";
 export type InteractionMode = "interactive" | "through" | "temporary";
+export const PET_SCALE_MIN = 0.75;
+export const PET_SCALE_DEFAULT = 1;
+export const PET_SCALE_MAX = 1.5;
+export const PET_SCALE_STEP = 0.05;
+export type PetScale = number;
+
+export function clampPetScale(value: unknown): PetScale {
+  if (typeof value !== "number" || !Number.isFinite(value)) return PET_SCALE_DEFAULT;
+  const clamped = Math.min(Math.max(value, PET_SCALE_MIN), PET_SCALE_MAX);
+  return Math.round(clamped * 100) / 100;
+}
 
 export interface PetRuntimeState {
   visualState: PetVisualState;
@@ -64,6 +75,7 @@ export interface LocalWindowPreferences {
   autostart: boolean;
   localNotifications: boolean;
   position: { x: number; y: number } | null;
+  scale: PetScale;
 }
 
 export interface StudySessionRemote {
