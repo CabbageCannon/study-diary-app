@@ -15,7 +15,7 @@ import { useOfflineSync } from "./hooks/useOfflineSync";
 import { usePetStateMachine } from "./hooks/usePetStateMachine";
 import { useStudyTimer } from "./hooks/useStudyTimer";
 import { useWeatherState } from "./hooks/useWeatherState";
-import { getAccessToken, setAccessToken } from "./services/auth";
+import { clearAccessToken, getAccessToken, loadAccessToken, setAccessToken } from "./services/auth";
 import { openActivityPage, openStudyRoute } from "./services/appLinks";
 import { notifyMilestone } from "./services/notifications";
 import { loadWindowPreferences, saveWindowPreferences } from "./services/storage";
@@ -285,10 +285,28 @@ export default function App() {
     void openRouteFromPet("dashboard");
   }, [openRouteFromPet]);
 
-  const saveAccessCode = useCallback((value: string) => {
-    setAccessToken(value);
+  const saveAccessCode = useCallback(async (value: string) => {
+    await setAccessToken(value);
     setAccessTokenState(getAccessToken());
   }, []);
+
+  const removeAccessCode = useCallback(async () => {
+    await clearAccessToken();
+    setAccessTokenState("");
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    void loadAccessToken()
+      .then((token) => {
+        if (!cancelled) setAccessTokenState(token);
+      })
+      .catch((error) => {
+        console.error("[desktop-pet] Failed to restore the saved access code.", error);
+        if (!cancelled) showAppFeedback("无法读取系统凭据，请重新输入访问码");
+      });
+    return () => { cancelled = true; };
+  }, [showAppFeedback]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -361,6 +379,7 @@ export default function App() {
           {bubbleView === "settings" ? (
             <PetSettingsPanel
               accessTokenSet={Boolean(accessToken)}
+              onAccessTokenClear={removeAccessCode}
               interactionMode={interactionMode}
               onAccessTokenSave={saveAccessCode}
               onInteractionModeChange={changeInteractionMode}

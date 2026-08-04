@@ -6,7 +6,8 @@ interface PetSettingsPanelProps {
   accessTokenSet: boolean;
   preferences: LocalWindowPreferences;
   interactionMode: InteractionMode;
-  onAccessTokenSave: (token: string) => void;
+  onAccessTokenSave: (token: string) => Promise<void>;
+  onAccessTokenClear: () => Promise<void>;
   onInteractionModeChange: (mode: Exclude<InteractionMode, "temporary">) => Promise<void>;
   onPreferencesChange: (preferences: LocalWindowPreferences) => Promise<void>;
 }
@@ -16,11 +17,41 @@ export function PetSettingsPanel({
   preferences,
   interactionMode,
   onAccessTokenSave,
+  onAccessTokenClear,
   onInteractionModeChange,
   onPreferencesChange,
 }: PetSettingsPanelProps) {
   const [accessCode, setAccessCode] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isAccessCodeSaving, setIsAccessCodeSaving] = useState(false);
+  const [accessCodeError, setAccessCodeError] = useState("");
+
+  async function saveAccessCode() {
+    if (!accessCode.trim() || isAccessCodeSaving) return;
+    setIsAccessCodeSaving(true);
+    setAccessCodeError("");
+    try {
+      await onAccessTokenSave(accessCode);
+      setAccessCode("");
+    } catch (error) {
+      setAccessCodeError(error instanceof Error ? error.message : "访问码保存失败。");
+    } finally {
+      setIsAccessCodeSaving(false);
+    }
+  }
+
+  async function clearAccessCode() {
+    if (isAccessCodeSaving) return;
+    setIsAccessCodeSaving(true);
+    setAccessCodeError("");
+    try {
+      await onAccessTokenClear();
+    } catch (error) {
+      setAccessCodeError(error instanceof Error ? error.message : "访问码移除失败。");
+    } finally {
+      setIsAccessCodeSaving(false);
+    }
+  }
 
   async function updatePreference(
     key: keyof Pick<LocalWindowPreferences, "alwaysOnTop" | "autostart" | "localNotifications">,
@@ -50,11 +81,15 @@ export function PetSettingsPanel({
       <div className="settings-auth">
         <label>
           <span>访问码</span>
-          <input autoComplete="current-password" onChange={(event) => setAccessCode(event.currentTarget.value)} placeholder={accessTokenSet ? "已在本次运行中验证" : "用于同步到学习系统"} type="password" value={accessCode} />
+          <input autoComplete="current-password" disabled={isAccessCodeSaving} onChange={(event) => setAccessCode(event.currentTarget.value)} placeholder={accessTokenSet ? "此设备已连接" : "用于同步到学习系统"} type="password" value={accessCode} />
         </label>
-        <button disabled={!accessCode.trim()} onClick={() => { onAccessTokenSave(accessCode); setAccessCode(""); }} type="button">应用</button>
+        <div className="settings-auth-actions">
+          <button disabled={!accessCode.trim() || isAccessCodeSaving} onClick={() => void saveAccessCode()} type="button">{isAccessCodeSaving ? "保存中…" : "应用"}</button>
+          {accessTokenSet ? <button className="access-code-clear" disabled={isAccessCodeSaving} onClick={() => void clearAccessCode()} type="button">移除</button> : null}
+        </div>
+        {accessCodeError ? <p className="settings-auth-error" role="alert">{accessCodeError}</p> : null}
       </div>
-      <p>访问码仅保留在本次桌宠运行的内存中。</p>
+      <p>访问码保存在 Windows 凭据管理器，仅当前 Windows 用户可读取。</p>
       <div className="local-setting-list">
         <label><input checked={preferences.alwaysOnTop} disabled={isSaving} onChange={(event) => void updatePreference("alwaysOnTop", event.currentTarget.checked)} type="checkbox" />始终置顶</label>
         <label><input checked={preferences.autostart} disabled={isSaving} onChange={(event) => void updatePreference("autostart", event.currentTarget.checked)} type="checkbox" />开机启动</label>

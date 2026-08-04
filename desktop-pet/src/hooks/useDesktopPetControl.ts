@@ -8,8 +8,6 @@ const MAX_RETRY_DELAY_MS = 30_000;
 
 export function useDesktopPetControl(accessToken: string) {
   useEffect(() => {
-    if (!accessToken) return undefined;
-
     let cancelled = false;
     let timer: number | null = null;
     let controller: AbortController | null = null;

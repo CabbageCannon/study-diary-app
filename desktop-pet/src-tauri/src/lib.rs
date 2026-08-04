@@ -5,6 +5,9 @@ use tauri::{
 };
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 
+const DESKTOP_PET_CREDENTIAL_SERVICE: &str = "CabbageCannon.study-diary-app.desktop-pet";
+const DESKTOP_PET_CREDENTIAL_ACCOUNT: &str = "desktop-pet-access-code";
+
 struct TrayMenuState<R: tauri::Runtime> {
     visibility_toggle: MenuItem<R>,
     autostart: CheckMenuItem<R>,
@@ -22,6 +25,47 @@ struct TrayMenuState<R: tauri::Runtime> {
 
 fn emit_command(app: &AppHandle, command: &str) {
     let _ = app.emit("tray-command", command);
+}
+
+fn access_token_entry() -> Result<keyring::v1::Entry, String> {
+    keyring::v1::Entry::new(
+        DESKTOP_PET_CREDENTIAL_SERVICE,
+        DESKTOP_PET_CREDENTIAL_ACCOUNT,
+    )
+    .map_err(|error| format!("无法访问系统凭据库：{error}"))
+}
+
+#[tauri::command]
+fn load_access_token() -> Result<Option<String>, String> {
+    let entry = access_token_entry()?;
+    match entry.get_password() {
+        Ok(value) => {
+            let token = value.trim().to_string();
+            Ok((!token.is_empty()).then_some(token))
+        }
+        Err(keyring::v1::Error::NoEntry) => Ok(None),
+        Err(error) => Err(format!("无法读取系统凭据：{error}")),
+    }
+}
+
+#[tauri::command]
+fn save_access_token(access_token: String) -> Result<(), String> {
+    let token = access_token.trim();
+    if token.is_empty() {
+        return Err("访问码不能为空".to_string());
+    }
+    access_token_entry()?
+        .set_password(token)
+        .map_err(|error| format!("无法保存系统凭据：{error}"))
+}
+
+#[tauri::command]
+fn clear_access_token() -> Result<(), String> {
+    let entry = access_token_entry()?;
+    match entry.delete_credential() {
+        Ok(()) | Err(keyring::v1::Error::NoEntry) => Ok(()),
+        Err(error) => Err(format!("无法移除系统凭据：{error}")),
+    }
 }
 
 fn update_visibility_toggle_label(app: &AppHandle, visible: bool) {
@@ -337,7 +381,7 @@ pub fn run() {
             let tray = TrayIconBuilder::with_id("study-desktop-pet")
                 .tooltip("学习桌宠")
                 .menu(&menu)
-                .show_menu_on_left_click(false)
+                .show_menu_on_left_click(true)
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "toggle_visibility" => toggle_window_visibility(app),
                     "restore_interaction" => restore_interactive_mode(app),
@@ -355,6 +399,9 @@ pub fn run() {
             apply_window_preferences,
             hide_pet_window,
             show_pet_window,
+            load_access_token,
+            save_access_token,
+            clear_access_token,
             set_autostart_checked,
             update_study_status,
             update_pet_scale
