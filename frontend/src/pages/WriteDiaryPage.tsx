@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { createDiaryDraft, rewriteDiaryDraft, saveDiary } from "../api/client";
 import { DiaryDraftEditor } from "../components/DiaryDraftEditor";
 import { DiaryForm } from "../components/DiaryForm";
+import { TodayStudySummary } from "../components/TodayStudySummary";
 import type { DiaryDraft, DiaryDraftContent } from "../types/diary";
 
 function getToday() {
@@ -144,7 +145,7 @@ export function WriteDiaryPage() {
       <header className="page-header">
         <div>
           <span className="page-kicker">写日记</span>
-          <h1>写日记</h1>
+          <div className="write-title-row"><h1>写日记</h1><TodayStudySummary /></div>
         </div>
         <p>先写下真实想法，再整理成一篇可以长期回看的学习日记。</p>
       </header>

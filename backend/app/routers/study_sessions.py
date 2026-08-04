@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from datetime import date
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -32,8 +34,12 @@ def get_active_study_session(db: Session = Depends(get_db)) -> StudySessionRead 
 
 
 @router.get("/today", response_model=list[StudySessionRead])
-def get_today_study_sessions(db: Session = Depends(get_db)) -> list[StudySessionRead]:
-    return study_session_service.list_today_sessions(db)
+def get_today_study_sessions(
+    local_date: date | None = Query(default=None, alias="date"),
+    timezone_offset_minutes: int = Query(default=0, ge=-840, le=840),
+    db: Session = Depends(get_db),
+) -> list[StudySessionRead]:
+    return study_session_service.list_today_sessions(db, local_date, timezone_offset_minutes)
 
 
 @router.patch("/{session_id}/pause", response_model=StudySessionRead)

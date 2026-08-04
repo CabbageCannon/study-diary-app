@@ -43,7 +43,12 @@ select:focus-visible { outline: 2px solid rgb(31 101 76 / 56%); outline-offset: 
 
 .pet-bubble { position: absolute; z-index: 2; top: var(--pet-panel-y); left: var(--pet-panel-x); display: grid; gap: 8px; width: 236px; min-height: 0; overflow: visible; border: 1px solid #bac3bc; border-radius: 6px; background: rgb(252 253 251 / 98%); box-shadow: 0 12px 30px rgb(23 32 27 / 16%); padding: 24px 10px 10px; }
 
-.bubble-close { position: absolute; top: 6px; right: 7px; border: 0; background: transparent; color: #69736c; padding: 0 3px; font-size: 15px; line-height: 1; }
+.bubble-controls { position: absolute; top: 4px; right: 5px; display: inline-flex; gap: 2px; }
+.bubble-close,
+.bubble-hide { display: grid; width: 28px; height: 28px; place-items: center; border: 0; border-radius: 4px; background: transparent; color: #69736c; padding: 0; font-size: 15px; line-height: 1; }
+.bubble-hide { font-size: 18px; transform: translateY(-2px); }
+.bubble-close:hover:not(:disabled),
+.bubble-hide:hover:not(:disabled) { background: #eef2ed; color: #174b39; }
 
 .timer-idle,
 .timer-start-form,

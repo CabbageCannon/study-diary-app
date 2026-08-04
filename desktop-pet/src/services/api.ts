@@ -1,4 +1,4 @@
-import type { DesktopPetConfig, DesktopPetWeather, StudySessionRemote } from "../types";
+import type { DesktopPetConfig, DesktopPetControlState, DesktopPetWeather, StudySessionRemote } from "../types";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
 
@@ -32,6 +32,16 @@ async function request<T>(path: string, accessToken: string, options: RequestIni
 
 export const getDesktopPetConfig = (token: string) => request<DesktopPetConfig>("/api/desktop-pet/config", token);
 export const getDesktopPetWeather = (token: string) => request<DesktopPetWeather>("/api/desktop-pet/weather", token);
+export const getDesktopPetControl = (token: string, signal?: AbortSignal) => request<DesktopPetControlState>(
+  "/api/desktop-pet/control?desktop_client=true",
+  token,
+  { signal },
+);
+export const acknowledgeDesktopPetShow = (token: string, requestVersion: number, signal?: AbortSignal) => request<DesktopPetControlState>(
+  `/api/desktop-pet/control/show/${requestVersion}/ack`,
+  token,
+  { method: "POST", signal },
+);
 
 export const createStudySession = (
   token: string,

@@ -8,6 +8,7 @@ import { QuickActions } from "./components/QuickActions";
 import { StudyTimerPanel } from "./components/StudyTimerPanel";
 import { SyncStatus } from "./components/SyncStatus";
 import { useDesktopPetConfig } from "./hooks/useDesktopPetConfig";
+import { useDesktopPetControl } from "./hooks/useDesktopPetControl";
 import { useInteractionMode } from "./hooks/useInteractionMode";
 import { useMilestoneScheduler } from "./hooks/useMilestoneScheduler";
 import { useOfflineSync } from "./hooks/useOfflineSync";
@@ -18,7 +19,7 @@ import { getAccessToken, setAccessToken } from "./services/auth";
 import { openActivityPage, openStudyRoute } from "./services/appLinks";
 import { notifyMilestone } from "./services/notifications";
 import { loadWindowPreferences, saveWindowPreferences } from "./services/storage";
-import { applyPetWindowLayout, applyWindowPreferences, readAutostartState, restoreWindowPreferences, updateTrayStudyStatus } from "./services/window";
+import { applyPetWindowLayout, applyWindowPreferences, hidePetWindow, readAutostartState, restoreWindowPreferences, updateTrayStudyStatus } from "./services/window";
 import { clampPetScale, PET_SCALE_MAX, PET_SCALE_MIN, PET_SCALE_STEP } from "./types";
 import type { InteractionMode, LocalWindowPreferences, PetScale, StudyActivityType } from "./types";
 import type { StudyRouteKey } from "./services/appLinks";
@@ -49,6 +50,7 @@ export default function App() {
   const scaleQueueRef = useRef<Promise<void> | null>(null);
   const { state: petState, clearMilestone, setStudyStatus, setWeatherState, triggerMilestone } = usePetStateMachine();
   const configState = useDesktopPetConfig(accessToken);
+  useDesktopPetControl(accessToken);
   const weatherState = useWeatherState(configState.config, accessToken);
   const timerState = useStudyTimer(accessToken);
   const syncState = useOfflineSync(accessToken, timerState.setRemoteSessionId);
@@ -158,10 +160,22 @@ export default function App() {
     bubbleOpenRef.current = false;
     bubbleLayoutRequestRef.current += 1;
     setBubbleOpen(false);
-    void applyPetWindowLayout(requestedScaleRef.current, false).catch((error) => {
+    const layout = applyPetWindowLayout(requestedScaleRef.current, false);
+    void layout.catch((error) => {
       console.error("[desktop-pet] Failed to close the pet panel layout.", error);
     });
+    return layout;
   }, []);
+
+  const hideDesktopPet = useCallback(async () => {
+    try {
+      await closeBubble();
+      await hidePetWindow();
+    } catch (error) {
+      console.error("[desktop-pet] Failed to hide the pet window.", error);
+      showAppFeedback("隐藏桌宠失败");
+    }
+  }, [closeBubble, showAppFeedback]);
 
   const openBubble = useCallback((view: BubbleView) => {
     const requestId = bubbleLayoutRequestRef.current + 1;
@@ -343,7 +357,7 @@ export default function App() {
   return (
     <main className="pet-app">
       {bubbleOpen ? (
-        <PetBubble onClose={closeBubble}>
+        <PetBubble onClose={() => void closeBubble()} onHide={hideDesktopPet}>
           {bubbleView === "settings" ? (
             <PetSettingsPanel
               accessTokenSet={Boolean(accessToken)}

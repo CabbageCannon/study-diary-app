@@ -551,3 +551,21 @@ class DesktopPetSettings(Base):
         if not isinstance(values, list):
             return [10, 20, 50]
         return [int(value) for value in values if isinstance(value, int) and value > 0]
+
+
+class DesktopPetControl(Base):
+    """Singleton command state shared by the browser and the desktop pet.
+
+    Visibility is deliberately kept outside ``DesktopPetSettings``: it is a
+    short-lived command which needs a desktop-side acknowledgement, not a
+    preference that should be restored on the next app launch.
+    """
+
+    __tablename__ = "desktop_pet_control"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
+    show_request_version: Mapped[int] = mapped_column(Integer, default=0)
+    show_acknowledged_version: Mapped[int] = mapped_column(Integer, default=0)
+    show_requested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    desktop_last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)

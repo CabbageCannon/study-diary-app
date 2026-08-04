@@ -17,6 +17,7 @@ import { AlgorithmReviewPage } from "./pages/AlgorithmReviewPage";
 import { AlgorithmSessionPage } from "./pages/AlgorithmSessionPage";
 import { AlgorithmSettingsPage } from "./pages/AlgorithmSettingsPage";
 import { DesktopPetSettingsPage } from "./pages/DesktopPetSettingsPage";
+import { AlgorithmWorkspaceLayout } from "./layout/AlgorithmWorkspaceLayout";
 
 const questionReviewEnabled = import.meta.env.VITE_ENABLE_QUESTION_REVIEW === "true";
 
@@ -31,11 +32,13 @@ export default function App() {
               <Route path="/" element={<Navigate to="/write" replace />} />
               <Route path="/write" element={<WriteDiaryPage />} />
               <Route path="/history" element={<HistoryPage />} />
-              <Route path="/algorithms" element={<AlgorithmsPage />} />
-              <Route path="/algorithms/settings" element={<AlgorithmSettingsPage />} />
+              <Route path="/algorithms" element={<AlgorithmWorkspaceLayout />}>
+                <Route index element={<AlgorithmsPage />} />
+                <Route path="settings" element={<AlgorithmSettingsPage />} />
+                <Route path="history" element={<AlgorithmHistoryPage />} />
+                <Route path="review" element={<AlgorithmReviewPage />} />
+              </Route>
               <Route path="/algorithms/session/:sessionId" element={<AlgorithmSessionPage />} />
-              <Route path="/algorithms/history" element={<AlgorithmHistoryPage />} />
-              <Route path="/algorithms/review" element={<AlgorithmReviewPage />} />
               <Route path="/algorithms/problems/:problemId" element={<AlgorithmProblemPage />} />
               <Route path="/interview" element={<InterviewPage />} />
               <Route path="/interview/session/:setId" element={<InterviewSessionPage />} />

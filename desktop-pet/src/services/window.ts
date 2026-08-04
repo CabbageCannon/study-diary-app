@@ -294,6 +294,16 @@ export async function applyInteractionMode(alwaysOnTop: boolean, interactionMode
   });
 }
 
+export async function hidePetWindow(): Promise<void> {
+  if (!isTauriRuntime()) throw new Error("隐藏桌宠只能在桌面端应用中执行。");
+  await invoke("hide_pet_window");
+}
+
+export async function showPetWindow(): Promise<void> {
+  if (!isTauriRuntime()) throw new Error("显示桌宠只能在桌面端应用中执行。");
+  await invoke("show_pet_window");
+}
+
 export async function restoreWindowPreferences(
   preferences: LocalWindowPreferences,
   onPositionChange: (position: { x: number; y: number }) => Promise<void>,

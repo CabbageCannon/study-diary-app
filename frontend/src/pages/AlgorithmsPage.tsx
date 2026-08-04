@@ -1,19 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { getAlgorithmDailyFeed, getAlgorithmStats, createAlgorithmSession, listAlgorithmSessions, refreshAlgorithmDailyFeed } from "../api/algorithms";
-import { AlgorithmOverviewBar } from "../components/algorithms/AlgorithmOverviewBar";
+import { getAlgorithmDailyFeed, createAlgorithmSession, listAlgorithmSessions, refreshAlgorithmDailyFeed } from "../api/algorithms";
 import { AlgorithmResumeBanner } from "../components/algorithms/AlgorithmResumeBanner";
-import { AlgorithmSubNavigation } from "../components/algorithms/AlgorithmSubNavigation";
 import { DailyExtraProblemList } from "../components/algorithms/DailyExtraProblemList";
 import { DailyPrimaryProblem } from "../components/algorithms/DailyPrimaryProblem";
 import { RefreshDailyRecommendationDialog } from "../components/algorithms/RefreshDailyRecommendationDialog";
-import type { AlgorithmDailyFeed, AlgorithmProblem, AlgorithmSessionSummary, AlgorithmStats } from "../types/algorithm";
+import type { AlgorithmDailyFeed, AlgorithmProblem, AlgorithmSessionSummary } from "../types/algorithm";
 
 export function AlgorithmsPage() {
   const navigate = useNavigate();
   const [feed, setFeed] = useState<AlgorithmDailyFeed | null>(null);
-  const [stats, setStats] = useState<AlgorithmStats | null>(null);
   const [sessions, setSessions] = useState<AlgorithmSessionSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreatingDaily, setIsCreatingDaily] = useState(false);
@@ -26,9 +23,8 @@ export function AlgorithmsPage() {
     setIsLoading(true);
     setError("");
     try {
-      const [nextFeed, nextStats, nextSessions] = await Promise.all([getAlgorithmDailyFeed(), getAlgorithmStats(), listAlgorithmSessions()]);
+      const [nextFeed, nextSessions] = await Promise.all([getAlgorithmDailyFeed(), listAlgorithmSessions()]);
       setFeed(nextFeed);
-      setStats(nextStats);
       setSessions(nextSessions);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "今日算法训练加载失败。");
@@ -91,5 +87,5 @@ export function AlgorithmsPage() {
     }
   }
 
-  return <div className="page-stack algorithm-home-page algorithm-daily-page"><header className="algorithm-daily-header"><div><span className="page-kicker">算法训练</span><h1>今日训练</h1></div><AlgorithmOverviewBar stats={stats} /></header><AlgorithmSubNavigation />{error ? <p className="field-error page-error" role="alert">{error}</p> : null}{resumeSession ? <AlgorithmResumeBanner onResume={() => navigate(`/algorithms/session/${resumeSession.id}`)} session={resumeSession} /> : null}{isLoading ? <section className="daily-feed-skeleton" aria-label="正在加载今日推荐"><div className="skeleton-block" /><div className="skeleton-block" /></section> : null}{feed ? <section className="daily-feed-layout" aria-label="今日训练推荐"><DailyPrimaryProblem feed={feed} isCreating={isCreatingDaily} onStart={() => void startDailyTraining()} /><DailyExtraProblemList creatingProblemId={creatingExtraProblemId} isRefreshing={isRefreshing} onRefresh={() => setRefreshDialogOpen(true)} onStart={(problem) => void startExtraTraining(problem)} problems={feed.extra_problems} /></section> : null}<RefreshDailyRecommendationDialog hasExistingLearning={hasExistingLearning} isRefreshing={isRefreshing} onCancel={() => setRefreshDialogOpen(false)} onConfirm={() => void refreshFeed()} open={refreshDialogOpen} /></div>;
+  return <div className="algorithm-workspace-panel algorithm-home-page algorithm-daily-page">{error ? <p className="field-error page-error" role="alert">{error}</p> : null}{resumeSession ? <AlgorithmResumeBanner onResume={() => navigate(`/algorithms/session/${resumeSession.id}`)} session={resumeSession} /> : null}{isLoading ? <section className="daily-feed-skeleton" aria-label="正在加载今日推荐"><div className="skeleton-block" /><div className="skeleton-block" /></section> : null}{feed ? <section className="daily-feed-layout" aria-label="今日训练推荐"><DailyPrimaryProblem feed={feed} isCreating={isCreatingDaily} onStart={() => void startDailyTraining()} /><DailyExtraProblemList creatingProblemId={creatingExtraProblemId} isRefreshing={isRefreshing} onRefresh={() => setRefreshDialogOpen(true)} onStart={(problem) => void startExtraTraining(problem)} problems={feed.extra_problems} /></section> : null}<RefreshDailyRecommendationDialog hasExistingLearning={hasExistingLearning} isRefreshing={isRefreshing} onCancel={() => setRefreshDialogOpen(false)} onConfirm={() => void refreshFeed()} open={refreshDialogOpen} /></div>;
 }

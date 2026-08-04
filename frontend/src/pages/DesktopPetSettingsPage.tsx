@@ -1,7 +1,14 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 
-import { getDesktopPetConfig, updateDesktopPetConfig } from "../api/desktopPet";
-import type { DesktopPetConfig, DesktopPetConfigUpdate } from "../types/desktopPet";
+import { ApiRequestError } from "../api/client";
+import {
+  getDesktopPetConfig,
+  getDesktopPetControl,
+  requestDesktopPetShow,
+  updateDesktopPetConfig,
+  waitForDesktopPetShow,
+} from "../api/desktopPet";
+import type { DesktopPetConfig, DesktopPetConfigUpdate, DesktopPetControlState } from "../types/desktopPet";
 
 const defaultConfig: DesktopPetConfig = {
   weather_enabled: true,
@@ -21,13 +28,31 @@ function configToForm(config: DesktopPetConfig): DesktopPetConfigUpdate {
   return form;
 }
 
+function desktopPetIsConnected(state: DesktopPetControlState | null): boolean {
+  if (!state?.desktop_last_seen_at) return false;
+  const lastSeen = new Date(state.desktop_last_seen_at).getTime();
+  return Number.isFinite(lastSeen) && Date.now() - lastSeen <= 15_000;
+}
+
 export function DesktopPetSettingsPage() {
   const [form, setForm] = useState<DesktopPetConfigUpdate>(configToForm(defaultConfig));
   const [milestoneInput, setMilestoneInput] = useState("10, 20, 50");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isWaking, setIsWaking] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [controlState, setControlState] = useState<DesktopPetControlState | null>(null);
+  const [controlMessage, setControlMessage] = useState("");
+
+  const refreshControlState = useCallback(async () => {
+    try {
+      const next = await getDesktopPetControl();
+      setControlState(next);
+    } catch {
+      setControlState(null);
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -46,8 +71,9 @@ export function DesktopPetSettingsPage() {
       }
     }
     void load();
+    void refreshControlState();
     return () => { cancelled = true; };
-  }, []);
+  }, [refreshControlState]);
 
   const locationReady = form.latitude !== null && form.longitude !== null;
   const helpText = useMemo(
@@ -58,6 +84,34 @@ export function DesktopPetSettingsPage() {
   function updateField<K extends keyof DesktopPetConfigUpdate>(key: K, value: DesktopPetConfigUpdate[K]) {
     setForm((previous) => ({ ...previous, [key]: value }));
     setSuccess("");
+  }
+
+  async function showDesktopPet() {
+    if (isWaking) return;
+    setIsWaking(true);
+    setControlMessage("");
+    try {
+      const requestState = await requestDesktopPetShow();
+      setControlState(requestState);
+      const acknowledged = await waitForDesktopPetShow(requestState.show_request_version);
+      if (acknowledged) setControlState(acknowledged);
+      if (acknowledged && acknowledged.show_acknowledged_version >= requestState.show_request_version) {
+        setControlMessage("桌宠已显示");
+      } else {
+        setControlMessage("显示请求已发送，但桌宠未响应，请确认桌宠程序正在运行或检查访问码。");
+      }
+    } catch (reason) {
+      if (reason instanceof ApiRequestError && reason.status === 401) {
+        setControlMessage("访问码已失效，无法发送显示请求。");
+      } else if (reason instanceof ApiRequestError) {
+        setControlMessage("后端暂时不可用，无法发送显示请求。");
+      } else {
+        setControlMessage("后端暂时不可用，请确认学习系统已启动。");
+      }
+    } finally {
+      setIsWaking(false);
+      void refreshControlState();
+    }
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -102,6 +156,16 @@ export function DesktopPetSettingsPage() {
       <form className="desktop-pet-settings-form" onSubmit={(event) => void submit(event)} noValidate>
         {error ? <p className="field-error page-error" role="alert">{error}</p> : null}
         {success ? <p className="settings-success" role="status">{success}</p> : null}
+        <section className="desktop-pet-window-control" aria-labelledby="desktop-pet-window-title">
+          <div>
+            <span className="pane-label">桌宠窗口</span>
+            <p id="desktop-pet-window-title">运行状态：{desktopPetIsConnected(controlState) ? "已连接" : "未检测到正在运行的桌宠"}</p>
+          </div>
+          <button className="button button-secondary" disabled={isWaking} onClick={() => void showDesktopPet()} type="button">
+            {isWaking ? "正在唤醒…" : "显示桌宠"}
+          </button>
+          {controlMessage ? <p className="desktop-pet-control-message" role="status">{controlMessage}</p> : null}
+        </section>
         <section className="settings-section" aria-labelledby="weather-title">
           <div className="settings-section-heading"><div><span className="pane-label">天气</span><h2 id="weather-title">下雨时切换动作</h2></div><label className="toggle-field"><input checked={form.weather_enabled} onChange={(event) => updateField("weather_enabled", event.currentTarget.checked)} type="checkbox" /><span>启用天气</span></label></div>
           <p>{helpText}</p>

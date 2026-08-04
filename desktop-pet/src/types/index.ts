@@ -86,3 +86,11 @@ export interface StudySessionRemote {
   status: "running" | "paused" | "completed" | "abandoned";
   accumulated_seconds: number;
 }
+
+export interface DesktopPetControlState {
+  show_request_version: number;
+  show_acknowledged_version: number;
+  show_requested_at: string | null;
+  desktop_last_seen_at: string | null;
+  show_request_pending: boolean;
+}

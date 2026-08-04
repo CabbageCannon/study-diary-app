@@ -6,6 +6,7 @@ use tauri::{
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 
 struct TrayMenuState<R: tauri::Runtime> {
+    visibility_toggle: MenuItem<R>,
     autostart: CheckMenuItem<R>,
     always_on_top: CheckMenuItem<R>,
     mouse_through: CheckMenuItem<R>,
@@ -23,13 +24,58 @@ fn emit_command(app: &AppHandle, command: &str) {
     let _ = app.emit("tray-command", command);
 }
 
+fn update_visibility_toggle_label(app: &AppHandle, visible: bool) {
+    let label = if visible {
+        "隐藏桌宠"
+    } else {
+        "显示桌宠"
+    };
+    if let Err(error) = app
+        .state::<TrayMenuState<tauri::Wry>>()
+        .visibility_toggle
+        .set_text(label)
+    {
+        eprintln!("Failed to update desktop pet visibility tray label: {error}");
+    }
+}
+
+fn hide_main_pet_window(app: &AppHandle) -> Result<(), String> {
+    let window = app
+        .get_webview_window("main")
+        .ok_or_else(|| "未找到桌宠主窗口".to_string())?;
+    window.hide().map_err(|error| error.to_string())?;
+    update_visibility_toggle_label(app, false);
+    Ok(())
+}
+
+fn show_main_pet_window(app: &AppHandle) -> Result<(), String> {
+    let window = app
+        .get_webview_window("main")
+        .ok_or_else(|| "未找到桌宠主窗口".to_string())?;
+    window.show().map_err(|error| error.to_string())?;
+    if let Err(error) = window.set_focus() {
+        eprintln!("Failed to focus the desktop pet window: {error}");
+    }
+    update_visibility_toggle_label(app, true);
+    Ok(())
+}
+
 fn toggle_window_visibility(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
-        if window.is_visible().unwrap_or(false) {
-            let _ = window.hide();
-        } else {
-            let _ = window.show();
-            let _ = window.set_focus();
+        match window.is_visible() {
+            Ok(true) => {
+                if let Err(error) = hide_main_pet_window(app) {
+                    eprintln!("Failed to hide the desktop pet window: {error}");
+                }
+            }
+            Ok(false) => {
+                if let Err(error) = show_main_pet_window(app) {
+                    eprintln!("Failed to show the desktop pet window: {error}");
+                }
+            }
+            Err(error) => {
+                eprintln!("Failed to read the desktop pet visibility state: {error}");
+            }
         }
     }
 }
@@ -76,9 +122,26 @@ fn restore_interactive_mode(app: &AppHandle) {
             eprintln!("Failed to restore desktop pet interaction: {error}");
             return;
         }
-        let _ = window.show();
+        if let Err(error) = show_main_pet_window(app) {
+            eprintln!("Failed to show the desktop pet while restoring interaction: {error}");
+        }
         let _ = app.emit("interaction-mode-command", "temporary");
     }
+}
+
+#[tauri::command]
+fn hide_pet_window(window: WebviewWindow) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("只能隐藏桌宠主窗口".to_string());
+    }
+    window.hide().map_err(|error| error.to_string())?;
+    update_visibility_toggle_label(&window.app_handle(), false);
+    Ok(())
+}
+
+#[tauri::command]
+fn show_pet_window(app: AppHandle) -> Result<(), String> {
+    show_main_pet_window(&app)
 }
 
 #[tauri::command]
@@ -186,13 +249,8 @@ pub fn run() {
                 );
             }
 
-            let show_hide = MenuItem::with_id(
-                app,
-                "toggle_visibility",
-                "显示 / 隐藏桌宠",
-                true,
-                None::<&str>,
-            )?;
+            let show_hide =
+                MenuItem::with_id(app, "toggle_visibility", "隐藏桌宠", true, None::<&str>)?;
             let start = MenuItem::with_id(app, "start_study", "开始学习", true, None::<&str>)?;
             let pause_resume =
                 MenuItem::with_id(app, "pause_resume", "暂停 / 继续", true, None::<&str>)?;
@@ -262,6 +320,7 @@ pub fn run() {
                 ],
             )?;
             app.manage(TrayMenuState::<tauri::Wry> {
+                visibility_toggle: show_hide,
                 autostart,
                 always_on_top,
                 mouse_through,
@@ -294,6 +353,8 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             apply_window_preferences,
+            hide_pet_window,
+            show_pet_window,
             set_autostart_checked,
             update_study_status,
             update_pet_scale
@@ -302,6 +363,7 @@ pub fn run() {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                 api.prevent_close();
                 let _ = window.hide();
+                update_visibility_toggle_label(&window.app_handle(), false);
             }
         })
         .run(tauri::generate_context!())

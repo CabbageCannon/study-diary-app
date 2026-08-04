@@ -1118,9 +1118,32 @@ class DesktopPetWeatherRead(BaseModel):
     stale: bool
 
 
+class TodayStudyTopic(BaseModel):
+    title: str
+    activity_type: StudyActivityType
+    study_seconds: int
+
+
 class DesktopPetDashboardRead(BaseModel):
     today_study_seconds: int
+    total_study_seconds: int
+    today_session_count: int
+    today_topic_count: int
+    today_topics: list[TodayStudyTopic]
     active_session: StudySessionRead | None
     due_interview_reviews: int
     due_algorithm_reviews: int
     recent_study_sessions: list[StudySessionRead]
+    generated_at: datetime
+
+
+class DesktopPetControlState(BaseModel):
+    show_request_version: int
+    show_acknowledged_version: int
+    show_requested_at: datetime | None
+    desktop_last_seen_at: datetime | None
+    show_request_pending: bool
+
+
+class ShowDesktopPetResponse(DesktopPetControlState):
+    pass

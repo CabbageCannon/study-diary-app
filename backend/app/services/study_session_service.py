@@ -1,7 +1,8 @@
-from datetime import datetime, timezone
+from collections import defaultdict
+from datetime import date, datetime, time, timedelta, timezone
 from uuid import uuid4
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models import StudySession
@@ -10,6 +11,8 @@ from app.schemas import StudySessionAction, StudySessionCreate
 
 ACTIVE_STATUSES = ("running", "paused")
 MAX_SESSION_SECONDS = 86_400
+MIN_TIMEZONE_OFFSET_MINUTES = -840
+MAX_TIMEZONE_OFFSET_MINUTES = 840
 
 
 class StudySessionError(ValueError):
@@ -143,13 +146,37 @@ def abandon_session(db: Session, session_id: str, payload: StudySessionAction) -
     return session
 
 
-def list_today_sessions(db: Session, now: datetime | None = None, limit: int = 8) -> list[StudySession]:
-    current = as_utc(now)
-    day_start = current.replace(hour=0, minute=0, second=0, microsecond=0)
+def local_date_bounds(local_date: date, timezone_offset_minutes: int) -> tuple[datetime, datetime]:
+    """Return a UTC [start, end) range for a client-local calendar date."""
+
+    if not MIN_TIMEZONE_OFFSET_MINUTES <= timezone_offset_minutes <= MAX_TIMEZONE_OFFSET_MINUTES:
+        raise StudySessionError("时区偏移必须在 -840 到 840 分钟之间")
+    local_midnight_utc = datetime.combine(local_date, time.min, tzinfo=timezone.utc) - timedelta(
+        minutes=timezone_offset_minutes
+    )
+    return local_midnight_utc, local_midnight_utc + timedelta(days=1)
+
+
+def _default_local_date(now: datetime | None) -> date:
+    return as_utc(now).date()
+
+
+def list_today_sessions(
+    db: Session,
+    local_date: date | None = None,
+    timezone_offset_minutes: int = 0,
+    now: datetime | None = None,
+    limit: int = 8,
+) -> list[StudySession]:
+    day_start, day_end = local_date_bounds(local_date or _default_local_date(now), timezone_offset_minutes)
     return list(
         db.scalars(
             select(StudySession)
-            .where(StudySession.source == "desktop_pet", StudySession.started_at >= day_start)
+            .where(
+                StudySession.source == "desktop_pet",
+                StudySession.started_at >= day_start,
+                StudySession.started_at < day_end,
+            )
             .order_by(StudySession.updated_at.desc())
             .limit(limit)
         ).all()
@@ -162,3 +189,86 @@ def current_elapsed_seconds(session: StudySession, now: datetime | None = None) 
     started = as_utc(session.last_resumed_at)
     elapsed = max(0, int((as_utc(now) - started).total_seconds()))
     return min(MAX_SESSION_SECONDS, session.accumulated_seconds + elapsed)
+
+
+def get_study_summary(
+    db: Session,
+    local_date: date | None = None,
+    timezone_offset_minutes: int = 0,
+    now: datetime | None = None,
+) -> dict[str, object]:
+    """Build the single source of truth used by the dashboard and diary UI."""
+
+    current = as_utc(now)
+    summary_date = local_date or current.date()
+    day_start, day_end = local_date_bounds(summary_date, timezone_offset_minutes)
+    source_filter = StudySession.source == "desktop_pet"
+    today_filter = (source_filter, StudySession.started_at >= day_start, StudySession.started_at < day_end)
+
+    today_sessions = list(
+        db.scalars(select(StudySession).where(*today_filter).order_by(StudySession.updated_at.desc())).all()
+    )
+    today_accumulated = db.scalar(
+        select(func.coalesce(func.sum(StudySession.accumulated_seconds), 0)).where(*today_filter)
+    ) or 0
+    today_running_extra = sum(
+        current_elapsed_seconds(session, current) - session.accumulated_seconds
+        for session in today_sessions
+        if session.status == "running"
+    )
+
+    total_accumulated = db.scalar(
+        select(func.coalesce(func.sum(StudySession.accumulated_seconds), 0)).where(source_filter)
+    ) or 0
+    running_sessions = list(
+        db.scalars(select(StudySession).where(source_filter, StudySession.status == "running")).all()
+    )
+    total_running_extra = sum(
+        current_elapsed_seconds(session, current) - session.accumulated_seconds for session in running_sessions
+    )
+
+    topics: dict[str, dict[str, object]] = defaultdict(dict)
+    for session in today_sessions:
+        title = session.title.strip()
+        if not title:
+            continue
+        duration = current_elapsed_seconds(session, current)
+        item = topics.get(title)
+        if not item:
+            topics[title] = {
+                "title": title,
+                "activity_type": session.activity_type,
+                "study_seconds": duration,
+                "updated_at": as_utc(session.updated_at),
+            }
+            continue
+        item["study_seconds"] = int(item["study_seconds"]) + duration
+        if as_utc(session.updated_at) > item["updated_at"]:
+            item["activity_type"] = session.activity_type
+            item["updated_at"] = as_utc(session.updated_at)
+
+    sorted_topics = sorted(
+        topics.values(),
+        key=lambda item: (int(item["study_seconds"]), item["updated_at"]),
+        reverse=True,
+    )
+    today_topics = [
+        {
+            "title": str(item["title"]),
+            "activity_type": str(item["activity_type"]),
+            "study_seconds": int(item["study_seconds"]),
+        }
+        for item in sorted_topics[:5]
+    ]
+
+    return {
+        "date": summary_date.isoformat(),
+        "today_study_seconds": int(today_accumulated) + today_running_extra,
+        "total_study_seconds": int(total_accumulated) + total_running_extra,
+        "today_session_count": len(today_sessions),
+        "today_topic_count": len(topics),
+        "today_topics": today_topics,
+        "active_session": get_active_session(db),
+        "recent_study_sessions": today_sessions[:5],
+        "generated_at": current,
+    }
