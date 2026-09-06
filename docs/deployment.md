@@ -51,7 +51,7 @@ sqlite3 /var/backups/study-diary/study_diary-$(date +%F).db "PRAGMA integrity_ch
 
 ## 真机验收记录（必须实测）
 
-模拟器、桌面浏览器和截图只能作为工程检查，不能替代客户 iPhone Safari 验收。记录设备型号、iOS 版本、Safari 版本、PWA 构建 SHA、部署 URL、日期和每项结果：
+模拟器、桌面浏览器和截图只能作为工程检查，不能替代客户 iPhone Safari 验收。使用 [iPhone HTTPS PWA 验收记录](mobile-app/IPHONE_ACCEPTANCE.md) 填写设备型号、iOS 版本、Safari 版本、PWA 构建 SHA、部署 URL、日期和每项结果：
 
 1. 在蜂窝网络或离开开发电脑局域网后访问 HTTPS 地址；刷新深链接不返回 404。
 2. Safari 分享菜单“添加到主屏幕”，从主屏幕 standalone 启动并返回上次位置。
