@@ -5,9 +5,9 @@
 ## 统一前提
 
 - 客户已经选择「雾绿延续」。A 正在修正图稿的 CSS 尺寸与导出比例，不能照旧图里约 10–11px 的正文实现手机页面。
-- 已核验源码基线：`5bcaa2e78cb8f887a71638533d81d74fbb1f4a20`，远程分支 `origin/codex/mobile-baseline`。
-- C/D 现在可以从这个固定基线建立独立 worktree；最终 PR 目标是 `codex/mobile-integration`。开始前 fetch 并核实提交存在。
-- E 正在修正生产配置和测试收集，再统一整合设计。下游在正式集成前更新到 E 公布的最新集成提交；不得使用有缺陷的旧生产样例发布。
+- M0 冻结源码基线仍为 `5bcaa2e78cb8f887a71638533d81d74fbb1f4a20`；正式下游起点改为远程 `origin/codex/mobile-integration` 的最新已推送提交，其中包含 M0、E 的生产配置和测试收集修正。开始前 fetch 并核实 E 公布的精确 SHA。
+- C/D 现在可以从该集成分支建立独立 worktree；最终 PR 目标仍是 `codex/mobile-integration`。
+- E 已完成生产配置和测试收集修正，复验见 [E_HANDOFF.md](E_HANDOFF.md)。A 设计修订完成后仍由 E 统一整合；不得使用 PR #4 的旧图稿尺寸或旧生产样例发布。
 - 原目录 `D:\学习日记` 有客户未提交工作，禁止在原目录切分支、重置或为自己提交全部变更。
 - 客户要求任务完成后自行提交、推送 GitHub 并创建 PR；说明实际检查和未验证项，不自行合并默认分支。
 
@@ -15,7 +15,7 @@
 
 可复制以下补充给 C，再附 `TASKS.md` 的 C 角色说明：
 
-> A/E 已完成首次交付并经过 PM 首轮检查。请先读 `docs/mobile-app/TASKS.md` 的 C 职责和本文件；如你的新工作树尚未包含本文件，可从 `origin/codex/mobile-product-plan` 读取 `docs/mobile-app/NEXT_TASKS.md` 与 `PM_REVIEW_A_E.md`。从已核验基线 `5bcaa2e78cb8f887a71638533d81d74fbb1f4a20` 建独立工作目录与 `codex/mobile-reasoning` 分支，PR 指向 `codex/mobile-integration`。第一项交付优先是供 B/D 使用的题目上下文结构与核对 API 协议，并给出成功、信息不足、保存失败、评估失败和重试样例。明确题目/回答版本、保存成功时点、重试复用哪一条记录以及修改答案后的反馈关联。先提交并推送可审阅协议，再继续后端实现和验证；不要等待 B 的页面完成。D 将先提供三道完整题意与核对样例，字段以你冻结的协议为准。保持已有 SQLite 与训练模型，E 正在处理的 `test_time_utils.py` 测试收集修复暂由 E 所有，避免冲突。
+> A/E 已完成首次交付并经过 PM 首轮检查。请先读 `docs/mobile-app/TASKS.md` 的 C 职责、本文件和 `E_HANDOFF.md`；从 E 公布的最新 `origin/codex/mobile-integration` SHA 建独立工作目录与 `codex/mobile-reasoning` 分支，PR 指向 `codex/mobile-integration`。第一项交付优先是供 B/D 使用的题目上下文结构与核对 API 协议，并给出成功、信息不足、保存失败、评估失败和重试样例。明确题目/回答版本、保存成功时点、重试复用哪一条记录以及修改答案后的反馈关联。先提交并推送可审阅协议，再继续后端实现和验证；不要等待 B 的页面完成。D 将先提供三道完整题意与核对样例，字段以你冻结的协议为准。保持已有 SQLite 与训练模型；E 的 `test_time_utils.py` 收集修复已完成，避免无关改动。
 
 协议需要区分学习结论（成立/待补充/关键错误/信息不足）和请求执行状态（保存中/保存失败/已保存/评估中/评估失败/完成）；系统超时不能被显示为答错。
 
@@ -23,7 +23,7 @@
 
 可复制以下补充给 D，再附 `TASKS.md` 的 D 角色说明：
 
-> 按 `TASKS.md` 的 D 职责启动，使用已核验基线 `5bcaa2e78cb8f887a71638533d81d74fbb1f4a20` 的独立工作目录，分支 `codex/mobile-content`，PR 目标 `codex/mobile-integration`。先做三道便于与 C 核对的算法样例：两数之和、有效括号、二分查找。每题提供自己编写的题意、输入输出、约束、原创示例、多种允许方案、关键错误与反例、复杂度条件、来源与版本。先放在 `docs/mobile-app/content/` 的可读文档，不抢先设计另一套最终 JSON schema；C 协议确定后再转入 `backend/data/mobile/`。第一批三题先提交推送，再扩展 10–15 题及现有八股内容审阅。不要改客户数据库、审核状态、公共模型或接口；不能确定的事实明确标注。完整职责和交付规则仍按任务书执行。
+> 按 `TASKS.md` 的 D 职责启动，从 E 公布的最新 `origin/codex/mobile-integration` SHA 建立独立工作目录，分支 `codex/mobile-content`，PR 目标 `codex/mobile-integration`。先做三道便于与 C 核对的算法样例：两数之和、有效括号、二分查找。每题提供自己编写的题意、输入输出、约束、原创示例、多种允许方案、关键错误与反例、复杂度条件、来源与版本。先放在 `docs/mobile-app/content/` 的可读文档，不抢先设计另一套最终 JSON schema；C 协议确定后再转入 `backend/data/mobile/`。第一批三题先提交推送，再扩展 10–15 题及现有八股内容审阅。不要改客户数据库、审核状态、公共模型或接口；不能确定的事实明确标注。完整职责和交付规则仍按任务书执行。
 
 ## B：可建任务，正式实现按依赖放行
 
