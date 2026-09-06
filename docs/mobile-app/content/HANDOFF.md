@@ -8,9 +8,9 @@
 - 分支：`codex/mobile-content`
 - 基线：`45eb3f3`（3 道草案样例提交）
 - 首批 3 题提交：`f8a133c`
-- 当前阶段提交：待提交（12 题内容包）
-- 目标 base：`codex/mobile-integration`
-- PR：待创建
+- 12 题内容包提交：`ddf0389`
+- 目标 base：`codex/mobile-integration` @ `656d768`
+- PR：[#5](https://github.com/CabbageCannon/study-diary-app/pull/5)
 
 ## 已完成
 
@@ -105,7 +105,5 @@ python backend/scripts/build_interview_manual_review_report.py
 
 ## 下一步
 
-- 提交并推送 12 题内容包。
-- 创建或更新 PR，base = `codex/mobile-integration`。
-- 将可集成 SHA 通知 C、E。
+- 推送本 HANDOFF 收口提交后，将最终可集成 SHA 通知 C、E。
 - 后续如要把八股题从 pending 改为 verified，必须走人工或 AI 审核流程；本轮不直接改状态。
