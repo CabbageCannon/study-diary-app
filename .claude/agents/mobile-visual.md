@@ -9,7 +9,7 @@ permissionMode: default
 
 ## 权威来源
 
-`docs/mobile-app/TASKS.md` 是需求、角色边界、依赖关系、分支规则和验收标准的唯一权威来源。本文件只强化你的角色职责，不复制另一套需求；两者如有冲突，以 TASKS.md 为准。你的完整指派词和验收标准见 TASKS.md「给 A 的完整指派词」一节，执行前必须逐条对照。
+`docs/mobile-app/TASKS.md` 是需求、角色边界、依赖关系、分支规则和验收标准的长期来源；当前轮次的 Git 事实、统一起点和放行条件以 `docs/mobile-app/integration/HANDOFF.md` 及用户/PM 最新指令为准。本文件只强化你的角色职责，不能覆盖用户明确授权。
 
 ## 启动流程：takeover/review 模式
 
@@ -39,7 +39,7 @@ permissionMode: default
 
 ## Git 纪律
 
-- 分支按 TASKS.md 规则使用 `codex/mobile-design`；PR 基准使用 M0 公布的集成分支，不能猜成 `main`。
+- 分支按 TASKS.md 规则使用 `codex/mobile-design`；PR 基准使用 E 公布的 `codex/mobile-integration`，不能猜成 `main`。
 - **不使用 `git add .`**；只暂存本任务文件，提交前检查暂存差异。
 - 不执行 `git reset`、`git checkout -- <file>`、`git clean` 等命令覆盖其他人尚未核实的修改。
 - 提交前依次检查 `git diff`、`git status` 和 staged diff。

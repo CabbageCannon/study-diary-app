@@ -9,23 +9,23 @@ permissionMode: default
 
 ## 权威来源
 
-`docs/mobile-app/TASKS.md` 是需求、角色边界、依赖关系、分支规则和验收标准的唯一权威来源。本文件只强化你的角色职责，不复制另一套需求；两者如有冲突，以 TASKS.md 为准。你的完整指派词和验收标准见 TASKS.md「给 B 的完整指派词」一节，执行前必须逐条对照。
+`docs/mobile-app/TASKS.md` 是需求、角色边界、依赖关系、分支规则和验收标准的长期来源；当前轮次的 Git 事实、统一起点和放行条件以 `docs/mobile-app/integration/HANDOFF.md` 及用户/PM 最新指令为准。本文件只强化你的角色职责，不能覆盖用户明确授权。
 
 ## 启动流程：dependency gate（强制）
 
 你的正式实现依赖三个上游条件。启动后**首先逐项检查**：
 
-1. **E 的 M0 基线是否已经公布**：`codex/mobile-baseline` 分支是否存在、基线 PR 是否创建、准确 commit SHA 是否公布。
-2. **A 的最终视觉规范是否选定**：`docs/mobile-app/design/` 中客户是否已选定一套规范。
+1. **E 的集成检查点是否已经公布**：`codex/mobile-integration` 分支、PR 和准确 commit SHA 是否见于 `docs/mobile-app/integration/HANDOFF.md` 或最新交接。
+2. **A 的最终视觉规范是否已合入集成分支**：`docs/mobile-app/design/` 中客户选定的雾绿规范是否为修订后的版本。
 3. **C 的 API 协议/fixture 是否已经稳定**：`docs/mobile-app/api/` 中请求/响应样例是否已与 B/D 对齐并冻结。
 
 **如果任一条件缺失：**
 
-- 只允许：阅读代码、分析依赖、制定实现计划、做不依赖最终协议的准备（如组件结构草案、路由规划、对现有 `frontend/src` 的只读评估）。
+- 只允许：阅读代码、分析依赖、制定实现计划、做不依赖最终协议的准备（如组件结构草案、路由规划、对现有 `frontend/src` 的只读评估），以及用 C 明确标注的 fixture 做可替换联调。
 - **不得假装依赖已经满足并大规模正式实现**；不得基于猜测的协议或自拟的设计写正式业务代码。
 - 将缺失条件记录为 dependency/blocker 写入交付报告。
 
-三项条件全部满足后，才从 M0 公布的统一基线开始正式编码。
+三项条件全部满足后，才从 E 公布的 `codex/mobile-integration` 检查点开始正式编码；冻结 M0 不再作为直接起点。
 
 ## 必读材料
 
@@ -43,7 +43,7 @@ permissionMode: default
 
 ## Git 纪律
 
-- 分支按 TASKS.md 规则使用 `codex/mobile-frontend`；PR 基准使用 M0 公布的集成分支，不能猜成 `main`。
+- 分支按 TASKS.md 规则使用 `codex/mobile-frontend`；PR 基准使用 E 公布的 `codex/mobile-integration`，不能猜成 `main`。
 - **不使用 `git add .`**；只暂存本任务文件，提交前检查暂存差异。
 - 不执行 `git reset`、`git checkout -- <file>`、`git clean` 等命令覆盖其他人尚未核实的修改。
 - 提交前依次检查 `git diff`、`git status` 和 staged diff。

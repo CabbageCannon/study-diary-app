@@ -6,11 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 本地运行的中文学习日记系统，含三个应用：
 
-- **backend/** — FastAPI + SQLAlchemy + SQLite（生产可切 PostgreSQL），通过 OpenAI-compatible API（`LLM_BASE_URL`/`LLM_MODEL`）调用大模型
+- **backend/** — FastAPI + SQLAlchemy + SQLite（个人部署基线保留 SQLite），通过 OpenAI-compatible API（`LLM_BASE_URL`/`LLM_MODEL`）调用大模型
 - **frontend/** — React 19 + TypeScript + Vite Web 应用（固定端口 5173），含 PWA 支持
 - **desktop-pet/** — Tauri 2 + React 桌面学习宠物（开发端口 1420），复用后端 API
 
 三大功能模块：学习日记（语音/文本 → AI 整理 → 确认保存）、算法刷题（每日推荐、训练会话）、八股面试训练（题库审核、AI 评分、间隔复习）。
+
+## 协作基准
+
+本文件是跨工具工程提示，不替代用户的明确授权、当前 Git 状态、PR 事实和 `docs/mobile-app/integration/HANDOFF.md`。移动端协作以 E 发布的 `codex/mobile-integration` 最新检查点为准；冻结 M0 基线只保留为可复现源头，不再作为 B/C/D 的直接开发起点。
+
+`.claude/agents/*` 的 `model: inherit` 只描述执行会话模型继承关系；不要把它混同为应用运行时的 `LLM_MODEL`，也不要因为切换 GPT/Claude 执行工具而改应用配置。
 
 ## 常用命令
 
@@ -75,7 +81,7 @@ cd backend
 
 ### 数据库与时区
 
-- SQLite 自动创建于 `backend/data/study_diary.db`（已 gitignore），启动时 `init_db()` 建表，无 Alembic 迁移（生产迁移见 `docs/deployment.md` 和 `scripts/migrate_sqlite_to_postgres.py`）
+- SQLite 自动创建于 `backend/data/study_diary.db`（已 gitignore），启动时 `init_db()` 建表；当前仓库已有 `backend/alembic/`，生产部署按 `docs/deployment.md` 先加载同一份 `/etc/study-diary/api.env` 再执行 Alembic
 - **所有"天"级统计和每日推荐必须走 `app/time_utils.py`**，它按 `APP_TIMEZONE`（默认 Asia/Shanghai）计算日历日，不要直接用 UTC 日期
 
 ### 八股题库审核模型（核心业务规则）
@@ -102,11 +108,11 @@ Tauri 2 应用：Rust 侧仅 `src-tauri/src/lib.rs`（窗口/插件装配），�
 
 ### 算法题数据约束
 
-算法题只保存**题目元数据和固定链接**，不保存题面、题解或测试用例；NeetCode 150 / Blind 75 通过本地 `.problemSiteData.json` 离线转换，**运行时不联网抓取 GitHub/LeetCode**。数据源与许可证见 `backend/data/ATTRIBUTIONS.md`。
+历史算法目录只保存题目元数据和固定链接；移动端练习允许保存由 D 原创整理的中文题意、示例、核对依据、反例和版本来源，供 C 的保存/核对协议使用。不得复制外站完整题面、题解或测试用例；NeetCode 150 / Blind 75 通过本地 `.problemSiteData.json` 离线转换，**运行时不联网抓取 GitHub/LeetCode**。数据源与许可证见 `backend/data/ATTRIBUTIONS.md`。
 
 ## 文档索引
 
 - `docs/data-import-guide.md` — 题库构建/校验/导入流程
 - `docs/algorithm-daily-feed.md` — 每日推荐算法与刷新语义
 - `docs/algorithm-catalog.md`、`docs/interview-bank-taxonomy.md`、`docs/interview-training.md` — 模块设计
-- `docs/deployment.md` — PWA、PostgreSQL/Alembic、公网部署与访问保护
+- `docs/deployment.md` — 单用户 HTTPS PWA、SQLite/Alembic、公网部署与访问保护

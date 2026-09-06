@@ -7,7 +7,7 @@
 - 客户已经选择「雾绿延续」。A 正在修正图稿的 CSS 尺寸与导出比例，不能照旧图里约 10–11px 的正文实现手机页面。
 - M0 冻结源码基线仍为 `5bcaa2e78cb8f887a71638533d81d74fbb1f4a20`；正式下游起点改为远程 `origin/codex/mobile-integration` 的最新已推送提交，其中包含 M0、E 的生产配置和测试收集修正。开始前 fetch 并核实 E 公布的精确 SHA。
 - C/D 现在可以从该集成分支建立独立 worktree；最终 PR 目标仍是 `codex/mobile-integration`。
-- E 已完成生产配置和测试收集修正，复验见 [E_HANDOFF.md](E_HANDOFF.md)。A 设计修订完成后仍由 E 统一整合；不得使用 PR #4 的旧图稿尺寸或旧生产样例发布。
+- E 已完成生产配置和测试收集修正，复验见 [E_HANDOFF.md](E_HANDOFF.md)；当前唯一集成检查点见 [integration/HANDOFF.md](integration/HANDOFF.md)。A 设计修订完成后仍由 E 统一整合；不得使用 PR #4 的旧图稿尺寸或旧生产样例发布。
 - 原目录 `D:\学习日记` 有客户未提交工作，禁止在原目录切分支、重置或为自己提交全部变更。
 - 客户要求任务完成后自行提交、推送 GitHub 并创建 PR；说明实际检查和未验证项，不自行合并默认分支。
 
