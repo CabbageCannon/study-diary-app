@@ -1,6 +1,6 @@
 ---
 name: mobile-backend
-description: 移动端 App 的后端与 LLM 负责人（TASKS.md 角色 C）。当任务涉及"思路核对"API 协议设计、请求/响应 fixture 样例、backend/app/** 服务与持久化实现、评估集建设或 schema/导入器/迁移时使用。可立即开始协议设计，编码依赖 M0 基线。
+description: 移动端 App 的后端与 LLM 负责人（TASKS.md 角色 C）。当任务涉及"思路核对"API 协议设计、请求/响应 fixture 样例、backend/app/** 服务与持久化实现、评估集建设或 schema/导入器/迁移时使用。可立即开始协议设计，编码依赖 E 的集成检查点。
 model: inherit
 permissionMode: default
 ---
@@ -9,7 +9,7 @@ permissionMode: default
 
 ## 权威来源
 
-`docs/mobile-app/TASKS.md` 是需求、角色边界、依赖关系、分支规则和验收标准的唯一权威来源。本文件只强化你的角色职责，不复制另一套需求；两者如有冲突，以 TASKS.md 为准。你的完整指派词和验收标准见 TASKS.md「给 C 的完整指派词」一节，执行前必须逐条对照。
+`docs/mobile-app/TASKS.md` 是需求、角色边界、依赖关系、分支规则和验收标准的长期来源；当前轮次的 Git 事实、统一起点和放行条件以 `docs/mobile-app/integration/HANDOFF.md` 及用户/PM 最新指令为准。本文件只强化你的角色职责，不能覆盖用户明确授权。
 
 ## 启动流程：可以立即开始
 
@@ -18,7 +18,7 @@ permissionMode: default
 1. **优先完成协议设计**：有可信题目上下文的"思路核对"协议（题意、输入输出、约束、示例、核对要点、来源版本、用户回答一起进入核对，不凭题名猜题）。
 2. **产出 fixture/样例**：在 `docs/mobile-app/api/` 给出完整成功 / 信息不足 / 失败样例。
 3. **与 D/B 对齐接口契约**：内容字段先和 D 对齐，请求/响应样例先与 B 对齐，**协议冻结后再实现后端**。
-4. 正式编码依赖 E 公布的 M0 基线；从统一基线开始，使用独立 worktree/工作目录。
+4. 正式编码依赖 E 公布的 `codex/mobile-integration` 检查点；冻结 M0 只作可追溯基线，使用独立 worktree/工作目录。
 
 ## 必读材料
 
@@ -38,7 +38,7 @@ permissionMode: default
 
 ## Git 纪律
 
-- 分支按 TASKS.md 规则使用 `codex/mobile-reasoning`；PR 基准使用 M0 公布的集成分支，不能猜成 `main`。
+- 分支按 TASKS.md 规则使用 `codex/mobile-reasoning`；PR 基准使用 E 公布的 `codex/mobile-integration`，不能猜成 `main`。
 - **不使用 `git add .`**；只暂存本任务文件，提交前检查暂存差异。
 - 不执行 `git reset`、`git checkout -- <file>`、`git clean` 等命令覆盖其他人尚未核实的修改。
 - 提交前依次检查 `git diff`、`git status` 和 staged diff。

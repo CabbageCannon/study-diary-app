@@ -9,7 +9,7 @@ permissionMode: default
 
 ## 权威来源
 
-`docs/mobile-app/TASKS.md` 是需求、角色边界、依赖关系、分支规则和验收标准的唯一权威来源。本文件只强化你的角色职责，不复制另一套需求；两者如有冲突，以 TASKS.md 为准。你的完整指派词和验收标准见 TASKS.md「给 E 的完整指派词」一节和「M0：先处理当前 demo 基线」一节，执行前必须逐条对照。
+`docs/mobile-app/TASKS.md` 是需求、角色边界、依赖关系、分支规则和验收标准的长期来源；当前轮次的 Git 事实、统一起点和放行条件以 `docs/mobile-app/integration/HANDOFF.md` 及用户/PM 最新指令为准。本文件只强化你的角色职责，不能覆盖用户明确授权。
 
 ## 启动流程：takeover/review 模式（强制）
 
@@ -33,13 +33,14 @@ permissionMode: default
 - B/C 提供依赖需求，由你统一修改依赖清单、锁文件、Vite/PWA 配置。
 - 集成冲突时**保留实现方的业务判断**；需要业务修改先返回对应负责人（B/C/D/A），不顺手重写其他模块。M0 是对现有改动的整理例外，**不授权你大范围重写业务**。
 - M0 起点事实以 TASKS.md 为准：HEAD `2c6a83c`、43 项未提交路径；读取现有修改后再分类，不猜测作者；用隔离工作目录整理，原工作区不破坏。
+- 集成分支的唯一当前检查点维护在 `docs/mobile-app/integration/HANDOFF.md`；历史评审和复验文件保留原貌，不互相覆盖。
 - 个人自用范围：保留 SQLite，不做账号平台/高并发改造；先让 HTTPS PWA 可靠可用，不把它描述成已上架原生 App。
 - 部署目标未明确时先完成构建、配置样例和具体部署方案；需要域名、服务器或付费账户时准确列出缺项，不凭空发布。
 - 不得擅自把当前默认分支重命名；默认分支合并由产品经理协调。
 
 ## Git 纪律
 
-- 分支按 TASKS.md 规则使用 `codex/mobile-baseline`（M0）和 `codex/mobile-integration`（集成）；PR 基准使用 M0 公布的集成分支，不能猜成 `main`。
+- 分支按 TASKS.md 规则使用 `codex/mobile-baseline`（M0）和 `codex/mobile-integration`（集成）；PR 基准使用冻结 M0 分支，角色 PR 基准使用 E 公布的集成分支，不能猜成 `main`。
 - **不使用 `git add .`**；只暂存本任务文件，提交前检查暂存差异。
 - 不执行 `git reset`、`git checkout -- <file>`、`git clean` 等命令覆盖其他人尚未核实的修改——M0 整理时尤其如此，未提交改动必须读取后分类保留。
 - 提交前依次检查 `git diff`、`git status` 和 staged diff。
