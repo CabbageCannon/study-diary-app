@@ -8,6 +8,7 @@ import {
   updateDesktopPetConfig,
   waitForDesktopPetShow,
 } from "../api/desktopPet";
+import { useAccessToken } from "../auth/AccessTokenContext";
 import type { DesktopPetConfig, DesktopPetConfigUpdate, DesktopPetControlState } from "../types/desktopPet";
 
 const defaultConfig: DesktopPetConfig = {
@@ -35,13 +36,17 @@ function desktopPetIsConnected(state: DesktopPetControlState | null): boolean {
 }
 
 export function DesktopPetSettingsPage() {
+  const { accessTokenVersion, clearAccessToken, hasAccessToken, saveAccessToken } = useAccessToken();
   const [form, setForm] = useState<DesktopPetConfigUpdate>(configToForm(defaultConfig));
   const [milestoneInput, setMilestoneInput] = useState("10, 20, 50");
+  const [accessCode, setAccessCode] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isWaking, setIsWaking] = useState(false);
+  const [isAccessCodeSaving, setIsAccessCodeSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [accessCodeMessage, setAccessCodeMessage] = useState("");
   const [controlState, setControlState] = useState<DesktopPetControlState | null>(null);
   const [controlMessage, setControlMessage] = useState("");
 
@@ -54,26 +59,24 @@ export function DesktopPetSettingsPage() {
     }
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setIsLoading(true);
-      setError("");
-      try {
-        const config = await getDesktopPetConfig();
-        if (cancelled) return;
-        setForm(configToForm(config));
-        setMilestoneInput(config.milestone_minutes.join(", "));
-      } catch (loadError) {
-        if (!cancelled) setError(loadError instanceof Error ? loadError.message : "桌宠设置加载失败。");
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
+  const refreshConfig = useCallback(async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const config = await getDesktopPetConfig();
+      setForm(configToForm(config));
+      setMilestoneInput(config.milestone_minutes.join(", "));
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "桌宠设置加载失败。");
+    } finally {
+      setIsLoading(false);
     }
-    void load();
+  }, []);
+
+  useEffect(() => {
+    void refreshConfig();
     void refreshControlState();
-    return () => { cancelled = true; };
-  }, [refreshControlState]);
+  }, [accessTokenVersion, refreshConfig, refreshControlState]);
 
   const locationReady = form.latitude !== null && form.longitude !== null;
   const helpText = useMemo(
@@ -84,6 +87,37 @@ export function DesktopPetSettingsPage() {
   function updateField<K extends keyof DesktopPetConfigUpdate>(key: K, value: DesktopPetConfigUpdate[K]) {
     setForm((previous) => ({ ...previous, [key]: value }));
     setSuccess("");
+  }
+
+  async function applyAccessCode() {
+    if (!accessCode.trim() || isAccessCodeSaving) return;
+    setIsAccessCodeSaving(true);
+    setAccessCodeMessage("");
+    try {
+      saveAccessToken(accessCode);
+      setAccessCode("");
+      await Promise.all([refreshConfig(), refreshControlState()]);
+      setAccessCodeMessage("访问码已保存，桌宠连接已刷新。");
+    } catch (reason) {
+      setAccessCodeMessage(reason instanceof Error ? reason.message : "访问码保存失败。");
+    } finally {
+      setIsAccessCodeSaving(false);
+    }
+  }
+
+  async function removeAccessCode() {
+    if (isAccessCodeSaving) return;
+    setIsAccessCodeSaving(true);
+    setAccessCodeMessage("");
+    try {
+      clearAccessToken();
+      await Promise.all([refreshConfig(), refreshControlState()]);
+      setAccessCodeMessage("已清除浏览器中的访问码。");
+    } catch (reason) {
+      setAccessCodeMessage(reason instanceof Error ? reason.message : "访问码清除失败。");
+    } finally {
+      setIsAccessCodeSaving(false);
+    }
   }
 
   async function showDesktopPet() {
@@ -156,6 +190,21 @@ export function DesktopPetSettingsPage() {
       <form className="desktop-pet-settings-form" onSubmit={(event) => void submit(event)} noValidate>
         {error ? <p className="field-error page-error" role="alert">{error}</p> : null}
         {success ? <p className="settings-success" role="status">{success}</p> : null}
+        <section className="desktop-pet-access-control" aria-labelledby="desktop-pet-access-title">
+          <div>
+            <span className="pane-label">连接</span>
+            <p id="desktop-pet-access-title">访问码{hasAccessToken ? "已配置" : "未配置"}。仅当后端启用访问控制时需要填写。</p>
+          </div>
+          <label className="desktop-pet-access-input">
+            <span className="sr-only">访问码</span>
+            <input autoComplete="current-password" disabled={isAccessCodeSaving} onChange={(event) => setAccessCode(event.currentTarget.value)} placeholder={hasAccessToken ? "输入新访问码" : "访问码（如后端已启用）"} type="password" value={accessCode} />
+          </label>
+          <div className="desktop-pet-access-actions">
+            <button className="button button-secondary" disabled={!accessCode.trim() || isAccessCodeSaving} onClick={() => void applyAccessCode()} type="button">{isAccessCodeSaving ? "保存中…" : "保存"}</button>
+            {hasAccessToken ? <button className="button button-text" disabled={isAccessCodeSaving} onClick={() => void removeAccessCode()} type="button">清除</button> : null}
+          </div>
+          {accessCodeMessage ? <p className="desktop-pet-control-message" role="status">{accessCodeMessage}</p> : null}
+        </section>
         <section className="desktop-pet-window-control" aria-labelledby="desktop-pet-window-title">
           <div>
             <span className="pane-label">桌宠窗口</span>

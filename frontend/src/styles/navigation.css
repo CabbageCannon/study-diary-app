@@ -1,0 +1,41 @@
+.nav-links {
+  gap: 20px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.nav-section {
+  display: grid;
+  gap: 3px;
+}
+
+.nav-section-label {
+  padding: 0 15px 6px;
+  color: var(--faint);
+  font-size: 0.66rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+}
+
+.route-loading {
+  display: flex;
+  min-height: 42vh;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.route-loading span {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+@media (max-width: 760px) {
+  .mobile-bottom-navigation {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}

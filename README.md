@@ -86,6 +86,14 @@ cd backend
 
 SQLite 数据库会在后端启动时自动创建到 `backend/data/study_diary.db`，该文件已被 `.gitignore` 忽略。
 
+## Windows 一键启动开发环境
+
+首次使用前，请先创建后端 `.venv` 并安装 `backend/requirements.txt`，在 `frontend` 和 `desktop-pet` 分别执行 `npm install`，并安装 Rust/Cargo。之后可直接双击根目录的 `start-dev.cmd`。
+
+脚本会依次启动后端、Web 前端和桌宠，每项服务都在独立终端中运行；已可用的后端或前端会被复用，服务就绪后会自动打开浏览器。关闭项目时，请在对应终端按 `Ctrl + C`。一键启动不会自动安装依赖。
+
+如果只想检查依赖而不启动服务，可执行 `powershell -ExecutionPolicy Bypass -File .\dev.ps1 -CheckOnly`；不希望自动打开浏览器时，可给 `dev.ps1` 传入 `-NoBrowser`。
+
 ## 后端启动
 
 ```bash
@@ -116,7 +124,8 @@ npm run dev
 
 前端页面：
 
-- `/write`：写日记，支持语音/手动输入、生成草稿、编辑草稿、按反馈重新生成、确认保存。
+- `/today`：默认入口，汇总桌宠专注、算法、八股训练、未完成任务和到期复习。
+- `/write`：写日记，支持语音/手动输入、草稿本机自动保存、生成草稿、编辑草稿、按反馈重新生成、确认保存。
 - `/history`：历史日记，支持列表、详情预览和删除。
 
 ## 环境变量
@@ -128,6 +137,7 @@ LLM_API_KEY=your_api_key_here
 LLM_BASE_URL=https://api.openai.com/v1
 LLM_MODEL=gpt-4o-mini
 DATABASE_URL=sqlite:///./data/study_diary.db
+APP_TIMEZONE=Asia/Shanghai
 FRONTEND_ORIGIN=http://127.0.0.1:5173
 ```
 
@@ -147,6 +157,7 @@ VITE_ENABLE_QUESTION_QUICK_PUBLISH=false
 - 使用 Web Speech API 进行中文语音识别，浏览器不支持时可手动输入。
 - 写日记和历史日记拆成独立页面，并提供应用级导航。
 - 生成草稿时只调用大模型，不写入数据库。
+- 未归档的日记内容会自动保存到浏览器本机，刷新页面后可恢复，正式保存后自动清除。
 - 草稿可手动编辑标题、正文、总结和标签。
 - 可输入反馈，让大模型基于原始输入和当前草稿重新生成。
 - 用户确认后再保存草稿，保存接口不重复调用大模型。

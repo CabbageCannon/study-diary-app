@@ -243,12 +243,14 @@ class AlgorithmPracticeApiTests(unittest.TestCase):
     def test_daily_feed_generates_a_new_assignment_on_a_new_date(self) -> None:
         settings = self.client.get("/api/algorithms/daily-settings")
         self.assertEqual(settings.status_code, 200)
-        first_day = datetime(2026, 8, 3, 9, tzinfo=timezone.utc)
+        first_day = datetime(2026, 8, 3, 16, 30, tzinfo=timezone.utc)
         second_day = first_day + timedelta(days=1)
         with patch("app.services.algorithm_practice_service.utc_now", return_value=first_day):
             first = get_daily_feed(self.session)
         with patch("app.services.algorithm_practice_service.utc_now", return_value=second_day):
             second = get_daily_feed(self.session)
+        self.assertEqual(first.date, "2026-08-04")
+        self.assertEqual(second.date, "2026-08-05")
         self.assertNotEqual(first.date, second.date)
         self.assertNotIn(second.primary_problem.id, {first.primary_problem.id, *[problem.id for problem in first.extra_problems]})
         self.assertEqual(self.session.query(AlgorithmDailyFeed).count(), 2)

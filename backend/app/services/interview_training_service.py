@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import random
 from datetime import date as date_type
-from datetime import datetime, time, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
@@ -34,6 +34,7 @@ from app.schemas import (
     InterviewTrainingDomainStat,
     InterviewTrainingStats,
 )
+from app.time_utils import app_local_date, app_local_day_end_utc
 
 
 def utc_now() -> datetime:
@@ -140,7 +141,7 @@ def create_question_set(db: Session, payload: InterviewQuestionSetCreate) -> tup
         raise ValueError("没有可用于训练的已审核题目。")
 
     question_set = InterviewQuestionSet(
-        date=now.date().isoformat(),
+        date=app_local_date(now).isoformat(),
         domain=payload.domain,
         topic=payload.topic,
         difficulty=payload.difficulty,
@@ -517,10 +518,12 @@ def get_training_stats(db: Session) -> InterviewTrainingStats:
     today_answered_count = 0
     evaluations: list[InterviewEvaluation] = []
     domains: dict[str, dict[str, list[float] | int]] = {}
+    now = utc_now()
+    today = app_local_date(now)
 
     for question_set in question_sets:
         for answer in repository.list_answers_for_set(db, question_set.id):
-            answer_dates.add(as_utc(answer.created_at).date())
+            answer_dates.add(app_local_date(answer.created_at))
         for item in repository.list_set_items(db, question_set.id):
             all_items.append((question_set, item))
             if item.status != "answered":
@@ -528,7 +531,7 @@ def get_training_stats(db: Session) -> InterviewTrainingStats:
             answer = repository.get_latest_answer_for_question_set(db, question_set.id, item.question_id)
             if answer is None:
                 continue
-            if as_utc(answer.created_at).date() == utc_now().date():
+            if app_local_date(answer.created_at) == today:
                 today_answered_count += 1
             evaluation = repository.get_evaluation_for_answer(db, answer.id)
             if evaluation is not None:
@@ -543,14 +546,13 @@ def get_training_stats(db: Session) -> InterviewTrainingStats:
                 assert isinstance(scores, list)
                 scores.append(evaluation.total_score)
 
-    today = utc_now().date()
     streak_days = 0
     cursor = today
     while cursor in answer_dates:
         streak_days += 1
         cursor -= timedelta(days=1)
 
-    due_review_count = len(repository.list_due_schedules(db, due_before=utc_now(), domain=None, limit=10000))
+    due_review_count = len(repository.list_due_schedules(db, due_before=now, domain=None, limit=10000))
     recent_scores = [evaluation.total_score for evaluation in sorted(evaluations, key=lambda value: value.created_at, reverse=True)[:20]]
     domain_stats = [
         InterviewTrainingDomainStat(
@@ -584,7 +586,7 @@ def list_due_reviews(
             due_date = date_type.fromisoformat(date)
         except ValueError as exc:
             raise ValueError("date 必须使用 YYYY-MM-DD 格式") from exc
-        due_before = datetime.combine(due_date, time.max, tzinfo=timezone.utc)
+        due_before = app_local_day_end_utc(due_date)
     else:
         due_before = utc_now()
     rows = repository.list_due_schedules(db, due_before=due_before, domain=domain, limit=limit)

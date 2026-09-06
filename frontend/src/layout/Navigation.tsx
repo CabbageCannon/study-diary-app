@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { BookOpenIcon } from "@phosphor-icons/react/BookOpen";
-import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/ClockCounterClockwise";
 import { DotsThreeIcon } from "@phosphor-icons/react/DotsThree";
+import { HouseIcon } from "@phosphor-icons/react/House";
 import { MoonIcon } from "@phosphor-icons/react/Moon";
 import { PlayCircleIcon } from "@phosphor-icons/react/PlayCircle";
 import { TreeStructureIcon } from "@phosphor-icons/react/TreeStructure";
@@ -11,12 +11,22 @@ import { SunIcon } from "@phosphor-icons/react/Sun";
 import { useTheme } from "../contexts/ThemeContext";
 import { MobileMoreSheet } from "./MobileMoreSheet";
 
-const desktopNavItems = [
+const desktopPrimaryItems = [
+  { to: "/today", label: "今日", matches: (pathname: string) => pathname === "/today" },
   { to: "/write", label: "写日记", matches: (pathname: string) => pathname === "/write" },
-  { to: "/history", label: "历史日记", matches: (pathname: string) => pathname === "/history" },
+  { to: "/algorithms", label: "算法训练", matches: (pathname: string) => pathname === "/algorithms" || pathname.startsWith("/algorithms/session/") || pathname.startsWith("/algorithms/problems/") },
   { to: "/interview", label: "八股训练", matches: (pathname: string) => pathname === "/interview" || pathname.startsWith("/interview/session/") },
-  { to: "/algorithms", label: "算法训练", matches: (pathname: string) => pathname === "/algorithms" || pathname.startsWith("/algorithms/") },
-  { to: "/interview/history", label: "训练历史", matches: (pathname: string) => pathname === "/interview/history" },
+];
+
+const desktopArchiveItems = [
+  { to: "/history", label: "日记历史", matches: (pathname: string) => pathname === "/history" },
+  { to: "/algorithms/history", label: "算法历史", matches: (pathname: string) => pathname === "/algorithms/history" },
+  { to: "/interview/history", label: "八股历史", matches: (pathname: string) => pathname === "/interview/history" },
+];
+
+const desktopToolItems = [
+  { to: "/algorithms/review", label: "算法复习", matches: (pathname: string) => pathname === "/algorithms/review" },
+  { to: "/algorithms/settings", label: "算法设置", matches: (pathname: string) => pathname === "/algorithms/settings" },
   { to: "/settings/desktop-pet", label: "桌宠设置", matches: (pathname: string) => pathname === "/settings/desktop-pet" },
 ];
 
@@ -26,7 +36,10 @@ export function Navigation() {
   const { pathname } = useLocation();
   const { theme, toggleTheme } = useTheme();
   const [moreOpen, setMoreOpen] = useState(false);
-  const desktopItems = [...desktopNavItems, ...(questionReviewEnabled ? [{ to: "/interview/review", label: "题库审核", matches: (path: string) => path === "/interview/review" }] : [])];
+  const desktopTools = [...desktopToolItems, ...(questionReviewEnabled ? [{ to: "/interview/review", label: "题库审核", matches: (path: string) => path === "/interview/review" }] : [])];
+  const algorithmTrainingActive = pathname === "/algorithms" || pathname.startsWith("/algorithms/session/") || pathname.startsWith("/algorithms/problems/");
+  const interviewTrainingActive = pathname === "/interview" || pathname.startsWith("/interview/session/");
+  const moreActive = moreOpen || pathname === "/history" || pathname === "/interview/history" || pathname === "/interview/review" || pathname === "/settings/desktop-pet" || pathname === "/algorithms/history" || pathname === "/algorithms/review" || pathname === "/algorithms/settings";
 
   return (
     <>
@@ -40,11 +53,24 @@ export function Navigation() {
         </div>
 
         <div className="nav-links">
-          {desktopItems.map((item) => (
-            <NavLink className={item.matches(pathname) ? "nav-link nav-link-active" : "nav-link"} to={item.to} key={item.to}>
-              {item.label}
-            </NavLink>
-          ))}
+          <div className="nav-section">
+            <span className="nav-section-label">开始</span>
+            {desktopPrimaryItems.map((item) => (
+              <NavLink className={item.matches(pathname) ? "nav-link nav-link-active" : "nav-link"} to={item.to} key={item.to}>{item.label}</NavLink>
+            ))}
+          </div>
+          <div className="nav-section">
+            <span className="nav-section-label">记录</span>
+            {desktopArchiveItems.map((item) => (
+              <NavLink className={item.matches(pathname) ? "nav-link nav-link-active" : "nav-link"} to={item.to} key={item.to}>{item.label}</NavLink>
+            ))}
+          </div>
+          <div className="nav-section">
+            <span className="nav-section-label">工具</span>
+            {desktopTools.map((item) => (
+              <NavLink className={item.matches(pathname) ? "nav-link nav-link-active" : "nav-link"} to={item.to} key={item.to}>{item.label}</NavLink>
+            ))}
+          </div>
         </div>
 
         <div className="navigation-footer">
@@ -61,10 +87,11 @@ export function Navigation() {
       </nav>
 
       <nav className="mobile-bottom-navigation" aria-label="移动端主导航">
+        <NavLink className={pathname === "/today" ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/today"><HouseIcon aria-hidden="true" size={21} weight="bold" /><span>今日</span></NavLink>
         <NavLink className={pathname === "/write" ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/write"><BookOpenIcon aria-hidden="true" size={21} weight="bold" /><span>日记</span></NavLink>
-        <NavLink className={pathname === "/algorithms" || pathname.startsWith("/algorithms/") ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/algorithms"><TreeStructureIcon aria-hidden="true" size={21} weight="bold" /><span>算法</span></NavLink>
-        <NavLink className={pathname === "/interview" || pathname.startsWith("/interview/session/") ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/interview"><PlayCircleIcon aria-hidden="true" size={21} weight="fill" /><span>训练</span></NavLink>
-        <button className={moreOpen || pathname === "/interview/review" ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} aria-expanded={moreOpen} aria-haspopup="dialog" onClick={() => setMoreOpen(true)} type="button"><DotsThreeIcon aria-hidden="true" size={21} weight="bold" /><span>更多</span></button>
+        <NavLink className={algorithmTrainingActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/algorithms"><TreeStructureIcon aria-hidden="true" size={21} weight="bold" /><span>算法</span></NavLink>
+        <NavLink className={interviewTrainingActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/interview"><PlayCircleIcon aria-hidden="true" size={21} weight="fill" /><span>训练</span></NavLink>
+        <button className={moreActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} aria-expanded={moreOpen} aria-haspopup="dialog" onClick={() => setMoreOpen(true)} type="button"><DotsThreeIcon aria-hidden="true" size={21} weight="bold" /><span>更多</span></button>
       </nav>
       <MobileMoreSheet open={moreOpen} reviewEnabled={questionReviewEnabled} onClose={() => setMoreOpen(false)} />
     </>

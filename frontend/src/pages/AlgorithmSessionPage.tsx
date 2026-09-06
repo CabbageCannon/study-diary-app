@@ -191,7 +191,7 @@ export function AlgorithmSessionPage() {
       {!isOnline ? <p className="offline-training-note" role="status">离线模式：草稿和计时会保存在此设备；保存记录与 AI 功能将在恢复网络后可用。</p> : null}
       {error ? <p className="field-error page-error" role="alert">{error}</p> : null}
 
-      <main className="algorithm-session-workbench">
+      <div className="algorithm-session-workbench">
         <section className="algorithm-problem-panel">
           <div className="problem-meta-row"><span className={`difficulty-badge difficulty-${currentItem.problem.difficulty}`}>{difficultyLabel(currentItem.problem.difficulty)}</span>{currentItem.problem.topics.map((topic) => <span className="topic-token" key={topic}>{topic}</span>)}</div>
           <h1>{currentTitle}</h1>
@@ -215,7 +215,7 @@ export function AlgorithmSessionPage() {
         </section>
 
         <aside className="algorithm-ai-panel" aria-label="AI 学习助手"><div className="section-heading"><div><span className="pane-label">AI 学习助手</span><h2>提示与复盘</h2></div><SparkleIcon aria-hidden="true" size={19} weight="fill" /></div><p>AI 只分析你的记录，不执行代码，也不代表在线判题结果。</p>{savedAttempt ? <><div className="hint-controls"><span>渐进提示</span>{[1, 2, 3, 4].map((level) => <button disabled={isAskingAi || !isOnline} key={level} onClick={() => void getHint(level)} type="button">提示 {level}</button>)}</div>{hint ? <div className="ai-response-block"><LightbulbIcon aria-hidden="true" size={18} weight="fill" /><p>{hint}</p></div> : null}<button className="button button-secondary" disabled={isAskingAi || !isOnline} onClick={() => void getAiReview()} type="button"><SparkleIcon aria-hidden="true" size={16} weight="fill" />{isAskingAi ? "分析中" : "AI 复盘"}</button>{aiFeedback ? <div className="ai-review-result"><strong>AI 建议</strong><p>{aiFeedback.summary}</p><p>{aiFeedback.approach_assessment}</p>{aiFeedback.issues.length ? <ul>{aiFeedback.issues.map((item) => <li key={item}>{item}</li>)}</ul> : null}<div className="complexity-note"><span>时间：{aiFeedback.time_complexity_assessment.suggested || "待分析"}</span><span>空间：{aiFeedback.space_complexity_assessment.suggested || "待分析"}</span></div></div> : null}</> : <div className="ai-locked-note">先保存本次记录，再逐层获取提示或请求 AI 复盘。</div>}</aside>
-      </main>
+      </div>
 
       </div>
       <footer className="algorithm-session-actions"><button className="button button-secondary" disabled={!canMovePrevious || !isOnline} onClick={() => void moveTo(session.current_index - 1)} type="button"><ArrowLeftIcon aria-hidden="true" size={16} />上一题</button><button className="button button-secondary" disabled={!isOnline} onClick={() => void skipCurrent()} type="button"><SkipForwardIcon aria-hidden="true" size={16} />跳过</button><button className="button button-primary" disabled={!canSave} onClick={() => void saveAttempt()} type="button"><CheckIcon aria-hidden="true" size={16} weight="bold" />{isSaving ? "保存中" : "保存记录"}</button>{canMoveNext ? <button className="button button-secondary" disabled={!isOnline} onClick={() => void moveTo(session.current_index + 1)} type="button">下一题<ArrowRightIcon aria-hidden="true" size={16} /></button> : <button className="button button-secondary" disabled={!isOnline} onClick={() => void completeSession()} type="button">完成训练</button>}</footer>

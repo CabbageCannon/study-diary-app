@@ -1,0 +1,23 @@
+.draft-storage-status {
+  display: inline-flex;
+  margin-left: 12px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.draft-storage-status::before {
+  width: 5px;
+  height: 5px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  content: "";
+}
+
+@media (max-width: 760px) {
+  .draft-storage-status {
+    display: flex;
+    margin: 6px 0 0;
+  }
+}

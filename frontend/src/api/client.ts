@@ -2,6 +2,7 @@ import type { CreateDiaryDraftPayload, Diary, DiaryDraft, RewriteDiaryDraftPaylo
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 const ACCESS_TOKEN_STORAGE_KEY = "study-diary:access-token";
+export const ACCESS_TOKEN_CHANGED_EVENT = "study-diary:access-token-changed";
 
 export class ApiRequestError extends Error {
   constructor(message: string, readonly status: number) {
@@ -10,7 +11,7 @@ export class ApiRequestError extends Error {
   }
 }
 
-function getAccessToken() {
+export function getAccessToken() {
   return window.sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)?.trim() ?? "";
 }
 
@@ -18,9 +19,10 @@ export function saveAccessToken(value: string) {
   const nextValue = value.trim();
   if (nextValue) {
     window.sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, nextValue);
-    return;
+  } else {
+    window.sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
   }
-  window.sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+  window.dispatchEvent(new Event(ACCESS_TOKEN_CHANGED_EVENT));
 }
 
 export function hasAccessToken() {
