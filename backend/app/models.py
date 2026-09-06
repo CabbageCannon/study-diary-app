@@ -199,6 +199,104 @@ class AlgorithmProblemProgress(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 
 
+class AlgorithmProblemContext(Base):
+    """Versioned mobile reasoning context for an algorithm problem."""
+
+    __tablename__ = "algorithm_problem_contexts"
+    __table_args__ = (
+        UniqueConstraint("problem_id", "content_version", name="uq_algorithm_context_problem_version"),
+        UniqueConstraint("problem_id", "content_hash", name="uq_algorithm_context_problem_hash"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    problem_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problems.id"), index=True)
+    problem_key: Mapped[str] = mapped_column(String(160), index=True)
+    schema_version: Mapped[int] = mapped_column(Integer)
+    content_version: Mapped[int] = mapped_column(Integer)
+    content_hash: Mapped[str] = mapped_column(String(64), index=True)
+    context_json: Mapped[str] = mapped_column("context", Text)
+    content_status: Mapped[str] = mapped_column(String(20), default="ready", index=True)
+    is_current: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    content_updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    imported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+    @property
+    def context(self) -> dict[str, object]:
+        try:
+            value = json.loads(self.context_json or "{}")
+        except json.JSONDecodeError:
+            return {}
+        return value if isinstance(value, dict) else {}
+
+
+class AlgorithmReasoningAnswer(Base):
+    """A saved mobile reasoning answer version, independent from LLM feedback."""
+
+    __tablename__ = "algorithm_reasoning_answers"
+    __table_args__ = (UniqueConstraint("client_answer_id", name="uq_algorithm_reasoning_client_answer"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    problem_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problems.id"), index=True)
+    session_id: Mapped[str | None] = mapped_column(
+        ForeignKey("algorithm_practice_sessions.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    session_item_id: Mapped[int | None] = mapped_column(
+        ForeignKey("algorithm_practice_session_items.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    revision_of_answer_id: Mapped[int | None] = mapped_column(
+        ForeignKey("algorithm_reasoning_answers.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    answer_text: Mapped[str] = mapped_column(Text)
+    answer_source: Mapped[str] = mapped_column(String(20), default="text")
+    details_json: Mapped[str] = mapped_column("details", Text, default="{}")
+    client_answer_id: Mapped[str] = mapped_column(String(36), unique=True, index=True)
+    saved_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+    @property
+    def details(self) -> dict[str, object]:
+        try:
+            value = json.loads(self.details_json or "{}")
+        except json.JSONDecodeError:
+            return {}
+        return value if isinstance(value, dict) else {}
+
+
+class AlgorithmReasoningFeedback(Base):
+    """Structured LLM feedback bound to exactly one saved answer version."""
+
+    __tablename__ = "algorithm_reasoning_feedbacks"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    answer_id: Mapped[int] = mapped_column(
+        ForeignKey("algorithm_reasoning_answers.id", ondelete="CASCADE"), unique=True, index=True
+    )
+    problem_context_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problem_contexts.id"), index=True)
+    synced_attempt_id: Mapped[int | None] = mapped_column(ForeignKey("algorithm_attempts.id"), nullable=True, index=True)
+    conclusion: Mapped[str] = mapped_column(String(32), index=True)
+    headline: Mapped[str] = mapped_column(Text)
+    context_sufficient: Mapped[bool] = mapped_column(Boolean, default=True)
+    feedback_json: Mapped[str] = mapped_column("feedback", Text)
+    model_name: Mapped[str] = mapped_column(String(160))
+    prompt_version: Mapped[str] = mapped_column(String(80))
+    context_version: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+    @property
+    def feedback(self) -> dict[str, object]:
+        try:
+            value = json.loads(self.feedback_json or "{}")
+        except json.JSONDecodeError:
+            return {}
+        return value if isinstance(value, dict) else {}
+
+
 class AlgorithmDailyRecommendationSettings(Base):
     __tablename__ = "algorithm_daily_recommendation_settings"
 

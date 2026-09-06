@@ -1,6 +1,8 @@
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -22,9 +24,26 @@ from app.schemas import (
     AlgorithmPracticeSessionRead,
     AlgorithmPracticeSessionSummary,
     AlgorithmProblemRead,
+    AlgorithmProblemReasoningContextResponse,
+    AlgorithmReasoningAnswerCreate,
+    AlgorithmReasoningAnswerDetailRead,
+    AlgorithmReasoningCheckCreate,
+    AlgorithmReasoningCheckResponse,
+    AlgorithmReasoningRecheckRequest,
     AlgorithmReviewScheduleRead,
     AlgorithmStatsRead,
     AlgorithmWeaknessRead,
+)
+from app.services.algorithm_reasoning_service import (
+    AlgorithmReasoningConflict,
+    AlgorithmReasoningError,
+    AlgorithmReasoningNotFound,
+    get_answer_detail,
+    get_problem_reasoning_context,
+    list_reasoning_answers,
+    save_and_check_reasoning_answer,
+    save_reasoning_answer,
+    check_saved_reasoning_answer,
 )
 from app.services.algorithm_practice_service import (
     AlgorithmPracticeError,
@@ -62,6 +81,31 @@ router = APIRouter(prefix="/api/algorithms", tags=["algorithms"])
 
 def _domain_error(exc: AlgorithmPracticeError) -> HTTPException:
     return HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc))
+
+
+def _reasoning_error(exc: AlgorithmReasoningError) -> HTTPException:
+    if isinstance(exc, AlgorithmReasoningNotFound):
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    if isinstance(exc, AlgorithmReasoningConflict):
+        return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    return HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc))
+
+
+def _save_failed_response(exc: Exception) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+        content={
+            "save_status": "save_failed",
+            "check_status": "not_attempted",
+            "answer": None,
+            "feedback": None,
+            "save_error": "回答保存失败，请检查题目、回答内容和 client_answer_id。",
+            "check_error": None,
+            "retry": None,
+            "problem_context": None,
+            "detail": str(exc),
+        },
+    )
 
 
 @router.get("/problems", response_model=list[AlgorithmProblemRead])
@@ -294,6 +338,104 @@ def get_algorithm_stats(db: Session = Depends(get_db)) -> AlgorithmStatsRead:
 @router.get("/weaknesses", response_model=list[AlgorithmWeaknessRead])
 def get_algorithm_weaknesses(db: Session = Depends(get_db)) -> list[AlgorithmWeaknessRead]:
     return algorithm_weaknesses(db)
+
+
+@router.get(
+    "/problems/{problem_id}/reasoning-context",
+    response_model=AlgorithmProblemReasoningContextResponse,
+)
+def get_algorithm_reasoning_context(
+    problem_id: str,
+    db: Session = Depends(get_db),
+) -> AlgorithmProblemReasoningContextResponse:
+    try:
+        return get_problem_reasoning_context(db, problem_id)
+    except AlgorithmReasoningError as exc:
+        raise _reasoning_error(exc) from exc
+
+
+@router.post(
+    "/reasoning/answers",
+    response_model=AlgorithmReasoningAnswerDetailRead,
+    status_code=status.HTTP_201_CREATED,
+)
+def save_algorithm_reasoning_answer(
+    payload: AlgorithmReasoningAnswerCreate,
+    response: Response,
+    db: Session = Depends(get_db),
+) -> AlgorithmReasoningAnswerDetailRead:
+    try:
+        answer, created = save_reasoning_answer(db, payload)
+    except AlgorithmReasoningError as exc:
+        raise _reasoning_error(exc) from exc
+    if not created:
+        response.status_code = status.HTTP_200_OK
+    return get_answer_detail(db, answer.id)
+
+
+@router.post(
+    "/reasoning/checks",
+    response_model=AlgorithmReasoningCheckResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def check_algorithm_reasoning(payload: dict[str, object], response: Response, db: Session = Depends(get_db)):
+    try:
+        parsed = AlgorithmReasoningCheckCreate.model_validate(payload)
+    except ValidationError as exc:
+        return _save_failed_response(exc)
+    try:
+        result, created = await save_and_check_reasoning_answer(db, parsed)
+    except AlgorithmReasoningError as exc:
+        raise _reasoning_error(exc) from exc
+    if not created:
+        response.status_code = status.HTTP_200_OK
+    return result
+
+
+@router.post(
+    "/reasoning/answers/{answer_id}/check",
+    response_model=AlgorithmReasoningCheckResponse,
+)
+async def recheck_algorithm_reasoning_answer(
+    answer_id: int,
+    payload: AlgorithmReasoningRecheckRequest | None = None,
+    db: Session = Depends(get_db),
+) -> AlgorithmReasoningCheckResponse:
+    try:
+        return await check_saved_reasoning_answer(db, answer_id, refresh=payload.refresh if payload else False)
+    except AlgorithmReasoningError as exc:
+        raise _reasoning_error(exc) from exc
+
+
+@router.get("/reasoning/answers/{answer_id}", response_model=AlgorithmReasoningAnswerDetailRead)
+def get_algorithm_reasoning_answer(
+    answer_id: int,
+    db: Session = Depends(get_db),
+) -> AlgorithmReasoningAnswerDetailRead:
+    try:
+        return get_answer_detail(db, answer_id)
+    except AlgorithmReasoningError as exc:
+        raise _reasoning_error(exc) from exc
+
+
+@router.get("/reasoning/answers", response_model=list[AlgorithmReasoningAnswerDetailRead])
+def list_algorithm_reasoning_answers(
+    problem_id: str | None = None,
+    session_id: str | None = None,
+    client_answer_id: str | None = None,
+    limit: int = Query(default=100, ge=1, le=200),
+    db: Session = Depends(get_db),
+) -> list[AlgorithmReasoningAnswerDetailRead]:
+    try:
+        return list_reasoning_answers(
+            db,
+            problem_identifier=problem_id,
+            session_id=session_id,
+            client_answer_id=client_answer_id,
+            limit=limit,
+        )
+    except AlgorithmReasoningError as exc:
+        raise _reasoning_error(exc) from exc
 
 
 @router.get("/problems/{problem_id}/similar", response_model=list[AlgorithmProblemRead])
