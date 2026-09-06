@@ -1,6 +1,6 @@
 # HTTPS PWA 部署与 iPhone 验收
 
-这是一套个人使用的 HTTPS PWA 交付方案，不是 TestFlight、App Store 或原生 App 上架方案。首选单台长期在线的 Linux 主机：Nginx 通过同一 HTTPS 域名提供前端与 `/api/`，FastAPI 仅监听本机回环地址，SQLite 放在主机持久磁盘并备份。这样 Safari 主屏幕安装使用一个稳定地址，前端也不需要在浏览器里保存 API 域名或访问码。
+这是一套个人使用的 HTTPS PWA 交付方案，不是 TestFlight、App Store 或原生 App 上架方案。首选单台长期在线的 Linux 主机：Nginx 通过同一 HTTPS 域名提供前端与 `/api/`，FastAPI 仅监听本机回环地址，SQLite 放在主机持久磁盘并备份。这样 Safari 主屏幕安装使用一个稳定地址，前端不需要配置独立 API 域名；若设置 `APP_ACCESS_TOKEN`，用户仍需在当前浏览器会话输入访问码。
 
 未确定域名、服务器或账户前，不得发布。缺少的实际条件列在本文末尾。
 
@@ -30,10 +30,26 @@
    ```
 
    `APP_ACCESS_TOKEN` 会保护写入和管理 API；客户端只在当前会话保存它。不要设置任何 `VITE_*` 密钥。
-3. 后端在 `/srv/study-diary/backend` 建立虚拟环境、安装 `requirements.txt`，执行 `alembic upgrade head`。首次空库需要题库时，再按项目数据导入说明导入；已有 SQLite 文件应先停服务、制作备份，然后复制到上述持久目录并执行迁移检查，不要覆盖正在使用的数据。
+3. 后端在 `/srv/study-diary/backend` 建立虚拟环境、安装 `requirements.txt`。迁移必须加载与 systemd 相同的环境文件，避免误用默认 `./data` 数据库：
+
+   ```bash
+   set -a
+   . /etc/study-diary/api.env
+   set +a
+   cd /srv/study-diary/backend
+   .venv/bin/alembic upgrade head
+   ```
+
+   首次空库需要题库时，再按项目数据导入说明导入；已有 SQLite 文件应先停服务、制作备份，然后复制到上述持久目录并执行迁移检查，不要覆盖正在使用的数据。
 4. 复制 [`deploy/systemd/study-diary-api.service.example`](../deploy/systemd/study-diary-api.service.example) 到 `/etc/systemd/system/study-diary-api.service`，随后执行 `systemctl daemon-reload`、`systemctl enable --now study-diary-api`，并从主机检查 `curl http://127.0.0.1:8000/api/health`。
-5. 复制 [`frontend/pwa-production.env.sample`](../frontend/pwa-production.env.sample) 为 `frontend/.env.production`，在 `frontend` 执行 `npm ci`、`npm run build`。该配置把 API 设为相同来源的 `/api`；将生成的 `dist/` 保留在 `/srv/study-diary/frontend/dist`。
-6. 将 [`deploy/nginx/study-diary.conf.example`](../deploy/nginx/study-diary.conf.example) 复制为 Nginx site 配置，替换域名和路径。DNS 指向主机后，以 Certbot 签发证书，再执行 `nginx -t` 和 `systemctl reload nginx`。访问 `https://app.example.com/api/health` 应返回 `{"status":"ok"}`。
+5. 复制 [`frontend/pwa-production.env.sample`](../frontend/pwa-production.env.sample) 为 `frontend/.env.production`，在 `frontend` 执行 `npm ci`、`npm run build`。同源部署将基址留空，因为各 API 调用已包含 `/api/...`；将生成的 `dist/` 保留在 `/srv/study-diary/frontend/dist`。
+6. 首次签发证书不能先加载引用不存在证书的 HTTPS 配置。先复制 [`deploy/nginx/study-diary-http-bootstrap.conf.example`](../deploy/nginx/study-diary-http-bootstrap.conf.example) 为启用的 Nginx site 配置，替换域名，执行 `nginx -t`、`systemctl reload nginx`，并确认 DNS 已指向该主机。然后执行：
+
+   ```bash
+   certbot certonly --webroot -w /var/www/certbot -d app.example.com
+   ```
+
+   证书生成后，再用 [`deploy/nginx/study-diary.conf.example`](../deploy/nginx/study-diary.conf.example) 替换 bootstrap 配置，执行 `nginx -t` 和 `systemctl reload nginx`。访问 `https://app.example.com/api/health` 应返回 `{"status":"ok"}`。
 7. 每次发布先构建与检查，再替换 `dist/`，并重启 API（仅后端变更时）。`index.html` 与 `sw.js` 禁止缓存，带 hash 的 `/assets/` 长缓存；发布后用真实 Safari 看见更新提示再选择更新，避免在答题中强制刷新。
 
 `frontend/public/_redirects` 与 `frontend/vercel.json` 仍适用于纯前端托管的 SPA 回退，但它们不会部署或持久化本项目的 FastAPI/SQLite 后端；在未另外设计数据库卷与 HTTPS API 前，不能把它们当成完整个人部署方案。
