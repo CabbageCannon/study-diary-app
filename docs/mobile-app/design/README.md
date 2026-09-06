@@ -11,7 +11,7 @@
 
 ## 全尺寸页面稿
 
-每张导出均为 **1170 × 2532 px（@3x，390 CSS px 宽）**。PNG 用于直接审阅；同名 SVG 是可检查的矢量源。页面是单独完整画面，不是拼板或裁切缩略图。
+每张导出均为 **1170 × 2532 px（@3x，390 × 844 CSS px 设计画布）**。PNG 用于直接审阅；同名 SVG 使用 `viewBox="0 0 390 844"`，可检查三倍换算。页面是单独完整画面，不是拼板或裁切缩略图。
 
 - [今日 PNG](exploration/mist-sage/01-today.png) · [SVG](exploration/mist-sage/01-today.svg)
 - [八股作答 PNG](exploration/mist-sage/02-interview-answer.png) · [SVG](exploration/mist-sage/02-interview-answer.svg)
@@ -23,8 +23,9 @@
 
 - [键盘展开 PNG](states/06-keyboard-open.png) · [SVG](states/06-keyboard-open.svg)
 - [核对中 PNG](states/07-checking.png) · [SVG](states/07-checking.svg)
-- [失败重试 PNG](states/08-failed-retry.png) · [SVG](states/08-failed-retry.svg)
+- [保存未完成/重试 PNG](states/08-save-failed-retry.png) · [SVG](states/08-save-failed-retry.svg)
 - [无内容 PNG](states/09-empty-review.png) · [SVG](states/09-empty-review.svg)
+- [核对失败重试 PNG](states/10-evaluation-failed.png) · [SVG](states/10-evaluation-failed.svg)
 
 ## 生成探索的视觉参考
 
@@ -36,4 +37,4 @@
 
 - 已按 390 CSS px 构图；规范规定 428 的留白扩展与 375 的可用退化。
 - 图稿演示信息层级与状态，不声称已完成 Safari 真机、键盘安全区、语音输入、动态字体、旁白或真实 LLM 链路验收。
-- “失败重试”假定后端复用同一份已保存回答；接口的记录去重与版本关联仍由后端负责人确认。
+- 本机草稿、服务端保存成功、保存结果未知、核对失败是四类不同状态；重试去重、版本关联和真实存储语义以 C 的算法核对协议为准。
