@@ -32,6 +32,8 @@ D 首批正式数据来自 `origin/codex/mobile-content@f8a133c`，路径：
 
 已用临时目录 + 内存 SQLite 验证导入器：3 个文件全部 `created`，`content_version=1`，`errors=0`。C 分支未复制或覆盖 D 的题目 JSON；集成时由 E 合并 D 分支内容。
 
+D 最终 12 题内容包来自 `origin/codex/mobile-content@0c04236cce3f0714f2426e0023ed6d789e3d8c67`。C 已再次用临时目录 + 内存 SQLite 验证导入器：12 个文件全部 `created`，`content_version=1`，`errors=0`。
+
 ## 已运行验证
 
 - `D:/学习日记/backend/.venv/Scripts/python.exe -m compileall app scripts`：通过。
