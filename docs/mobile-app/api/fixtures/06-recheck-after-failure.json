@@ -1,0 +1,97 @@
+{
+  "fixture": "06-recheck-after-failure",
+  "description": "对 05 中已保存但核对失败的回答（answer_id=105）重试核对。复用同一回答，不重复保存，不新建版本，feedback 绑定 answer_id=105。请求体可为空。",
+  "request": {
+    "method": "POST",
+    "path": "/api/algorithms/reasoning/answers/105/check",
+    "headers": {
+      "Content-Type": "application/json",
+      "X-Study-Diary-Access": "<仅在配置 APP_ACCESS_TOKEN 时需要>"
+    },
+    "body": {
+      "refresh": false
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "save_status": "saved",
+      "check_status": "completed",
+      "answer": {
+        "answer_id": 105,
+        "problem_id": "leetcode-1",
+        "session_id": null,
+        "version": 1,
+        "revision_of_answer_id": null,
+        "answer_text": "遍历数组，用哈希表存见过的数，对当前数先查 target 减它的差在不在表里，在就返回两个下标，不在就存进去继续。",
+        "answer_source": "text",
+        "details": {
+          "time_complexity": null,
+          "space_complexity": null,
+          "code": null,
+          "notes": null
+        },
+        "client_answer_id": "e5f6a7b8-99aa-4b2c-8d3e-4f5a6b7c8d9e",
+        "save_status": "saved",
+        "check_status": "completed",
+        "saved_at": "2026-09-06T12:25:03+00:00",
+        "checked_at": "2026-09-06T12:27:41+00:00"
+      },
+      "feedback": {
+        "feedback_id": 59,
+        "answer_id": 105,
+        "conclusion": "correct",
+        "headline": "思路成立：先查补数再存当前值，哈希一次遍历即可。",
+        "context_sufficient": true,
+        "correct_parts": [
+          {
+            "point": "先查 target - x 再存当前数，避免重复使用同一下标",
+            "quote": "对当前数先查 target 减它的差在不在表里，在就返回两个下标，不在就存进去"
+          },
+          {
+            "point": "哈希表把查找降为 O(1)，一次遍历完成",
+            "quote": "遍历数组，用哈希表存见过的数"
+          }
+        ],
+        "issues_or_missing": [],
+        "counterexample_or_followup": {
+          "kind": "none",
+          "content": null
+        },
+        "complexity": {
+          "time": {
+            "user_claim": null,
+            "assessment": "not_stated",
+            "expected": "O(n)",
+            "note": "未陈述复杂度，但思路对应 O(n)"
+          },
+          "space": {
+            "user_claim": null,
+            "assessment": "not_stated",
+            "expected": "O(n)",
+            "note": "哈希表 O(n) 额外空间"
+          }
+        },
+        "alternative_approaches_accepted": [],
+        "reference_outline": "一次遍历 + 哈希表：对 x 先查 target - x，命中返回两下标，否则存 (x, i)。",
+        "needs_review": false,
+        "model_name": "gpt-4o-mini",
+        "prompt_version": "reasoning-check-v1",
+        "context_version": 3,
+        "created_at": "2026-09-06T12:27:41+00:00"
+      },
+      "check_error": null,
+      "retry": null,
+      "problem_context": {
+        "problem_id": "leetcode-1",
+        "content_version": 3,
+        "reasoning_available": true
+      }
+    }
+  },
+  "notes": [
+    "answer_id 仍是 105、version 仍是 1、client_answer_id 不变——重试没有重复保存或新建版本。",
+    "若该回答已有 completed feedback，再次调用默认直接返回既有 feedback（不再调 LLM）；带 {\"refresh\": true} 才强制重核。",
+    "重试仍失败时：200 + check_status=failed + retry 指向同一 check_url，可再次重试，回答始终安全。"
+  ]
+}

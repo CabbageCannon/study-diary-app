@@ -1,0 +1,110 @@
+{
+  "fixture": "08-revision-new-version",
+  "description": "修改回答产生新版本，feedback 绑定新版本。承接 02：answer_id=102（v1，partially_correct，缺“先查后存顺序”和复杂度）。用户补充后重新核对，携带 revision_of_answer_id=102。服务端新建 answer_id=106、version=2，新 feedback 绑定 106；旧 feedback（56，绑定 102）不会出现在 v2 上。",
+  "request": {
+    "method": "POST",
+    "path": "/api/algorithms/reasoning/checks",
+    "headers": {
+      "Content-Type": "application/json",
+      "X-Study-Diary-Access": "<仅在配置 APP_ACCESS_TOKEN 时需要>"
+    },
+    "body": {
+      "problem_id": "leetcode-1",
+      "session_id": null,
+      "answer_text": "补充一下：遍历每个数 x 时，先在哈希表里查 target - x 在不在，查到就返回它的下标和当前下标；查不到再把 (x, 当前下标) 存进表。先查后存，所以就算有重复值也不会把自己当补数。时间 O(n)，额外空间 O(n)。",
+      "answer_source": "text",
+      "details": {
+        "time_complexity": "O(n)",
+        "space_complexity": "O(n)",
+        "code": null,
+        "notes": null
+      },
+      "client_answer_id": "a7b8c9d0-11cc-4d4e-8f5a-6b7c8d9e0f11",
+      "revision_of_answer_id": 102
+    }
+  },
+  "response": {
+    "status": 201,
+    "body": {
+      "save_status": "saved",
+      "check_status": "completed",
+      "answer": {
+        "answer_id": 106,
+        "problem_id": "leetcode-1",
+        "session_id": null,
+        "version": 2,
+        "revision_of_answer_id": 102,
+        "answer_text": "补充一下：遍历每个数 x 时，先在哈希表里查 target - x 在不在，查到就返回它的下标和当前下标；查不到再把 (x, 当前下标) 存进表。先查后存，所以就算有重复值也不会把自己当补数。时间 O(n)，额外空间 O(n)。",
+        "answer_source": "text",
+        "details": {
+          "time_complexity": "O(n)",
+          "space_complexity": "O(n)",
+          "code": null,
+          "notes": null
+        },
+        "client_answer_id": "a7b8c9d0-11cc-4d4e-8f5a-6b7c8d9e0f11",
+        "save_status": "saved",
+        "check_status": "completed",
+        "saved_at": "2026-09-06T12:32:18+00:00",
+        "checked_at": "2026-09-06T12:32:26+00:00"
+      },
+      "feedback": {
+        "feedback_id": 60,
+        "answer_id": 106,
+        "conclusion": "correct",
+        "headline": "已补上先查后存的顺序与复杂度，思路成立。",
+        "context_sufficient": true,
+        "correct_parts": [
+          {
+            "point": "先查补数再存当前值，重复值也不会把自己当补数",
+            "quote": "先在哈希表里查 target - x……查不到再把 (x, 当前下标) 存进表。先查后存"
+          },
+          {
+            "point": "复杂度判断正确",
+            "quote": "时间 O(n)，额外空间 O(n)"
+          }
+        ],
+        "issues_or_missing": [],
+        "counterexample_or_followup": {
+          "kind": "none",
+          "content": null
+        },
+        "complexity": {
+          "time": {
+            "user_claim": "O(n)",
+            "assessment": "correct",
+            "expected": "O(n)",
+            "note": "一次遍历 + O(1) 查找"
+          },
+          "space": {
+            "user_claim": "O(n)",
+            "assessment": "correct",
+            "expected": "O(n)",
+            "note": "哈希表最坏存 n 个元素"
+          }
+        },
+        "alternative_approaches_accepted": [],
+        "reference_outline": "一次遍历 + 哈希表，先查 target - x 再存 (x, i)。你的补充与该参考解一致。",
+        "needs_review": false,
+        "model_name": "gpt-4o-mini",
+        "prompt_version": "reasoning-check-v1",
+        "context_version": 3,
+        "created_at": "2026-09-06T12:32:26+00:00"
+      },
+      "check_error": null,
+      "retry": null,
+      "problem_context": {
+        "problem_id": "leetcode-1",
+        "content_version": 3,
+        "reasoning_available": true
+      }
+    }
+  },
+  "notes": [
+    "新 feedback_id=60 绑定 answer_id=106（v2）；旧 feedback_id=56 仍只绑定 answer_id=102（v1），两者互不串用。",
+    "GET /reasoning/answers/102 仍返回 v1 的 partially_correct 反馈；GET /reasoning/answers/106 返回 v2 的 correct 反馈。",
+    "关键时点：v2 在“已保存、核对未完成”期间 feedback=null（绝不沿用 v1 的旧反馈）。本 fixture 展示的是 v2 核对已完成后的结果。",
+    "服务端在核对 v2 时自动把 v1 的结论与问题点注入 LLM 上下文，因此 headline 能回应“已补上……”；B 无需回传旧反馈。",
+    "修订必须用新的 client_answer_id（此处 a7b8…），与 v1 的 b7d2… 不同；否则会命中幂等返回 v1 而不新建版本。"
+  ]
+}
