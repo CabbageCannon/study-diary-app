@@ -7,7 +7,7 @@ from fastapi import Request
 from app.config import settings
 
 
-AI_ROUTE_MARKERS = ("/draft", "/ai-review", "/evaluate", "/answers", "/hint")
+AI_ROUTE_MARKERS = ("/draft", "/ai-review", "/evaluate", "/answers", "/hint", "/reasoning/checks")
 
 
 class SlidingWindowRateLimiter:
@@ -37,6 +37,10 @@ def requires_write_access(request: Request) -> bool:
 
 
 def is_ai_request(request: Request) -> bool:
+    if request.url.path == "/api/algorithms/reasoning/answers":
+        return False
+    if request.url.path.startswith("/api/algorithms/reasoning/answers/") and request.url.path.endswith("/check"):
+        return request.method == "POST"
     return request.method in {"POST", "PATCH"} and any(marker in request.url.path for marker in AI_ROUTE_MARKERS)
 
 
