@@ -7,7 +7,11 @@ Date: 2026-09-06. This file is the current integration checkpoint for the mobile
 - Baseline branch: `codex/mobile-baseline`
 - Frozen M0 SHA: `5bcaa2e78cb8f887a71638533d81d74fbb1f4a20`
 - Integration branch: `codex/mobile-integration`
-- Current published integration SHA before this handoff update: `1454cab63065138919782dc70a185521d5435cd1`
+- Last code/test basis verified before handoff-only commits: `1454cab63065138919782dc70a185521d5435cd1`
+- E guidance update commit: `ef60791` (`docs: update mobile integration handoff guidance`)
+- PM resume source commit: `0b343ca` on `origin/codex/mobile-product-plan`
+- PM resume cherry-pick on integration: `0278b6266071a9f523031bd304c2ffc7de1fbb13`
+- Current branch tip after this file is committed should be read with `git rev-parse origin/codex/mobile-integration`; E will also publish the exact SHA in the handoff message/PR.
 - Integration PR: https://github.com/CabbageCannon/study-diary-app/pull/3, base `codex/mobile-baseline`
 - Baseline PR: https://github.com/CabbageCannon/study-diary-app/pull/2, base `feat/study-diary-mvp`
 
@@ -24,6 +28,7 @@ Date: 2026-09-06. This file is the current integration checkpoint for the mobile
 - Backend test discovery is fixed for `backend/tests/test_time_utils.py`; current basis collected 62 unittest cases.
 - Claude/Codex guidance now treats SQLite as the personal production baseline, acknowledges Alembic, allows D's original Chinese mobile practice content, and points B/C/D to the integration branch rather than the frozen M0 SHA.
 - PM review commit `21e72da` was cherry-picked as `3ef49f26c993e9258b1710d75723593834b87808`; its historical findings are preserved.
+- PM continuation snapshot commit `0b343ca` was cherry-picked as `0278b6266071a9f523031bd304c2ffc7de1fbb13`; it added `docs/mobile-app/RESUME_2026-09-06.md` and a historical note in `NEXT_TASKS.md`. Do not repeatedly rewrite that snapshot; update this handoff for new facts.
 
 ## Role State
 
