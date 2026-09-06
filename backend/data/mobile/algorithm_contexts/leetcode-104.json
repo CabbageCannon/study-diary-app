@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "problem_key": "leetcode-104",
+  "title": "Maximum Depth of Binary Tree",
+  "title_zh": "二叉树的最大深度",
+  "statement_zh": "给定二叉树根节点 root，返回这棵树的最大深度。最大深度指从根节点到最远叶子节点路径上的节点数量；空树深度为 0。",
+  "input_output": {
+    "input": "root：二叉树根节点，树可能为空。",
+    "output": "整数，表示最大深度。"
+  },
+  "constraints": [
+    "树中节点数量范围为 0 到 10^4",
+    "-100 <= Node.val <= 100",
+    "深度按节点数计算，根节点单独存在时深度为 1"
+  ],
+  "examples": [
+    {
+      "input": "root = [1, 2, 3, null, 4]",
+      "output": "3",
+      "explanation": "最长路径可以是 1 -> 2 -> 4，共 3 个节点。"
+    },
+    {
+      "input": "root = []",
+      "output": "0",
+      "explanation": "空树没有节点，深度为 0。"
+    },
+    {
+      "input": "root = [7]",
+      "output": "1",
+      "explanation": "只有根节点时深度为 1。"
+    }
+  ],
+  "verification_points": [
+    {
+      "id": "vp-recursive-definition",
+      "kind": "key_insight",
+      "statement": "最大深度可递归定义为 max(左子树深度, 右子树深度) + 1，空节点深度为 0。",
+      "required": true,
+      "acceptable_variants": [
+        "BFS 按层遍历并统计层数也可接受。"
+      ]
+    },
+    {
+      "id": "vp-empty-tree",
+      "kind": "edge_case",
+      "statement": "空树应返回 0。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-node-count-depth",
+      "kind": "correctness_condition",
+      "statement": "深度按路径上的节点数计算，单节点树深度为 1。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-choose-max-not-sum",
+      "kind": "correctness_condition",
+      "statement": "左右子树深度取最大值，而不是相加。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-complexity",
+      "kind": "complexity",
+      "statement": "每个节点访问一次，时间 O(n)；递归栈或 BFS 队列空间最坏 O(n)。",
+      "required": false,
+      "acceptable_variants": []
+    }
+  ],
+  "acceptable_approaches": [
+    {
+      "name": "递归深度优先",
+      "idea": "若 root 为空返回 0；否则递归求左右子树最大深度，返回二者较大值加 1。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(h)",
+      "is_reference": true,
+      "note": "h 为树高，最坏退化为 O(n)。"
+    },
+    {
+      "name": "BFS 层序遍历",
+      "idea": "用队列逐层遍历，每处理完一层深度加 1，直到队列为空。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(n)",
+      "is_reference": false,
+      "note": "正确；适合口述层数统计。"
+    },
+    {
+      "name": "迭代 DFS 带深度",
+      "idea": "栈中保存节点及其当前深度，遍历时维护最大深度。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(n)",
+      "is_reference": false,
+      "note": "正确；需保存每个节点对应深度。"
+    }
+  ],
+  "common_mistakes": [
+    {
+      "description": "把左右子树深度相加，混淆为路径长度或节点总数。",
+      "counterexample": "root = [1,2,3]：最大深度是 2，不是 1+1+1 或左右深度相加。"
+    },
+    {
+      "description": "空树返回 1。",
+      "counterexample": "root = []：没有节点，正确深度是 0。"
+    },
+    {
+      "description": "单节点树返回 0，混淆节点数和边数。",
+      "counterexample": "root = [7]：按节点数计算深度为 1。"
+    }
+  ],
+  "edge_cases": [
+    {
+      "description": "空树。",
+      "expected_handling": "返回 0。"
+    },
+    {
+      "description": "单节点树。",
+      "expected_handling": "返回 1。"
+    },
+    {
+      "description": "退化成链表的树。",
+      "expected_handling": "仍访问每个节点，递归栈可能达到 O(n)。"
+    }
+  ],
+  "source": {
+    "name": "LeetCode CN 104. 二叉树的最大深度",
+    "url": "https://leetcode.cn/problems/maximum-depth-of-binary-tree/",
+    "license_note": "题意、示例、核对要点和反例均为原创中文转写，未复制外站题面或题解。",
+    "source_version": "2026-09-06 对照 leetcode.cn 官方题面核对"
+  },
+  "content_notes": "已核对官方题名、URL 和约束；DFS、BFS、迭代 DFS 都应被认可。",
+  "content_status": "ready"
+}
