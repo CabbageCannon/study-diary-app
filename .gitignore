@@ -23,8 +23,10 @@ output/playwright/
 *.log
 
 backend/data/*.db
+backend/data/*.db-journal
 backend/data/*.sqlite
 backend/data/*.sqlite3
 
 .DS_Store
 Thumbs.db
+.dev-processes.json

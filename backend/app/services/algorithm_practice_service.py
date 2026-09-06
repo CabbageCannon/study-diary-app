@@ -59,6 +59,7 @@ from app.schemas import (
     AlgorithmStatsRead,
     AlgorithmWeaknessRead,
 )
+from app.time_utils import app_local_date
 
 
 FINAL_ITEM_STATUSES = {"solved", "needs_review", "skipped"}
@@ -205,7 +206,7 @@ def _select_problems(db: Session, request: AlgorithmPracticeSessionCreate, sessi
     if request.mode == "daily":
         unsolved = [problem for problem in candidates if progress.get(problem.id) is None or progress[problem.id].status != "solved"]
         pool = [problem for problem in candidates if problem.id in due_ids] or unsolved or candidates
-        day_seed = now.date().isoformat()
+        day_seed = app_local_date(now).isoformat()
         return [sorted(pool, key=lambda problem: _stable_sort_key(day_seed, problem))[0]], len(pool)
 
     ordered = sorted(candidates, key=lambda problem: _stable_sort_key(session_seed, problem))
@@ -572,7 +573,7 @@ def _generate_daily_feed(
 
 
 def get_daily_feed(db: Session) -> AlgorithmDailyFeedRead:
-    recommendation_date = utc_now().date().isoformat()
+    recommendation_date = app_local_date(utc_now()).isoformat()
     settings = get_daily_recommendation_settings(db)
     if settings is None:
         get_daily_settings(db)
@@ -588,7 +589,7 @@ def get_daily_feed(db: Session) -> AlgorithmDailyFeedRead:
 
 
 def refresh_daily_feed(db: Session) -> AlgorithmDailyFeedRead:
-    recommendation_date = utc_now().date().isoformat()
+    recommendation_date = app_local_date(utc_now()).isoformat()
     settings = get_daily_recommendation_settings(db)
     if settings is None:
         get_daily_settings(db)
@@ -1044,7 +1045,7 @@ def similar_problems(db: Session, problem_id: str, *, limit: int) -> list[Algori
 def _date_key(value: datetime | None) -> str | None:
     if value is None:
         return None
-    return value.astimezone(timezone.utc).date().isoformat()
+    return app_local_date(value).isoformat()
 
 
 def algorithm_stats(db: Session) -> AlgorithmStatsRead:
@@ -1088,7 +1089,7 @@ def algorithm_stats(db: Session) -> AlgorithmStatsRead:
         completed_by_difficulty[problem.difficulty] = completed_by_difficulty.get(problem.difficulty, 0) + 1
         for topic in problem.topics:
             completed_by_topic[topic] += 1
-    today = now.date()
+    today = app_local_date(now)
     streak = 0
     while (today - timedelta(days=streak)).isoformat() in day_counts:
         streak += 1

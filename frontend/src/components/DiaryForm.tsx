@@ -5,6 +5,7 @@ interface DiaryFormProps {
   date: string;
   rawText: string;
   isGenerating: boolean;
+  draftStorageStatus: string;
   error: string;
   onDateChange: (date: string) => void;
   onRawTextChange: (text: string) => void;
@@ -15,6 +16,7 @@ export function DiaryForm({
   date,
   rawText,
   isGenerating,
+  draftStorageStatus,
   error,
   onDateChange,
   onRawTextChange,
@@ -54,6 +56,7 @@ export function DiaryForm({
           <span className="character-count" aria-live="polite">
             {rawText.length} 字
           </span>
+          {draftStorageStatus ? <span className="draft-storage-status" aria-live="polite">{draftStorageStatus}</span> : null}
           {error ? <p className="field-error">{error}</p> : null}
         </div>
         <button className="button button-primary" disabled={isGenerating} onClick={onGenerateDraft} type="button">

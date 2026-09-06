@@ -47,6 +47,7 @@ class Settings:
             "DESKTOP_PET_ORIGINS",
             "http://127.0.0.1:1420,http://tauri.localhost",
         ).strip()
+        self.app_timezone = os.getenv("APP_TIMEZONE", "Asia/Shanghai").strip() or "Asia/Shanghai"
         self.app_access_token = os.getenv("APP_ACCESS_TOKEN", "").strip()
         self.ai_rate_limit_per_minute = max(1, _read_int("AI_RATE_LIMIT_PER_MINUTE", 12))
         self.allow_question_review = _read_bool("ALLOW_QUESTION_REVIEW")

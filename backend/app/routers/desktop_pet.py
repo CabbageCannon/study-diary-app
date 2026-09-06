@@ -1,7 +1,7 @@
 import json
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -148,10 +148,12 @@ async def get_desktop_pet_weather(db: Session = Depends(get_db)) -> DesktopPetWe
 
 @router.get("/dashboard", response_model=DesktopPetDashboardRead)
 def get_desktop_pet_dashboard(
+    response: Response,
     local_date: date | None = Query(default=None, alias="date"),
     timezone_offset_minutes: int = Query(default=0, ge=-840, le=840),
     db: Session = Depends(get_db),
 ) -> DesktopPetDashboardRead:
+    response.headers["Cache-Control"] = "no-store"
     now = study_session_service.utc_now()
     summary = study_session_service.get_study_summary(db, local_date, timezone_offset_minutes, now)
     due_interview_reviews = db.scalar(

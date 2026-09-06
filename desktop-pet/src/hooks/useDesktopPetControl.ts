@@ -6,8 +6,9 @@ import { showPetWindow } from "../services/window";
 const POLL_INTERVAL_MS = 2_500;
 const MAX_RETRY_DELAY_MS = 30_000;
 
-export function useDesktopPetControl(accessToken: string) {
+export function useDesktopPetControl(accessToken: string, authReady: boolean) {
   useEffect(() => {
+    if (!authReady) return undefined;
     let cancelled = false;
     let timer: number | null = null;
     let controller: AbortController | null = null;
@@ -49,5 +50,5 @@ export function useDesktopPetControl(accessToken: string) {
       if (timer !== null) window.clearTimeout(timer);
       controller?.abort();
     };
-  }, [accessToken]);
+  }, [accessToken, authReady]);
 }

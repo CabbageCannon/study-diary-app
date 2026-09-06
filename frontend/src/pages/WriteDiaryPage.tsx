@@ -1,10 +1,17 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { createDiaryDraft, rewriteDiaryDraft, saveDiary } from "../api/client";
 import { DiaryDraftEditor } from "../components/DiaryDraftEditor";
 import { DiaryForm } from "../components/DiaryForm";
 import { TodayStudySummary } from "../components/TodayStudySummary";
+import {
+  clearDiaryDraftSnapshot,
+  diaryDraftContentKey,
+  loadDiaryDraftSnapshot,
+  saveDiaryDraftSnapshot,
+  type DiaryDraftSnapshotInput,
+} from "../services/diaryDraftStorage";
 import type { DiaryDraft, DiaryDraftContent } from "../types/diary";
 
 function getToday() {
@@ -40,15 +47,43 @@ function validateDraft(draft: DiaryDraft) {
 
 export function WriteDiaryPage() {
   const navigate = useNavigate();
-  const [date, setDate] = useState(getToday);
-  const [rawText, setRawText] = useState("");
-  const [draft, setDraft] = useState<DiaryDraft | null>(null);
-  const [feedback, setFeedback] = useState("");
+  const [initialSnapshot] = useState(loadDiaryDraftSnapshot);
+  const [date, setDate] = useState(() => initialSnapshot?.date ?? getToday());
+  const [rawText, setRawText] = useState(() => initialSnapshot?.rawText ?? "");
+  const [draft, setDraft] = useState<DiaryDraft | null>(() => initialSnapshot?.draft ?? null);
+  const [feedback, setFeedback] = useState(() => initialSnapshot?.feedback ?? "");
+  const [draftStorageStatus, setDraftStorageStatus] = useState(() => initialSnapshot ? "已恢复本机草稿" : "");
+  const lastSavedContentRef = useRef(initialSnapshot ? diaryDraftContentKey(initialSnapshot) : "");
   const [inputError, setInputError] = useState("");
   const [draftError, setDraftError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isRewriting, setIsRewriting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    const snapshot: DiaryDraftSnapshotInput = { date, rawText, draft, feedback };
+    const contentKey = diaryDraftContentKey(snapshot);
+    const hasContent = Boolean(rawText.trim() || draft || feedback.trim());
+
+    if (!hasContent) {
+      clearDiaryDraftSnapshot();
+      lastSavedContentRef.current = "";
+      setDraftStorageStatus("");
+      return;
+    }
+    if (contentKey === lastSavedContentRef.current) return;
+
+    const timer = window.setTimeout(() => {
+      const saved = saveDiaryDraftSnapshot(snapshot);
+      if (saved) {
+        lastSavedContentRef.current = contentKey;
+        setDraftStorageStatus("草稿已自动保存到本机");
+      } else {
+        setDraftStorageStatus("本机草稿保存失败");
+      }
+    }, 500);
+    return () => window.clearTimeout(timer);
+  }, [date, draft, feedback, rawText]);
 
   function handleDateChange(nextDate: string) {
     setDate(nextDate);
@@ -132,6 +167,8 @@ export function WriteDiaryPage() {
         summary: draft.summary.trim(),
         tags: draft.tags.map((tag) => tag.trim()).filter(Boolean),
       });
+      clearDiaryDraftSnapshot();
+      lastSavedContentRef.current = "";
       navigate(`/history?diaryId=${saved.id}&saved=1`);
     } catch (error) {
       setDraftError(error instanceof Error ? error.message : "保存失败，请稍后重试。");
@@ -155,6 +192,7 @@ export function WriteDiaryPage() {
           date={date}
           rawText={rawText}
           isGenerating={isGenerating}
+          draftStorageStatus={draftStorageStatus}
           error={inputError}
           onDateChange={handleDateChange}
           onRawTextChange={handleRawTextChange}

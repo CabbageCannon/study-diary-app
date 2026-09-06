@@ -154,6 +154,46 @@ class DesktopPetSummaryAndControlTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200, response.text)
         self.assertEqual(len(response.json()), 1)
 
+    def test_start_complete_and_dashboard_share_the_same_completed_session(self) -> None:
+        create_payload = {
+            "client_event_id": "desktop-api-complete-event-1",
+            "activity_type": "reading",
+            "title": "同步链路测试",
+            "started_at": "2026-08-04T01:00:00Z",
+        }
+        self.assertEqual(self.client.post("/api/study-sessions", json=create_payload).status_code, 401)
+
+        created = self.client.post("/api/study-sessions", headers=self.headers, json=create_payload)
+        self.assertEqual(created.status_code, 201, created.text)
+        session_id = created.json()["id"]
+
+        completed = self.client.post(
+            f"/api/study-sessions/{session_id}/complete",
+            headers=self.headers,
+            json={"accumulated_seconds": 330, "occurred_at": "2026-08-04T01:05:30Z"},
+        )
+        self.assertEqual(completed.status_code, 200, completed.text)
+        self.assertEqual(completed.json()["status"], "completed")
+        self.assertEqual(completed.json()["accumulated_seconds"], 330)
+
+        for timezone_offset_minutes in (480, 540):
+            dashboard = self.client.get(
+                f"/api/desktop-pet/dashboard?date=2026-08-04&timezone_offset_minutes={timezone_offset_minutes}",
+                headers=self.headers,
+            )
+            self.assertEqual(dashboard.status_code, 200, dashboard.text)
+            self.assertEqual(dashboard.headers["cache-control"], "no-store")
+            data = dashboard.json()
+            self.assertEqual(data["today_session_count"], 1)
+            self.assertEqual(data["today_study_seconds"], 330)
+            self.assertGreaterEqual(data["total_study_seconds"], 330)
+            self.assertEqual(data["today_topics"][0]["title"], "同步链路测试")
+
+        replay = self.client.post("/api/study-sessions", headers=self.headers, json=create_payload)
+        self.assertEqual(replay.status_code, 201, replay.text)
+        self.assertEqual(replay.json()["id"], session_id)
+        self.assertEqual(self.session.query(StudySession).count(), 1)
+
     def test_show_control_requires_access_and_is_versioned(self) -> None:
         self.assertEqual(self.client.post("/api/desktop-pet/control/show").status_code, 401)
         first = self.client.post("/api/desktop-pet/control/show", headers=self.headers)

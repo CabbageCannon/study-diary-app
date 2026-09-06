@@ -4780,6 +4780,34 @@ html[data-theme="quiet"] .date-picker-day-selected:focus-visible {
   padding: 0 0 16px;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.desktop-pet-access-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 280px) auto;
+  gap: 8px 12px;
+  align-items: center;
+  max-width: 1040px;
+  border-bottom: 1px solid var(--rule);
+  padding: 0 0 16px;
+}
+
+.desktop-pet-access-control > div:first-child { display: grid; gap: 4px; }
+.desktop-pet-access-control p { margin: 0; color: var(--ink-soft); font-size: 0.84rem; line-height: 1.45; }
+.desktop-pet-access-input input { width: 100%; min-height: 34px; }
+.desktop-pet-access-actions { display: flex; align-items: center; gap: 8px; }
+.desktop-pet-access-actions .button { min-height: 34px; white-space: nowrap; }
+
 .desktop-pet-window-control > div { display: grid; gap: 4px; }
 .desktop-pet-window-control p { margin: 0; color: var(--ink-soft); font-size: 0.84rem; line-height: 1.45; }
 .desktop-pet-window-control .button { min-height: 34px; white-space: nowrap; }
@@ -4790,6 +4818,8 @@ html[data-theme="quiet"] .date-picker-day-selected:focus-visible {
 .today-study-summary { display: grid; gap: 2px; min-width: 218px; color: var(--ink-soft); font-size: 0.78rem; line-height: 1.35; }
 .today-study-summary strong { color: var(--accent-strong); font-size: 0.84rem; font-variant-numeric: tabular-nums; }
 .today-study-summary span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.today-study-summary a { width: fit-content; color: var(--accent-strong); font-weight: 700; }
+.today-study-summary-stale { color: var(--muted); font-size: 0.72rem; }
 .today-study-summary-loading { align-content: center; min-height: 34px; }
 .today-study-summary-line { display: block; width: 164px; height: 9px; background: var(--rule); opacity: 0.55; }
 .today-study-summary-line-short { width: 122px; }
@@ -4889,7 +4919,10 @@ html[data-theme="quiet"] .date-picker-day-selected:focus-visible {
 
 @media (max-width: 760px) {
   .desktop-pet-settings-form { gap: 16px; padding: 20px var(--content-pad) calc(96px + var(--safe-bottom)); }
+  .desktop-pet-access-control,
   .desktop-pet-window-control { grid-template-columns: 1fr; gap: 10px; }
+  .desktop-pet-access-actions { justify-content: stretch; }
+  .desktop-pet-access-actions .button { flex: 1; }
   .desktop-pet-window-control .button { width: 100%; justify-content: center; }
   .write-title-row { align-items: start; }
   .today-study-summary { min-width: 0; width: 100%; }

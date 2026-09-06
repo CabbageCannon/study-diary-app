@@ -17,12 +17,12 @@ export const defaultDesktopPetConfig: DesktopPetConfig = {
   updated_at: "",
 };
 
-export function useDesktopPetConfig(accessToken: string) {
+export function useDesktopPetConfig(accessToken: string, authReady: boolean) {
   const [config, setConfig] = useState<DesktopPetConfig>(defaultDesktopPetConfig);
   const [error, setError] = useState("");
 
   const refresh = useCallback(async () => {
-    if (!accessToken) return;
+    if (!authReady) return;
     try {
       const next = await getDesktopPetConfig(accessToken);
       setConfig(next);
@@ -31,7 +31,7 @@ export function useDesktopPetConfig(accessToken: string) {
     } catch (refreshError) {
       setError(refreshError instanceof Error ? refreshError.message : "桌宠配置同步失败。");
     }
-  }, [accessToken]);
+  }, [accessToken, authReady]);
 
   useEffect(() => {
     void loadCachedConfig().then((cached) => {
@@ -41,10 +41,10 @@ export function useDesktopPetConfig(accessToken: string) {
 
   useEffect(() => {
     void refresh();
-    if (!accessToken) return undefined;
+    if (!authReady) return undefined;
     const timer = window.setInterval(() => void refresh(), 5 * 60_000);
     return () => window.clearInterval(timer);
-  }, [accessToken, refresh]);
+  }, [authReady, refresh]);
 
   return { config, error, refresh };
 }
