@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { BookOpenIcon } from "@phosphor-icons/react/BookOpen";
-import { DotsThreeIcon } from "@phosphor-icons/react/DotsThree";
 import { HouseIcon } from "@phosphor-icons/react/House";
 import { MoonIcon } from "@phosphor-icons/react/Moon";
-import { PlayCircleIcon } from "@phosphor-icons/react/PlayCircle";
 import { TreeStructureIcon } from "@phosphor-icons/react/TreeStructure";
 import { SunIcon } from "@phosphor-icons/react/Sun";
+import { UserCircleIcon } from "@phosphor-icons/react/UserCircle";
 
 import { useTheme } from "../contexts/ThemeContext";
 import { MobileMoreSheet } from "./MobileMoreSheet";
@@ -39,7 +38,7 @@ export function Navigation() {
   const desktopTools = [...desktopToolItems, ...(questionReviewEnabled ? [{ to: "/interview/review", label: "题库审核", matches: (path: string) => path === "/interview/review" }] : [])];
   const algorithmTrainingActive = pathname === "/algorithms" || pathname.startsWith("/algorithms/session/") || pathname.startsWith("/algorithms/problems/");
   const interviewTrainingActive = pathname === "/interview" || pathname.startsWith("/interview/session/");
-  const moreActive = moreOpen || pathname === "/history" || pathname === "/interview/history" || pathname === "/interview/review" || pathname === "/settings/desktop-pet" || pathname === "/algorithms/history" || pathname === "/algorithms/review" || pathname === "/algorithms/settings";
+  const moreActive = moreOpen || pathname === "/write" || pathname === "/history" || pathname === "/interview/history" || pathname === "/interview/review" || pathname === "/settings/desktop-pet" || pathname === "/algorithms/history" || pathname === "/algorithms/review" || pathname === "/algorithms/settings";
 
   return (
     <>
@@ -87,11 +86,10 @@ export function Navigation() {
       </nav>
 
       <nav className="mobile-bottom-navigation" aria-label="移动端主导航">
-        <NavLink className={pathname === "/today" ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/today"><HouseIcon aria-hidden="true" size={21} weight="bold" /><span>今日</span></NavLink>
-        <NavLink className={pathname === "/write" ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/write"><BookOpenIcon aria-hidden="true" size={21} weight="bold" /><span>日记</span></NavLink>
-        <NavLink className={algorithmTrainingActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/algorithms"><TreeStructureIcon aria-hidden="true" size={21} weight="bold" /><span>算法</span></NavLink>
-        <NavLink className={interviewTrainingActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/interview"><PlayCircleIcon aria-hidden="true" size={21} weight="fill" /><span>训练</span></NavLink>
-        <button className={moreActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} aria-expanded={moreOpen} aria-haspopup="dialog" onClick={() => setMoreOpen(true)} type="button"><DotsThreeIcon aria-hidden="true" size={21} weight="bold" /><span>更多</span></button>
+        <NavLink className={pathname === "/today" ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/today"><HouseIcon aria-hidden="true" size={20} weight="regular" /><span>今日</span></NavLink>
+        <NavLink className={interviewTrainingActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/interview"><BookOpenIcon aria-hidden="true" size={20} weight="regular" /><span>八股</span></NavLink>
+        <NavLink className={algorithmTrainingActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/algorithms"><TreeStructureIcon aria-hidden="true" size={20} weight="regular" /><span>算法</span></NavLink>
+        <button className={moreActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} aria-expanded={moreOpen} aria-haspopup="dialog" onClick={() => setMoreOpen(true)} type="button"><UserCircleIcon aria-hidden="true" size={20} weight="regular" /><span>我的</span></button>
       </nav>
       <MobileMoreSheet open={moreOpen} reviewEnabled={questionReviewEnabled} onClose={() => setMoreOpen(false)} />
     </>

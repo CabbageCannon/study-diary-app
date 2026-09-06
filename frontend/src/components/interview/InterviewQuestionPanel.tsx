@@ -41,16 +41,16 @@ export function InterviewQuestionPanel({
       </div>
 
       <label className="editor-field interview-answer-field">
-        <span>确认后的回答</span>
+        <span>我的回答</span>
         <textarea
           disabled={disabled}
           value={answerText}
           onChange={(event) => { onAnswerSourceChange("text"); onAnswerChange(event.target.value); }}
-          placeholder="可以边说边看转写，也可以直接输入。确认内容后再提交评分。"
+          placeholder="可以用系统键盘听写，也可以直接输入。先用自己的话讲一遍。"
           rows={11}
         />
       </label>
-      <span className="character-count">{answerSource === "voice" ? "来源：语音转写，可继续修改" : "来源：手动输入"}</span>
+      <span className="character-count">{answerSource === "voice" ? "来源：语音转写，可继续修改" : "本机草稿会自动保留"}</span>
     </section>
   );
 }

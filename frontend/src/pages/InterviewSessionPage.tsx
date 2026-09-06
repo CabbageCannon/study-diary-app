@@ -203,7 +203,7 @@ export function InterviewSessionPage() {
   return (
     <div className="page-stack interview-session-page">
       <header className="session-header">
-        <div><span className="page-kicker">训练会话</span><h1>{isReadOnly ? (questionSet.status === "completed" ? "训练已完成" : "训练已放弃") : "训练会话"}</h1></div>
+        <button className="back-link focus-back-button" onClick={() => navigate("/interview")} type="button"><ArrowLeftIcon aria-hidden="true" size={17} />八股训练</button>
         <InterviewProgress questionSet={questionSet} />
       </header>
 
@@ -247,7 +247,7 @@ export function InterviewSessionPage() {
             {draftSaveLabel(draft.saveState) ? <span className="draft-save-state" role="status">{draftSaveLabel(draft.saveState)}</span> : null}
             <button className="button button-primary" disabled={!canSubmit} onClick={() => void handleSubmit()} type="button">
               <PlayIcon aria-hidden="true" size={16} weight="fill" />
-              {isSubmitting ? "正在评分..." : retryMode ? "提交新版本" : "提交回答"}
+              {isSubmitting ? "正在保存并核对" : retryMode ? "核对新回答" : "核对回答"}
             </button>
             {retryMode ? (
               <button className="button button-secondary" disabled={isSubmitting} onClick={handleNext} type="button"><XIcon aria-hidden="true" size={16} weight="bold" />取消重答</button>

@@ -17,7 +17,7 @@ import { getLastActiveInterviewSession } from "../hooks/useInterviewAnswerDraft"
 import type { CreateQuestionSetPayload, InterviewQuestionSetSummary, InterviewTrainingStats } from "../types/interview";
 
 const initialPayload: CreateQuestionSetPayload = {
-  question_count: 5,
+  question_count: 3,
   include_due_reviews: true,
   random_order: true,
 };
@@ -111,10 +111,10 @@ export function InterviewPage() {
       <header className="page-header">
         <div>
           <span className="page-kicker">八股训练</span>
-          <h1>八股训练</h1>
+          <h1>先回忆，再核对。</h1>
         </div>
         <p>
-          {stats ? `连续 ${stats.streak_days} 天 · 今日 ${stats.today_answered_count} 题 · 待复习 ${stats.due_review_count} 题` : "训练状态正在同步"}
+          {stats ? `连续 ${stats.streak_days} 天 / 今日 ${stats.today_answered_count} 题 / 待复习 ${stats.due_review_count} 题` : "训练状态正在同步"}
         </p>
       </header>
 
@@ -133,12 +133,25 @@ export function InterviewPage() {
         </section>
       ) : null}
 
-      <div className="interview-setup-layout">
-        <InterviewSetupForm value={payload} isSubmitting={isSubmitting} error={error} onChange={setPayload} onSubmit={() => void startTraining()} />
+      <div className="interview-setup-layout mobile-learning-entry">
+        <section className="mobile-start-panel" aria-labelledby="interview-start-title">
+          <span className="pane-label">快速开始</span>
+          <h2 id="interview-start-title">练 3 道最近的题</h2>
+          <p>分类和难度可以之后再调；先用短题集把回忆和核对跑起来。</p>
+          {error ? <p className="field-error" role="alert">{error}</p> : null}
+          <button className="button button-primary" disabled={isSubmitting} onClick={() => void startTraining()} type="button">
+            <PlayIcon aria-hidden="true" size={16} weight="fill" />
+            {isSubmitting ? "正在创建" : "开始练 3 道"}
+          </button>
+          <details className="mobile-entry-details">
+            <summary>调整题集</summary>
+            <InterviewSetupForm value={payload} isSubmitting={isSubmitting} error="" onChange={setPayload} onSubmit={() => void startTraining()} />
+          </details>
+        </section>
         <aside className="interview-context" aria-label="训练统计">
           <span className="pane-label">学习状态</span>
-          <strong className="tabular-number">{dueCount ?? "—"}</strong>
-          <p>道题当前到期。累计完成 {stats?.total_answered_count ?? "—"} 题，最近平均分 {stats?.recent_average_score ?? "—"}。</p>
+          <strong className="tabular-number">{dueCount ?? "待同步"}</strong>
+          <p>道题当前到期。累计完成 {stats?.total_answered_count ?? "待同步"} 题，最近平均分 {stats?.recent_average_score ?? "待同步"}。</p>
           {stats?.domains.length ? <div className="interview-domain-summary">{stats.domains.map((item) => <span key={item.domain}>{item.domain} {item.answered_count} 题</span>)}</div> : null}
         </aside>
       </div>
