@@ -9,11 +9,6 @@ const themes = {
     bg: '#EEF3EE', surface: '#FBFDFC', wash: '#E3ECE5', ink: '#1D2821', muted: '#617066',
     rule: '#C9D4CC', accent: '#35664D', accentSoft: '#DCEBE0', warning: '#855E32', danger: '#9A4A43', dangerSoft: '#F5E9E6',
   },
-  paper: {
-    label: '暖白纸张', out: 'exploration/warm-paper',
-    bg: '#F8F4EC', surface: '#FFFCF6', wash: '#F0E8D9', ink: '#29251F', muted: '#716B60',
-    rule: '#D9D0C0', accent: '#596347', accentSoft: '#E8E9D8', warning: '#81633D', danger: '#9B6752', dangerSoft: '#F5E9E4',
-  },
 };
 
 const screen = { w: 1170, h: 2532, x: 72, r: 46, contentW: 1026 };
@@ -104,12 +99,11 @@ function documentSvg(t, body, title) {
 }
 
 const pages = { '01-today': today, '02-interview-answer': interview, '03-algorithm-answer': algorithm, '04-check-feedback': feedback, '05-review-list': review };
-for (const t of Object.values(themes)) {
-  for (const [name, render] of Object.entries(pages)) {
-    const output = resolve(root, t.out, `${name}.svg`);
-    mkdirSync(dirname(output), { recursive: true });
-    writeFileSync(output, documentSvg(t, render(t), `${t.label} · ${name}`));
-  }
+const t = themes.mist;
+for (const [name, render] of Object.entries(pages)) {
+  const output = resolve(root, t.out, `${name}.svg`);
+  mkdirSync(dirname(output), { recursive: true });
+  writeFileSync(output, documentSvg(t, render(t), `${t.label} · ${name}`));
 }
 const statePages = { '06-keyboard-open': keyboard, '07-checking': checking, '08-failed-retry': failed, '09-empty-review': empty };
 for (const [name, render] of Object.entries(statePages)) {
