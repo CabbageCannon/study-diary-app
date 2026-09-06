@@ -110,7 +110,7 @@
 
 ## 6. 首批三题（D 的第一批交付）
 
-按 NEXT_TASKS.md：`leetcode-1` 两数之和、`leetcode-20` 有效括号、`leetcode-704` 二分查找。交付流程：
+按 PM 2026-09-06 补充协调和 D 已完成的 Claude Code 延续工作：首批为 `leetcode-1` 两数之和、`leetcode-15` 三数之和、`leetcode-322` 零钱兑换。交付流程：
 
 1. D 先在 `docs/mobile-app/content/` 放可读稿（含以上全部字段的实质内容）；
 2. C 确认可映射到本 schema（有出入则 C 更新本文件并升 schema_version）；

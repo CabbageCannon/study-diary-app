@@ -23,7 +23,7 @@
 | `POST /api/algorithms/reasoning/checks` | **一键核对**：幂等保存回答 → LLM 核对 → 返回两段状态 | 是 | 是 |
 | `POST /api/algorithms/reasoning/answers/{answer_id}/check` | 对**已保存**回答（重新）核对；失败重试走这里，不重复保存 | 是 | 是 |
 | `GET /api/algorithms/reasoning/answers/{answer_id}` | 恢复某版本回答及其绑定的 feedback（刷新/切后台恢复） | 否 | 否 |
-| `GET /api/algorithms/reasoning/answers?problem_id=&session_id=&limit=` | 按题/会话列出回答版本与核对状态（历史与继续训练） | 否 | 否 |
+| `GET /api/algorithms/reasoning/answers?problem_id=&session_id=&client_answer_id=&limit=` | 按题/会话/客户端 UUID 列出回答版本与核对状态（历史、继续训练、断线恢复） | 否 | 否 |
 
 `problem_id` 兼容现有语义：可传数据库整型 id 或 `stable_key`（如 `leetcode-1`），与 `GET /api/algorithms/problems/{problem_id}` 一致。
 
@@ -65,7 +65,8 @@ check_status: "not_attempted" | "completed" | "failed" | "context_unavailable"
 ### 2.3 HTTP 语义
 
 - `POST /reasoning/checks`：**201** = 新回答已保存（无论核对成败，核对结果看信封）；**200** = 幂等命中（同 `client_answer_id` 已存在，未新建回答）；**422** = 校验失败，`save_status="save_failed"`，未保存。
-- `POST /reasoning/answers/{answer_id}/check`：**200** = 核对完成或核对失败（看 `check_status`）；**404** = 回答不存在；**409** = 题目上下文未就绪（`check_status="context_unavailable"` 同样会在 200 信封中返回，409 仅用于回答所属题目已无上下文等硬冲突）。
+- `POST /reasoning/answers/{answer_id}/check`：**200** = 核对完成、核对失败或上下文暂不可用（看 `check_status`）；**404** = 回答不存在；**409** = 回答所属题目/会话关系已经不一致等硬冲突。
+- 同一个 `client_answer_id` 重复提交：内容完全一致时 **200** 返回已保存回答；若 `problem_id`、`session_id`、`revision_of_answer_id`、`answer_text`、`answer_source` 或 `details` 任一项不同，返回 **409**，不得覆盖旧回答，也不得把旧 feedback 绑定到新文本。
 - LLM 失败**不**使用 503 表达（与旧 `/ai-review` 不同）：一键核对是“部分成功”场景，保存成功即 2xx，核对失败由信封表达，B 依据 `retry` 引导重试。
 - 所有写接口受 `APP_ACCESS_TOKEN` / `X-Study-Diary-Access` 保护，与现有 `/api/` 一致；AI 路径超限流返回 **429**（`Retry-After: 60`），B 应显示“稍后再试”，已保存内容不受影响。
 
@@ -213,7 +214,7 @@ check_status: "not_attempted" | "completed" | "failed" | "context_unavailable"
 5. **feedback 绑定版本**：feedback 与 `answer_id` 一对一（数据库唯一约束）。`GET answer` 只返回属于该版本的 feedback；新版本未完成核对时 `feedback=null`、`check_status="not_attempted"`。
 6. **修订核对携带前次结论**：服务端在新版本核对时自动把上一版 feedback 的结论与问题点注入 LLM 上下文（“用户针对哪些反馈做了补充”），B 无需传旧反馈内容。
 7. **429 限流**：限流只可能拦截 AI 路径；纯保存端点不限流。B 收到 429 时回答可能已保存（一键核对场景），应按信封/`GET answer` 恢复，不重复生成 `client_answer_id`。
-8. **崩溃恢复**：刷新/切后台后，B 用本地记住的 `answer_id`（或 `client_answer_id` 查询参数：`GET /reasoning/answers?client_answer_id=...`，实现阶段提供）恢复状态；服务端状态是唯一事实源。
+8. **崩溃/断线恢复**：刷新、切后台或请求无响应后，B 用本地记住的 `answer_id` 或 `client_answer_id` 查询参数：`GET /reasoning/answers?client_answer_id=...` 恢复状态；服务端状态是唯一事实源。网络失败可能发生在“服务端已保存但响应丢失”之后，B 不得一律显示为 `save_failed`，而应先查询恢复，查不到再用同一 `client_answer_id` 安全重试。
 
 ## 5. LLM 输入与输出契约（`prompt_version: reasoning-check-v1`）
 
