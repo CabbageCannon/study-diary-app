@@ -11,7 +11,7 @@ Date: 2026-09-06. This file is the current integration checkpoint for the mobile
 - E guidance update commit: `ef60791` (`docs: update mobile integration handoff guidance`)
 - PM resume source commit: `0b343ca` on `origin/codex/mobile-product-plan`
 - PM resume cherry-pick on integration: `0278b6266071a9f523031bd304c2ffc7de1fbb13`
-- Latest role merge before this handoff update: `0c04236cce3f0714f2426e0023ed6d789e3d8c67`
+- Latest role merge before this handoff update: `dc66c048f1caff427717371a10121ed639191bb7`
 - Current branch tip after this file is committed should be read with `git rev-parse origin/codex/mobile-integration`; E will also publish the exact SHA in the handoff message/PR.
 - Integration PR: https://github.com/CabbageCannon/study-diary-app/pull/3, base `codex/mobile-baseline`
 - Baseline PR: https://github.com/CabbageCannon/study-diary-app/pull/2, base `feat/study-diary-mvp`
@@ -34,11 +34,12 @@ Date: 2026-09-06. This file is the current integration checkpoint for the mobile
 - C protocol source `981bba139b00d96787431b187b0005bf2944c71a` was integrated as `ec48c864dbbfc846dc5e25d0d07d890c28d6263c` after confirming the branch only changed `docs/mobile-app/api/**`.
 - D first mobile reasoning contexts source `f8a133c02658bd56c3cdad3f1ea75d11dd6b41e4` was integrated as `37de29f12330040522ff300686f0c176a225cf54` after confirming the branch only changed `backend/data/mobile/**` and `docs/mobile-app/content/**`.
 - D final content package source `0c04236cce3f0714f2426e0023ed6d789e3d8c67` was fast-forwarded into integration. It adds 9 more algorithm context JSON files for a total of 12 ready contexts, plus the D handoff, content README, and interview seed review.
+- C backend implementation source `d5cf31a76cc1423860dd350f454f833d612cbe80` was integrated as `dc66c048f1caff427717371a10121ed639191bb7`; implementation body is `44796e2a903f58b50c90a1dd7e7403e4cde65ac3`.
 
 ## Role State
 
 - A design: final mist-sage design is integrated from source `5afceefe9e985cea1ad91f3bbe71e37ceb540a83`. PR #4 remains the role PR; E did not modify A's worktree.
-- C backend/LLM: protocol and fixtures are integrated from source `981bba139b00d96787431b187b0005bf2944c71a`. Backend implementation is still pending on the same role branch and must be reviewed separately before merge.
+- C backend/LLM: protocol, fixtures, Alembic migration, mobile reasoning API, LLM adapter, import path, and tests are integrated from source `d5cf31a76cc1423860dd350f454f833d612cbe80`. Real LLM end-to-end validation is still pending.
 - D content: final content package is integrated from source `0c04236cce3f0714f2426e0023ed6d789e3d8c67`. It contains 12 ready algorithm contexts and records the 27 interview seed questions as pending review, not verified training content.
 - B frontend: PM reported task `01a076ff-7554-7190-b81b-d7f519df3660` started from detached `2c6a83c` and instructed to integrate `origin/codex/mobile-integration`. Await branch/PR.
 
@@ -67,6 +68,14 @@ After fast-forwarding D final content package, E ran:
 - D schema shape check for `backend/data/mobile/algorithm_contexts/*.json`, passed with `files=12 ready=12 draft=0 errors=0`.
 - `D:/学习日记/backend/.venv/Scripts/python.exe scripts/validate_seed_data.py` from `D:/mobile-integration-worktree/backend`, passed with `疑似重复题: 0`.
 - `git diff --check origin/codex/mobile-integration..HEAD`, passed.
+
+After integrating C backend implementation, E ran from `D:/mobile-integration-worktree/backend` using `D:/学习日记/backend/.venv/Scripts/python.exe`:
+
+- `python -m compileall app scripts`, passed.
+- `python -m unittest discover -s tests -v`, passed with 72 tests.
+- `python scripts/import_seed_data.py --all --dry-run`, passed; it imported 18 algorithm metadata rows, 12 mobile contexts, and 27 interview questions inside the dry-run transaction.
+- `python -m alembic upgrade head` against a temporary SQLite database, passed through revision `20260906_01`.
+- `git diff --check`, passed after the C merge and handoff edit.
 
 These are local build/test results only. They are not public HTTPS deployment, real Safari, real iPhone, or real LLM acceptance.
 
