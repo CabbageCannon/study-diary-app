@@ -1,0 +1,20 @@
+[Unit]
+Description=Study Diary FastAPI service
+After=network.target
+
+[Service]
+Type=simple
+User=study-diary
+Group=study-diary
+WorkingDirectory=/srv/study-diary/backend
+EnvironmentFile=/etc/study-diary/api.env
+ExecStart=/srv/study-diary/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=/var/lib/study-diary
+
+[Install]
+WantedBy=multi-user.target
