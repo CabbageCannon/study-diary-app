@@ -39,27 +39,9 @@ export function TodayPage() {
       <header className="today-hero">
         <div className="today-hero-copy">
           <span className="page-kicker">{todayLabel()}</span>
-          <h1>{hasProgress ? "今天已经在向前走。" : "今天，先完成一件重要的小事。"}</h1>
-          <p>把日记、算法和八股训练收拢到一个入口。先续上未完成的内容，再决定今天的新任务。</p>
+          <h1>{hasProgress ? "今天已经在向前走。" : "今天，慢一点也没关系。"}</h1>
+          <p>先续上未完成的训练，或者只讲一道题。</p>
         </div>
-        <dl className="today-metrics" aria-label="今日学习概况">
-          <div>
-            <dt>桌宠专注</dt>
-            <dd>{isLoading ? <span className="today-inline-skeleton" /> : formatStudyDuration(focusSeconds)}</dd>
-          </div>
-          <div>
-            <dt>算法完成</dt>
-            <dd className="tabular-number">{isLoading ? "—" : `${data.algorithmStats?.today_completed_count ?? 0} 题`}</dd>
-          </div>
-          <div>
-            <dt>八股回答</dt>
-            <dd className="tabular-number">{isLoading ? "—" : `${data.interviewStats?.today_answered_count ?? 0} 题`}</dd>
-          </div>
-          <div>
-            <dt>到期复习</dt>
-            <dd className="tabular-number">{isLoading ? "—" : `${dueCount} 项`}</dd>
-          </div>
-        </dl>
       </header>
 
       {failedSectionCount > 0 && !isLoading ? (
@@ -76,7 +58,7 @@ export function TodayPage() {
               <span className="pane-label">接下来</span>
               <h2 id="today-priority-title">先从这里继续</h2>
             </div>
-            <span>{algorithmSession || interviewSession ? "未完成内容已置顶" : "今天没有遗留任务"}</span>
+            <span>{algorithmSession || interviewSession ? "未完成内容已置顶" : "没有遗留任务"}</span>
           </div>
 
           {isLoading ? (
@@ -110,18 +92,24 @@ export function TodayPage() {
             <div className="today-empty-state">
               <strong>没有需要续上的训练</strong>
               <p>可以直接开始今日算法题，或先写下此刻最想解决的问题。</p>
-              <Link className="button button-primary" to="/algorithms">开始今日训练</Link>
+              <Link className="button button-primary" to="/algorithms">讲一道算法</Link>
             </div>
           )}
 
+          <div className="today-start-list">
+            <Link to="/interview"><BookOpenIcon aria-hidden="true" size={18} weight="regular" /><span><strong>练 3 道八股</strong><small>先回忆，再核对</small></span><ArrowRightIcon aria-hidden="true" size={16} weight="bold" /></Link>
+            <Link to="/algorithms"><TreeStructureIcon aria-hidden="true" size={18} weight="regular" /><span><strong>讲一道算法</strong><small>题意、思路和反馈</small></span><ArrowRightIcon aria-hidden="true" size={16} weight="bold" /></Link>
+            <Link to="/algorithms/review"><ClockIcon aria-hidden="true" size={18} weight="regular" /><span><strong>有 {isLoading ? "待同步" : dueCount} 项待复习</strong><small>按到期顺序处理</small></span><ArrowRightIcon aria-hidden="true" size={16} weight="bold" /></Link>
+          </div>
+
           <div className="today-recommendation">
-            <div className="today-recommendation-index" aria-hidden="true">01</div>
+            <div className="today-recommendation-index" aria-hidden="true">今</div>
             <div>
               <span className="pane-label">今日算法</span>
               <h3>{data.algorithmFeed?.primary_problem.title_zh ?? data.algorithmFeed?.primary_problem.title ?? "每日推荐正在准备"}</h3>
               <p>
                 {data.algorithmFeed
-                  ? `${data.algorithmFeed.primary_problem.difficulty.toUpperCase()} · ${data.algorithmFeed.primary_problem.topics.slice(0, 3).join(" / ") || "综合训练"}`
+                  ? `${data.algorithmFeed.primary_problem.difficulty.toUpperCase()} / ${data.algorithmFeed.primary_problem.topics.slice(0, 3).join(" / ") || "综合训练"}`
                   : "进入算法训练页查看题库与当前推荐。"}
               </p>
             </div>
@@ -131,13 +119,9 @@ export function TodayPage() {
 
         <aside className="today-sidebar" aria-label="今日快捷入口">
           <section className="today-quick-actions">
-            <span className="pane-label">快速开始</span>
+            <span className="pane-label">记录</span>
             <h2>今天想留下什么？</h2>
-            <div>
-              <Link to="/write"><BookOpenIcon aria-hidden="true" size={18} weight="bold" /><span><strong>写学习日记</strong><small>记录、整理并生成复盘</small></span><ArrowRightIcon aria-hidden="true" size={16} weight="bold" /></Link>
-              <Link to="/algorithms"><TreeStructureIcon aria-hidden="true" size={18} weight="bold" /><span><strong>算法训练</strong><small>每日推荐与到期复习</small></span><ArrowRightIcon aria-hidden="true" size={16} weight="bold" /></Link>
-              <Link to="/interview"><PlayIcon aria-hidden="true" size={18} weight="fill" /><span><strong>八股训练</strong><small>口述回答与 AI 评价</small></span><ArrowRightIcon aria-hidden="true" size={16} weight="bold" /></Link>
-            </div>
+            <Link className="button button-secondary" to="/write"><BookOpenIcon aria-hidden="true" size={18} weight="regular" />写学习日记</Link>
           </section>
 
           <section className="today-review-queue">
@@ -145,12 +129,30 @@ export function TodayPage() {
               <ClockIcon aria-hidden="true" size={19} weight="bold" />
               <span className="pane-label">复习队列</span>
             </div>
-            <strong className="tabular-number">{isLoading ? "—" : dueCount}</strong>
+            <strong className="tabular-number">{isLoading ? "待同步" : dueCount}</strong>
             <p>算法 {data.algorithmStats?.due_review_count ?? 0} 项，八股 {data.interviewStats?.due_review_count ?? 0} 项。</p>
             <div className="today-review-links">
               <Link to="/algorithms/review">算法复习</Link>
               <Link to="/interview">八股复习</Link>
             </div>
+          </section>
+
+          <section className="today-review-queue today-metrics-panel" aria-label="今日学习概况">
+            <span className="pane-label">今日统计</span>
+            <dl className="today-metrics">
+              <div>
+                <dt>专注</dt>
+                <dd>{isLoading ? <span className="today-inline-skeleton" /> : formatStudyDuration(focusSeconds)}</dd>
+              </div>
+              <div>
+                <dt>算法</dt>
+                <dd className="tabular-number">{isLoading ? "待同步" : `${data.algorithmStats?.today_completed_count ?? 0} 题`}</dd>
+              </div>
+              <div>
+                <dt>八股</dt>
+                <dd className="tabular-number">{isLoading ? "待同步" : `${data.interviewStats?.today_answered_count ?? 0} 题`}</dd>
+              </div>
+            </dl>
           </section>
         </aside>
       </div>
