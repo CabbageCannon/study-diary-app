@@ -337,7 +337,7 @@ export function AlgorithmSessionPage() {
   function toggleFixtureMode() {
     const nextValue = !fixtureEnabled;
     setAlgorithmReasoningFixtureEnabled(nextValue);
-    setFixtureEnabled(nextValue);
+    setFixtureEnabled(isAlgorithmReasoningFixtureEnabled());
     setContextResponse(null);
     persistReasoning(null);
     setPhase("editing");
