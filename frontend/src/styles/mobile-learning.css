@@ -461,7 +461,15 @@
   }
 
   .today-hero-copy h1 {
-    letter-spacing: 0;
+    max-width: none;
+    font-size: clamp(1.85rem, 8vw, 2.05rem);
+    font-weight: 600;
+    line-height: 1.16;
+    letter-spacing: -0.02em;
+  }
+
+  .algorithm-workspace-page > .algorithm-sub-navigation {
+    display: none;
   }
 
   .today-sidebar {

@@ -4,7 +4,7 @@ Status: final B handoff on `codex/mobile-frontend-b`.
 
 Final integration base before B delivery: `origin/codex/mobile-integration@dbb2583e5d9b4cd1dc310a1a8ea1b8ce3d544aca`.
 
-Final B head after PM browser follow-up: `53cfa875b4c7d095727406a7fdce9cf2d922d9d0`.
+Published branch: `origin/codex/mobile-frontend-b`; use its current head rather than a copied stale SHA.
 
 ## Scope
 
@@ -13,6 +13,7 @@ Final B head after PM browser follow-up: `53cfa875b4c7d095727406a7fdce9cf2d922d9
 - The accepted mist-sage visual direction is applied as an additive stylesheet in `frontend/src/styles/mobile-learning.css`.
 - Existing desktop routes remain reachable from desktop navigation or the `我的` mobile sheet.
 - Mobile algorithm and interview practice action panels use normal document flow in focus routes to avoid covering answer fields at iPhone width.
+- At mobile width, the today headline follows A's restrained display scale and the duplicate algorithm sub-navigation is hidden; its settings, review, and history destinations remain available from `我的`.
 
 ## Algorithm Reasoning Integration
 
