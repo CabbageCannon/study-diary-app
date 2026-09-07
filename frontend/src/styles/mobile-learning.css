@@ -546,16 +546,10 @@
   }
 
   .mobile-focus-actions {
-    position: fixed;
-    right: 0;
-    bottom: calc(var(--keyboard-offset, 0px) + 10px + var(--safe-bottom));
-    left: 0;
+    position: static;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    max-width: none;
-    border-right: 0;
-    border-left: 0;
-    margin: 0;
+    margin: 0 var(--content-pad) 18px;
     padding: 9px max(12px, var(--safe-right)) 9px max(12px, var(--safe-left));
   }
 
@@ -589,5 +583,10 @@
 
   .session-result-layout {
     padding: 16px var(--content-pad) calc(96px + var(--safe-bottom));
+  }
+
+  .interview-session-page .session-actions {
+    position: static;
+    bottom: auto;
   }
 }
