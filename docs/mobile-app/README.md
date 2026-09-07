@@ -1,6 +1,8 @@
 # 学习日记 · 个人 iPhone 学习 App
 
-版本：2026-09-06 / 产品经理提案，尚未实施。
+版本：2026-09-07 / 移动集成候选版。
+
+当前 A–E 移动端工作已集成到 `codex/mobile-integration`。在 iPhone 上启动、安装和刷题请先阅读 [iPhone 使用教程](IPHONE_USAGE_GUIDE.md)；真实设备结果记录在 [iPhone HTTPS PWA 验收表](IPHONE_ACCEPTANCE.md)。本文其余“当前 demo”描述保留为最初评审依据。
 
 ## 目标与范围
 
