@@ -29,6 +29,11 @@ export function setAlgorithmReasoningFixtureEnabled(enabled: boolean) {
     window.localStorage.setItem(FIXTURE_STORAGE_KEY, "1");
   } else {
     window.localStorage.removeItem(FIXTURE_STORAGE_KEY);
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("reasoningFixture")) {
+      url.searchParams.delete("reasoningFixture");
+      window.history.replaceState(window.history.state, "", url);
+    }
   }
 }
 
