@@ -35,14 +35,14 @@ Date: 2026-09-06. This file is the current integration checkpoint for the mobile
 - D first mobile reasoning contexts source `f8a133c02658bd56c3cdad3f1ea75d11dd6b41e4` was integrated as `37de29f12330040522ff300686f0c176a225cf54` after confirming the branch only changed `backend/data/mobile/**` and `docs/mobile-app/content/**`.
 - D final content package source `0c04236cce3f0714f2426e0023ed6d789e3d8c67` was fast-forwarded into integration. It adds 9 more algorithm context JSON files for a total of 12 ready contexts, plus the D handoff, content README, and interview seed review.
 - C backend implementation source `d5cf31a76cc1423860dd350f454f833d612cbe80` was integrated as `dc66c048f1caff427717371a10121ed639191bb7`; implementation body is `44796e2a903f58b50c90a1dd7e7403e4cde65ac3`.
+- B frontend source `41ea982` was integrated through `e816bae`. It includes the mobile shell, reasoning flow, focus-action overlap fix, complete fixture shutdown, and the final mobile hierarchy adjustment.
 
 ## Role State
 
 - A design: final mist-sage design is integrated from source `5afceefe9e985cea1ad91f3bbe71e37ceb540a83`. PR #4 remains the role PR; E did not modify A's worktree.
 - C backend/LLM: protocol, fixtures, Alembic migration, mobile reasoning API, LLM adapter, import path, and tests are integrated from source `d5cf31a76cc1423860dd350f454f833d612cbe80`. Real LLM end-to-end validation is still pending.
 - D content: final content package is integrated from source `0c04236cce3f0714f2426e0023ed6d789e3d8c67`. It contains 12 ready algorithm contexts and records the 27 interview seed questions as pending review, not verified training content.
-- B frontend: PM reported task `01a076ff-7554-7190-b81b-d7f519df3660` started from detached `2c6a83c` and instructed to integrate `origin/codex/mobile-integration`. Await branch/PR.
-- B frontend latest PM-observed local state: commit `86e7026` had `npm run build` passing after merging the then-current remote integration branch. No remote `codex/mobile-frontend-b` ref or PR was visible to E at the time of this note, so B is not integrated yet.
+- B frontend: final source `41ea982` is integrated. PR #7 remains a role-level draft; the integration branch contains its current code. The four mobile entries, focus routes, explicit fixture mode, save/check separation, and local-draft recovery are present.
 
 ## Verification Evidence
 
@@ -87,6 +87,15 @@ PM independently rechecked published integration SHA `dbb2583e5d9b4cd1dc310a1a8e
 
 These are local build/test results only. They are not public HTTPS deployment, real Safari, real iPhone, or real LLM acceptance.
 
+After integrating B and the PM browser fixes:
+
+- `npm run build`, passed; TypeScript, Vite production assets, manifest, precache, and service worker were generated.
+- Backend `python -m unittest discover -s tests -q`, passed with 72 tests.
+- Playwright CLI at 390 x 844 verified the mobile bottom navigation, simplified today hierarchy, algorithm page without the duplicated overflowing sub-navigation, and the navless algorithm focus route.
+- Explicit fixture mode displayed a visible development banner and returned fixture feedback. Closing a URL-enabled fixture removed the `reasoningFixture` query flag before the next request.
+- Against the real local API with an intentionally empty `LLM_API_KEY`, an answer was saved and the UI showed `回答已保存，暂时没有核对结果`; reload recovered the answer and failed-check state. Browser console reported 0 errors and 0 warnings.
+- These checks used an ignored temporary SQLite database under `output/playwright/`; no customer database or credentials were used.
+
 ## Next Executable Commands
 
 For downstream roles:
@@ -111,6 +120,6 @@ Then inspect the role branch diff against `origin/codex/mobile-integration`, mer
 ## Not Yet Verified
 
 - No public HTTPS domain/server/account has been provided.
-- No actual iPhone device, iOS version, Safari version, PWA home-screen launch, soft-keyboard safe-area behavior, background resume, refresh recovery, version update, offline draft, or reconnect recovery has been verified.
+- No actual iPhone device, iOS version, Safari version, PWA home-screen launch, soft-keyboard safe-area behavior, background resume, version update, offline draft, or leaving-LAN access has been verified. Local Chromium reload recovery has been verified.
 - No real LLM end-to-end validation has been run for the new mobile flow.
 - The app must be described as an HTTPS PWA until native packaging and store release actually exist.
