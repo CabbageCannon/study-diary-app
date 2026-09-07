@@ -12,7 +12,7 @@ Date: 2026-09-06. This file is the current integration checkpoint for the mobile
 - PM resume source commit: `0b343ca` on `origin/codex/mobile-product-plan`
 - PM resume cherry-pick on integration: `0278b6266071a9f523031bd304c2ffc7de1fbb13`
 - Latest role merge before this handoff update: `dc66c048f1caff427717371a10121ed639191bb7`
-- Current branch tip after this file is committed should be read with `git rev-parse origin/codex/mobile-integration`; E will also publish the exact SHA in the handoff message/PR.
+- Current published integration SHA before this evidence update: `dbb2583e5d9b4cd1dc310a1a8ea1b8ce3d544aca`
 - Integration PR: https://github.com/CabbageCannon/study-diary-app/pull/3, base `codex/mobile-baseline`
 - Baseline PR: https://github.com/CabbageCannon/study-diary-app/pull/2, base `feat/study-diary-mvp`
 
@@ -42,6 +42,7 @@ Date: 2026-09-06. This file is the current integration checkpoint for the mobile
 - C backend/LLM: protocol, fixtures, Alembic migration, mobile reasoning API, LLM adapter, import path, and tests are integrated from source `d5cf31a76cc1423860dd350f454f833d612cbe80`. Real LLM end-to-end validation is still pending.
 - D content: final content package is integrated from source `0c04236cce3f0714f2426e0023ed6d789e3d8c67`. It contains 12 ready algorithm contexts and records the 27 interview seed questions as pending review, not verified training content.
 - B frontend: PM reported task `01a076ff-7554-7190-b81b-d7f519df3660` started from detached `2c6a83c` and instructed to integrate `origin/codex/mobile-integration`. Await branch/PR.
+- B frontend latest PM-observed local state: commit `86e7026` had `npm run build` passing after merging the then-current remote integration branch. No remote `codex/mobile-frontend-b` ref or PR was visible to E at the time of this note, so B is not integrated yet.
 
 ## Verification Evidence
 
@@ -76,6 +77,13 @@ After integrating C backend implementation, E ran from `D:/mobile-integration-wo
 - `python scripts/import_seed_data.py --all --dry-run`, passed; it imported 18 algorithm metadata rows, 12 mobile contexts, and 27 interview questions inside the dry-run transaction.
 - `python -m alembic upgrade head` against a temporary SQLite database, passed through revision `20260906_01`.
 - `git diff --check`, passed after the C merge and handoff edit.
+
+PM independently rechecked published integration SHA `dbb2583e5d9b4cd1dc310a1a8ea1b8ce3d544aca`:
+
+- `python -m unittest discover -s tests -v`, passed with 72 tests.
+- `python scripts/import_seed_data.py --all --dry-run`, passed with 18 algorithm metadata rows, 12 mobile contexts, and 27 interview questions, all with 0 errors.
+- D's 12 JSON files were ready and did not contain D-authored `content_version`.
+- B local commit `86e7026` built successfully with `npm run build`, but this was not yet an E integration result.
 
 These are local build/test results only. They are not public HTTPS deployment, real Safari, real iPhone, or real LLM acceptance.
 
