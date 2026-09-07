@@ -64,7 +64,7 @@ https://study-diary-api.onrender.com/api/health
 1. 在 Cloudflare **Workers & Pages** 中打开已创建的 `study-diary-app`。
 2. Git 生产分支选择 `codex/mobile-integration`，Root Directory 设置为 `frontend`。
 3. 构建命令使用 `npm run build`，部署命令使用 `npx wrangler deploy`。
-4. 添加构建环境变量：
+4. 仓库的 `frontend/.env.production` 已写入正式 Render 地址，Cloudflare 构建会自动读取：
 
    ```env
    VITE_API_BASE_URL=https://study-diary-api.onrender.com
@@ -73,7 +73,7 @@ https://study-diary-api.onrender.com/api/health
    VITE_ENABLE_QUESTION_QUICK_PUBLISH=false
    ```
 
-5. 从 `codex/mobile-integration` 触发一次生产部署，记下正式地址，例如 `https://study-diary-app.<账户子域>.workers.dev`。
+5. 从 `codex/mobile-integration` 触发一次生产部署，记下正式地址，例如 `https://study-diary-app.<账户子域>.workers.dev`。以后更换 Render 服务时，同步更新该文件中的 `VITE_API_BASE_URL`。
 
 `frontend/wrangler.jsonc` 已使用 Cloudflare 原生的 `single-page-application` 回退，直接刷新 `/today`、`/interview` 或 `/algorithms` 不会返回 404。不要再添加 `/* /index.html 200`：Workers 不支持这种 Pages/Netlify 风格的重写，并会把它判定为无限循环。
 

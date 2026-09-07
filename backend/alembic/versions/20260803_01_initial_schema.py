@@ -28,6 +28,9 @@ def upgrade() -> None:
         "algorithm_problem_progress",
         "algorithm_daily_recommendation_settings",
         "algorithm_daily_feeds",
+        "algorithm_problem_contexts",
+        "algorithm_reasoning_answers",
+        "algorithm_reasoning_feedbacks",
     }
     Base.metadata.create_all(
         bind=op.get_bind(),

@@ -1,8 +1,14 @@
 """Copy an existing SQLite Study Diary database into an empty PostgreSQL database."""
 
 from argparse import ArgumentParser
+import sys
+from pathlib import Path
 
-from sqlalchemy import Integer, create_engine, func, select, text
+from sqlalchemy import Integer, create_engine, func, inspect, select, text
+
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
 
 from app import models  # noqa: F401
 from app.database import Base
@@ -53,10 +59,14 @@ def copy_database(source_url: str, target_url: str) -> None:
     target = create_engine(target_url, pool_pre_ping=True)
     try:
         with source.connect() as source_connection, target.begin() as target_connection:
+            source_tables = set(inspect(source_connection).get_table_names())
             for table in Base.metadata.sorted_tables:
                 existing_rows = target_connection.scalar(select(func.count()).select_from(table))
                 if existing_rows:
                     raise RuntimeError(f"目标表 {table.name} 不是空的，已停止迁移。")
+                if table.name not in source_tables:
+                    print(f"{table.name}: 源库无此表，已跳过")
+                    continue
                 rows = [dict(row) for row in source_connection.execute(select(table)).mappings()]
                 if rows:
                     target_connection.execute(table.insert(), rows)
