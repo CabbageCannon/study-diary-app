@@ -10,7 +10,7 @@
 
 已确认：个人自用；主要设备为 iPhone；不扩展多用户、复杂权限、高并发或商业化系统。保留模型密钥在服务端、个人数据不进入公开 GitHub、可恢复备份这些基础操作即可。
 
-当前方案保留 React + TypeScript + Vite / FastAPI 技术栈；本地开发继续用 SQLite，线上数据改用 Supabase PostgreSQL，前后端分别部署到 Vercel 和 Render。第一阶段交付可添加到 iPhone 主屏幕的 PWA。若以后明确需要 TestFlight 或 App Store 分发，再评估 Capacitor 打包；本阶段不承诺商店上架或原生应用安装包。
+当前方案保留 React + TypeScript + Vite / FastAPI 技术栈；本地开发继续用 SQLite，线上数据改用 Supabase PostgreSQL，前后端分别部署到 Cloudflare 和 Render。第一阶段交付可添加到 iPhone 主屏幕的 PWA。若以后明确需要 TestFlight 或 App Store 分发，再评估 Capacitor 打包；本阶段不承诺商店上架或原生应用安装包。
 
 输入默认采用文字 + iPhone 键盘语音。客户尚未明确要求应用内录音为首发必需，独立录音、转写、重录暂列后续增强。LLM 核对需要联网；第一阶段离线保障本机草稿，不承诺完整离线题库或离线评分。
 

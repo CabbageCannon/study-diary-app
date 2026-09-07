@@ -283,4 +283,4 @@ cd backend
 
 ## PWA 与生产部署
 
-Render 后端、Vercel PWA、Supabase PostgreSQL 和 SQLite 数据迁移见 [docs/deployment-render-vercel-supabase.md](docs/deployment-render-vercel-supabase.md)。自建 Linux/Nginx 方案仍见 [docs/deployment.md](docs/deployment.md)。
+Cloudflare PWA、Render 后端、Supabase PostgreSQL 和 SQLite 数据迁移见 [docs/deployment-cloudflare-render-supabase.md](docs/deployment-cloudflare-render-supabase.md)。自建 Linux/Nginx 方案仍见 [docs/deployment.md](docs/deployment.md)。

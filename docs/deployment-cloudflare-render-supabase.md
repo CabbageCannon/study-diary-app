@@ -1,6 +1,6 @@
-# Render + Vercel + Supabase 部署教程
+# Cloudflare + Render + Supabase 部署教程
 
-本方案把 FastAPI 部署到 Render、React PWA 部署到 Vercel，并把正式数据放在 Supabase PostgreSQL。前端只访问 Render API，不需要 Supabase SDK，也不要把 Supabase 数据库密码或 LLM 密钥放进 Vercel。
+本方案把 FastAPI 部署到 Render、React PWA 部署到 Cloudflare Workers 静态资源，并把正式数据放在 Supabase PostgreSQL。前端只访问 Render API，不需要 Supabase SDK，也不要把 Supabase 数据库密码或 LLM 密钥放进 Cloudflare。
 
 ## 1. 创建 Supabase 数据库
 
@@ -38,7 +38,7 @@ Remove-Item Env:DATABASE_URL
 | 环境变量 | 值 |
 | --- | --- |
 | `DATABASE_URL` | Supabase Session pooler URI，末尾带 `?sslmode=require` |
-| `FRONTEND_ORIGIN` | 首次可暂填 `https://example.invalid`，Vercel 创建完成后再替换 |
+| `FRONTEND_ORIGIN` | 首次可暂填 `https://example.invalid`，Cloudflare 创建完成后再替换 |
 | `LLM_API_KEY` | 你的模型服务密钥 |
 | `APP_ACCESS_TOKEN` | 你自己设置的访问码，手机端需要输入 |
 
@@ -59,13 +59,12 @@ https://study-diary-api.onrender.com/api/health
 
 应返回 `{"status":"ok"}`。Render 免费实例长时间无人访问后可能休眠，第一次打开会慢一些。
 
-## 4. 部署 Vercel 前端
+## 4. 部署 Cloudflare 前端
 
-1. 在 Vercel 选择 **Add New → Project**，导入同一个 GitHub 仓库。
-2. 将 **Root Directory** 设置为 `frontend`。
-3. Framework Preset 选择 **Vite**；构建命令保持 `npm run build`，输出目录保持 `dist`。
-4. 项目创建后，在 **Settings → Environments → Production → Branch Tracking** 把生产分支设为 `codex/mobile-integration`；该仓库当前默认分支不是移动集成分支。
-5. 添加生产环境变量：
+1. 在 Cloudflare **Workers & Pages** 中打开已创建的 `study-diary-app`。
+2. Git 生产分支选择 `codex/mobile-integration`，Root Directory 设置为 `frontend`。
+3. 构建命令使用 `npm run build`，部署命令使用 `npx wrangler deploy`。
+4. 添加构建环境变量：
 
    ```env
    VITE_API_BASE_URL=https://study-diary-api.onrender.com
@@ -74,27 +73,27 @@ https://study-diary-api.onrender.com/api/health
    VITE_ENABLE_QUESTION_QUICK_PUBLISH=false
    ```
 
-6. 从 `codex/mobile-integration` 触发一次生产部署，记下正式地址，例如 `https://study-diary-app.vercel.app`。
+5. 从 `codex/mobile-integration` 触发一次生产部署，记下正式地址，例如 `https://study-diary-app.<账户子域>.workers.dev`。
 
-`frontend/vercel.json` 已包含单页应用回退，直接刷新 `/today`、`/interview` 或 `/algorithms` 不会返回 404。
+`frontend/wrangler.jsonc` 已使用 Cloudflare 原生的 `single-page-application` 回退，直接刷新 `/today`、`/interview` 或 `/algorithms` 不会返回 404。不要再添加 `/* /index.html 200`：Workers 不支持这种 Pages/Netlify 风格的重写，并会把它判定为无限循环。
 
 ## 5. 回填跨域地址
 
-回到 Render，把 `FRONTEND_ORIGIN` 改为实际 Vercel 正式地址，不要带末尾 `/`：
+回到 Render，把 `FRONTEND_ORIGIN` 改为实际 Cloudflare 正式地址，不要带末尾 `/`：
 
 ```env
-FRONTEND_ORIGIN=https://study-diary-app.vercel.app
+FRONTEND_ORIGIN=https://study-diary-app.<账户子域>.workers.dev
 ```
 
 保存后让 Render 重新部署。若以后绑定自定义域名，可用英文逗号同时保留两个来源：
 
 ```env
-FRONTEND_ORIGIN=https://study-diary-app.vercel.app,https://study.example.com
+FRONTEND_ORIGIN=https://study-diary-app.<账户子域>.workers.dev,https://study.example.com
 ```
 
 ## 6. 上线验收
 
-1. 打开 Vercel 正式地址，确认“今日”、八股和算法题能加载。
+1. 打开 Cloudflare 正式地址，确认“今日”、八股和算法题能加载。
 2. 进入“我的 → 输入访问码”，填写 Render 的 `APP_ACCESS_TOKEN`。
 3. 完成一道八股和一道算法题，确认答案与 LLM 反馈可保存。
 4. 在 Supabase Table Editor 中确认对应表产生记录。
@@ -102,4 +101,4 @@ FRONTEND_ORIGIN=https://study-diary-app.vercel.app,https://study.example.com
 
 ## 更新方式
 
-Render 和 Vercel 都连接同一 GitHub 分支后，后续 push 会自动触发部署。数据库结构由 Alembic 更新；题库导入是幂等操作。更新前仍建议从 Supabase Dashboard 导出或使用其备份功能保留一份可恢复副本。
+Render 和 Cloudflare 都连接同一 GitHub 分支后，后续 push 会自动触发部署。数据库结构由 Alembic 更新；题库导入是幂等操作。更新前仍建议从 Supabase Dashboard 导出或使用其备份功能保留一份可恢复副本。

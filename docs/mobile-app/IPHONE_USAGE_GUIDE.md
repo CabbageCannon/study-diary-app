@@ -110,7 +110,7 @@ npm.cmd run dev -- --host=0.0.0.0 --port=5173 --strictPort
 
 ## 方式二：公网 HTTPS 日常使用
 
-当前上线方案使用 Vercel 托管前端、Render 托管 FastAPI、Supabase PostgreSQL 保存数据。按 [Render + Vercel + Supabase 部署教程](../deployment-render-vercel-supabase.md) 完成后，直接用 Safari 打开 Vercel 正式地址。
+当前上线方案使用 Cloudflare 托管前端、Render 托管 FastAPI、Supabase PostgreSQL 保存数据。按 [Cloudflare + Render + Supabase 部署教程](../deployment-cloudflare-render-supabase.md) 完成后，直接用 Safari 打开 Cloudflare 正式地址。
 
 ## 添加到 iPhone 主屏幕
 
@@ -148,7 +148,7 @@ npm.cmd run dev -- --host=0.0.0.0 --port=5173 --strictPort
 
 ## 更新与备份
 
-Render 和 Vercel 连接 GitHub 分支后会随 push 自动部署；数据库结构由 Alembic 更新。更新前建议通过 Supabase 的备份或导出功能保留可恢复副本，具体见 [云端部署教程](../deployment-render-vercel-supabase.md)。
+Render 和 Cloudflare 连接 GitHub 分支后会随 push 自动部署；数据库结构由 Alembic 更新。更新前建议通过 Supabase 的备份或导出功能保留可恢复副本，具体见 [云端部署教程](../deployment-cloudflare-render-supabase.md)。
 
 新版本发布后，应用会提示“稍后”或“立即更新”。正在输入答案时选“稍后”；完成当前题目后再更新。
 
