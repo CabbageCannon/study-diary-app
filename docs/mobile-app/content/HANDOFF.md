@@ -7,13 +7,15 @@
 - 工作区：`D:/study-diary-mobile-content`
 - 分支：`codex/mobile-content`
 - 基线：`45eb3f3`（3 道草案样例提交）
-- 当前阶段提交：待提交
-- 目标 base：`codex/mobile-integration`
-- PR：待创建
+- 首批 3 题提交：`f8a133c`
+- 12 题内容包提交：`ddf0389`
+- 目标 base：`codex/mobile-integration` @ `656d768`
+- PR：[#5](https://github.com/CabbageCannon/study-diary-app/pull/5)
 
 ## 已完成
 
 - 读取 C 的协议文件：`D:/study-diary-mobile-reasoning/docs/mobile-app/api/README.md` 与 `problem-context-schema.md`。
+- 读取 C 小修后的协议：`origin/codex/mobile-reasoning` / `FETCH_HEAD` = `981bba1`，`schema_version` 仍为 1，字段结构无破坏。
 - 按 `schema_version: 1` 转换首批 3 道正式 JSON：
   - `backend/data/mobile/algorithm_contexts/leetcode-1.json`
   - `backend/data/mobile/algorithm_contexts/leetcode-15.json`
@@ -21,6 +23,8 @@
 - 三题保留已有草案中有价值的手机口述核对内容：原创题意、输入输出、约束、自编示例、核对要点、多种可接受解法、常见错误和边界。
 - 已按力扣官方题面核对标题、URL 和约束；`leetcode-15` 长度下限从草案的 `0` 校正为官方 `3`。
 - 未填 `content_version`，交给 C 导入器按内容哈希管理。
+- 已扩展到 12 道正式算法上下文：`leetcode-1`、`leetcode-15`、`leetcode-322`、`leetcode-20`、`leetcode-704`、`leetcode-217`、`leetcode-206`、`leetcode-21`、`leetcode-104`、`leetcode-3`、`leetcode-238`、`leetcode-198`。
+- 已审查八股种子：27 道全部 `pending`、`verified_by_human=false`，手机可读但仍待审核；详见 `docs/mobile-app/content/interview-seed-review.md`。
 
 ## 验证命令
 
@@ -72,7 +76,20 @@ sys.exit(1 if errors else 0)
 '@ | python -
 ```
 
-结果：`files 3`，`errors 0`。
+首批结果：`files 3`，`errors 0`。
+
+完整 12 题校验结果：
+
+```text
+files=12 ready=12 draft=0
+errors=0
+```
+
+算法示例语义自检：
+
+```text
+semantic_checks=12 failed=0
+```
 
 ```powershell
 python backend/scripts/validate_seed_data.py
@@ -80,8 +97,13 @@ python backend/scripts/validate_seed_data.py
 
 结果：通过，疑似重复题 `0`。有一条既有 Pydantic `model_name` protected namespace warning，非 D 内容范围。
 
+```powershell
+python backend/scripts/build_interview_manual_review_report.py
+```
+
+结果：生成 27 道题的人工审核建议报告；报告内容均建议保持 `pending`。该命令只用于核对，未提交纯时间戳变化。
+
 ## 下一步
 
-- 推送首批 3 道 JSON 并把 SHA 发给 C、E。
-- 继续从现有 18 题目录中扩展到约 12 道正式上下文，优先基础高频题。
-- 审查 27 道八股种子内容的手机可读性与状态，只输出可用/待核验清单；不把个人数据库当种子提交。
+- 推送本 HANDOFF 收口提交后，将最终可集成 SHA 通知 C、E。
+- 后续如要把八股题从 pending 改为 verified，必须走人工或 AI 审核流程；本轮不直接改状态。
