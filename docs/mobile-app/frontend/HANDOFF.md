@@ -4,6 +4,8 @@ Status: final B handoff on `codex/mobile-frontend-b`.
 
 Final integration base before B delivery: `origin/codex/mobile-integration@dbb2583e5d9b4cd1dc310a1a8ea1b8ce3d544aca`.
 
+Final B head after PM browser follow-up: `53cfa875b4c7d095727406a7fdce9cf2d922d9d0`.
+
 ## Scope
 
 - Mobile PWA primary navigation is reduced to four bottom entries: `今日`, `八股`, `算法`, `我的`.
@@ -29,6 +31,7 @@ Client behavior:
 - LLM/check failure is shown as saved answer with retry.
 - Editing after feedback creates a new `client_answer_id` and records `revision_of_answer_id`.
 - Fixture mode is explicit only: dev query/storage toggle or `VITE_USE_ALGORITHM_REASONING_FIXTURES=true`, always with a visible banner.
+- Closing a query-enabled fixture removes the `reasoningFixture` URL flag before the next request, so a hidden banner cannot leave simulated checks active.
 
 ## Verification Notes
 
@@ -36,6 +39,7 @@ Client behavior:
 - `npm run build`: pass on 2026-09-07; Vite transformed 189 modules and generated PWA service worker files.
 - PM also independently reviewed B commit `86e7026` build output before the final CSS overlap fixes.
 - Playwright CLI mobile viewport pass at 390 x 844: pass. Checked `今日` bottom nav labels, `我的` sheet, algorithm focus route without nav, interview focus route without nav, explicit fixture banner/success, real API failure recovery state, and absence of `/api/api` requests.
+- PM follow-up reproduced and fixed a query-flag fixture shutdown bug, then rebuilt the final branch. A post-merge real-backend check is required before E closes integration.
 - Screenshots are in ignored local artifacts under `output/playwright/mobile-b/`:
   - `01-today-mobile.png`
   - `02-my-sheet.png`
