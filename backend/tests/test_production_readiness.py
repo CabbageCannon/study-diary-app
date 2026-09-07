@@ -6,6 +6,7 @@ from starlette.requests import Request
 from app.config import _normalize_sqlite_url, settings
 from app.main import app
 from app.security import is_ai_request
+from scripts.migrate_sqlite_to_postgres import integer_primary_key_columns, postgres_url
 
 
 class ProductionReadinessTests(unittest.TestCase):
@@ -14,6 +15,16 @@ class ProductionReadinessTests(unittest.TestCase):
             _normalize_sqlite_url("postgresql://user:password@db.example/study_diary"),
             "postgresql+psycopg://user:password@db.example/study_diary",
         )
+        self.assertEqual(
+            postgres_url("postgres://user:password@db.example/study_diary"),
+            "postgresql+psycopg://user:password@db.example/study_diary",
+        )
+
+    def test_sqlite_migration_finds_generated_integer_primary_keys(self) -> None:
+        keys = {(table.name, column.name) for table, column in integer_primary_key_columns()}
+        self.assertIn(("diaries", "id"), keys)
+        self.assertIn(("algorithm_reasoning_answers", "id"), keys)
+        self.assertNotIn(("interview_questions", "id"), keys)
 
     def test_health_is_public_and_write_access_can_be_enabled(self) -> None:
         previous_token = settings.app_access_token

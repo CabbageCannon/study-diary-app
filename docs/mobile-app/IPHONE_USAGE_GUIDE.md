@@ -110,17 +110,7 @@ npm.cmd run dev -- --host=0.0.0.0 --port=5173 --strictPort
 
 ## 方式二：公网 HTTPS 日常使用
 
-日常使用建议采用一个 HTTPS 域名：Nginx 提供前端并把 `/api/` 转发给 FastAPI，SQLite 保存在服务器持久磁盘。完整命令和现成配置见 [HTTPS PWA 部署说明](../deployment.md)。
-
-部署时需要：
-
-- 一个域名和可管理的 DNS；
-- 一台长期在线的 Linux 主机；
-- 有效的 LLM 服务地址、模型名和密钥；
-- 一个较长的 `APP_ACCESS_TOKEN`；
-- 数据库的异地备份位置。
-
-后端的 `FRONTEND_ORIGIN` 应是最终 HTTPS 地址，例如 `https://study.example.com`。同域部署时，前端生产配置中的 `VITE_API_BASE_URL` 保持为空。部署完成后，先访问 `https://你的域名/api/health`，确认返回 `{"status":"ok"}`，再打开首页。
+当前上线方案使用 Vercel 托管前端、Render 托管 FastAPI、Supabase PostgreSQL 保存数据。按 [Render + Vercel + Supabase 部署教程](../deployment-render-vercel-supabase.md) 完成后，直接用 Safari 打开 Vercel 正式地址。
 
 ## 添加到 iPhone 主屏幕
 
@@ -158,7 +148,7 @@ npm.cmd run dev -- --host=0.0.0.0 --port=5173 --strictPort
 
 ## 更新与备份
 
-服务器更新代码前先备份 SQLite 数据库，然后拉取 `codex/mobile-integration`、执行后端迁移、重新构建前端并重启服务。具体步骤和备份命令见 [HTTPS PWA 部署说明](../deployment.md)。
+Render 和 Vercel 连接 GitHub 分支后会随 push 自动部署；数据库结构由 Alembic 更新。更新前建议通过 Supabase 的备份或导出功能保留可恢复副本，具体见 [云端部署教程](../deployment-render-vercel-supabase.md)。
 
 新版本发布后，应用会提示“稍后”或“立即更新”。正在输入答案时选“稍后”；完成当前题目后再更新。
 
