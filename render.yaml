@@ -22,3 +22,11 @@ services:
         sync: false
       - key: APP_TIMEZONE
         value: Asia/Shanghai
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        value: mailto:study-diary@example.com
+      - key: REMINDER_CRON_SECRET
+        sync: false

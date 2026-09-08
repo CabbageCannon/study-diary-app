@@ -1422,3 +1422,65 @@ class DesktopPetControlState(BaseModel):
 
 class ShowDesktopPetResponse(DesktopPetControlState):
     pass
+
+
+class PushSubscriptionCreate(BaseModel):
+    endpoint: str = Field(min_length=1, max_length=4096)
+    p256dh: str = Field(min_length=1, max_length=1024)
+    auth: str = Field(min_length=1, max_length=512)
+    enabled: bool = True
+    reminder_time: str = "21:30"
+    timezone: str = Field(default="Asia/Shanghai", min_length=1, max_length=80)
+    interview_goal: int = Field(default=3, ge=0, le=50)
+    algorithm_goal: int = Field(default=3, ge=0, le=50)
+    include_diary: bool = True
+    include_review: bool = True
+
+    @field_validator("reminder_time")
+    @classmethod
+    def validate_reminder_time(cls, value: str) -> str:
+        try:
+            hour, minute = (int(part) for part in value.split(":"))
+        except (TypeError, ValueError) as exc:
+            raise ValueError("reminder_time 必须使用 HH:MM") from exc
+        if not (0 <= hour <= 23 and 0 <= minute <= 59):
+            raise ValueError("reminder_time 必须使用有效的 HH:MM")
+        return f"{hour:02d}:{minute:02d}"
+
+
+class PushSubscriptionUpdate(BaseModel):
+    enabled: bool
+    reminder_time: str
+    timezone: str = Field(min_length=1, max_length=80)
+    interview_goal: int = Field(ge=0, le=50)
+    algorithm_goal: int = Field(ge=0, le=50)
+    include_diary: bool
+    include_review: bool
+
+    @field_validator("reminder_time")
+    @classmethod
+    def validate_reminder_time(cls, value: str) -> str:
+        return PushSubscriptionCreate.validate_reminder_time(value)
+
+
+class PushSubscriptionRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    enabled: bool
+    reminder_time: str
+    timezone: str
+    interview_goal: int
+    algorithm_goal: int
+    include_diary: bool
+    include_review: bool
+
+
+class PushPublicKeyRead(BaseModel):
+    public_key: str
+
+
+class ReminderDispatchRead(BaseModel):
+    checked: int
+    sent: int
+    disabled: int
