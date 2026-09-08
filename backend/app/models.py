@@ -37,6 +37,25 @@ class Diary(Base):
         return [str(item) for item in value if str(item).strip()]
 
 
+class PushSubscription(Base):
+    __tablename__ = "push_subscriptions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    endpoint: Mapped[str] = mapped_column(Text, unique=True)
+    p256dh: Mapped[str] = mapped_column(Text)
+    auth: Mapped[str] = mapped_column(Text)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    reminder_time: Mapped[str] = mapped_column(String(5), default="21:30")
+    timezone: Mapped[str] = mapped_column(String(80), default="Asia/Shanghai")
+    interview_goal: Mapped[int] = mapped_column(Integer, default=3)
+    algorithm_goal: Mapped[int] = mapped_column(Integer, default=3)
+    include_diary: Mapped[bool] = mapped_column(Boolean, default=True)
+    include_review: Mapped[bool] = mapped_column(Boolean, default=True)
+    last_sent_local_date: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
 class AlgorithmProblem(Base):
     """Local metadata for an externally hosted algorithm problem."""
 
