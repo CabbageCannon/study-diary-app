@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { BookOpenIcon } from "@phosphor-icons/react/BookOpen";
+import { DotsThreeCircleIcon } from "@phosphor-icons/react/DotsThreeCircle";
 import { HouseIcon } from "@phosphor-icons/react/House";
 import { MoonIcon } from "@phosphor-icons/react/Moon";
 import { TreeStructureIcon } from "@phosphor-icons/react/TreeStructure";
@@ -12,6 +13,7 @@ import { MobileMoreSheet } from "./MobileMoreSheet";
 
 const desktopPrimaryItems = [
   { to: "/today", label: "今日", matches: (pathname: string) => pathname === "/today" },
+  { to: "/me", label: "我的", matches: (pathname: string) => pathname === "/me" },
   { to: "/write", label: "写日记", matches: (pathname: string) => pathname === "/write" },
   { to: "/algorithms", label: "算法训练", matches: (pathname: string) => pathname === "/algorithms" || pathname.startsWith("/algorithms/session/") || pathname.startsWith("/algorithms/problems/") },
   { to: "/interview", label: "八股训练", matches: (pathname: string) => pathname === "/interview" || pathname.startsWith("/interview/session/") },
@@ -89,7 +91,8 @@ export function Navigation() {
         <NavLink className={pathname === "/today" ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/today"><HouseIcon aria-hidden="true" size={20} weight="regular" /><span>今日</span></NavLink>
         <NavLink className={interviewTrainingActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/interview"><BookOpenIcon aria-hidden="true" size={20} weight="regular" /><span>八股</span></NavLink>
         <NavLink className={algorithmTrainingActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/algorithms"><TreeStructureIcon aria-hidden="true" size={20} weight="regular" /><span>算法</span></NavLink>
-        <button className={moreActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} aria-expanded={moreOpen} aria-haspopup="dialog" onClick={() => setMoreOpen(true)} type="button"><UserCircleIcon aria-hidden="true" size={20} weight="regular" /><span>我的</span></button>
+        <NavLink className={pathname === "/me" ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/me"><UserCircleIcon aria-hidden="true" size={20} weight="regular" /><span>我的</span></NavLink>
+        <button className={moreActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} aria-expanded={moreOpen} aria-haspopup="dialog" onClick={() => setMoreOpen(true)} type="button"><DotsThreeCircleIcon aria-hidden="true" size={20} weight="regular" /><span>更多</span></button>
       </nav>
       <MobileMoreSheet open={moreOpen} reviewEnabled={questionReviewEnabled} onClose={() => setMoreOpen(false)} />
     </>

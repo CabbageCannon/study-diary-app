@@ -1,13 +1,16 @@
 import { ArrowRightIcon } from "@phosphor-icons/react/ArrowRight";
 import { BookOpenIcon } from "@phosphor-icons/react/BookOpen";
 import { ClockIcon } from "@phosphor-icons/react/Clock";
+import { NotePencilIcon } from "@phosphor-icons/react/NotePencil";
 import { PlayIcon } from "@phosphor-icons/react/Play";
 import { TreeStructureIcon } from "@phosphor-icons/react/TreeStructure";
 import { Link } from "react-router-dom";
 
+import { useUserPreferences } from "../hooks/useUserPreferences";
 import { useTodayWorkspace } from "../hooks/useTodayWorkspace";
 import type { AlgorithmSessionSummary } from "../types/algorithm";
 import type { InterviewQuestionSetSummary } from "../types/interview";
+import { getDailySentence, getTodayProgressItems, progressRatio, type TodayProgressItem } from "../services/userPreferences";
 import { formatStudyDuration } from "../utils/studyDuration";
 
 function todayLabel() {
@@ -28,11 +31,14 @@ function newestInterviewSession(sessions: InterviewQuestionSetSummary[]) {
 
 export function TodayPage() {
   const { data, failedSectionCount, isLoading, refresh } = useTodayWorkspace();
+  const [preferences] = useUserPreferences();
   const algorithmSession = newestAlgorithmSession(data.algorithmSessions);
   const interviewSession = newestInterviewSession(data.interviewSessions);
   const focusSeconds = data.desktopPet?.today_study_seconds ?? 0;
   const dueCount = (data.algorithmStats?.due_review_count ?? 0) + (data.interviewStats?.due_review_count ?? 0);
-  const hasProgress = focusSeconds > 0 || (data.algorithmStats?.today_completed_count ?? 0) > 0 || (data.interviewStats?.today_answered_count ?? 0) > 0;
+  const progressItems = getTodayProgressItems(data, preferences);
+  const progressPercent = Math.round(progressRatio(progressItems) * 100);
+  const hasProgress = progressItems.some((item) => item.completed > 0) || focusSeconds > 0;
 
   return (
     <div className="today-page">
@@ -40,7 +46,7 @@ export function TodayPage() {
         <div className="today-hero-copy">
           <span className="page-kicker">{todayLabel()}</span>
           <h1>{hasProgress ? "今天已经在向前走。" : "今天，慢一点也没关系。"}</h1>
-          <p>先续上未完成的训练，或者只讲一道题。</p>
+          <p>{getDailySentence()}</p>
         </div>
       </header>
 
@@ -56,9 +62,20 @@ export function TodayPage() {
           <div className="today-section-heading">
             <div>
               <span className="pane-label">接下来</span>
-              <h2 id="today-priority-title">先从这里继续</h2>
+              <h2 id="today-priority-title">继续今天的学习</h2>
             </div>
-            <span>{algorithmSession || interviewSession ? "未完成内容已置顶" : "没有遗留任务"}</span>
+            <span>{isLoading ? "正在同步" : `${progressPercent}%`}</span>
+          </div>
+
+          <div className="today-progress-panel">
+            <div className="today-progress-track" aria-label={`今日总进度 ${progressPercent}%`}>
+              <span style={{ inlineSize: `${progressPercent}%` }} />
+            </div>
+            <div className="today-progress-details">
+              {progressItems.map((item) => (
+                <ProgressLine item={item} isLoading={isLoading} key={item.key} />
+              ))}
+            </div>
           </div>
 
           {isLoading ? (
@@ -97,23 +114,10 @@ export function TodayPage() {
           )}
 
           <div className="today-start-list">
-            <Link to="/interview"><BookOpenIcon aria-hidden="true" size={18} weight="regular" /><span><strong>练 3 道八股</strong><small>先回忆，再核对</small></span><ArrowRightIcon aria-hidden="true" size={16} weight="bold" /></Link>
-            <Link to="/algorithms"><TreeStructureIcon aria-hidden="true" size={18} weight="regular" /><span><strong>讲一道算法</strong><small>题意、思路和反馈</small></span><ArrowRightIcon aria-hidden="true" size={16} weight="bold" /></Link>
+            <Link to="/interview"><BookOpenIcon aria-hidden="true" size={18} weight="regular" /><span><strong>练 {preferences.dailyGoals.interview} 道八股</strong><small>先回忆，再核对</small></span><ArrowRightIcon aria-hidden="true" size={16} weight="bold" /></Link>
+            <Link to="/algorithms"><TreeStructureIcon aria-hidden="true" size={18} weight="regular" /><span><strong>练 {preferences.dailyGoals.algorithm} 道算法</strong><small>题意、思路和反馈</small></span><ArrowRightIcon aria-hidden="true" size={16} weight="bold" /></Link>
+            <Link to="/write"><NotePencilIcon aria-hidden="true" size={18} weight="regular" /><span><strong>写学习日记</strong><small>把今天沉淀下来</small></span><ArrowRightIcon aria-hidden="true" size={16} weight="bold" /></Link>
             <Link to="/algorithms/review"><ClockIcon aria-hidden="true" size={18} weight="regular" /><span><strong>有 {isLoading ? "待同步" : dueCount} 项待复习</strong><small>按到期顺序处理</small></span><ArrowRightIcon aria-hidden="true" size={16} weight="bold" /></Link>
-          </div>
-
-          <div className="today-recommendation">
-            <div className="today-recommendation-index" aria-hidden="true">今</div>
-            <div>
-              <span className="pane-label">今日算法</span>
-              <h3>{data.algorithmFeed?.primary_problem.title_zh ?? data.algorithmFeed?.primary_problem.title ?? "每日推荐正在准备"}</h3>
-              <p>
-                {data.algorithmFeed
-                  ? `${data.algorithmFeed.primary_problem.difficulty.toUpperCase()} / ${data.algorithmFeed.primary_problem.topics.slice(0, 3).join(" / ") || "综合训练"}`
-                  : "进入算法训练页查看题库与当前推荐。"}
-              </p>
-            </div>
-            <Link className="button button-secondary" to="/algorithms">查看题目 <ArrowRightIcon aria-hidden="true" size={16} weight="bold" /></Link>
           </div>
         </section>
 
@@ -157,5 +161,15 @@ export function TodayPage() {
         </aside>
       </div>
     </div>
+  );
+}
+
+function ProgressLine({ item, isLoading }: { item: TodayProgressItem; isLoading: boolean }) {
+  const safeCompleted = Math.min(item.completed, item.target);
+  return (
+    <Link className="today-progress-line" to={item.href}>
+      <span>今日 {safeCompleted}/{item.target} {item.label}已完成</span>
+      <strong>{isLoading ? "待同步" : item.completed >= item.target ? "完成" : `还差 ${item.target - safeCompleted}`}</strong>
+    </Link>
   );
 }

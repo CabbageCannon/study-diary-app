@@ -19,6 +19,7 @@ const AlgorithmReviewPage = lazy(() => import("./pages/AlgorithmReviewPage").the
 const AlgorithmSessionPage = lazy(() => import("./pages/AlgorithmSessionPage").then((module) => ({ default: module.AlgorithmSessionPage })));
 const AlgorithmSettingsPage = lazy(() => import("./pages/AlgorithmSettingsPage").then((module) => ({ default: module.AlgorithmSettingsPage })));
 const DesktopPetSettingsPage = lazy(() => import("./pages/DesktopPetSettingsPage").then((module) => ({ default: module.DesktopPetSettingsPage })));
+const MePage = lazy(() => import("./pages/MePage").then((module) => ({ default: module.MePage })));
 const TodayPage = lazy(() => import("./pages/TodayPage").then((module) => ({ default: module.TodayPage })));
 const AlgorithmWorkspaceLayout = lazy(() => import("./layout/AlgorithmWorkspaceLayout").then((module) => ({ default: module.AlgorithmWorkspaceLayout })));
 
@@ -38,6 +39,7 @@ export default function App() {
             <Route element={<AppLayout />}>
               <Route path="/" element={<Navigate to="/today" replace />} />
               <Route path="/today" element={routeView(<TodayPage />)} />
+              <Route path="/me" element={routeView(<MePage />)} />
               <Route path="/write" element={routeView(<WriteDiaryPage />)} />
               <Route path="/history" element={routeView(<HistoryPage />)} />
               <Route path="/algorithms" element={routeView(<AlgorithmWorkspaceLayout />)}>

@@ -7,6 +7,7 @@ import "./styles/global.css";
 import "./styles/diary.css";
 import "./styles/navigation.css";
 import "./styles/today.css";
+import "./styles/me.css";
 import "./styles/mobile-learning.css";
 
 createRoot(document.getElementById("root")!).render(
