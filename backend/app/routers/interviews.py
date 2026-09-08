@@ -126,7 +126,7 @@ def review_interview_question(
             verified_quality_threshold=VERIFIED_QUALITY_THRESHOLD,
         )
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
 
 
 @router.post("/questions/{question_id}/ai-review", response_model=InterviewQuestionAIReviewResult)
@@ -144,7 +144,7 @@ async def ai_review_interview_question(
     except LLMError as exc:
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
     return InterviewQuestionAIReviewResult(
         question=InterviewQuestionRead.model_validate(question),
         review=review,
@@ -165,7 +165,7 @@ def apply_ai_interview_review(
     try:
         review, published = apply_ai_recommendation(db, question)
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
     return InterviewQuestionAIReviewResult(
         question=InterviewQuestionRead.model_validate(question),
         review=review,
@@ -376,7 +376,7 @@ async def retry_interview_answer(
     if previous_answer is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="回答不存在")
     if payload.question_id != previous_answer.question_id:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="重新回答不能更换题目")
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="重新回答不能更换题目")
     question_set = training_repository.get_question_set(db, previous_answer.question_set_id)
     if question_set is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="训练题集不存在")
@@ -407,4 +407,4 @@ def get_due_interview_reviews(
     try:
         return list_due_reviews(db, date=date, domain=domain, limit=limit)
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc

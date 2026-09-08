@@ -80,7 +80,7 @@ router = APIRouter(prefix="/api/algorithms", tags=["algorithms"])
 
 
 def _domain_error(exc: AlgorithmPracticeError) -> HTTPException:
-    return HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc))
+    return HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
 
 
 def _reasoning_error(exc: AlgorithmReasoningError) -> HTTPException:
@@ -88,12 +88,12 @@ def _reasoning_error(exc: AlgorithmReasoningError) -> HTTPException:
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
     if isinstance(exc, AlgorithmReasoningConflict):
         return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
-    return HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc))
+    return HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
 
 
 def _save_failed_response(exc: Exception) -> JSONResponse:
     return JSONResponse(
-        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
             "save_status": "save_failed",
             "check_status": "not_attempted",
