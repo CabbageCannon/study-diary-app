@@ -49,6 +49,11 @@ INTERVIEW_QUESTION_SET_COLUMN_DEFINITIONS = {
     "updated_at": "DATETIME",
 }
 
+INTERVIEW_ANSWER_COLUMN_DEFINITIONS = {
+    "evaluation_status": "VARCHAR(20) NOT NULL DEFAULT 'completed'",
+    "evaluation_error": "TEXT",
+}
+
 
 def _apply_sqlite_review_metadata_migration() -> None:
     if engine.dialect.name != "sqlite":
@@ -101,6 +106,30 @@ def _apply_sqlite_interview_session_migration() -> None:
         )
 
 
+def _apply_sqlite_interview_answer_migration() -> None:
+    if engine.dialect.name != "sqlite":
+        return
+    inspector = inspect(engine)
+    if "interview_answers" not in inspector.get_table_names():
+        return
+    existing_columns = {column["name"] for column in inspector.get_columns("interview_answers")}
+    missing_columns = {
+        name: definition
+        for name, definition in INTERVIEW_ANSWER_COLUMN_DEFINITIONS.items()
+        if name not in existing_columns
+    }
+    with engine.begin() as connection:
+        for name, definition in missing_columns.items():
+            connection.exec_driver_sql(f"ALTER TABLE interview_answers ADD COLUMN {name} {definition}")
+        connection.execute(
+            text(
+                "UPDATE interview_answers "
+                "SET evaluation_status = 'failed', evaluation_error = COALESCE(evaluation_error, '这条回答尚未完成评分。') "
+                "WHERE id NOT IN (SELECT answer_id FROM interview_evaluations)"
+            )
+        )
+
+
 def _mark_interrupted_batch_jobs_failed() -> None:
     inspector = inspect(engine)
     if "interview_batch_jobs" not in inspector.get_table_names():
@@ -122,6 +151,7 @@ def init_db() -> None:
         Base.metadata.create_all(bind=engine)
         _apply_sqlite_review_metadata_migration()
         _apply_sqlite_interview_session_migration()
+        _apply_sqlite_interview_answer_migration()
     _mark_interrupted_batch_jobs_failed()
 
 

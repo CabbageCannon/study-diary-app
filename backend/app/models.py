@@ -556,6 +556,8 @@ class InterviewAnswer(Base):
     answer_text: Mapped[str] = mapped_column(Text)
     answer_source: Mapped[str] = mapped_column(String(20))
     duration_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    evaluation_status: Mapped[str] = mapped_column(String(20), default="processing", index=True)
+    evaluation_error: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 

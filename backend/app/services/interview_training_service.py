@@ -5,7 +5,7 @@ import random
 from datetime import date as date_type
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import settings
 from app.llm import LLMError, evaluate_interview_answer
@@ -83,6 +83,19 @@ def evaluation_read(evaluation: InterviewEvaluation) -> InterviewEvaluationRead:
 
 def answer_read(answer: InterviewAnswer) -> InterviewAnswerRead:
     return InterviewAnswerRead.model_validate(answer)
+
+
+def answer_submission_read(db: Session, answer: InterviewAnswer) -> InterviewAnswerSubmissionRead:
+    evaluation = repository.get_evaluation_for_answer(db, answer.id)
+    schedule = repository.get_schedule(db, answer.question_id) if evaluation else None
+    status = "completed" if evaluation else answer.evaluation_status
+    return InterviewAnswerSubmissionRead(
+        answer=answer_read(answer),
+        evaluation=evaluation_read(evaluation) if evaluation else None,
+        evaluation_status=status,
+        evaluation_error=None if evaluation else answer.evaluation_error,
+        next_review_at=as_utc(schedule.next_review_at) if schedule else None,
+    )
 
 
 def _advance_question_set(question_set: InterviewQuestionSet, items: list[InterviewQuestionSetItem]) -> None:
@@ -264,6 +277,8 @@ def save_answer(
         answer_text=payload.answer_text,
         answer_source=payload.answer_source,
         duration_seconds=payload.duration_seconds,
+        evaluation_status="processing",
+        evaluation_error=None,
     )
     db.add(answer)
     item.status = "answered"
@@ -303,6 +318,9 @@ async def evaluate_answer(db: Session, answer: InterviewAnswer) -> tuple[Intervi
         schedule = repository.get_schedule(db, answer.question_id)
         if schedule is None:
             raise ValueError("已有评价但缺少复习计划")
+        answer.evaluation_status = "completed"
+        answer.evaluation_error = None
+        db.commit()
         return existing, schedule
     question = db.get(InterviewQuestion, answer.question_id)
     if question is None:
@@ -327,55 +345,57 @@ async def evaluate_answer(db: Session, answer: InterviewAnswer) -> tuple[Intervi
     )
     db.add(stored)
     schedule = _upsert_review_schedule(db, answer, total_score)
+    answer.evaluation_status = "completed"
+    answer.evaluation_error = None
     db.commit()
     db.refresh(stored)
     db.refresh(schedule)
     return stored, schedule
 
 
-async def submit_and_evaluate(
+async def run_answer_evaluation(answer_id: int, bind: object) -> None:
+    SessionFactory = sessionmaker(bind=bind, autoflush=False, autocommit=False)
+    with SessionFactory() as db:
+        answer = repository.get_answer(db, answer_id)
+        if answer is None:
+            return
+        answer.evaluation_status = "processing"
+        answer.evaluation_error = None
+        db.commit()
+        try:
+            await evaluate_answer(db, answer)
+        except LLMError as exc:
+            answer.evaluation_status = "failed"
+            answer.evaluation_error = str(exc)
+            db.commit()
+        except Exception as exc:
+            answer.evaluation_status = "failed"
+            answer.evaluation_error = str(exc) or "核对失败，请稍后重试。"
+            db.commit()
+
+
+def submit_and_queue_evaluation(
     db: Session,
     question_set: InterviewQuestionSet,
     payload: InterviewAnswerCreate,
+    background_tasks: object,
     *,
     retry: bool = False,
 ) -> InterviewAnswerSubmissionRead:
     answer = save_answer(db, question_set, payload, retry=retry)
-    try:
-        evaluation, schedule = await evaluate_answer(db, answer)
-    except LLMError as exc:
-        return InterviewAnswerSubmissionRead(
-            answer=answer_read(answer),
-            evaluation=None,
-            evaluation_status="failed",
-            evaluation_error=str(exc),
-            next_review_at=None,
-        )
-    return InterviewAnswerSubmissionRead(
-        answer=answer_read(answer),
-        evaluation=evaluation_read(evaluation),
-        evaluation_status="completed",
-        evaluation_error=None,
-        next_review_at=as_utc(schedule.next_review_at),
-    )
+    background_tasks.add_task(run_answer_evaluation, answer.id, db.get_bind())
+    return answer_submission_read(db, answer)
 
 
-async def retry_evaluation(db: Session, answer: InterviewAnswer) -> InterviewAnswerSubmissionRead:
-    try:
-        evaluation, schedule = await evaluate_answer(db, answer)
-    except LLMError as exc:
-        return InterviewAnswerSubmissionRead(
-            answer=answer_read(answer),
-            evaluation=None,
-            evaluation_status="failed",
-            evaluation_error=str(exc),
-        )
-    return InterviewAnswerSubmissionRead(
-        answer=answer_read(answer),
-        evaluation=evaluation_read(evaluation),
-        evaluation_status="completed",
-        next_review_at=as_utc(schedule.next_review_at),
-    )
+def queue_retry_evaluation(db: Session, answer: InterviewAnswer, background_tasks: object) -> InterviewAnswerSubmissionRead:
+    if repository.get_evaluation_for_answer(db, answer.id) is not None:
+        return answer_submission_read(db, answer)
+    answer.evaluation_status = "processing"
+    answer.evaluation_error = None
+    db.commit()
+    db.refresh(answer)
+    background_tasks.add_task(run_answer_evaluation, answer.id, db.get_bind())
+    return answer_submission_read(db, answer)
 
 
 def update_question_set_progress(

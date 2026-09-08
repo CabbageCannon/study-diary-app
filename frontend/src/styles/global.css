@@ -1113,6 +1113,65 @@ textarea:focus-visible {
   max-width: 760px;
 }
 
+.evaluation-result-pending {
+  max-width: 760px;
+  border-left: 3px solid var(--accent);
+}
+
+.interview-answer-task-tray {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(32, 52, 43, 0.1);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.interview-answer-task-list {
+  display: grid;
+  gap: 10px;
+}
+
+.interview-answer-task {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(246, 242, 232, 0.72);
+}
+
+.interview-answer-task h3 {
+  margin: 3px 0;
+  font-size: 1rem;
+}
+
+.interview-answer-task p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.interview-answer-task-processing {
+  border-left: 3px solid var(--accent);
+}
+
+.interview-answer-task-completed {
+  border-left: 3px solid var(--accent-strong);
+}
+
+.interview-answer-task-failed {
+  border-left: 3px solid var(--danger);
+}
+
+.interview-answer-task-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .evaluation-result h2 {
   margin: 6px 0 0;
   color: var(--ink);

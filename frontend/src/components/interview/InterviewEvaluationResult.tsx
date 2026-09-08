@@ -9,6 +9,16 @@ function formatLocalTime(value: string | null) {
 }
 
 export function InterviewEvaluationResult({ result }: InterviewEvaluationResultProps) {
+  if (result.evaluation_status === "processing") {
+    return (
+      <section className="evaluation-result evaluation-result-pending" aria-live="polite">
+        <span className="pane-label">回答已保存</span>
+        <h2>正在核对这道题。</h2>
+        <p>可以先去下一题，结果完成后会回到本题记录里。</p>
+      </section>
+    );
+  }
+
   if (result.evaluation_status === "failed" || !result.evaluation) {
     return (
       <section className="evaluation-result evaluation-result-error" aria-live="polite">

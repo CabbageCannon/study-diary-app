@@ -1003,6 +1003,7 @@ class AnswerEvaluation(BaseModel):
 QuestionSetStatus = Literal["in_progress", "completed", "abandoned"]
 QuestionSetItemStatus = Literal["pending", "answered", "skipped"]
 AnswerSource = Literal["voice", "text"]
+InterviewEvaluationStatus = Literal["processing", "completed", "failed"]
 
 
 class InterviewQuestionReviewUpdate(BaseModel):
@@ -1185,6 +1186,8 @@ class InterviewAnswerRead(BaseModel):
     answer_text: str
     answer_source: AnswerSource
     duration_seconds: int | None
+    evaluation_status: InterviewEvaluationStatus
+    evaluation_error: str | None
     created_at: datetime
     updated_at: datetime
 
@@ -1207,7 +1210,7 @@ class InterviewAnswerCreate(BaseModel):
 class InterviewAnswerSubmissionRead(BaseModel):
     answer: InterviewAnswerRead
     evaluation: InterviewEvaluationRead | None = None
-    evaluation_status: Literal["completed", "failed"]
+    evaluation_status: InterviewEvaluationStatus
     evaluation_error: str | None = None
     next_review_at: datetime | None = None
 
