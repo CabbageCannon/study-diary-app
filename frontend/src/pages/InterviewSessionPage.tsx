@@ -88,12 +88,12 @@ export function InterviewSessionPage() {
   }, [questionSet]);
 
   useEffect(() => {
-    if (!questionSet?.current_question || result || questionSet.status !== "in_progress" || isSubmitting) {
+    if (!questionSet?.current_question || result || questionSet.status !== "in_progress") {
       return;
     }
     const timer = window.setInterval(() => setDurationSeconds((current) => current + 1), 1000);
     return () => window.clearInterval(timer);
-  }, [isSubmitting, questionSet?.current_question, questionSet?.status, result]);
+  }, [questionSet?.current_question, questionSet?.status, result]);
 
   useEffect(() => {
     if (result?.evaluation_status === "completed") {
@@ -274,7 +274,7 @@ export function InterviewSessionPage() {
             answerText={answerText}
             answerSource={answerSource}
             durationSeconds={durationSeconds}
-            disabled={isSubmitting}
+            disabled={isSubmitting && retryMode}
             onAnswerChange={retryMode ? setRetryAnswerText : draft.setValue}
             onAnswerSourceChange={setAnswerSource}
           />
