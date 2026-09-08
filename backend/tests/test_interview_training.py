@@ -13,9 +13,10 @@ from app.config import settings
 from app.database import Base, get_db
 from app.llm import LLMError
 from app.main import app
-from app.models import InterviewAnswer, InterviewReviewSchedule
+from app.models import InterviewAnswer, InterviewQuestionSet, InterviewReviewSchedule
 from app.repositories.interview_repository import upsert_question
-from app.schemas import AnswerEvaluation, InterviewQuestionSeed
+from app.schemas import AnswerEvaluation, InterviewAnswerCreate, InterviewQuestionSeed
+from app.services import interview_training_service
 from app.services.interview_training_service import review_interval_days, utc_now
 
 
@@ -71,6 +72,14 @@ async def successful_evaluation(*_args: object) -> tuple[AnswerEvaluation, str]:
 
 async def failed_evaluation(*_args: object) -> tuple[AnswerEvaluation, str]:
     raise LLMError("模拟模型服务不可用")
+
+
+class RecordedBackgroundTasks:
+    def __init__(self) -> None:
+        self.tasks: list[tuple[object, tuple[object, ...], dict[str, object]]] = []
+
+    def add_task(self, func: object, *args: object, **kwargs: object) -> None:
+        self.tasks.append((func, args, kwargs))
 
 
 class InterviewTrainingApiTests(unittest.TestCase):
@@ -182,19 +191,44 @@ class InterviewTrainingApiTests(unittest.TestCase):
             submitted = self.client.post(f"/api/interviews/question-sets/{set_id}/answers", json=payload)
             self.assertEqual(submitted.status_code, 201)
             body = submitted.json()
-            self.assertEqual(body["evaluation_status"], "completed")
-            self.assertEqual(body["evaluation"]["total_score"], 74.5)
-            self.assertIsNotNone(body["next_review_at"])
+            self.assertEqual(body["evaluation_status"], "processing")
+            self.assertIsNone(body["evaluation"])
+            self.session.expire_all()
+            saved_answer = self.session.get(InterviewAnswer, body["answer"]["id"])
+            assert saved_answer is not None
+            self.assertEqual(saved_answer.evaluation_status, "completed")
 
             duplicate = self.client.post(f"/api/interviews/question-sets/{set_id}/answers", json=payload)
             self.assertEqual(duplicate.status_code, 409)
 
             retry = self.client.post(f"/api/interviews/answers/{body['answer']['id']}/retry", json=payload)
             self.assertEqual(retry.status_code, 201)
+            self.assertEqual(retry.json()["evaluation_status"], "processing")
             self.assertEqual(retry.json()["answer"]["attempt_index"], 2)
 
         answers = self.session.query(InterviewAnswer).filter_by(question_set_id=set_id).all()
         self.assertEqual(len(answers), 2)
+
+    def test_submit_queues_evaluation_without_calling_llm(self) -> None:
+        question_set_body = self.create_set()
+        question_set = self.session.get(InterviewQuestionSet, question_set_body["id"])
+        assert question_set is not None
+        payload = InterviewAnswerCreate(
+            question_id="verified-training-001",
+            answer_text="先保存回答，再让后台慢慢核对。",
+            answer_source="text",
+            duration_seconds=42,
+        )
+        tasks = RecordedBackgroundTasks()
+
+        with patch("app.services.interview_training_service.evaluate_interview_answer") as llm:
+            response = interview_training_service.submit_and_queue_evaluation(self.session, question_set, payload, tasks)
+
+        llm.assert_not_called()
+        self.assertEqual(response.evaluation_status, "processing")
+        self.assertIsNone(response.evaluation)
+        self.assertEqual(response.answer.duration_seconds, 42)
+        self.assertEqual(len(tasks.tasks), 1)
 
     def test_evaluation_failure_preserves_answer_and_due_reviews_use_deterministic_rule(self) -> None:
         question_set = self.create_set()
@@ -207,21 +241,29 @@ class InterviewTrainingApiTests(unittest.TestCase):
         with patch("app.services.interview_training_service.evaluate_interview_answer", failed_evaluation):
             response = self.client.post(f"/api/interviews/question-sets/{set_id}/answers", json=payload)
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.json()["evaluation_status"], "failed")
+        self.assertEqual(response.json()["evaluation_status"], "processing")
         answer_id = response.json()["answer"]["id"]
+        self.session.expire_all()
         self.assertIsNotNone(self.session.get(InterviewAnswer, answer_id))
 
         answer = self.session.get(InterviewAnswer, answer_id)
         assert answer is not None
-        schedule = InterviewReviewSchedule(
-            question_id="verified-training-001",
-            last_answer_id=answer.id,
-            last_score=55,
-            next_review_at=utc_now() - timedelta(hours=1),
-            review_interval_days=review_interval_days(55),
-            review_count=1,
-        )
-        self.session.add(schedule)
+        self.assertEqual(answer.evaluation_status, "failed")
+        self.assertEqual(answer.evaluation_error, "模拟模型服务不可用")
+
+        with patch("app.services.interview_training_service.evaluate_interview_answer", successful_evaluation):
+            retry_evaluation = self.client.post(f"/api/interviews/answers/{answer_id}/evaluate")
+        self.assertEqual(retry_evaluation.status_code, 200)
+        self.assertEqual(retry_evaluation.json()["evaluation_status"], "processing")
+        self.session.expire_all()
+        answer = self.session.get(InterviewAnswer, answer_id)
+        assert answer is not None
+        self.assertEqual(answer.evaluation_status, "completed")
+
+        schedule = self.session.query(InterviewReviewSchedule).filter_by(question_id="verified-training-001").one()
+        schedule.last_score = 55
+        schedule.next_review_at = utc_now() - timedelta(hours=1)
+        schedule.review_interval_days = review_interval_days(55)
         self.session.commit()
         due = self.client.get("/api/interviews/reviews/due?domain=python")
         self.assertEqual(due.status_code, 200)
@@ -386,3 +428,36 @@ class InterviewSessionMigrationTests(unittest.TestCase):
             ).one()
         self.assertEqual(row.status, "in_progress")
         self.assertTrue(all(value is not None for value in row[1:]))
+
+    def test_existing_sqlite_answers_receive_evaluation_status_columns(self) -> None:
+        engine = create_engine("sqlite://")
+        with engine.begin() as connection:
+            connection.exec_driver_sql(
+                "CREATE TABLE interview_answers ("
+                "id INTEGER PRIMARY KEY, question_set_id INTEGER, question_id VARCHAR(160), attempt_index INTEGER, "
+                "answer_text TEXT, answer_source VARCHAR(20), duration_seconds INTEGER, created_at DATETIME, updated_at DATETIME)"
+            )
+            connection.exec_driver_sql(
+                "CREATE TABLE interview_evaluations (id INTEGER PRIMARY KEY, answer_id INTEGER)"
+            )
+            connection.exec_driver_sql(
+                "INSERT INTO interview_answers "
+                "(id, question_set_id, question_id, attempt_index, answer_text, answer_source, created_at, updated_at) "
+                "VALUES (1, 1, 'q1', 1, 'answer', 'text', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+            )
+
+        original_engine = database.engine
+        database.engine = engine
+        try:
+            database._apply_sqlite_interview_answer_migration()
+        finally:
+            database.engine = original_engine
+
+        columns = {column["name"] for column in inspect(engine).get_columns("interview_answers")}
+        self.assertTrue(set(database.INTERVIEW_ANSWER_COLUMN_DEFINITIONS).issubset(columns))
+        with engine.connect() as connection:
+            row = connection.exec_driver_sql(
+                "SELECT evaluation_status, evaluation_error FROM interview_answers WHERE id = 1"
+            ).one()
+        self.assertEqual(row.evaluation_status, "failed")
+        self.assertIsNotNone(row.evaluation_error)

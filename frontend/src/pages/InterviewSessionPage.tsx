@@ -45,6 +45,7 @@ export function InterviewSessionPage() {
     isLoading,
     isSubmitting,
     error,
+    answerTasks,
     submit,
     skip,
     retryEvaluation,
@@ -52,6 +53,7 @@ export function InterviewSessionPage() {
     complete,
     abandon,
     next,
+    dismissAnswerTask,
   } = useInterviewSession(numericSetId);
   const [answerSource, setAnswerSource] = useState<AnswerSource>("text");
   const [durationSeconds, setDurationSeconds] = useState(0);
@@ -86,12 +88,26 @@ export function InterviewSessionPage() {
   }, [questionSet]);
 
   useEffect(() => {
-    if (!questionSet?.current_question || result || questionSet.status !== "in_progress") {
+    if (!questionSet?.current_question || result || questionSet.status !== "in_progress" || isSubmitting) {
       return;
     }
     const timer = window.setInterval(() => setDurationSeconds((current) => current + 1), 1000);
     return () => window.clearInterval(timer);
-  }, [questionSet?.current_question, questionSet?.status, result]);
+  }, [isSubmitting, questionSet?.current_question, questionSet?.status, result]);
+
+  useEffect(() => {
+    if (result?.evaluation_status === "completed") {
+      clearInterviewAnswerDraft(numericSetId, result.answer.question_id);
+    }
+  }, [numericSetId, result]);
+
+  useEffect(() => {
+    for (const task of answerTasks) {
+      if (task.status === "completed") {
+        clearInterviewAnswerDraft(numericSetId, task.questionId);
+      }
+    }
+  }, [answerTasks, numericSetId]);
 
   useEffect(() => {
     setDurationSeconds(0);
@@ -118,8 +134,8 @@ export function InterviewSessionPage() {
     ? {
         answer: currentItem.latest_answer,
         evaluation: currentItem.latest_evaluation,
-        evaluation_status: currentItem.latest_evaluation ? "completed" : "failed",
-        evaluation_error: currentItem.latest_evaluation ? null : "这条回答尚未完成评分。",
+        evaluation_status: currentItem.latest_evaluation ? "completed" : currentItem.latest_answer.evaluation_status,
+        evaluation_error: currentItem.latest_evaluation ? null : currentItem.latest_answer.evaluation_error ?? "这条回答尚未完成评分。",
         next_review_at: currentItem.next_review_at,
       }
     : null;
@@ -132,15 +148,21 @@ export function InterviewSessionPage() {
     if (!activeQuestion) {
       return;
     }
-    const submitted = await submit(
+    const wasRetrying = retryMode;
+    const targetQuestionId = activeQuestion.id;
+    const submittedPromise = submit(
       activeQuestion.id,
       answerText,
       answerSource,
       durationSeconds,
       retryMode ? retryAnswerId ?? undefined : undefined,
     );
-    if (submitted) {
-      clearInterviewAnswerDraft(numericSetId, activeQuestion.id);
+    if (wasRetrying) {
+      handleNext();
+    }
+    const submitted = await submittedPromise;
+    if (submitted?.evaluation_status === "completed") {
+      clearInterviewAnswerDraft(numericSetId, targetQuestionId);
     }
   }
 
@@ -157,6 +179,13 @@ export function InterviewSessionPage() {
   async function handleNavigate(index: number) {
     draft.flush();
     await goTo(index);
+  }
+
+  function handleOpenTask(questionId: string) {
+    const item = questionSet?.items.find((candidate) => candidate.question.id === questionId);
+    if (item) {
+      void handleNavigate(item.order_index);
+    }
   }
 
   function handleNext() {
@@ -209,6 +238,15 @@ export function InterviewSessionPage() {
 
       {questionSet.availability_message ? <p className="save-notice">{questionSet.availability_message}</p> : null}
       {error ? <p className="field-error session-error" role="alert">{error}</p> : null}
+      {answerTasks.length ? (
+        <InterviewAnswerTaskTray
+          tasks={answerTasks}
+          isSubmitting={isSubmitting}
+          onDismiss={dismissAnswerTask}
+          onOpen={handleOpenTask}
+          onRetry={(answerId) => void retryEvaluation(answerId)}
+        />
+      ) : null}
 
       {isReadOnly ? (
         <section className="interview-complete interview-session-readonly">
@@ -247,7 +285,7 @@ export function InterviewSessionPage() {
             {draftSaveLabel(draft.saveState) ? <span className="draft-save-state" role="status">{draftSaveLabel(draft.saveState)}</span> : null}
             <button className="button button-primary" disabled={!canSubmit} onClick={() => void handleSubmit()} type="button">
               <PlayIcon aria-hidden="true" size={16} weight="fill" />
-              {isSubmitting ? "正在保存并核对" : retryMode ? "核对新回答" : "核对回答"}
+              {isSubmitting ? "正在保存" : retryMode ? "核对新回答" : "核对回答"}
             </button>
             {retryMode ? (
               <button className="button button-secondary" disabled={isSubmitting} onClick={handleNext} type="button"><XIcon aria-hidden="true" size={16} weight="bold" />取消重答</button>
@@ -278,5 +316,65 @@ export function InterviewSessionPage() {
         title="放弃当前训练？"
       />
     </div>
+  );
+}
+
+function InterviewAnswerTaskTray({
+  tasks,
+  isSubmitting,
+  onDismiss,
+  onOpen,
+  onRetry,
+}: {
+  tasks: Array<{
+    key: string;
+    questionId: string;
+    questionText: string;
+    answerId: number | null;
+    status: "saving" | "processing" | "completed" | "failed";
+    error: string | null;
+  }>;
+  isSubmitting: boolean;
+  onDismiss: (key: string) => void;
+  onOpen: (questionId: string) => void;
+  onRetry: (answerId: number) => void;
+}) {
+  const statusLabel = {
+    saving: "保存中",
+    processing: "核对中",
+    completed: "完成",
+    failed: "失败",
+  };
+
+  return (
+    <section className="interview-answer-task-tray" aria-label="回答核对状态" aria-live="polite">
+      <div className="section-heading">
+        <div><span className="pane-label">后台核对</span><h2>回答状态</h2></div>
+        <span>{tasks.length} 条</span>
+      </div>
+      <div className="interview-answer-task-list">
+        {tasks.map((task) => (
+          <article className={`interview-answer-task interview-answer-task-${task.status}`} key={task.key}>
+            <div>
+              <span className="pane-label">{statusLabel[task.status]}</span>
+              <h3>{task.questionText}</h3>
+              {task.status === "saving" ? <p>正在确认保存，计时已经停住。</p> : null}
+              {task.status === "processing" ? <p>回答已保存，正在后台核对。可以继续刷下一题。</p> : null}
+              {task.status === "completed" ? <p>核对完成，结果已写入本题记录。</p> : null}
+              {task.status === "failed" ? <p>{task.error ?? "核对失败，回答和用时已保留。"}</p> : null}
+            </div>
+            <div className="interview-answer-task-actions">
+              <button className="button button-secondary" onClick={() => onOpen(task.questionId)} type="button">查看</button>
+              {task.status === "failed" && task.answerId ? (
+                <button className="button button-secondary" disabled={isSubmitting} onClick={() => onRetry(task.answerId!)} type="button">重新核对</button>
+              ) : null}
+              {task.status === "completed" || task.status === "failed" ? (
+                <button className="text-danger-button" onClick={() => onDismiss(task.key)} type="button">关闭</button>
+              ) : null}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }

@@ -45,9 +45,9 @@ from app.services.interview_training_service import (
     list_due_reviews,
     list_question_set_summaries,
     restart_question_set,
-    retry_evaluation,
+    queue_retry_evaluation,
     skip_current_question,
-    submit_and_evaluate,
+    submit_and_queue_evaluation,
     update_question_set_progress,
 )
 
@@ -126,7 +126,7 @@ def review_interview_question(
             verified_quality_threshold=VERIFIED_QUALITY_THRESHOLD,
         )
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
 
 
 @router.post("/questions/{question_id}/ai-review", response_model=InterviewQuestionAIReviewResult)
@@ -144,7 +144,7 @@ async def ai_review_interview_question(
     except LLMError as exc:
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
     return InterviewQuestionAIReviewResult(
         question=InterviewQuestionRead.model_validate(question),
         review=review,
@@ -165,7 +165,7 @@ def apply_ai_interview_review(
     try:
         review, published = apply_ai_recommendation(db, question)
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
     return InterviewQuestionAIReviewResult(
         question=InterviewQuestionRead.model_validate(question),
         review=review,
@@ -355,13 +355,14 @@ def skip_interview_question(question_set_id: int, db: Session = Depends(get_db))
 async def submit_interview_answer(
     question_set_id: int,
     payload: InterviewAnswerCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ) -> InterviewAnswerSubmissionRead:
     question_set = training_repository.get_question_set(db, question_set_id)
     if question_set is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="训练题集不存在")
     try:
-        return await submit_and_evaluate(db, question_set, payload)
+        return submit_and_queue_evaluation(db, question_set, payload, background_tasks)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
 
@@ -370,18 +371,19 @@ async def submit_interview_answer(
 async def retry_interview_answer(
     answer_id: int,
     payload: InterviewAnswerCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ) -> InterviewAnswerSubmissionRead:
     previous_answer = training_repository.get_answer(db, answer_id)
     if previous_answer is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="回答不存在")
     if payload.question_id != previous_answer.question_id:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="重新回答不能更换题目")
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="重新回答不能更换题目")
     question_set = training_repository.get_question_set(db, previous_answer.question_set_id)
     if question_set is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="训练题集不存在")
     try:
-        return await submit_and_evaluate(db, question_set, payload, retry=True)
+        return submit_and_queue_evaluation(db, question_set, payload, background_tasks, retry=True)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
 
@@ -389,12 +391,13 @@ async def retry_interview_answer(
 @router.post("/answers/{answer_id}/evaluate", response_model=InterviewAnswerSubmissionRead)
 async def evaluate_saved_interview_answer(
     answer_id: int,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ) -> InterviewAnswerSubmissionRead:
     answer = training_repository.get_answer(db, answer_id)
     if answer is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="回答不存在")
-    return await retry_evaluation(db, answer)
+    return queue_retry_evaluation(db, answer, background_tasks)
 
 
 @router.get("/reviews/due", response_model=list[InterviewReviewScheduleRead])
@@ -407,4 +410,4 @@ def get_due_interview_reviews(
     try:
         return list_due_reviews(db, date=date, domain=domain, limit=limit)
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
