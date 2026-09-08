@@ -49,6 +49,7 @@ export interface ReminderSubscriptionResponse extends ReminderSubscriptionPayloa
 
 export const USER_PREFERENCES_CHANGED_EVENT = "study-diary:user-preferences-changed";
 const USER_PREFERENCES_KEY = "study-diary:user-preferences";
+const REVIEW_BASELINE_KEY = "study-diary:review-baseline";
 const TIME_ZONE = "Asia/Shanghai";
 
 export const defaultUserPreferences: UserPreferences = {
@@ -76,7 +77,58 @@ const dailySentences = [
   "复习不是回头路，是把坑填平。",
   "能解释给昨天的自己听，就是真的会了。",
   "别急着赢题，先把题意赢下来。",
-  "今天只要开始，系统就会接住后半段。",
+  "今天只要开始，后半段就会慢慢跟上。",
+  "把模糊的地方说出口，它就清楚了一半。",
+  "不追求漂亮答案，先留下真实思路。",
+  "今天走得短一点，也仍然算向前。",
+  "会做是一瞬间，会讲才算真正留下。",
+  "先捡最小的一题，让状态自己回来。",
+  "答案可以晚一点，思考先发生就好。",
+  "把难题拆小，今天只负责第一块。",
+  "记住一个为什么，胜过背下十个结论。",
+  "慢慢积累，也是一种速度。",
+  "把今天写好，就够了。",
+  "今天只完成今天。",
+  "先把思路铺开，再让细节各自归位。",
+  "卡住的地方，正好值得记一笔。",
+  "不用把整座山搬走，先挪一块石头。",
+  "今天多说清一个概念，就多一分底气。",
+  "复盘不是重来，是让下一次更轻。",
+  "给知识一个位置，它才不会匆匆路过。",
+  "一道旧题，也能照见新的盲点。",
+  "先完成，再慢慢把它变得更好。",
+  "思路不必一次成形，先让它有形。",
+  "把复杂的话说简单，是今天的小胜利。",
+  "不必状态满格，也可以完成一格。",
+  "今天的耐心，也会成为明天的熟练。",
+  "先问自己为什么，再去记住是什么。",
+  "每一次回忆，都在给记忆加一层路标。",
+  "错题没有追你，它只是在等你回头看。",
+  "今天留一点痕迹，时间会把它连成线。",
+  "一个清楚的例子，能救活一段抽象定义。",
+  "先讲给自己听，再讲给面试官听。",
+  "没有白想的题，只有没写下的收获。",
+  "把犹豫变成一句话，答案就开始了。",
+  "今天不赶路，只把脚下这一段走稳。",
+  "真正的熟悉，是换种问法也能回答。",
+  "允许思路绕一点，最后记得回到主线。",
+  "先抓住边界，再处理漂亮的细节。",
+  "把一个知识点讲短，往往需要想得更深。",
+  "今天的三分钟，也能给明天省十分钟。",
+  "先找不变量，再看变化从哪里发生。",
+  "别让标准答案替你跳过思考。",
+  "学习不是囤积，是一次次重新取用。",
+  "今天懂得慢一点，之后会想得快一点。",
+  "给答案留一点呼吸，逻辑会更清楚。",
+  "写下过程，结果才不只是一次运气。",
+  "把问题换个角度，旧知识也会长出新枝。",
+  "真正可靠的答案，经得起一句追问。",
+  "今天留一点余地，明天才有继续的力气。",
+  "先把主干说稳，枝叶随后再补。",
+  "每次讲错一点，下一次就少错一点。",
+  "把学会的东西用一次，它才开始属于你。",
+  "今天的进步，可以安静得只有自己知道。",
+  "先做一道会开始的题，再碰那道最难的。",
 ];
 
 const reminderOpeners = [
@@ -86,6 +138,12 @@ const reminderOpeners = [
   "给未来的你递个小纸条",
   "先补一小块，今天就不散场",
   "你的复习雷达响了一下",
+  "今晚给今天补一个小句号",
+  "还有几格进度等你收下",
+  "今天的小任务来报到",
+  "睡前再替未来的你做一点",
+  "知识口袋里还有一点空位",
+  "趁今天还没翻页，补上一笔",
 ];
 
 export function getShanghaiDateKey(date = new Date()) {
@@ -100,8 +158,8 @@ export function getShanghaiDateKey(date = new Date()) {
 }
 
 export function getDailySentence(date = new Date()) {
-  const key = getShanghaiDateKey(date);
-  const index = [...key].reduce((sum, char) => sum + char.charCodeAt(0), 0) % dailySentences.length;
+  const [year, month, day] = getShanghaiDateKey(date).split("-").map(Number);
+  const index = Math.floor(Date.UTC(year, month - 1, day) / 86_400_000) % dailySentences.length;
   return dailySentences[index];
 }
 
@@ -133,8 +191,10 @@ export function clampGoal(value: number) {
 
 export function getTodayProgressItems(data: TodayWorkspaceData, preferences: UserPreferences): TodayProgressItem[] {
   const dueCount = (data.algorithmStats?.due_review_count ?? 0) + (data.interviewStats?.due_review_count ?? 0);
-  const reviewTarget = preferences.dailyGoals.review;
   const reviewStatsReady = data.algorithmStats !== null || data.interviewStats !== null;
+  const review = reviewStatsReady
+    ? reviewProgress(dueCount, preferences.dailyGoals.review)
+    : { completed: 0, target: preferences.dailyGoals.review };
   return [
     {
       key: "interview",
@@ -160,11 +220,25 @@ export function getTodayProgressItems(data: TodayWorkspaceData, preferences: Use
     {
       key: "review",
       label: "复习",
-      completed: reviewStatsReady && dueCount === 0 ? reviewTarget : Math.max(0, reviewTarget - dueCount),
-      target: reviewTarget,
+      completed: review.completed,
+      target: review.target,
       href: "/algorithms/review",
     },
   ];
+}
+
+function reviewProgress(dueCount: number, configuredGoal: number) {
+  if (configuredGoal <= 0) return { completed: 0, target: 0 };
+  const dateKey = getShanghaiDateKey();
+  let target = Math.max(dueCount, configuredGoal);
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(REVIEW_BASELINE_KEY) ?? "null") as { dateKey?: string; target?: number } | null;
+    if (saved?.dateKey === dateKey && Number.isFinite(saved.target)) target = Math.max(configuredGoal, saved.target ?? 0);
+    else window.localStorage.setItem(REVIEW_BASELINE_KEY, JSON.stringify({ dateKey, target }));
+  } catch {
+    // Private browsing may disable storage; current due count remains useful.
+  }
+  return { completed: Math.max(0, target - dueCount), target };
 }
 
 export function progressRatio(items: TodayProgressItem[]) {

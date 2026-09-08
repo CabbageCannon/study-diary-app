@@ -5,6 +5,7 @@ import { DeviceMobileIcon } from "@phosphor-icons/react/DeviceMobile";
 
 import { useTodayWorkspace } from "../hooks/useTodayWorkspace";
 import { useUserPreferences } from "../hooks/useUserPreferences";
+import { MobileMoreSheet } from "../layout/MobileMoreSheet";
 import {
   buildReminderCopy,
   clampGoal,
@@ -29,6 +30,7 @@ export function MePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => setForm(preferences), [preferences]);
 
@@ -203,10 +205,18 @@ export function MePage() {
           {!canUsePush ? <p className="field-error">当前浏览器不支持 Web Push，请在支持 PWA 推送的浏览器里开启。</p> : null}
         </section>
 
+        <section className="settings-section" aria-labelledby="app-settings-title">
+          <div className="settings-section-heading">
+            <div><span className="pane-label">记录与应用</span><h2 id="app-settings-title">更多设置</h2></div>
+          </div>
+          <button className="button button-secondary" onClick={() => setMoreOpen(true)} type="button">历史、主题、安装与访问码</button>
+        </section>
+
         <div className="settings-actions">
           <button className="button button-primary" disabled={isSaving} type="submit">{isSaving ? "保存中…" : "保存我的设置"}</button>
         </div>
       </form>
+      <MobileMoreSheet open={moreOpen} reviewEnabled={import.meta.env.VITE_ENABLE_QUESTION_REVIEW === "true"} onClose={() => setMoreOpen(false)} />
     </div>
   );
 }

@@ -1,7 +1,5 @@
-import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { BookOpenIcon } from "@phosphor-icons/react/BookOpen";
-import { DotsThreeCircleIcon } from "@phosphor-icons/react/DotsThreeCircle";
 import { HouseIcon } from "@phosphor-icons/react/House";
 import { MoonIcon } from "@phosphor-icons/react/Moon";
 import { TreeStructureIcon } from "@phosphor-icons/react/TreeStructure";
@@ -9,7 +7,6 @@ import { SunIcon } from "@phosphor-icons/react/Sun";
 import { UserCircleIcon } from "@phosphor-icons/react/UserCircle";
 
 import { useTheme } from "../contexts/ThemeContext";
-import { MobileMoreSheet } from "./MobileMoreSheet";
 
 const desktopPrimaryItems = [
   { to: "/today", label: "今日", matches: (pathname: string) => pathname === "/today" },
@@ -36,11 +33,9 @@ const questionReviewEnabled = import.meta.env.VITE_ENABLE_QUESTION_REVIEW === "t
 export function Navigation() {
   const { pathname } = useLocation();
   const { theme, toggleTheme } = useTheme();
-  const [moreOpen, setMoreOpen] = useState(false);
   const desktopTools = [...desktopToolItems, ...(questionReviewEnabled ? [{ to: "/interview/review", label: "题库审核", matches: (path: string) => path === "/interview/review" }] : [])];
   const algorithmTrainingActive = pathname === "/algorithms" || pathname.startsWith("/algorithms/session/") || pathname.startsWith("/algorithms/problems/");
   const interviewTrainingActive = pathname === "/interview" || pathname.startsWith("/interview/session/");
-  const moreActive = moreOpen || pathname === "/write" || pathname === "/history" || pathname === "/interview/history" || pathname === "/interview/review" || pathname === "/settings/desktop-pet" || pathname === "/algorithms/history" || pathname === "/algorithms/review" || pathname === "/algorithms/settings";
 
   return (
     <>
@@ -92,9 +87,7 @@ export function Navigation() {
         <NavLink className={interviewTrainingActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/interview"><BookOpenIcon aria-hidden="true" size={20} weight="regular" /><span>八股</span></NavLink>
         <NavLink className={algorithmTrainingActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/algorithms"><TreeStructureIcon aria-hidden="true" size={20} weight="regular" /><span>算法</span></NavLink>
         <NavLink className={pathname === "/me" ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/me"><UserCircleIcon aria-hidden="true" size={20} weight="regular" /><span>我的</span></NavLink>
-        <button className={moreActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} aria-expanded={moreOpen} aria-haspopup="dialog" onClick={() => setMoreOpen(true)} type="button"><DotsThreeCircleIcon aria-hidden="true" size={20} weight="regular" /><span>更多</span></button>
       </nav>
-      <MobileMoreSheet open={moreOpen} reviewEnabled={questionReviewEnabled} onClose={() => setMoreOpen(false)} />
     </>
   );
 }
