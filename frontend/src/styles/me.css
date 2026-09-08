@@ -1,0 +1,121 @@
+.me-settings-form {
+  display: grid;
+  max-width: 1040px;
+  gap: 22px;
+  padding: 30px var(--content-pad) 48px;
+}
+
+.me-wide-field {
+  grid-column: 1 / -1;
+}
+
+.me-goal-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.me-goal-input input {
+  min-height: 48px;
+  font-size: 1.25rem;
+  font-weight: 750;
+}
+
+.me-progress-preview {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  border-top: 1px solid var(--rule);
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+.me-progress-preview span {
+  min-height: 42px;
+  border-right: 1px solid var(--rule);
+  padding: 13px 12px 0 0;
+}
+
+.me-progress-preview span:last-child {
+  border-right: 0;
+}
+
+.me-notification-state {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 9px;
+  align-content: center;
+  border: 1px solid var(--rule);
+  background: var(--wash);
+  color: var(--accent);
+  padding: 13px 14px;
+}
+
+.me-notification-state span {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.me-notification-state strong {
+  grid-column: 2;
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+
+.me-reminder-preview {
+  display: grid;
+  gap: 9px;
+  border-top: 3px solid var(--accent);
+  background: var(--wash);
+  padding: 18px;
+}
+
+.me-reminder-preview > div,
+.me-ios-note {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--accent);
+}
+
+.me-reminder-preview > div span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.me-reminder-preview strong {
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.me-reminder-preview p,
+.me-ios-note p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.me-ios-note {
+  align-items: flex-start;
+  border-top: 1px solid var(--rule);
+  padding-top: 15px;
+}
+
+@media (max-width: 760px) {
+  .me-settings-form {
+    gap: 16px;
+    padding: 20px var(--content-pad) calc(136px + var(--safe-bottom));
+  }
+
+  .me-goal-grid,
+  .me-progress-preview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .me-progress-preview span:nth-child(2n) {
+    border-right: 0;
+  }
+}

@@ -28,6 +28,7 @@ export default defineConfig({
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/api\//],
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff2}"],
+        importScripts: ["/push-sw.js"],
       },
     }),
   ],
