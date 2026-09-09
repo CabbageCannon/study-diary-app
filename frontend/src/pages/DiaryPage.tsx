@@ -139,6 +139,10 @@ export function DiaryPage() {
 
   const drafts = useMemo(() => diaries.filter((item) => item.status === "draft"), [diaries]);
   const published = useMemo(() => diaries.filter((item) => item.status === "published").sort((a, b) => Number(b.is_pinned) - Number(a.is_pinned) || Date.parse(b.updated_at) - Date.parse(a.updated_at)), [diaries]);
+  const diaryColumns = published.reduce<[Diary[], Diary[]]>((columns, diary, index) => {
+    columns[(index + (drafts.length ? 1 : 0)) % 2].push(diary);
+    return columns;
+  }, [[], []]);
 
   function openNew() {
     setForm(emptyForm(weather));
@@ -274,16 +278,18 @@ export function DiaryPage() {
       {isLoading ? <div className="diary-feed-loading" role="status"><SpinnerGapIcon aria-hidden="true" size={22} />正在整理日记…</div> : null}
 
       <div className="diary-waterfall" aria-label="日记瀑布流">
-        {drafts.length ? <article className={`diary-draft-stack depth-${Math.min(3, drafts.length)}`}>
-          <button onClick={() => setDraftsOpen((value) => !value)} type="button"><span className="diary-draft-paper"><PencilSimpleIcon aria-hidden="true" size={20} /></span><strong>草稿箱</strong><small>{drafts.length} 篇写到一半</small></button>
-          {draftsOpen ? <div className="diary-draft-list">{drafts.map((draft) => <button key={draft.id} onClick={() => openEdit(draft)} type="button"><span>{draft.title}</span><time>{draft.date}</time></button>)}</div> : null}
-        </article> : null}
-        {published.map((diary) => <article className={diary.images.length ? "diary-card has-photo" : `diary-card text-card category-${diary.category}`} key={diary.id} {...longPressProps(diary)}>
-          <button aria-label={`打开《${diary.title}》，长按可编辑`} onClick={() => openDetail(diary)} type="button">
-            {diary.images[0] ? <div className="diary-cover"><img alt="" src={diary.images[0]} />{diary.images.length > 1 ? <span>1/{diary.images.length}</span> : null}</div> : <div className="diary-text-cover"><BookOpenIcon aria-hidden="true" size={18} /><p>{diary.summary}</p></div>}
-            <div className="diary-card-copy"><div><span>{diary.category === "learning" ? "学习" : "生活"}</span>{diary.is_pinned ? <PushPinIcon aria-label="已置顶" size={13} weight="fill" /> : null}</div><h2>{diary.title}</h2><p>{diary.location || diary.weather ? [diary.location, diary.weather].filter(Boolean).join(" · ") : diary.date}</p>{syncingIds.has(diary.id) ? <small className="diary-card-sync"><SpinnerGapIcon aria-hidden="true" size={12} />同步中</small> : null}</div>
-          </button>
-        </article>)}
+        {diaryColumns.map((column, columnIndex) => <div className="diary-column" key={columnIndex}>
+          {columnIndex === 0 && drafts.length ? <article className={`diary-draft-stack depth-${Math.min(3, drafts.length)}`}>
+            <button onClick={() => setDraftsOpen((value) => !value)} type="button"><span className="diary-draft-paper"><PencilSimpleIcon aria-hidden="true" size={20} /></span><strong>草稿箱</strong><small>{drafts.length} 篇写到一半</small></button>
+            {draftsOpen ? <div className="diary-draft-list">{drafts.map((draft) => <button key={draft.id} onClick={() => openEdit(draft)} type="button"><span>{draft.title}</span><time>{draft.date}</time></button>)}</div> : null}
+          </article> : null}
+          {column.map((diary) => <article className={diary.images.length ? "diary-card has-photo" : `diary-card text-card category-${diary.category}`} key={diary.id} {...longPressProps(diary)}>
+            <button aria-label={`打开《${diary.title}》，长按可编辑`} onClick={() => openDetail(diary)} type="button">
+              {diary.images[0] ? <div className="diary-cover"><img alt="" src={diary.images[0]} />{diary.images.length > 1 ? <span>1/{diary.images.length}</span> : null}</div> : <div className="diary-text-cover"><BookOpenIcon aria-hidden="true" size={18} /><p>{diary.summary}</p></div>}
+              <div className="diary-card-copy"><div><span>{diary.category === "learning" ? "学习" : "生活"}</span>{diary.is_pinned ? <PushPinIcon aria-label="已置顶" size={13} weight="fill" /> : null}</div><h2>{diary.title}</h2><p>{diary.location || diary.weather ? [diary.location, diary.weather].filter(Boolean).join(" · ") : diary.date}</p>{syncingIds.has(diary.id) ? <small className="diary-card-sync"><SpinnerGapIcon aria-hidden="true" size={12} />同步中</small> : null}</div>
+            </button>
+          </article>)}
+        </div>)}
       </div>
       {!isLoading && !drafts.length && !published.length ? <div className="diary-empty"><strong>第一页，等你来写</strong><p>一张照片或一句话，都算今天来过。</p></div> : null}
     </main>
