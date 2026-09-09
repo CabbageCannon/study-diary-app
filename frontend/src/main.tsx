@@ -9,6 +9,7 @@ import "./styles/navigation.css";
 import "./styles/today.css";
 import "./styles/me.css";
 import "./styles/mobile-learning.css";
+import "./styles/apple-ui.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

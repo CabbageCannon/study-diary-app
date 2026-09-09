@@ -1,10 +1,5 @@
 import { ArrowRightIcon } from "@phosphor-icons/react/ArrowRight";
-import { BookOpenIcon } from "@phosphor-icons/react/BookOpen";
-import { ClockIcon } from "@phosphor-icons/react/Clock";
-import { NotePencilIcon } from "@phosphor-icons/react/NotePencil";
-import { TreeStructureIcon } from "@phosphor-icons/react/TreeStructure";
 import { Link } from "react-router-dom";
-import type { ReactNode } from "react";
 
 import { useTodayWorkspace } from "../hooks/useTodayWorkspace";
 import { useUserPreferences } from "../hooks/useUserPreferences";
@@ -31,7 +26,6 @@ export function TodayPage() {
   const progressPercent = Math.round(progressRatio(progressItems) * 100);
   const completedTotal = progressItems.reduce((sum, item) => sum + item.completed, 0);
   const targetTotal = progressItems.reduce((sum, item) => sum + item.target, 0);
-  const dueCount = (data.algorithmStats?.due_review_count ?? 0) + (data.interviewStats?.due_review_count ?? 0);
   const algorithmSession = [...data.algorithmSessions].sort((a, b) => Date.parse(b.last_active_at) - Date.parse(a.last_active_at))[0];
   const interviewSession = [...data.interviewSessions].sort((a, b) => Date.parse(b.last_active_at) - Date.parse(a.last_active_at))[0];
   const continueAction = getContinueAction(progressItems, algorithmSession, interviewSession);
@@ -76,12 +70,6 @@ export function TodayPage() {
             {continueAction.label}<ArrowRightIcon aria-hidden="true" size={17} weight="bold" />
           </Link>
 
-          <div className="today-start-list" aria-label="学习入口">
-            <CoreLink href="/interview" icon={<BookOpenIcon aria-hidden="true" size={20} />} label="八股" status={`${Math.min(progressItems[0].completed, progressItems[0].target)} / ${progressItems[0].target}`} />
-            <CoreLink href="/algorithms" icon={<TreeStructureIcon aria-hidden="true" size={20} />} label="算法" status={`${Math.min(progressItems[1].completed, progressItems[1].target)} / ${progressItems[1].target}`} />
-            <CoreLink href="/write" icon={<NotePencilIcon aria-hidden="true" size={20} />} label="日记" status={data.todayDiaryCount ? "已记录" : "未记录"} />
-            <CoreLink href="/algorithms/review" icon={<ClockIcon aria-hidden="true" size={20} />} label="复习" status={isLoading ? "待同步" : `${dueCount} 项待复习`} />
-          </div>
         </section>
       </main>
     </div>
@@ -108,14 +96,6 @@ function ProgressLine({ item, isLoading }: { item: TodayProgressItem; isLoading:
     <Link className="today-progress-line" to={item.href}>
       <span>{isLoading ? `${item.label} 待同步` : text}</span>
       <ArrowRightIcon aria-hidden="true" size={15} />
-    </Link>
-  );
-}
-
-function CoreLink({ href, icon, label, status }: { href: string; icon: ReactNode; label: string; status: string }) {
-  return (
-    <Link to={href}>
-      {icon}<span><strong>{label}</strong><small>{status}</small></span><ArrowRightIcon aria-hidden="true" size={15} />
     </Link>
   );
 }

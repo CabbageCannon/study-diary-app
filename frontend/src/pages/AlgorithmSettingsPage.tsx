@@ -85,5 +85,23 @@ export function AlgorithmSettingsPage() {
     }
   }
 
-  return <div className="algorithm-workspace-panel algorithm-settings-page">{error ? <p className="field-error page-error" role="alert">{error}</p> : null}{notice ? <p className="algorithm-settings-notice" role="status">{notice}</p> : null}{isLoading ? <div className="settings-skeleton"><div className="skeleton-block" /><div className="skeleton-block" /></div> : null}{settings && overview ? <div className="algorithm-settings-layout"><div className="algorithm-settings-main"><DailyRecommendationSettingsForm isSaving={isSaving} onSave={(payload) => void saveSettings(payload)} settings={settings} sourceLists={sourceLists} topics={topics} /><section className="daily-refresh-panel"><div><span className="pane-label">今日推荐</span><h2>手动更新</h2><p>保存设置不会替换今天已经看到的题目。</p></div><button className="button button-secondary" disabled={isRefreshing} onClick={() => setRefreshDialogOpen(true)} type="button"><ArrowsClockwiseIcon aria-hidden="true" size={16} weight="bold" />刷新今天的推荐</button></section><TemporaryTrainingBuilder isCreating={isCreating} onCreate={(payload) => void createTemporaryTraining(payload)} problems={problems} /></div><aside className="algorithm-settings-sidebar"><AlgorithmCatalogOverview overview={overview} /><AlgorithmCatalogBrowser problems={problems} /></aside></div> : null}<RefreshDailyRecommendationDialog hasExistingLearning isRefreshing={isRefreshing} onCancel={() => setRefreshDialogOpen(false)} onConfirm={() => void refreshToday()} open={refreshDialogOpen} /></div>;
+  return (
+    <div className="algorithm-workspace-panel algorithm-settings-page">
+      {error ? <p className="field-error page-error" role="alert">{error}</p> : null}
+      {notice ? <p className="algorithm-settings-notice" role="status">{notice}</p> : null}
+      {isLoading ? <div className="settings-skeleton"><div className="skeleton-block" /><div className="skeleton-block" /></div> : null}
+      {settings && overview ? <div className="algorithm-settings-layout">
+        <div className="algorithm-settings-main">
+          <DailyRecommendationSettingsForm isSaving={isSaving} onSave={(payload) => void saveSettings(payload)} settings={settings} sourceLists={sourceLists} topics={topics} />
+          <section className="daily-refresh-panel"><div><span className="pane-label">今日推荐</span><h2>手动更新</h2><p>保存设置不会替换今天已经看到的题目。</p></div><button className="button button-secondary" disabled={isRefreshing} onClick={() => setRefreshDialogOpen(true)} type="button"><ArrowsClockwiseIcon aria-hidden="true" size={16} weight="bold" />刷新今天的推荐</button></section>
+          <TemporaryTrainingBuilder isCreating={isCreating} onCreate={(payload) => void createTemporaryTraining(payload)} problems={problems} />
+        </div>
+        <details className="algorithm-catalog-details">
+          <summary><span><strong>题库与目录</strong><small>查看来源、专题和已有题目</small></span><b aria-hidden="true">›</b></summary>
+          <div className="algorithm-settings-sidebar"><AlgorithmCatalogOverview overview={overview} /><AlgorithmCatalogBrowser problems={problems} /></div>
+        </details>
+      </div> : null}
+      <RefreshDailyRecommendationDialog hasExistingLearning isRefreshing={isRefreshing} onCancel={() => setRefreshDialogOpen(false)} onConfirm={() => void refreshToday()} open={refreshDialogOpen} />
+    </div>
+  );
 }

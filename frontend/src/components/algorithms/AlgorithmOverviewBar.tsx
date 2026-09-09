@@ -6,17 +6,11 @@ interface AlgorithmOverviewBarProps {
   stats: AlgorithmStats | null;
 }
 
-function minutes(seconds: number | null | undefined) {
-  return seconds ? `${Math.max(1, Math.round(seconds / 60))} 分` : "-";
-}
-
 export function AlgorithmOverviewBar({ stats }: AlgorithmOverviewBarProps) {
   const items = [
     { label: "连续", value: stats?.current_streak_days ?? 0, unit: "天" },
-    { label: "今日完成", value: stats?.today_completed_count ?? 0, unit: "题" },
-    { label: "累计尝试", value: stats?.total_attempt_count ?? 0, unit: "次" },
-    { label: "完成题目", value: stats?.unique_solved_count ?? 0, unit: "题" },
-    { label: "平均用时", value: minutes(stats?.average_duration_seconds), unit: "" },
+    { label: "今日", value: stats?.today_completed_count ?? 0, unit: "题" },
+    { label: "累计", value: stats?.unique_solved_count ?? 0, unit: "题" },
   ];
 
   return (

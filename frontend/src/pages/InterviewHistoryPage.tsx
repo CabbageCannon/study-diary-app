@@ -105,8 +105,7 @@ export function InterviewHistoryPage() {
   }
 
   return (
-    <div className="page-stack interview-history-page">
-      <header className="page-header"><div><span className="page-kicker">训练记录</span><h1>训练历史</h1></div><p>进行中、已完成和已放弃的训练都保留在这里。</p></header>
+    <div className="page-stack interview-history-page interview-workspace-panel">
       <div className="history-workbench interview-history-workbench">
         <section className="archive-list" aria-labelledby="training-history-title">
           <div className="archive-list-header"><h2 id="training-history-title">训练题集</h2><span>{isLoading ? "读取中" : `${sets.length} 组`}</span></div>

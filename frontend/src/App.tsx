@@ -22,6 +22,7 @@ const DesktopPetSettingsPage = lazy(() => import("./pages/DesktopPetSettingsPage
 const MePage = lazy(() => import("./pages/MePage").then((module) => ({ default: module.MePage })));
 const TodayPage = lazy(() => import("./pages/TodayPage").then((module) => ({ default: module.TodayPage })));
 const AlgorithmWorkspaceLayout = lazy(() => import("./layout/AlgorithmWorkspaceLayout").then((module) => ({ default: module.AlgorithmWorkspaceLayout })));
+const InterviewWorkspaceLayout = lazy(() => import("./layout/InterviewWorkspaceLayout").then((module) => ({ default: module.InterviewWorkspaceLayout })));
 
 const questionReviewEnabled = import.meta.env.VITE_ENABLE_QUESTION_REVIEW === "true";
 
@@ -50,9 +51,12 @@ export default function App() {
               </Route>
               <Route path="/algorithms/session/:sessionId" element={routeView(<AlgorithmSessionPage />)} />
               <Route path="/algorithms/problems/:problemId" element={routeView(<AlgorithmProblemPage />)} />
-              <Route path="/interview" element={routeView(<InterviewPage />)} />
+              <Route path="/interview" element={routeView(<InterviewWorkspaceLayout />)}>
+                <Route index element={routeView(<InterviewPage />)} />
+                <Route path="setup" element={routeView(<InterviewPage />)} />
+                <Route path="history" element={routeView(<InterviewHistoryPage />)} />
+              </Route>
               <Route path="/interview/session/:setId" element={routeView(<InterviewSessionPage />)} />
-              <Route path="/interview/history" element={routeView(<InterviewHistoryPage />)} />
               <Route path="/interview/review" element={questionReviewEnabled ? routeView(<InterviewReviewPage />) : <Navigate to="/interview" replace />} />
               <Route path="/settings/desktop-pet" element={routeView(<DesktopPetSettingsPage />)} />
             </Route>

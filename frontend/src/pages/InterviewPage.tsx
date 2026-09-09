@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/ArrowCounterClockwise";
 import { FlagIcon } from "@phosphor-icons/react/Flag";
 import { PlayIcon } from "@phosphor-icons/react/Play";
@@ -7,14 +7,12 @@ import { PlayIcon } from "@phosphor-icons/react/Play";
 import {
   abandonInterviewQuestionSet,
   createInterviewQuestionSet,
-  getInterviewTrainingStats,
-  listDueInterviewReviews,
   listInterviewQuestionSets,
 } from "../api/interviews";
 import { ConfirmActionDialog } from "../components/interview/ConfirmActionDialog";
 import { InterviewSetupForm } from "../components/interview/InterviewSetupForm";
 import { getLastActiveInterviewSession } from "../hooks/useInterviewAnswerDraft";
-import type { CreateQuestionSetPayload, InterviewQuestionSetSummary, InterviewTrainingStats } from "../types/interview";
+import type { CreateQuestionSetPayload, InterviewQuestionSetSummary } from "../types/interview";
 
 const initialPayload: CreateQuestionSetPayload = {
   question_count: 3,
@@ -28,9 +26,9 @@ function resumeLabel(summary: InterviewQuestionSetSummary) {
 
 export function InterviewPage() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const isSetup = pathname === "/interview/setup";
   const [payload, setPayload] = useState<CreateQuestionSetPayload>(initialPayload);
-  const [dueCount, setDueCount] = useState<number | null>(null);
-  const [stats, setStats] = useState<InterviewTrainingStats | null>(null);
   const [pendingSets, setPendingSets] = useState<InterviewQuestionSetSummary[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -44,17 +42,11 @@ export function InterviewPage() {
   useEffect(() => {
     const controller = new AbortController();
     async function load() {
-      const [reviews, nextStats, nextPending] = await Promise.allSettled([
-        listDueInterviewReviews(),
-        getInterviewTrainingStats(controller.signal),
-        listInterviewQuestionSets({ status: "in_progress", limit: 12, signal: controller.signal }),
-      ]);
+      const nextPending = await listInterviewQuestionSets({ status: "in_progress", limit: 12, signal: controller.signal }).catch(() => []);
       if (controller.signal.aborted) {
         return;
       }
-      setDueCount(reviews.status === "fulfilled" ? reviews.value.length : null);
-      setStats(nextStats.status === "fulfilled" ? nextStats.value : null);
-      setPendingSets(nextPending.status === "fulfilled" ? nextPending.value : []);
+      setPendingSets(nextPending);
     }
     void load();
     return () => controller.abort();
@@ -107,17 +99,7 @@ export function InterviewPage() {
   }
 
   return (
-    <div className="page-stack interview-page">
-      <header className="page-header">
-        <div>
-          <span className="page-kicker">八股训练</span>
-          <h1>先回忆，再核对。</h1>
-        </div>
-        <p>
-          {stats ? `连续 ${stats.streak_days} 天 / 今日 ${stats.today_answered_count} 题 / 待复习 ${stats.due_review_count} 题` : "训练状态正在同步"}
-        </p>
-      </header>
-
+    <div className="page-stack interview-page interview-workspace-panel">
       {resumableSet ? (
         <section className="interview-resume-panel" aria-labelledby="resume-session-title">
           <div>
@@ -133,28 +115,23 @@ export function InterviewPage() {
         </section>
       ) : null}
 
-      <div className="interview-setup-layout mobile-learning-entry">
-        <section className="mobile-start-panel" aria-labelledby="interview-start-title">
-          <span className="pane-label">快速开始</span>
-          <h2 id="interview-start-title">练 3 道最近的题</h2>
-          <p>分类和难度可以之后再调；先用短题集把回忆和核对跑起来。</p>
-          {error ? <p className="field-error" role="alert">{error}</p> : null}
-          <button className="button button-primary" disabled={isSubmitting} onClick={() => void startTraining()} type="button">
-            <PlayIcon aria-hidden="true" size={16} weight="fill" />
-            {isSubmitting ? "正在创建" : "开始练 3 道"}
-          </button>
-          <details className="mobile-entry-details">
-            <summary>调整题集</summary>
-            <InterviewSetupForm value={payload} isSubmitting={isSubmitting} error="" onChange={setPayload} onSubmit={() => void startTraining()} />
-          </details>
+      {isSetup ? (
+        <section className="interview-setup-surface" aria-labelledby="interview-setup-heading">
+          <div><span className="pane-label">题集</span><h2 id="interview-setup-heading">按今天的状态调整</h2><p>选择题量、方向和难度，再开始一组训练。</p></div>
+          <InterviewSetupForm value={payload} isSubmitting={isSubmitting} error={error} onChange={setPayload} onSubmit={() => void startTraining()} />
         </section>
-        <aside className="interview-context" aria-label="训练统计">
-          <span className="pane-label">学习状态</span>
-          <strong className="tabular-number">{dueCount ?? "待同步"}</strong>
-          <p>道题当前到期。累计完成 {stats?.total_answered_count ?? "待同步"} 题，最近平均分 {stats?.recent_average_score ?? "待同步"}。</p>
-          {stats?.domains.length ? <div className="interview-domain-summary">{stats.domains.map((item) => <span key={item.domain}>{item.domain} {item.answered_count} 题</span>)}</div> : null}
-        </aside>
-      </div>
+      ) : (
+        <section className="mobile-start-panel interview-quick-start" aria-labelledby="interview-start-title">
+          <span className="pane-label">快速开始</span>
+          <h2 id="interview-start-title">先练 3 道</h2>
+          <p>用一组短训练完成回忆、作答和核对，题集细节随时可以调整。</p>
+          {error ? <p className="field-error" role="alert">{error}</p> : null}
+          <div className="interview-quick-actions">
+            <button className="button button-primary" disabled={isSubmitting} onClick={() => void startTraining()} type="button"><PlayIcon aria-hidden="true" size={16} weight="fill" />{isSubmitting ? "正在创建" : "开始练 3 道"}</button>
+            <Link className="button button-secondary" to="/interview/setup">调整题集</Link>
+          </div>
+        </section>
+      )}
 
       <ConfirmActionDialog
         confirmLabel={pendingAction === "restart" ? "放弃并开始新训练" : "确认放弃"}
