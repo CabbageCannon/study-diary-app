@@ -464,12 +464,6 @@ def delete_question_set(db: Session, question_set: InterviewQuestionSet) -> None
     """Remove a local training record without touching its reusable question bank entries."""
     answers = repository.list_answers_for_set(db, question_set.id)
     affected_question_ids = {answer.question_id for answer in answers}
-    for answer in answers:
-        evaluation = repository.get_evaluation_for_answer(db, answer.id)
-        if evaluation is not None:
-            db.delete(evaluation)
-        db.delete(answer)
-
     for question_id in affected_question_ids:
         schedule = repository.get_schedule(db, question_id)
         if schedule is None:
@@ -487,9 +481,21 @@ def delete_question_set(db: Session, question_set: InterviewQuestionSet) -> None
         schedule.last_score = replacement_evaluation.total_score
         schedule.review_interval_days = review_interval_days(replacement_evaluation.total_score)
         schedule.next_review_at = utc_now() + timedelta(days=schedule.review_interval_days)
+    db.flush()
+
+    for answer in answers:
+        evaluation = repository.get_evaluation_for_answer(db, answer.id)
+        if evaluation is not None:
+            db.delete(evaluation)
+    db.flush()
+
+    for answer in answers:
+        db.delete(answer)
 
     for item in repository.list_set_items(db, question_set.id):
         db.delete(item)
+    db.flush()
+
     db.delete(question_set)
     db.commit()
 
