@@ -8,6 +8,7 @@ import {
   abandonInterviewQuestionSet,
   createInterviewQuestionSet,
   listInterviewQuestionSets,
+  peekInterviewQuestionSets,
 } from "../api/interviews";
 import { ConfirmActionDialog } from "../components/interview/ConfirmActionDialog";
 import { InterviewSetupForm } from "../components/interview/InterviewSetupForm";
@@ -29,7 +30,7 @@ export function InterviewPage() {
   const { pathname } = useLocation();
   const isSetup = pathname === "/interview/setup";
   const [payload, setPayload] = useState<CreateQuestionSetPayload>(initialPayload);
-  const [pendingSets, setPendingSets] = useState<InterviewQuestionSetSummary[]>([]);
+  const [pendingSets, setPendingSets] = useState<InterviewQuestionSetSummary[]>(() => peekInterviewQuestionSets({ status: "in_progress", limit: 12 }) ?? []);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [pendingAction, setPendingAction] = useState<"restart" | "abandon" | null>(null);

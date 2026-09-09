@@ -1,16 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { listDiaries } from "../api/client";
-import { getAlgorithmStats, listAlgorithmSessions } from "../api/algorithms";
-import { getDesktopPetDashboard } from "../api/desktopPet";
-import { getInterviewTrainingStats, listInterviewQuestionSets } from "../api/interviews";
+import { listDiaries, peekDiaries } from "../api/client";
+import { getAlgorithmStats, listAlgorithmSessions, peekAlgorithmSessions, peekAlgorithmStats } from "../api/algorithms";
+import { getInterviewTrainingStats, listInterviewQuestionSets, peekInterviewQuestionSets, peekInterviewTrainingStats } from "../api/interviews";
 import type { AlgorithmSessionSummary, AlgorithmStats } from "../types/algorithm";
-import type { DesktopPetDashboard } from "../types/desktopPet";
 import type { InterviewQuestionSetSummary, InterviewTrainingStats } from "../types/interview";
 import { getShanghaiDateKey } from "../services/userPreferences";
 
 export interface TodayWorkspaceData {
-  desktopPet: DesktopPetDashboard | null;
   algorithmStats: AlgorithmStats | null;
   algorithmSessions: AlgorithmSessionSummary[];
   interviewStats: InterviewTrainingStats | null;
@@ -18,18 +15,21 @@ export interface TodayWorkspaceData {
   todayDiaryCount: number;
 }
 
-const emptyData: TodayWorkspaceData = {
-  desktopPet: null,
-  algorithmStats: null,
-  algorithmSessions: [],
-  interviewStats: null,
-  interviewSessions: [],
-  todayDiaryCount: 0,
-};
+function readCachedWorkspace(): TodayWorkspaceData {
+  const diaries = peekDiaries() ?? [];
+  const todayKey = getShanghaiDateKey();
+  return {
+    algorithmStats: peekAlgorithmStats(),
+    algorithmSessions: peekAlgorithmSessions("in_progress") ?? [],
+    interviewStats: peekInterviewTrainingStats(),
+    interviewSessions: peekInterviewQuestionSets({ status: "in_progress", limit: 12 }) ?? [],
+    todayDiaryCount: diaries.filter((diary) => diary.date === todayKey).length,
+  };
+}
 
 export function useTodayWorkspace() {
-  const [data, setData] = useState<TodayWorkspaceData>(emptyData);
-  const [isLoading, setIsLoading] = useState(true);
+  const [data, setData] = useState<TodayWorkspaceData>(() => readCachedWorkspace());
+  const [isLoading, setIsLoading] = useState(() => !peekAlgorithmStats() && !peekInterviewTrainingStats());
   const [failedSectionCount, setFailedSectionCount] = useState(0);
   const [refreshVersion, setRefreshVersion] = useState(0);
 
@@ -42,7 +42,6 @@ export function useTodayWorkspace() {
     async function load() {
       setIsLoading(true);
       const results = await Promise.allSettled([
-        getDesktopPetDashboard(controller.signal),
         getAlgorithmStats(),
         listAlgorithmSessions("in_progress"),
         getInterviewTrainingStats(controller.signal),
@@ -51,10 +50,9 @@ export function useTodayWorkspace() {
       ]);
       if (cancelled) return;
 
-      const [desktopPet, algorithmStats, algorithmSessions, interviewStats, interviewSessions, diaries] = results;
+      const [algorithmStats, algorithmSessions, interviewStats, interviewSessions, diaries] = results;
       const todayKey = getShanghaiDateKey();
       setData({
-        desktopPet: desktopPet.status === "fulfilled" ? desktopPet.value : null,
         algorithmStats: algorithmStats.status === "fulfilled" ? algorithmStats.value : null,
         algorithmSessions: algorithmSessions.status === "fulfilled" ? algorithmSessions.value : [],
         interviewStats: interviewStats.status === "fulfilled" ? interviewStats.value : null,

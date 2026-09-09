@@ -37,6 +37,7 @@ declare global {
     onend: (() => void) | null;
     onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
     onresult: ((event: SpeechRecognitionEvent) => void) | null;
+    onspeechend: (() => void) | null;
     start(): void;
     stop(): void;
     abort(): void;

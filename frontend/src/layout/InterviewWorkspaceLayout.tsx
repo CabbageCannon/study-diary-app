@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
-import { getInterviewTrainingStats } from "../api/interviews";
+import { getInterviewTrainingStats, peekInterviewTrainingStats } from "../api/interviews";
 import { InterviewSubNavigation } from "../components/interview/InterviewSubNavigation";
 import type { InterviewTrainingStats } from "../types/interview";
 
@@ -11,10 +11,10 @@ export interface InterviewWorkspaceContext {
 
 export function InterviewWorkspaceLayout() {
   const { pathname } = useLocation();
-  const [stats, setStats] = useState<InterviewTrainingStats | null>(null);
+  const [stats, setStats] = useState<InterviewTrainingStats | null>(() => peekInterviewTrainingStats());
   const loadStats = useCallback(async () => {
     try { setStats(await getInterviewTrainingStats()); }
-    catch { setStats(null); }
+    catch { /* Keep cached stats visible. */ }
   }, []);
 
   useEffect(() => { void loadStats(); }, [loadStats, pathname]);

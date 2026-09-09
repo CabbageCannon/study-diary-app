@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   evaluateInterviewAnswer,
   getInterviewQuestionSet,
+  primeInterviewQuestionSet,
   abandonInterviewQuestionSet,
   completeInterviewQuestionSet,
   retryInterviewAnswer,
@@ -60,14 +61,14 @@ export function useInterviewSession(setId: number) {
   const [error, setError] = useState("");
   const abortRef = useRef<AbortController | null>(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (force = false) => {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
     setIsLoading(true);
     setError("");
     try {
-      setQuestionSet(await getInterviewQuestionSet(setId, controller.signal));
+      setQuestionSet(await getInterviewQuestionSet(setId, controller.signal, force));
     } catch (loadError) {
       if (loadError instanceof DOMException && loadError.name === "AbortError") {
         return;
@@ -113,12 +114,14 @@ export function useInterviewSession(setId: number) {
           : item
       ));
       const nextItem = items.find((item) => item.status === "pending") ?? null;
-      return {
+      const updated = {
         ...current,
         items,
         current_index: nextItem?.order_index ?? current.current_index,
         current_question: nextItem?.question ?? current.current_question,
       };
+      primeInterviewQuestionSet(updated);
+      return updated;
     });
   }
 
@@ -135,7 +138,7 @@ export function useInterviewSession(setId: number) {
     const timer = window.setInterval(() => {
       void (async () => {
         try {
-          const updated = await getInterviewQuestionSet(setId);
+          const updated = await getInterviewQuestionSet(setId, undefined, true);
           if (cancelled) return;
           setQuestionSet(updated);
           syncAnswerTasks(updated);
@@ -189,9 +192,6 @@ export function useInterviewSession(setId: number) {
         ? await retryInterviewAnswer(retryAnswerId, payload)
         : await submitInterviewAnswer(setId, payload);
       updateAnswerTask(taskFromSubmission(nextResult, { key: taskKey, questionText }));
-      const updated = await getInterviewQuestionSet(setId);
-      setQuestionSet(updated);
-      syncAnswerTasks(updated);
       return nextResult;
     } catch (submitError) {
       const message = submitError instanceof Error ? submitError.message : "回答提交失败，请稍后重试。";
@@ -204,6 +204,7 @@ export function useInterviewSession(setId: number) {
         error: message,
       });
       setError(message);
+      void load(true);
       return null;
     } finally {
       setIsSubmitting(false);
@@ -257,6 +258,16 @@ export function useInterviewSession(setId: number) {
     if (!item) {
       return false;
     }
+    const previous = questionSet;
+    const optimistic = {
+      ...questionSet,
+      current_index: currentIndex,
+      current_question: item.question,
+      last_active_question_id: item.question.id,
+    };
+    setQuestionSet(optimistic);
+    primeInterviewQuestionSet(optimistic);
+    setResult(null);
     setIsSubmitting(true);
     setError("");
     try {
@@ -270,6 +281,8 @@ export function useInterviewSession(setId: number) {
       return true;
     } catch (progressError) {
       setError(progressError instanceof Error ? progressError.message : "进度保存失败，请稍后重试。");
+      setQuestionSet(previous);
+      primeInterviewQuestionSet(previous);
       return false;
     } finally {
       setIsSubmitting(false);

@@ -1,4 +1,4 @@
-import { request } from "./client";
+import { cachedRequest, invalidateCachedRequests, peekCachedRequest, primeCachedRequest, request } from "./client";
 import type {
   AlgorithmAttempt,
   AlgorithmCatalogOverview,
@@ -38,12 +38,19 @@ export function getDailyAlgorithmProblem() {
   return request<AlgorithmProblem>("/api/algorithms/daily");
 }
 
-export function getAlgorithmDailyFeed() {
-  return request<AlgorithmDailyFeed>("/api/algorithms/daily-feed");
+export function getAlgorithmDailyFeed(force = false) {
+  return cachedRequest<AlgorithmDailyFeed>("/api/algorithms/daily-feed", undefined, force);
+}
+
+export function peekAlgorithmDailyFeed() {
+  return peekCachedRequest<AlgorithmDailyFeed>("/api/algorithms/daily-feed");
 }
 
 export function refreshAlgorithmDailyFeed() {
-  return request<AlgorithmDailyFeed>("/api/algorithms/daily-feed/refresh", { method: "POST" });
+  return request<AlgorithmDailyFeed>("/api/algorithms/daily-feed/refresh", { method: "POST" }).then((feed) => {
+    primeCachedRequest("/api/algorithms/daily-feed", feed);
+    return feed;
+  });
 }
 
 export function getAlgorithmDailySettings() {
@@ -59,42 +66,75 @@ export function getAlgorithmCatalogOverview() {
 }
 
 export function createAlgorithmSession(payload: CreateAlgorithmSessionPayload) {
-  return request<AlgorithmSession>("/api/algorithms/sessions", { method: "POST", body: JSON.stringify(payload) });
+  return request<AlgorithmSession>("/api/algorithms/sessions", { method: "POST", body: JSON.stringify(payload) }).then((session) => {
+    primeCachedRequest(`/api/algorithms/sessions/${session.id}`, session);
+    invalidateCachedRequests("/api/algorithms/sessions?", "/api/algorithms/stats");
+    return session;
+  });
 }
 
-export function listAlgorithmSessions(status?: string) {
-  return request<AlgorithmSessionSummary[]>(`/api/algorithms/sessions${queryString({ status, limit: 60 })}`);
+function algorithmSessionsPath(status?: string) {
+  return `/api/algorithms/sessions${queryString({ status, limit: 60 })}`;
 }
 
-export function getAlgorithmSession(id: string) {
-  return request<AlgorithmSession>(`/api/algorithms/sessions/${id}`);
+export function listAlgorithmSessions(status?: string, force = false) {
+  return cachedRequest<AlgorithmSessionSummary[]>(algorithmSessionsPath(status), undefined, force);
+}
+
+export function peekAlgorithmSessions(status?: string) {
+  return peekCachedRequest<AlgorithmSessionSummary[]>(algorithmSessionsPath(status));
+}
+
+export function getAlgorithmSession(id: string, force = false) {
+  return cachedRequest<AlgorithmSession>(`/api/algorithms/sessions/${id}`, undefined, force);
+}
+
+export function peekAlgorithmSession(id: string) {
+  return peekCachedRequest<AlgorithmSession>(`/api/algorithms/sessions/${id}`);
 }
 
 export function updateAlgorithmSessionProgress(id: string, currentIndex: number, itemStatus?: string) {
   return request<AlgorithmSession>(`/api/algorithms/sessions/${id}/progress`, {
     method: "PATCH",
     body: JSON.stringify({ current_index: currentIndex, item_status: itemStatus }),
+  }).then((session) => {
+    primeCachedRequest(`/api/algorithms/sessions/${id}`, session);
+    return session;
   });
 }
 
 export function skipAlgorithmSessionProblem(id: string) {
-  return request<AlgorithmSession>(`/api/algorithms/sessions/${id}/skip`, { method: "POST" });
+  return request<AlgorithmSession>(`/api/algorithms/sessions/${id}/skip`, { method: "POST" }).then((session) => {
+    primeCachedRequest(`/api/algorithms/sessions/${id}`, session);
+    return session;
+  });
 }
 
 export function completeAlgorithmSession(id: string) {
-  return request<AlgorithmSession>(`/api/algorithms/sessions/${id}/complete`, { method: "POST" });
+  return request<AlgorithmSession>(`/api/algorithms/sessions/${id}/complete`, { method: "POST" }).then((session) => {
+    invalidateCachedRequests("/api/algorithms/sessions", "/api/algorithms/stats");
+    return session;
+  });
 }
 
 export function abandonAlgorithmSession(id: string) {
-  return request<AlgorithmSession>(`/api/algorithms/sessions/${id}/abandon`, { method: "POST" });
+  return request<AlgorithmSession>(`/api/algorithms/sessions/${id}/abandon`, { method: "POST" }).then((session) => {
+    invalidateCachedRequests("/api/algorithms/sessions", "/api/algorithms/stats");
+    return session;
+  });
 }
 
 export function deleteAlgorithmSession(id: string) {
-  return request<void>(`/api/algorithms/sessions/${id}`, { method: "DELETE" });
+  return request<void>(`/api/algorithms/sessions/${id}`, { method: "DELETE" }).then(() => {
+    invalidateCachedRequests("/api/algorithms/sessions", "/api/algorithms/stats");
+  });
 }
 
 export function saveAlgorithmAttempt(payload: SaveAlgorithmAttemptPayload) {
-  return request<AlgorithmAttempt>("/api/algorithms/attempts", { method: "POST", body: JSON.stringify(payload) });
+  return request<AlgorithmAttempt>("/api/algorithms/attempts", { method: "POST", body: JSON.stringify(payload) }).then((attempt) => {
+    invalidateCachedRequests("/api/algorithms/stats", "/api/algorithms/sessions?");
+    return attempt;
+  });
 }
 
 export function listAlgorithmAttempts(filters: { problem_id?: number; session_id?: string } = {}) {
@@ -128,8 +168,12 @@ export function createAlgorithmReviewSession(count = 5) {
   return request<AlgorithmSession>(`/api/algorithms/reviews/session?count=${count}`, { method: "POST" });
 }
 
-export function getAlgorithmStats() {
-  return request<AlgorithmStats>("/api/algorithms/stats");
+export function getAlgorithmStats(force = false) {
+  return cachedRequest<AlgorithmStats>("/api/algorithms/stats", undefined, force);
+}
+
+export function peekAlgorithmStats() {
+  return peekCachedRequest<AlgorithmStats>("/api/algorithms/stats");
 }
 
 export function getAlgorithmWeaknesses() {

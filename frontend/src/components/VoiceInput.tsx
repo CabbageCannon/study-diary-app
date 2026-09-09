@@ -1,10 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { MicrophoneIcon } from "@phosphor-icons/react/Microphone";
+import { StopCircleIcon } from "@phosphor-icons/react/StopCircle";
 
 type VoiceStatus = "idle" | "listening" | "ended" | "unsupported" | "error";
 
 interface VoiceInputProps {
   text: string;
   onTextChange: (nextText: string) => void;
+  inputRef?: RefObject<HTMLTextAreaElement | null>;
 }
 
 const statusText: Record<VoiceStatus, string> = {
@@ -29,7 +32,7 @@ function getErrorMessage(error: string) {
   return "语音识别暂时不可用，请直接手动输入。";
 }
 
-export function VoiceInput({ text, onTextChange }: VoiceInputProps) {
+export function VoiceInput({ text, onTextChange, inputRef }: VoiceInputProps) {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const baseTextRef = useRef("");
   const [status, setStatus] = useState<VoiceStatus>(() =>
@@ -58,7 +61,7 @@ export function VoiceInput({ text, onTextChange }: VoiceInputProps) {
 
     const recognition = new SpeechRecognition();
     recognition.lang = "zh-CN";
-    recognition.continuous = true;
+    recognition.continuous = false;
     recognition.interimResults = true;
 
     recognition.onstart = () => {
@@ -77,6 +80,8 @@ export function VoiceInput({ text, onTextChange }: VoiceInputProps) {
       onTextChange(nextText);
     };
 
+    recognition.onspeechend = () => recognition.stop();
+
     recognition.onerror = (event) => {
       setError(getErrorMessage(event.error));
       setStatus("error");
@@ -89,6 +94,7 @@ export function VoiceInput({ text, onTextChange }: VoiceInputProps) {
 
     recognitionRef.current = recognition;
     recognition.start();
+    inputRef?.current?.focus({ preventScroll: true });
   }
 
   function stopListening() {
@@ -98,17 +104,17 @@ export function VoiceInput({ text, onTextChange }: VoiceInputProps) {
   return (
     <div className="voice-input" data-listening={isListening || undefined}>
       <button
-        className="button button-secondary voice-button"
+        className="voice-button"
         disabled={!isSupported}
         onClick={isListening ? stopListening : startListening}
         type="button"
         aria-pressed={isListening}
+        aria-label={isListening ? "结束语音输入" : "开始语音输入"}
+        title={isListening ? "结束语音输入" : "开始语音输入"}
       >
-        {isListening ? "停止语音" : "开始语音"}
+        {isListening ? <StopCircleIcon aria-hidden="true" size={21} weight="fill" /> : <MicrophoneIcon aria-hidden="true" size={21} weight="regular" />}
       </button>
-      <span className="voice-status" aria-live="polite">
-        {statusText[status]}
-      </span>
+      {status !== "idle" ? <span className="voice-status" aria-live="polite">{statusText[status]}</span> : null}
       {status === "unsupported" ? <p className="field-error">当前浏览器不支持语音识别，可以继续手动输入。</p> : null}
       {error ? <p className="field-error">{error}</p> : null}
     </div>

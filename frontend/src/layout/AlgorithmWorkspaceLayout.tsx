@@ -1,20 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
-import { getAlgorithmStats } from "../api/algorithms";
+import { getAlgorithmStats, peekAlgorithmStats } from "../api/algorithms";
 import { AlgorithmOverviewBar } from "../components/algorithms/AlgorithmOverviewBar";
 import { AlgorithmSubNavigation } from "../components/algorithms/AlgorithmSubNavigation";
 import type { AlgorithmStats } from "../types/algorithm";
 
 export function AlgorithmWorkspaceLayout() {
   const { pathname } = useLocation();
-  const [stats, setStats] = useState<AlgorithmStats | null>(null);
+  const [stats, setStats] = useState<AlgorithmStats | null>(() => peekAlgorithmStats());
 
   const loadStats = useCallback(async () => {
     try {
       setStats(await getAlgorithmStats());
     } catch {
-      setStats(null);
+      // Keep cached stats visible.
     }
   }, []);
 

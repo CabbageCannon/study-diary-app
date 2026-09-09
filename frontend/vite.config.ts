@@ -12,7 +12,7 @@ export default defineConfig({
         name: "学习日记",
         short_name: "学习日记",
         description: "记录、整理和回看每一天的学习内容。",
-        start_url: "/",
+        start_url: "/today",
         scope: "/",
         display: "standalone",
         orientation: "portrait-primary",

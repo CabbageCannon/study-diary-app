@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { getAlgorithmDailyFeed, createAlgorithmSession, listAlgorithmSessions, refreshAlgorithmDailyFeed } from "../api/algorithms";
+import { getAlgorithmDailyFeed, createAlgorithmSession, listAlgorithmSessions, peekAlgorithmDailyFeed, peekAlgorithmSessions, refreshAlgorithmDailyFeed } from "../api/algorithms";
 import { AlgorithmResumeBanner } from "../components/algorithms/AlgorithmResumeBanner";
 import { DailyExtraProblemList } from "../components/algorithms/DailyExtraProblemList";
 import { DailyPrimaryProblem } from "../components/algorithms/DailyPrimaryProblem";
@@ -10,9 +10,9 @@ import type { AlgorithmDailyFeed, AlgorithmProblem, AlgorithmSessionSummary } fr
 
 export function AlgorithmsPage() {
   const navigate = useNavigate();
-  const [feed, setFeed] = useState<AlgorithmDailyFeed | null>(null);
-  const [sessions, setSessions] = useState<AlgorithmSessionSummary[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [feed, setFeed] = useState<AlgorithmDailyFeed | null>(() => peekAlgorithmDailyFeed());
+  const [sessions, setSessions] = useState<AlgorithmSessionSummary[]>(() => peekAlgorithmSessions() ?? []);
+  const [isLoading, setIsLoading] = useState(() => !peekAlgorithmDailyFeed());
   const [isCreatingDaily, setIsCreatingDaily] = useState(false);
   const [creatingExtraProblemId, setCreatingExtraProblemId] = useState<number | null>(null);
   const [refreshDialogOpen, setRefreshDialogOpen] = useState(false);
@@ -20,7 +20,7 @@ export function AlgorithmsPage() {
   const [error, setError] = useState("");
 
   const load = useCallback(async () => {
-    setIsLoading(true);
+    setIsLoading(!peekAlgorithmDailyFeed());
     setError("");
     try {
       const [nextFeed, nextSessions] = await Promise.all([getAlgorithmDailyFeed(), listAlgorithmSessions()]);

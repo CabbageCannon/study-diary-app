@@ -13,6 +13,7 @@ import { WarningCircleIcon } from "@phosphor-icons/react/WarningCircle";
 import {
   completeAlgorithmSession,
   getAlgorithmSession,
+  peekAlgorithmSession,
   skipAlgorithmSessionProblem,
   updateAlgorithmSessionProgress,
 } from "../api/algorithms";
@@ -112,11 +113,11 @@ export function AlgorithmSessionPage() {
   const { sessionId = "" } = useParams();
   const navigate = useNavigate();
   const keyboardOffset = useKeyboardOffset();
-  const [session, setSession] = useState<AlgorithmSession | null>(null);
+  const [session, setSession] = useState<AlgorithmSession | null>(() => peekAlgorithmSession(sessionId));
   const [contextResponse, setContextResponse] = useState<AlgorithmReasoningContextResponse | null>(null);
   const [reasoningResult, setReasoningResult] = useState<AlgorithmReasoningCheckResponse | null>(null);
   const [phase, setPhase] = useState<ReasoningPhase>("editing");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => !peekAlgorithmSession(sessionId));
   const [isChecking, setIsChecking] = useState(false);
   const [error, setError] = useState("");
   const [contextError, setContextError] = useState("");
@@ -137,7 +138,7 @@ export function AlgorithmSessionPage() {
 
   const load = useCallback(async () => {
     if (!sessionId) return;
-    setIsLoading(true);
+    setIsLoading(!peekAlgorithmSession(sessionId));
     setError("");
     try {
       setSession(await getAlgorithmSession(sessionId));
@@ -299,12 +300,15 @@ export function AlgorithmSessionPage() {
 
   async function moveTo(index: number) {
     if (!session || !isOnline) return;
+    const previous = session;
+    setSession({ ...session, current_index: index });
     setError("");
     try {
       const next = await updateAlgorithmSessionProgress(session.id, index, "in_progress" as AlgorithmItemStatus);
       setSession(next);
       timer.resetTimer();
     } catch (moveError) {
+      setSession(previous);
       setError(moveError instanceof Error ? moveError.message : "无法更新训练进度。");
     }
   }

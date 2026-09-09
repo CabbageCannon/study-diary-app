@@ -1,4 +1,4 @@
-import { ApiRequestError, request } from "./client";
+import { ApiRequestError, cachedRequest, request } from "./client";
 import type {
   AlgorithmReasoningAnswer,
   AlgorithmReasoningCheckPayload,
@@ -42,7 +42,7 @@ export async function getAlgorithmReasoningContext(problemId: number | string) {
     return fixtureContextResponse(String(problemId));
   }
 
-  return request<AlgorithmReasoningContextResponse>(`/api/algorithms/problems/${problemId}/reasoning-context`);
+  return cachedRequest<AlgorithmReasoningContextResponse>(`/api/algorithms/problems/${problemId}/reasoning-context`);
 }
 
 export async function checkAlgorithmReasoningAnswer(payload: AlgorithmReasoningCheckPayload) {

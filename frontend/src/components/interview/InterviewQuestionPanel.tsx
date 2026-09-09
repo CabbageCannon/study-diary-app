@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { VoiceInput } from "../VoiceInput";
 import type { AnswerSource, InterviewQuestionForTraining } from "../../types/interview";
 
@@ -22,6 +23,7 @@ export function InterviewQuestionPanel({
   onAnswerChange,
   onAnswerSourceChange,
 }: InterviewQuestionPanelProps) {
+  const answerRef = useRef<HTMLTextAreaElement | null>(null);
   return (
     <section className="interview-question-panel" aria-labelledby="interview-question-title">
       <div className="question-meta">
@@ -36,20 +38,24 @@ export function InterviewQuestionPanel({
       </div>
 
       <div className="answer-toolbar">
-        <VoiceInput text={answerText} onTextChange={(text) => { onAnswerSourceChange("voice"); onAnswerChange(text); }} />
         <span className="character-count tabular-number">已作答 {durationSeconds} 秒</span>
       </div>
 
-      <label className="editor-field interview-answer-field">
-        <span>我的回答</span>
-        <textarea
-          disabled={disabled}
-          value={answerText}
-          onChange={(event) => { onAnswerSourceChange("text"); onAnswerChange(event.target.value); }}
-          placeholder="可以用系统键盘听写，也可以直接输入。先用自己的话讲一遍。"
-          rows={11}
-        />
-      </label>
+      <div className="editor-field interview-answer-field">
+        <label htmlFor="interview-answer">我的回答</label>
+        <div className="voice-textarea-shell">
+          <textarea
+            disabled={disabled}
+            id="interview-answer"
+            ref={answerRef}
+            value={answerText}
+            onChange={(event) => { onAnswerSourceChange("text"); onAnswerChange(event.target.value); }}
+            placeholder="直接讲出你的思路，说完会自动结束并写入这里。"
+            rows={11}
+          />
+          <VoiceInput inputRef={answerRef} text={answerText} onTextChange={(text) => { onAnswerSourceChange("voice"); onAnswerChange(text); }} />
+        </div>
+      </div>
       <span className="character-count">{answerSource === "voice" ? "来源：语音转写，可继续修改" : "本机草稿会自动保留"}</span>
     </section>
   );
