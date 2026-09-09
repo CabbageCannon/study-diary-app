@@ -3123,10 +3123,6 @@ textarea:focus-visible {
   border-color: color-mix(in srgb, var(--danger) 45%, var(--rule));
 }
 
-.network-status-ready {
-  border-color: color-mix(in srgb, var(--accent) 52%, var(--rule));
-}
-
 .pwa-update-prompt {
   display: flex;
   width: min(390px, calc(100vw - 32px));
@@ -4748,7 +4744,7 @@ html[data-theme="night"] .date-picker-day-selected:focus-visible {
 .algorithm-history-page .archive-list,
 .algorithm-history-page .detail-panel { min-height: 0; }
 .algorithm-history-page .training-set-list { overflow-y: auto; }
-.training-set-quick-action { display: grid; place-items: center; border: 0; border-left: 1px solid var(--rule); background: transparent; color: var(--accent); cursor: pointer; }
+.training-set-quick-action { justify-self: end; min-height: 34px; margin: 0 14px 14px 0; padding: 0 12px; font-size: 0.78rem; }
 .algorithm-history-detail { display: grid; align-content: start; gap: 18px; overflow-y: auto; }
 .history-detail-heading { padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
 .history-detail-heading h2 { margin: 4px 0; color: var(--ink); font-size: 1.3rem; }
@@ -4849,6 +4845,7 @@ html[data-theme="night"] .date-picker-day-selected:focus-visible {
   .algorithm-history-workbench { display: block; }
   .algorithm-history-page .archive-list { margin-bottom: 16px; }
   .algorithm-history-page .training-set-list { max-height: none; overflow: visible; }
+  .training-set-quick-action { justify-self: stretch; width: calc(100% - 32px); margin: 0 16px 16px; }
   .algorithm-history-detail { overflow: visible; }
   .history-detail-heading { display: grid; }
   .history-detail-actions { justify-content: start; }
