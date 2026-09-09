@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine, event, inspect
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
@@ -248,6 +248,11 @@ class InterviewSessionStateApiTests(unittest.TestCase):
             connect_args={"check_same_thread": False},
             poolclass=StaticPool,
         )
+
+        @event.listens_for(self.engine, "connect")
+        def _enable_sqlite_foreign_keys(dbapi_connection, _connection_record) -> None:
+            dbapi_connection.execute("PRAGMA foreign_keys=ON")
+
         Base.metadata.create_all(self.engine)
         self.session = Session(self.engine)
         for question_id in ("session-state-001", "session-state-002", "session-state-003"):
@@ -345,6 +350,32 @@ class InterviewSessionStateApiTests(unittest.TestCase):
             self.client.get("/api/interviews/questions/session-state-001").status_code,
             200,
         )
+
+    def test_delete_question_set_removes_schedule_before_answer_when_no_replacement(self) -> None:
+        created = self.create_set()
+        set_id = created["id"]
+        question_id = created["items"][0]["question"]["id"]
+
+        with patch("app.services.interview_training_service.evaluate_interview_answer", successful_evaluation):
+            submitted = self.client.post(
+                f"/api/interviews/question-sets/{set_id}/answers",
+                json={
+                    "question_id": question_id,
+                    "answer_text": "这条回答被复习计划引用，删除题集时没有其它回答可替换。",
+                    "answer_source": "text",
+                },
+            )
+        self.assertEqual(submitted.status_code, 201)
+        answer_id = submitted.json()["answer"]["id"]
+        self.session.expire_all()
+        schedule = self.session.query(InterviewReviewSchedule).filter_by(question_id=question_id).one()
+        self.assertEqual(schedule.last_answer_id, answer_id)
+
+        deleted = self.client.delete(f"/api/interviews/question-sets/{set_id}")
+        self.assertEqual(deleted.status_code, 204)
+        self.session.expire_all()
+        self.assertIsNone(self.session.get(InterviewAnswer, answer_id))
+        self.assertEqual(self.session.query(InterviewReviewSchedule).filter_by(question_id=question_id).count(), 0)
 
     def test_stats_uses_persisted_answers_and_pending_sessions(self) -> None:
         created = self.create_set()
