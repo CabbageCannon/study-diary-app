@@ -58,7 +58,22 @@
 .me-summary strong { color: var(--ink); font-size: 1.35rem; font-variant-numeric: tabular-nums; }
 .me-summary small { color: var(--muted); font-size: 0.72rem; }
 
-.me-settings-form { display: grid; max-width: 920px; gap: 18px; padding: 0 var(--content-pad) 48px; }
+.me-settings-list { display: grid; max-width: 920px; gap: 10px; padding: 0 var(--content-pad) 48px; }
+.me-settings-item { overflow: hidden; border: 0; border-radius: 18px; background: var(--paper-strong); box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 4%, transparent); }
+.me-settings-trigger { display: grid; width: 100%; min-height: 70px; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 13px; border: 0; background: transparent; color: var(--ink); padding: 13px 18px; text-align: left; }
+.me-settings-trigger > span:nth-child(2) { min-width: 0; }
+.me-settings-trigger strong,
+.me-settings-trigger small { display: block; }
+.me-settings-trigger small { overflow: hidden; margin-top: 3px; color: var(--muted); font-size: 0.75rem; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.me-settings-trigger:active { background: var(--wash); }
+.me-settings-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; }
+.me-settings-icon { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 12px; background: var(--accent-wash); color: var(--accent-strong); }
+.me-settings-caret { color: var(--muted); transition: transform 180ms ease-out; }
+.me-settings-item-active .me-settings-caret { transform: rotate(180deg); }
+.me-settings-panel { display: grid; gap: 18px; border-top: 1px solid var(--rule); padding: 20px; animation: me-section-enter 180ms ease-out both; }
+.me-section-actions { display: flex; justify-content: flex-end; gap: 9px; }
+.me-section-actions .button { min-width: 88px; justify-content: center; }
+.me-install-copy { margin: 0; color: var(--muted); font-size: 0.88rem; line-height: 1.55; }
 .settings-section { display: grid; gap: 18px; border: 0; border-radius: 18px; background: var(--paper-strong); padding: 22px; box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 4%, transparent); }
 .settings-section h2 { margin: 5px 0 0; color: var(--ink); font-size: 1.2rem; letter-spacing: -0.018em; }
 .settings-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
@@ -92,12 +107,13 @@
 .setting-row-button > span:last-child { color: var(--accent); font-size: 1.4rem; }
 .setting-row-button:active { opacity: 0.62; }
 
+.ios-switch { position: relative; }
 .ios-switch input { position: absolute; opacity: 0; pointer-events: none; }
-.ios-switch span { position: relative; display: block; width: 51px; height: 31px; border-radius: 999px; background: var(--rule-strong); transition: background-color 180ms ease-out; }
-.ios-switch span::after { position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: white; box-shadow: 0 2px 5px rgb(0 0 0 / 18%); content: ""; transition: transform 220ms cubic-bezier(.2,.8,.2,1); }
-.ios-switch input:checked + span { background: var(--accent); }
-.ios-switch input:checked + span::after { transform: translateX(20px); }
-.ios-switch input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 3px; }
+.ios-switch i { position: relative; display: block; width: 51px; height: 31px; border-radius: 999px; background: var(--rule-strong); transition: background-color 180ms ease-out; }
+.ios-switch i::after { position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: white; box-shadow: 0 2px 5px rgb(0 0 0 / 18%); content: ""; transition: transform 220ms cubic-bezier(.2,.8,.2,1); }
+.ios-switch input:checked + i { background: var(--accent); }
+.ios-switch input:checked + i::after { transform: translateX(20px); }
+.ios-switch input:focus-visible + i { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 .me-reminder-preview { display: grid; gap: 7px; border-radius: 14px; background: var(--wash); padding: 15px; }
 .me-reminder-preview > div { display: flex; gap: 7px; align-items: center; color: var(--accent); }
@@ -105,11 +121,7 @@
 .me-reminder-preview strong { color: var(--ink); }
 .me-reminder-preview p { margin: 0; color: var(--muted); font-size: 0.8rem; line-height: 1.55; }
 
-.me-access-code,
 .me-install-guide { display: grid; gap: 12px; border-radius: 14px; background: var(--wash); padding: 15px; animation: me-section-enter 180ms ease-out both; }
-.me-access-code label { display: grid; gap: 7px; color: var(--muted); font-size: 0.78rem; }
-.me-access-code input { min-height: 44px; border: 1px solid var(--rule); border-radius: 10px; background: var(--paper); color: var(--ink); padding: 8px 11px; font-size: 16px; }
-.me-access-code > div,
 .me-install-guide > div { display: flex; gap: 9px; justify-content: flex-end; }
 .me-install-guide ol { display: grid; gap: 6px; margin: 0; padding-left: 20px; color: var(--muted); font-size: 0.84rem; line-height: 1.5; }
 .settings-actions { position: static; }
@@ -125,7 +137,10 @@
   .me-edit-button { grid-column: 1 / -1; width: 100%; justify-content: center; }
   .me-summary span { padding: 14px 6px; }
   .me-summary strong { font-size: 1.18rem; }
-  .me-settings-form { gap: 14px; padding: 0 var(--content-pad) calc(112px + var(--safe-bottom)); }
+  .me-settings-list { padding: 0 var(--content-pad) calc(112px + var(--safe-bottom)); }
+  .me-settings-item { border-radius: 16px; box-shadow: none; }
+  .me-settings-trigger { min-height: 66px; padding: 12px 14px; }
+  .me-settings-panel { gap: 16px; padding: 18px 14px; }
   .settings-section { gap: 16px; border-radius: 16px; padding: 18px; box-shadow: none; }
   .settings-grid { grid-template-columns: 1fr; }
   .me-wide-field { grid-column: auto; }
@@ -135,15 +150,17 @@
 
 @media (prefers-reduced-motion: reduce) {
   .me-profile-editor,
-  .me-access-code,
-  .me-install-guide { animation: none; }
+  .me-install-guide,
+  .me-settings-panel { animation: none; }
   .theme-option,
   .me-edit-button,
-  .ios-switch span,
-  .ios-switch span::after { transition-duration: 0.01ms; }
+  .me-settings-caret,
+  .ios-switch i,
+  .ios-switch i::after { transition-duration: 0.01ms; }
 }
 
 @media (prefers-reduced-transparency: reduce) {
   .me-summary,
-  .settings-section { box-shadow: none; }
+  .settings-section,
+  .me-settings-item { box-shadow: none; }
 }
