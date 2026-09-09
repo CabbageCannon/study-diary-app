@@ -110,6 +110,12 @@ class DiarySave(BaseModel):
     polished_text: str
     summary: str
     tags: list[str]
+    category: Literal["learning", "life"] = "learning"
+    status: Literal["draft", "published"] = "published"
+    images: list[str] = Field(default_factory=list, max_length=4)
+    weather: str | None = Field(default=None, max_length=80)
+    location: str | None = Field(default=None, max_length=120)
+    is_pinned: bool = False
 
     @field_validator("date")
     @classmethod
@@ -130,6 +136,38 @@ class DiarySave(BaseModel):
     def normalize_tags(cls, value: Any) -> list[str]:
         return PolishedDiary.normalize_tags(value)
 
+    @field_validator("images")
+    @classmethod
+    def validate_images(cls, value: list[str]) -> list[str]:
+        if any(not image.startswith("data:image/") for image in value):
+            raise ValueError("images 只接受图片 data URL")
+        return value
+
+
+class DiaryUpdate(BaseModel):
+    date: str | None = None
+    title: str | None = Field(default=None, max_length=160)
+    raw_text: str | None = None
+    polished_text: str | None = None
+    summary: str | None = None
+    tags: list[str] | None = None
+    category: Literal["learning", "life"] | None = None
+    status: Literal["draft", "published"] | None = None
+    images: list[str] | None = Field(default=None, max_length=4)
+    weather: str | None = Field(default=None, max_length=80)
+    location: str | None = Field(default=None, max_length=120)
+    is_pinned: bool | None = None
+
+    @field_validator("date")
+    @classmethod
+    def validate_optional_date(cls, value: str | None) -> str | None:
+        return DiaryCreate.validate_date(value) if value is not None else value
+
+    @field_validator("images")
+    @classmethod
+    def validate_optional_images(cls, value: list[str] | None) -> list[str] | None:
+        return DiarySave.validate_images(value) if value is not None else value
+
 
 class DiaryRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -141,6 +179,12 @@ class DiaryRead(BaseModel):
     polished_text: str
     summary: str
     tags: list[str]
+    category: Literal["learning", "life"]
+    status: Literal["draft", "published"]
+    images: list[str]
+    weather: str | None
+    location: str | None
+    is_pinned: bool
     created_at: datetime
     updated_at: datetime
 

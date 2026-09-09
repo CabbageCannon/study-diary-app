@@ -23,7 +23,7 @@ function readCachedWorkspace(): TodayWorkspaceData {
     algorithmSessions: peekAlgorithmSessions("in_progress") ?? [],
     interviewStats: peekInterviewTrainingStats(),
     interviewSessions: peekInterviewQuestionSets({ status: "in_progress", limit: 12 }) ?? [],
-    todayDiaryCount: diaries.filter((diary) => diary.date === todayKey).length,
+    todayDiaryCount: diaries.filter((diary) => diary.date === todayKey && diary.status === "published").length,
   };
 }
 
@@ -57,7 +57,7 @@ export function useTodayWorkspace() {
         algorithmSessions: algorithmSessions.status === "fulfilled" ? algorithmSessions.value : [],
         interviewStats: interviewStats.status === "fulfilled" ? interviewStats.value : null,
         interviewSessions: interviewSessions.status === "fulfilled" ? interviewSessions.value : [],
-        todayDiaryCount: diaries.status === "fulfilled" ? diaries.value.filter((diary) => diary.date === todayKey).length : 0,
+        todayDiaryCount: diaries.status === "fulfilled" ? diaries.value.filter((diary) => diary.date === todayKey && diary.status === "published").length : 0,
       });
       setFailedSectionCount(results.filter((result) => result.status === "rejected").length);
       setIsLoading(false);

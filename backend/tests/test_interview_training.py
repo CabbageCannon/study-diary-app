@@ -155,6 +155,19 @@ class InterviewTrainingApiTests(unittest.TestCase):
                 improved_answer="这是一段满足最小长度要求的改进答案，用于验证模型输出中的分数边界会被严格校验。",
             )
 
+    def test_mobile_diary_draft_can_be_published_and_pinned(self) -> None:
+        created = self.client.post("/api/diaries", json={
+            "date": "2026-09-09", "title": "未完成的日记", "raw_text": "写到一半",
+            "polished_text": "写到一半", "summary": "写到一半", "tags": ["生活"],
+            "category": "life", "status": "draft", "images": [],
+        })
+        self.assertEqual(created.status_code, 201)
+        diary_id = created.json()["id"]
+        updated = self.client.patch(f"/api/diaries/{diary_id}", json={"status": "published", "is_pinned": True})
+        self.assertEqual(updated.status_code, 200)
+        self.assertEqual(updated.json()["status"], "published")
+        self.assertTrue(updated.json()["is_pinned"])
+
     def test_question_set_only_uses_verified_questions_and_shortage_is_explicit(self) -> None:
         question_set = self.create_set()
         self.assertEqual(question_set["question_count"], 1)

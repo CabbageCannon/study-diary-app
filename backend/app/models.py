@@ -21,6 +21,12 @@ class Diary(Base):
     polished_text: Mapped[str] = mapped_column(Text)
     summary: Mapped[str] = mapped_column(Text)
     tags_json: Mapped[str] = mapped_column("tags", Text, default="[]")
+    category: Mapped[str] = mapped_column(String(20), default="learning", index=True)
+    status: Mapped[str] = mapped_column(String(20), default="published", index=True)
+    images_json: Mapped[str] = mapped_column("images", Text, default="[]")
+    weather: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    location: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    is_pinned: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 
@@ -35,6 +41,14 @@ class Diary(Base):
             return []
 
         return [str(item) for item in value if str(item).strip()]
+
+    @property
+    def images(self) -> list[str]:
+        try:
+            value = json.loads(self.images_json or "[]")
+        except json.JSONDecodeError:
+            return []
+        return [str(item) for item in value[:4]] if isinstance(value, list) else []
 
 
 class PushSubscription(Base):

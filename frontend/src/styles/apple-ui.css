@@ -6,7 +6,7 @@
 
 html { scroll-behavior: smooth; }
 body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif; }
-.main-surface { background: var(--canvas); background-image: none; }
+.main-surface { isolation: auto; background: var(--canvas); background-image: none; }
 .main-surface::before { display: none; }
 
 .button {
@@ -32,7 +32,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
   padding: 28px var(--content-pad) 18px;
 }
 .interview-workspace-header h1,
-.algorithm-workspace-header h1 { margin: 5px 0 0; color: var(--ink); font-size: clamp(1.95rem, 3vw, 2.6rem); line-height: 1.08; letter-spacing: -0.035em; }
+.algorithm-workspace-header h1 { margin: 0; color: var(--ink); font-size: clamp(1.95rem, 3vw, 2.6rem); line-height: 1.08; letter-spacing: -0.035em; }
 .interview-workspace-header > p { align-self: center; justify-self: end; margin: 0; color: var(--muted); font-size: 0.8rem; }
 
 .workspace-segmented-control,
@@ -146,10 +146,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
   .today-resume-icon { border: 0; border-radius: 11px; background: var(--accent-wash); }
 
   .interview-workspace-header,
-  .algorithm-workspace-header { min-height: 0; gap: 12px; padding-right: var(--content-pad); padding-bottom: 14px; padding-left: var(--content-pad); }
+  .algorithm-workspace-header { min-height: 0; justify-items: center; gap: 12px; padding-right: var(--content-pad); padding-bottom: 14px; padding-left: var(--content-pad); text-align: center; }
   .interview-workspace-header h1,
   .algorithm-workspace-header h1 { font-size: 1.95rem; }
-  .interview-workspace-header > p { line-height: 1.55; }
+  .interview-workspace-header > p { justify-self: center; line-height: 1.55; }
 
   .workspace-segmented-control,
   .algorithm-workspace-page > .algorithm-sub-navigation {
@@ -186,7 +186,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
     right: max(10px, var(--safe-right));
     bottom: max(8px, var(--safe-bottom));
     left: max(10px, var(--safe-left));
-    overflow: hidden;
+    overflow: visible;
+    min-height: 66px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     border: 1px solid color-mix(in srgb, var(--rule-strong) 75%, transparent);
     border-radius: 22px;
     background: color-mix(in srgb, var(--paper-strong) 84%, transparent);
@@ -198,6 +200,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
   .mobile-nav-link:active { transform: scale(0.94); }
   .mobile-nav-link-active { background: var(--accent-wash); }
 }
+
+.interview-task-spinner,
+.action-spinner { animation: apple-spinner 800ms linear infinite; }
+.interview-answer-task .pane-label { display: inline-flex; gap: 5px; align-items: center; }
+@keyframes apple-spinner { to { transform: rotate(360deg); } }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

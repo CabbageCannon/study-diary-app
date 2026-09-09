@@ -54,6 +54,15 @@ INTERVIEW_ANSWER_COLUMN_DEFINITIONS = {
     "evaluation_error": "TEXT",
 }
 
+DIARY_COLUMN_DEFINITIONS = {
+    "category": "VARCHAR(20) NOT NULL DEFAULT 'learning'",
+    "status": "VARCHAR(20) NOT NULL DEFAULT 'published'",
+    "images": "TEXT NOT NULL DEFAULT '[]'",
+    "weather": "VARCHAR(80)",
+    "location": "VARCHAR(120)",
+    "is_pinned": "BOOLEAN NOT NULL DEFAULT 0",
+}
+
 
 def _apply_sqlite_review_metadata_migration() -> None:
     if engine.dialect.name != "sqlite":
@@ -130,6 +139,19 @@ def _apply_sqlite_interview_answer_migration() -> None:
         )
 
 
+def _apply_sqlite_diary_migration() -> None:
+    if engine.dialect.name != "sqlite":
+        return
+    inspector = inspect(engine)
+    if "diaries" not in inspector.get_table_names():
+        return
+    existing_columns = {column["name"] for column in inspector.get_columns("diaries")}
+    with engine.begin() as connection:
+        for name, definition in DIARY_COLUMN_DEFINITIONS.items():
+            if name not in existing_columns:
+                connection.exec_driver_sql(f"ALTER TABLE diaries ADD COLUMN {name} {definition}")
+
+
 def _mark_interrupted_batch_jobs_failed() -> None:
     inspector = inspect(engine)
     if "interview_batch_jobs" not in inspector.get_table_names():
@@ -152,6 +174,7 @@ def init_db() -> None:
         _apply_sqlite_review_metadata_migration()
         _apply_sqlite_interview_session_migration()
         _apply_sqlite_interview_answer_migration()
+        _apply_sqlite_diary_migration()
     _mark_interrupted_batch_jobs_failed()
 
 

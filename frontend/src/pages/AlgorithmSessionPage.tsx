@@ -8,6 +8,7 @@ import { FlagIcon } from "@phosphor-icons/react/Flag";
 import { PauseIcon } from "@phosphor-icons/react/Pause";
 import { PlayIcon } from "@phosphor-icons/react/Play";
 import { SkipForwardIcon } from "@phosphor-icons/react/SkipForward";
+import { SpinnerGapIcon } from "@phosphor-icons/react/SpinnerGap";
 import { WarningCircleIcon } from "@phosphor-icons/react/WarningCircle";
 
 import {
@@ -302,6 +303,8 @@ export function AlgorithmSessionPage() {
     if (!session || !isOnline) return;
     const previous = session;
     setSession({ ...session, current_index: index });
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    document.getElementById("main-content")?.scrollTo({ top: 0, left: 0, behavior: "smooth" });
     setError("");
     try {
       const next = await updateAlgorithmSessionProgress(session.id, index, "in_progress" as AlgorithmItemStatus);
@@ -319,6 +322,8 @@ export function AlgorithmSessionPage() {
     try {
       const next = await skipAlgorithmSessionProblem(session.id);
       setSession(next);
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+      document.getElementById("main-content")?.scrollTo({ top: 0, left: 0, behavior: "smooth" });
       timer.resetTimer();
     } catch (skipError) {
       setError(skipError instanceof Error ? skipError.message : "跳过题目失败。");
@@ -418,7 +423,7 @@ export function AlgorithmSessionPage() {
         {phase === "evaluationFailed" && reasoningResult?.answer ? (
           <button className="button button-primary" disabled={!isOnline || isChecking} onClick={() => void retryCheck()} type="button"><ArrowCounterClockwiseIcon aria-hidden="true" size={16} weight="bold" />重新核对</button>
         ) : (
-          <button className="button button-primary" disabled={!canCheck} onClick={() => void handleCheck()} type="button"><CheckIcon aria-hidden="true" size={16} weight="bold" />{isChecking ? phaseText[phase] : "帮我核对"}</button>
+          <button className="button button-primary" disabled={!canCheck} onClick={() => void handleCheck()} type="button">{isChecking ? <SpinnerGapIcon aria-hidden="true" className="action-spinner" size={16} /> : <CheckIcon aria-hidden="true" size={16} weight="bold" />}{isChecking ? phaseText[phase] : "帮我核对"}</button>
         )}
         {canMoveNext ? <button className="button button-secondary" disabled={!isOnline || isChecking} onClick={() => void moveTo(session.current_index + 1)} type="button">下一题<ArrowRightIcon aria-hidden="true" size={16} /></button> : <button className="button button-secondary" disabled={!isOnline || isChecking} onClick={() => void completeSession()} type="button"><FlagIcon aria-hidden="true" size={16} />完成</button>}
       </footer>

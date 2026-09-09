@@ -9,6 +9,7 @@ import { TodayPage } from "./pages/TodayPage";
 import { prefetchAppData } from "./services/appPrefetch";
 
 const HistoryPage = lazy(() => import("./pages/HistoryPage").then((module) => ({ default: module.HistoryPage })));
+const DiaryPage = lazy(() => import("./pages/DiaryPage").then((module) => ({ default: module.DiaryPage })));
 const InterviewHistoryPage = lazy(() => import("./pages/InterviewHistoryPage").then((module) => ({ default: module.InterviewHistoryPage })));
 const InterviewPage = lazy(() => import("./pages/InterviewPage").then((module) => ({ default: module.InterviewPage })));
 const InterviewReviewPage = lazy(() => import("./pages/InterviewReviewPage").then((module) => ({ default: module.InterviewReviewPage })));
@@ -41,6 +42,7 @@ window.setTimeout(() => {
     import("./pages/InterviewSessionPage"),
     import("./pages/AlgorithmsPage"),
     import("./pages/AlgorithmSessionPage"),
+    import("./pages/DiaryPage"),
     import("./layout/InterviewWorkspaceLayout"),
     import("./layout/AlgorithmWorkspaceLayout"),
   ]);
@@ -61,6 +63,7 @@ export default function App() {
               <Route path="/" element={<Navigate to="/today" replace />} />
               <Route path="/today" element={routeView(<TodayPage />)} />
               <Route path="/me" element={routeView(<MePage />)} />
+              <Route path="/diary" element={routeView(<DiaryPage />)} />
               <Route path="/write" element={routeView(<WriteDiaryPage />)} />
               <Route path="/history" element={routeView(<HistoryPage />)} />
               <Route path="/algorithms" element={routeView(<AlgorithmWorkspaceLayout />)}>

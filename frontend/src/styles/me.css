@@ -115,8 +115,10 @@
 @keyframes me-section-enter { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
 
 @media (max-width: 760px) {
-  .me-profile-header { gap: 16px; padding: var(--mobile-page-top) var(--content-pad) 22px; }
-  .me-profile-main { grid-template-columns: auto minmax(0, 1fr); }
+  .me-profile-header { justify-items: center; gap: 16px; padding: var(--mobile-page-top) var(--content-pad) 22px; text-align: center; }
+  .me-profile-main { justify-items: center; grid-template-columns: 1fr; gap: 10px; }
+  .me-profile-note { margin-inline: auto; }
+  .me-summary { width: 100%; }
   .me-avatar { width: 64px; height: 64px; }
   .me-profile-main h1 { font-size: 2rem; }
   .me-summary span { padding: 14px 6px; }

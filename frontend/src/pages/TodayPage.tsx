@@ -84,7 +84,7 @@ function getContinueAction(
   if (algorithmSession) return { href: `/algorithms/session/${algorithmSession.id}`, label: `继续：算法第 ${algorithmSession.current_index + 1} 题` };
   if (interviewSession) return { href: `/interview/session/${interviewSession.id}`, label: "继续：八股训练" };
   const next = items.find((item) => item.completed < item.target);
-  return next ? { href: next.href, label: `开始：${next.label}` } : { href: "/write", label: "今天已完成，写点补充日记" };
+  return next ? { href: next.href, label: `开始：${next.label}` } : { href: "/diary", label: "今天已完成，写点补充日记" };
 }
 
 function ProgressLine({ item, isLoading }: { item: TodayProgressItem; isLoading: boolean }) {

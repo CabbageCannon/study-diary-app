@@ -215,7 +215,7 @@ export function getTodayProgressItems(data: TodayWorkspaceData, preferences: Use
       label: "日记",
       completed: data.todayDiaryCount,
       target: preferences.dailyGoals.diary,
-      href: "/write",
+      href: "/diary",
     },
     {
       key: "review",

@@ -6,6 +6,7 @@ import { ArrowRightIcon } from "@phosphor-icons/react/ArrowRight";
 import { CheckIcon } from "@phosphor-icons/react/Check";
 import { FlagIcon } from "@phosphor-icons/react/Flag";
 import { PlayIcon } from "@phosphor-icons/react/Play";
+import { SpinnerGapIcon } from "@phosphor-icons/react/SpinnerGap";
 import { XIcon } from "@phosphor-icons/react/X";
 
 import { ConfirmActionDialog } from "../components/interview/ConfirmActionDialog";
@@ -33,6 +34,11 @@ function draftSaveLabel(saveState: "idle" | "saving" | "saved" | "local_only") {
   if (saveState === "saved") return "已保存到本地";
   if (saveState === "local_only") return "仅保存在本地";
   return "";
+}
+
+function scrollQuestionToTop() {
+  window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  document.getElementById("main-content")?.scrollTo({ top: 0, left: 0, behavior: "smooth" });
 }
 
 export function InterviewSessionPage() {
@@ -179,6 +185,7 @@ export function InterviewSessionPage() {
   async function handleNavigate(index: number) {
     draft.flush();
     await goTo(index);
+    scrollQuestionToTop();
   }
 
   function handleOpenTask(questionId: string) {
@@ -190,6 +197,7 @@ export function InterviewSessionPage() {
 
   function handleNext() {
     next();
+    scrollQuestionToTop();
     setDurationSeconds(0);
     setRetryMode(false);
     setRetryAnswerId(null);
@@ -356,7 +364,7 @@ function InterviewAnswerTaskTray({
         {tasks.map((task) => (
           <article className={`interview-answer-task interview-answer-task-${task.status}`} key={task.key}>
             <div>
-              <span className="pane-label">{statusLabel[task.status]}</span>
+              <span className="pane-label">{task.status === "saving" || task.status === "processing" ? <SpinnerGapIcon aria-hidden="true" className="interview-task-spinner" size={13} /> : null}{statusLabel[task.status]}</span>
               <h3>{task.questionText}</h3>
               {task.status === "saving" ? <p>正在确认保存，计时已经停住。</p> : null}
               {task.status === "processing" ? <p>回答已保存，正在后台核对。可以继续刷下一题。</p> : null}

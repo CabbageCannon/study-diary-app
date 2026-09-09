@@ -140,7 +140,6 @@ export function MePage() {
 
   return <div className="page-stack me-page">
     <header className="me-profile-header">
-      <span className="page-kicker">我的</span>
       <div className="me-profile-main">
         <span className="me-avatar" aria-hidden="true">{avatar}</span>
         <div><h1>{displayName}</h1><p>{preferences.targetRole || "还没有设置学习方向"}</p></div>

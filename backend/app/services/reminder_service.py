@@ -86,7 +86,7 @@ def _missing_items(db: Session, subscription: PushSubscription, date_key: str) -
         missing.append(f"八股 {subscription.interview_goal - interview.today_answered_count} 道")
     if algorithm.today_completed_count < subscription.algorithm_goal:
         missing.append(f"算法 {subscription.algorithm_goal - algorithm.today_completed_count} 道")
-    if subscription.include_diary and db.scalar(select(Diary.id).where(Diary.date == date_key).limit(1)) is None:
+    if subscription.include_diary and db.scalar(select(Diary.id).where(Diary.date == date_key, Diary.status == "published").limit(1)) is None:
         missing.append("一篇日记")
     due_count = algorithm.due_review_count + interview.due_review_count
     if subscription.include_review and due_count:

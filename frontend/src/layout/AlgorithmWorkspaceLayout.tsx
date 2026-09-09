@@ -23,10 +23,7 @@ export function AlgorithmWorkspaceLayout() {
   return (
     <div className="page-stack algorithm-workspace-page">
       <header className="algorithm-workspace-header">
-        <div>
-          <span className="page-kicker">学习工作区</span>
-          <h1>算法训练</h1>
-        </div>
+        <h1>算法训练</h1>
         <AlgorithmOverviewBar stats={stats} />
       </header>
       <AlgorithmSubNavigation />

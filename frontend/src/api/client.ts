@@ -1,4 +1,4 @@
-import type { CreateDiaryDraftPayload, Diary, DiaryDraft, RewriteDiaryDraftPayload, SaveDiaryPayload } from "../types/diary";
+import type { CreateDiaryDraftPayload, Diary, DiaryDraft, MobileDiaryPayload, RewriteDiaryDraftPayload, SaveDiaryPayload, UpdateDiaryPayload } from "../types/diary";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 const ACCESS_TOKEN_STORAGE_KEY = "study-diary:access-token";
@@ -149,15 +149,31 @@ function formatApiErrorItem(item: unknown): string {
 }
 
 export function listDiaries(force = false): Promise<Diary[]> {
-  return cachedRequest<Diary[]>("/api/diaries", undefined, force);
+  return cachedRequest<Diary[]>("/api/diaries", undefined, force).then((items) => {
+    const normalized = items.map(normalizeDiary);
+    primeCachedRequest("/api/diaries", normalized);
+    return normalized;
+  });
 }
 
 export function peekDiaries() {
-  return peekCachedRequest<Diary[]>("/api/diaries");
+  return peekCachedRequest<Diary[]>("/api/diaries")?.map(normalizeDiary) ?? null;
 }
 
 export function getDiary(id: number): Promise<Diary> {
-  return request<Diary>(`/api/diaries/${id}`);
+  return request<Diary>(`/api/diaries/${id}`).then(normalizeDiary);
+}
+
+function normalizeDiary(diary: Diary): Diary {
+  return {
+    ...diary,
+    category: diary.category ?? "learning",
+    status: diary.status ?? "published",
+    images: Array.isArray(diary.images) ? diary.images : [],
+    weather: diary.weather ?? null,
+    location: diary.location ?? null,
+    is_pinned: Boolean(diary.is_pinned),
+  };
 }
 
 export function createDiaryDraft(payload: CreateDiaryDraftPayload): Promise<DiaryDraft> {
@@ -174,12 +190,24 @@ export function rewriteDiaryDraft(payload: RewriteDiaryDraftPayload): Promise<Di
   });
 }
 
-export function saveDiary(payload: SaveDiaryPayload): Promise<Diary> {
+export function saveDiary(payload: SaveDiaryPayload | MobileDiaryPayload): Promise<Diary> {
   return request<Diary>("/api/diaries", {
     method: "POST",
     body: JSON.stringify(payload),
   }).then((diary) => {
-    invalidateCachedRequests("/api/diaries");
+    const current = peekDiaries() ?? [];
+    primeCachedRequest("/api/diaries", [diary, ...current.filter((item) => item.id !== diary.id)]);
+    return diary;
+  });
+}
+
+export function updateDiary(id: number, payload: UpdateDiaryPayload): Promise<Diary> {
+  return request<Diary>(`/api/diaries/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  }).then((diary) => {
+    const current = peekDiaries() ?? [];
+    primeCachedRequest("/api/diaries", [diary, ...current.filter((item) => item.id !== diary.id)]);
     return diary;
   });
 }
@@ -187,5 +215,5 @@ export function saveDiary(payload: SaveDiaryPayload): Promise<Diary> {
 export function deleteDiary(id: number): Promise<void> {
   return request<void>(`/api/diaries/${id}`, {
     method: "DELETE",
-  }).then(() => invalidateCachedRequests("/api/diaries"));
+  }).then(() => primeCachedRequest("/api/diaries", (peekDiaries() ?? []).filter((item) => item.id !== id)));
 }
