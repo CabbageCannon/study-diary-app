@@ -1,10 +1,10 @@
 import {
   BookOpenIcon, CaretDownIcon, ImageIcon, MapPinIcon, PencilSimpleIcon,
-  PlusIcon, PushPinIcon, SpinnerGapIcon, TrashIcon, XIcon,
+  MagicWandIcon, PlusIcon, PushPinIcon, SpinnerGapIcon, TrashIcon, XIcon,
 } from "@phosphor-icons/react";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type PointerEvent } from "react";
 
-import { deleteDiary, listDiaries, peekDiaries, saveDiary, updateDiary } from "../api/client";
+import { createDiaryDraft, deleteDiary, listDiaries, peekDiaries, saveDiary, updateDiary } from "../api/client";
 import { loadWeather, readWeatherCache, weatherSentence, type WeatherSnapshot } from "../services/weather";
 import type { Diary, MobileDiaryPayload } from "../types/diary";
 
@@ -46,6 +46,13 @@ function optimisticDiary(form: DiaryFormState, id: number, status: "draft" | "pu
   return { id, ...payloadFromForm(form, status), created_at: now, updated_at: now };
 }
 
+function diaryTimestamp(diary: Diary) {
+  const [, month, day] = diary.date.split("-").map(Number);
+  const createdAt = new Date(diary.created_at);
+  const time = Number.isNaN(createdAt.getTime()) ? "" : ` · ${String(createdAt.getHours()).padStart(2, "0")}:${String(createdAt.getMinutes()).padStart(2, "0")}`;
+  return `${month}月${day}日${time}`;
+}
+
 async function compressImage(file: File) {
   const source = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -80,7 +87,10 @@ export function DiaryPage() {
   const [draftsOpen, setDraftsOpen] = useState(false);
   const [detail, setDetail] = useState<Diary | null>(null);
   const [actions, setActions] = useState<Diary | null>(null);
+  const [publishPromptOpen, setPublishPromptOpen] = useState(false);
+  const [holdingId, setHoldingId] = useState<number | null>(null);
   const [syncingIds, setSyncingIds] = useState<Set<number>>(new Set());
+  const [polishingIds, setPolishingIds] = useState<Set<number>>(new Set());
   const [error, setError] = useState("");
   const formRef = useRef(form);
   const lastDraftKey = useRef("");
@@ -181,55 +191,73 @@ export function DiaryPage() {
     } finally { input.value = ""; }
   }
 
-  function publish() {
+  function requestPublish() {
+    if (!formRef.current.content.trim()) { setError("写下一点内容后再发布。 "); return; }
+    setPublishPromptOpen(true);
+  }
+
+  function publish(polish: boolean) {
     const snapshot = formRef.current;
-    if (!snapshot.content.trim()) { setError("写下一点内容后再发布。 "); return; }
     const optimisticId = snapshot.id ?? -Date.now();
     const previous = diaries;
     const optimistic = optimisticDiary(snapshot, optimisticId, "published");
     setDiaries((current) => [optimistic, ...current.filter((item) => item.id !== snapshot.id)]);
+    setPublishPromptOpen(false);
     setComposerOpen(false);
     setError("");
-    setSyncingIds((current) => new Set(current).add(optimisticId));
+    (polish ? setPolishingIds : setSyncingIds)((current) => new Set(current).add(optimisticId));
     void (async () => {
       try {
         await autosavePromise.current;
         const currentForm = formRef.current;
+        let payload = payloadFromForm(currentForm, "published");
+        if (polish) {
+          const draft = await createDiaryDraft({ date: currentForm.date, raw_text: currentForm.content.trim() });
+          payload = { ...payload, ...draft, category: currentForm.category, status: "published", images: currentForm.images, weather: currentForm.weather || null, location: currentForm.location || null, is_pinned: currentForm.isPinned };
+        }
         const saved = currentForm.id
-          ? await updateDiary(currentForm.id, payloadFromForm(currentForm, "published"))
-          : await saveDiary(payloadFromForm(currentForm, "published"));
+          ? await updateDiary(currentForm.id, payload)
+          : await saveDiary(payload);
         setDiaries((current) => [saved, ...current.filter((item) => item.id !== optimisticId && item.id !== saved.id)]);
         setForm(emptyForm(weather));
       } catch (reason) {
         setDiaries(previous);
-        setError(reason instanceof Error ? reason.message : "发布失败，草稿仍然保留");
+        setComposerOpen(true);
+        setError(reason instanceof Error ? reason.message : polish ? "AI 整理暂时失败，内容仍在编辑器中" : "发布失败，内容仍在编辑器中");
       } finally {
         setSyncingIds((current) => { const next = new Set(current); next.delete(optimisticId); return next; });
+        setPolishingIds((current) => { const next = new Set(current); next.delete(optimisticId); return next; });
       }
     })();
   }
 
   function longPressProps(diary: Diary) {
-    const cancel = () => window.clearTimeout(longPressTimer.current);
+    const cancel = () => { window.clearTimeout(longPressTimer.current); setHoldingId(null); };
     return {
       onPointerDown: (event: PointerEvent) => {
         if (event.pointerType === "mouse" && event.button !== 0) return;
         suppressClick.current = false;
+        setHoldingId(diary.id);
         longPressStart.current = { x: event.clientX, y: event.clientY };
-        longPressTimer.current = window.setTimeout(() => { suppressClick.current = true; setActions(diary); navigator.vibrate?.(20); }, 520);
+        longPressTimer.current = window.setTimeout(() => { suppressClick.current = true; setHoldingId(null); setActions(diary); navigator.vibrate?.(20); }, 520);
       },
       onPointerUp: cancel,
       onPointerCancel: cancel,
       onPointerMove: (event: PointerEvent) => {
         if (Math.hypot(event.clientX - longPressStart.current.x, event.clientY - longPressStart.current.y) > 9) cancel();
       },
-      onContextMenu: (event: React.MouseEvent) => { event.preventDefault(); setActions(diary); },
+      onContextMenu: (event: React.MouseEvent) => { event.preventDefault(); setHoldingId(null); setActions(diary); },
     };
   }
 
   function openDetail(diary: Diary) {
     if (suppressClick.current) { suppressClick.current = false; return; }
     setDetail(diary);
+  }
+
+  function openDraft(diary: Diary) {
+    if (suppressClick.current) { suppressClick.current = false; return; }
+    openEdit(diary);
   }
 
   function togglePin(diary: Diary) {
@@ -271,7 +299,7 @@ export function DiaryPage() {
         <textarea autoFocus className="diary-content-input" maxLength={8000} onChange={(event) => { const content = event.currentTarget.value; setForm((current) => ({ ...current, content })); }} placeholder="此刻在想什么？" rows={7} value={form.content} />
         {form.images.length ? <div className="diary-photo-editor">{form.images.map((image, index) => <figure key={`${image.slice(-24)}-${index}`}><img alt={`日记照片 ${index + 1}`} src={image} /><button aria-label={`移除第 ${index + 1} 张照片`} onClick={() => setForm((current) => ({ ...current, images: current.images.filter((_, itemIndex) => itemIndex !== index) }))} type="button"><XIcon size={14} /></button></figure>)}</div> : null}
         <div className="diary-composer-meta"><label className="diary-photo-button"><ImageIcon aria-hidden="true" size={18} />照片 {form.images.length}/4<input accept="image/*" multiple onChange={(event) => void addPhotos(event)} type="file" /></label><label><span>日期</span><input onChange={(event) => { const date = event.currentTarget.value; setForm((current) => ({ ...current, date })); }} type="date" value={form.date} /></label></div>
-        <button className="button button-primary diary-publish-button" onClick={publish} type="button">发布日记</button>
+        <button className="button button-primary diary-publish-button" onClick={requestPublish} type="button">发布日记</button>
       </section> : null}
 
       {error ? <p className="diary-error" role="alert">{error}<button onClick={() => setError("")} type="button">关闭</button></p> : null}
@@ -281,12 +309,12 @@ export function DiaryPage() {
         {diaryColumns.map((column, columnIndex) => <div className="diary-column" key={columnIndex}>
           {columnIndex === 0 && drafts.length ? <article className={`diary-draft-stack depth-${Math.min(3, drafts.length)}`}>
             <button onClick={() => setDraftsOpen((value) => !value)} type="button"><span className="diary-draft-paper"><PencilSimpleIcon aria-hidden="true" size={20} /></span><strong>草稿箱</strong><small>{drafts.length} 篇写到一半</small></button>
-            {draftsOpen ? <div className="diary-draft-list">{drafts.map((draft) => <button key={draft.id} onClick={() => openEdit(draft)} type="button"><span>{draft.title}</span><time>{draft.date}</time></button>)}</div> : null}
+            {draftsOpen ? <div className="diary-draft-list">{drafts.map((draft) => <button aria-label={`打开草稿《${draft.title}》，长按可管理`} className={holdingId === draft.id ? "is-holding" : ""} key={draft.id} onClick={() => openDraft(draft)} type="button" {...longPressProps(draft)}><span>{draft.title}</span><time>{diaryTimestamp(draft)}</time></button>)}</div> : null}
           </article> : null}
-          {column.map((diary) => <article className={diary.images.length ? "diary-card has-photo" : `diary-card text-card category-${diary.category}`} key={diary.id} {...longPressProps(diary)}>
+          {column.map((diary) => <article className={`${diary.images.length ? "diary-card has-photo" : `diary-card text-card category-${diary.category}`}${holdingId === diary.id ? " is-holding" : ""}`} key={diary.id} {...longPressProps(diary)}>
             <button aria-label={`打开《${diary.title}》，长按可编辑`} onClick={() => openDetail(diary)} type="button">
               {diary.images[0] ? <div className="diary-cover"><img alt="" src={diary.images[0]} />{diary.images.length > 1 ? <span>1/{diary.images.length}</span> : null}</div> : <div className="diary-text-cover"><BookOpenIcon aria-hidden="true" size={18} /><p>{diary.summary}</p></div>}
-              <div className="diary-card-copy"><div><span>{diary.category === "learning" ? "学习" : "生活"}</span>{diary.is_pinned ? <PushPinIcon aria-label="已置顶" size={13} weight="fill" /> : null}</div><h2>{diary.title}</h2><p>{diary.location || diary.weather ? [diary.location, diary.weather].filter(Boolean).join(" · ") : diary.date}</p>{syncingIds.has(diary.id) ? <small className="diary-card-sync"><SpinnerGapIcon aria-hidden="true" size={12} />同步中</small> : null}</div>
+              <div className="diary-card-copy"><div><span>{diary.category === "learning" ? "学习" : "生活"}</span>{diary.is_pinned ? <PushPinIcon aria-label="已置顶" size={13} weight="fill" /> : null}</div><h2>{diary.title}</h2><p>{[diary.location, diary.weather].filter(Boolean).join(" · ") || "地点与天气未记录"}</p><time>{diaryTimestamp(diary)}</time>{polishingIds.has(diary.id) ? <small className="diary-card-sync"><SpinnerGapIcon aria-hidden="true" size={12} />AI 正在整理</small> : syncingIds.has(diary.id) ? <small className="diary-card-sync"><SpinnerGapIcon aria-hidden="true" size={12} />正在发布</small> : null}</div>
             </button>
           </article>)}
         </div>)}
@@ -294,8 +322,10 @@ export function DiaryPage() {
       {!isLoading && !drafts.length && !published.length ? <div className="diary-empty"><strong>第一页，等你来写</strong><p>一张照片或一句话，都算今天来过。</p></div> : null}
     </main>
 
-    {detail ? <div className="diary-overlay" role="presentation" onClick={() => setDetail(null)}><article aria-modal="true" className="diary-detail-sheet" onClick={(event) => event.stopPropagation()} role="dialog"><button aria-label="关闭日记" className="diary-sheet-close" onClick={() => setDetail(null)} type="button"><XIcon size={18} /></button>{detail.images.length ? <div className={`diary-detail-photos count-${detail.images.length}`}>{detail.images.map((image, index) => <img alt={`日记照片 ${index + 1}`} key={image.slice(-28)} src={image} />)}</div> : null}<div className="diary-detail-copy"><div className="diary-detail-meta"><span>{detail.category === "learning" ? "学习" : "生活"}</span><time>{detail.date}</time></div><h2>{detail.title}</h2><p>{detail.polished_text}</p>{detail.location || detail.weather ? <small><MapPinIcon size={13} />{[detail.location, detail.weather].filter(Boolean).join(" · ")}</small> : null}</div></article></div> : null}
+    {publishPromptOpen ? <div className="diary-overlay" role="presentation" onClick={() => setPublishPromptOpen(false)}><div aria-labelledby="diary-publish-title" aria-modal="true" className="diary-publish-sheet" onClick={(event) => event.stopPropagation()} role="dialog"><div className="diary-publish-intro"><span><MagicWandIcon aria-hidden="true" size={22} /></span><div><h2 id="diary-publish-title">这篇日记，想怎样保存？</h2><p>保留此刻的原话，或让 AI 只整理表达，不改变事实。</p></div></div><button className="is-ai" onClick={() => publish(true)} type="button"><MagicWandIcon aria-hidden="true" size={20} /><span><strong>AI 整理后发布</strong><small>润色语句，并整理标题与摘要</small></span></button><button onClick={() => publish(false)} type="button"><BookOpenIcon aria-hidden="true" size={20} /><span><strong>保留原样</strong><small>按现在写下的内容直接发布</small></span></button><button className="diary-publish-cancel" onClick={() => setPublishPromptOpen(false)} type="button">再想想</button></div></div> : null}
 
-    {actions ? <div className="diary-overlay diary-actions-overlay" role="presentation" onClick={() => setActions(null)}><div aria-label={`管理《${actions.title}》`} aria-modal="true" className="diary-action-sheet" onClick={(event) => event.stopPropagation()} role="dialog"><div><strong>{actions.title}</strong><small>{actions.date}</small></div><button onClick={() => openEdit(actions)} type="button"><PencilSimpleIcon size={19} />编辑</button><button onClick={() => togglePin(actions)} type="button"><PushPinIcon size={19} />{actions.is_pinned ? "取消置顶" : "置顶"}</button><button className="is-danger" onClick={() => remove(actions)} type="button"><TrashIcon size={19} />删除</button><button onClick={() => setActions(null)} type="button">取消</button></div></div> : null}
+    {detail ? <div className="diary-overlay" role="presentation" onClick={() => setDetail(null)}><article aria-modal="true" className="diary-detail-sheet" onClick={(event) => event.stopPropagation()} role="dialog"><button aria-label="关闭日记" className="diary-sheet-close" onClick={() => setDetail(null)} type="button"><XIcon size={18} /></button>{detail.images.length ? <div className={`diary-detail-photos count-${detail.images.length}`}>{detail.images.map((image, index) => <img alt={`日记照片 ${index + 1}`} key={image.slice(-28)} src={image} />)}</div> : null}<div className="diary-detail-copy"><div className="diary-detail-meta"><span>{detail.category === "learning" ? "学习" : "生活"}</span><time>{diaryTimestamp(detail)}</time></div><div className="diary-detail-context"><MapPinIcon aria-hidden="true" size={13} />{[detail.location, detail.weather].filter(Boolean).join(" · ") || "地点与天气未记录"}</div><h2>{detail.title}</h2><p>{detail.polished_text}</p></div></article></div> : null}
+
+    {actions ? <div className="diary-overlay diary-actions-overlay" role="presentation" onClick={() => setActions(null)}><div aria-label={`管理《${actions.title}》`} aria-modal="true" className="diary-action-sheet" onClick={(event) => event.stopPropagation()} role="dialog"><div><strong>{actions.title}</strong><small>{diaryTimestamp(actions)}</small></div><button onClick={() => openEdit(actions)} type="button"><PencilSimpleIcon size={19} />编辑</button>{actions.status === "published" ? <button onClick={() => togglePin(actions)} type="button"><PushPinIcon size={19} />{actions.is_pinned ? "取消置顶" : "置顶"}</button> : null}<button className="is-danger" onClick={() => remove(actions)} type="button"><TrashIcon size={19} />删除</button><button onClick={() => setActions(null)} type="button">取消</button></div></div> : null}
   </div>;
 }
