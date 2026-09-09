@@ -9,7 +9,7 @@
 
 .me-profile-main {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 16px;
   align-items: center;
 }
@@ -30,21 +30,6 @@
 .me-profile-main p,
 .me-profile-note { margin: 5px 0 0; color: var(--muted); line-height: 1.55; }
 .me-profile-note { max-width: 48ch; font-size: 0.95rem; }
-
-.me-edit-button {
-  display: inline-flex;
-  min-height: 40px;
-  align-items: center;
-  gap: 6px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--accent-wash);
-  color: var(--accent-strong);
-  padding: 0 14px;
-  font-weight: 700;
-  transition: transform 100ms ease-out, background-color 180ms ease-out;
-}
-.me-edit-button:active { transform: scale(0.96); }
 
 .me-summary {
   display: grid;
@@ -134,7 +119,6 @@
   .me-profile-main { grid-template-columns: auto minmax(0, 1fr); }
   .me-avatar { width: 64px; height: 64px; }
   .me-profile-main h1 { font-size: 2rem; }
-  .me-edit-button { grid-column: 1 / -1; width: 100%; justify-content: center; }
   .me-summary span { padding: 14px 6px; }
   .me-summary strong { font-size: 1.18rem; }
   .me-settings-list { padding: 0 var(--content-pad) calc(112px + var(--safe-bottom)); }
@@ -153,7 +137,6 @@
   .me-install-guide,
   .me-settings-panel { animation: none; }
   .theme-option,
-  .me-edit-button,
   .me-settings-caret,
   .ios-switch i,
   .ios-switch i::after { transition-duration: 0.01ms; }

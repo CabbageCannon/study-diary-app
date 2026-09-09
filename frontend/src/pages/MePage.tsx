@@ -4,7 +4,6 @@ import { CaretDownIcon } from "@phosphor-icons/react/CaretDown";
 import { CheckCircleIcon } from "@phosphor-icons/react/CheckCircle";
 import { DeviceMobileIcon } from "@phosphor-icons/react/DeviceMobile";
 import { PaletteIcon } from "@phosphor-icons/react/Palette";
-import { PencilSimpleIcon } from "@phosphor-icons/react/PencilSimple";
 import { TargetIcon } from "@phosphor-icons/react/Target";
 import { UserCircleIcon } from "@phosphor-icons/react/UserCircle";
 
@@ -145,7 +144,6 @@ export function MePage() {
       <div className="me-profile-main">
         <span className="me-avatar" aria-hidden="true">{avatar}</span>
         <div><h1>{displayName}</h1><p>{preferences.targetRole || "还没有设置学习方向"}</p></div>
-        <button aria-controls="me-profile-panel" aria-expanded={activeSection === "profile"} className="me-edit-button" onClick={() => toggleSection("profile")} type="button"><PencilSimpleIcon aria-hidden="true" size={16} />编辑资料</button>
       </div>
       <p className="me-profile-note">{preferences.learningStyle || "写下一句属于自己的学习目标。"}</p>
       <div className="me-summary" aria-label="学习摘要">
