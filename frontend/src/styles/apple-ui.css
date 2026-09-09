@@ -96,6 +96,23 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
 .algorithm-overview-item { min-height: 46px; border-color: var(--rule); padding: 8px 12px; }
 
 .algorithm-settings-layout { grid-template-columns: 1fr; }
+.algorithm-resume-banner,
+.daily-feed-layout,
+.daily-settings-panel,
+.daily-refresh-panel,
+.temporary-training-builder {
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--apple-radius);
+  background: var(--paper-strong);
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--ink) 5%, transparent);
+}
+.algorithm-resume-banner { border-left: 3px solid var(--accent); }
+.daily-settings-form select,
+.temporary-training-fields select,
+.settings-choice { border-radius: 10px; }
+.settings-choice { transition: transform 100ms ease-out, background-color 160ms ease-out, border-color 160ms ease-out; }
+.settings-choice:active { transform: scale(0.96); }
 .algorithm-catalog-details { border-radius: var(--apple-radius); background: var(--paper-strong); }
 .algorithm-catalog-details > summary { display: flex; min-height: 70px; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 18px; color: var(--ink); cursor: pointer; list-style: none; }
 .algorithm-catalog-details > summary::-webkit-details-marker { display: none; }
