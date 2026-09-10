@@ -59,6 +59,16 @@
 .me-section-actions { display: flex; justify-content: flex-end; gap: 9px; }
 .me-section-actions .button { min-width: 88px; justify-content: center; }
 .me-install-copy { margin: 0; color: var(--muted); font-size: 0.88rem; line-height: 1.55; }
+.me-version-state { display: flex; gap: 13px; align-items: center; border-radius: 14px; background: var(--wash); padding: 15px; }
+.me-version-state > span { display: grid; flex: 0 0 40px; height: 40px; place-items: center; border-radius: 12px; background: var(--paper-strong); color: var(--accent-strong); }
+.me-version-state strong { color: var(--ink); }
+.me-version-state p { margin: 4px 0 0; color: var(--muted); font-size: 0.76rem; line-height: 1.5; }
+.me-version-state.is-error > span { color: var(--danger); }
+.me-version-state.is-checking svg,
+.me-version-state.is-updating svg,
+.me-version-state.is-reloading svg,
+.me-version-button:disabled svg { animation: diary-spin 900ms linear infinite; }
+.me-version-button { width: 100%; min-height: 48px; justify-content: center; }
 .settings-section { display: grid; gap: 18px; border: 0; border-radius: 18px; background: var(--paper-strong); padding: 22px; box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 4%, transparent); }
 .settings-section h2 { margin: 5px 0 0; color: var(--ink); font-size: 1.2rem; letter-spacing: -0.018em; }
 .settings-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; }

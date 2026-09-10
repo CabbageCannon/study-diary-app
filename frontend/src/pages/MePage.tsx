@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { ArrowClockwiseIcon } from "@phosphor-icons/react/ArrowClockwise";
 import { BellIcon } from "@phosphor-icons/react/Bell";
 import { CaretDownIcon } from "@phosphor-icons/react/CaretDown";
 import { CheckCircleIcon } from "@phosphor-icons/react/CheckCircle";
 import { DeviceMobileIcon } from "@phosphor-icons/react/DeviceMobile";
 import { PaletteIcon } from "@phosphor-icons/react/Palette";
+import { SpinnerGapIcon } from "@phosphor-icons/react/SpinnerGap";
 import { TargetIcon } from "@phosphor-icons/react/Target";
 import { UserCircleIcon } from "@phosphor-icons/react/UserCircle";
 
 import { usePwaInstall } from "../contexts/PwaInstallContext";
+import { usePwaUpdate, type PwaUpdatePhase } from "../contexts/PwaUpdateContext";
 import { useTheme, type AppTheme } from "../contexts/ThemeContext";
 import { useTodayWorkspace } from "../hooks/useTodayWorkspace";
 import { useUserPreferences } from "../hooks/useUserPreferences";
@@ -26,7 +29,18 @@ const themes: { id: AppTheme; label: string; note: string; colors: string[] }[] 
   { id: "night", label: "墨夜", note: "夜间阅读", colors: ["#1a201d", "#2d3d31", "#a9ca8b"] },
 ];
 
-type SettingsSection = "profile" | "appearance" | "goals" | "reminder" | "install";
+type SettingsSection = "profile" | "appearance" | "goals" | "reminder" | "version" | "install";
+
+const versionCopy: Record<PwaUpdatePhase, { title: string; detail: string; button: string }> = {
+  idle: { title: "随时检查新版本", detail: "主动向服务器确认，无需清空缓存。", button: "检测新版本" },
+  checking: { title: "正在检测", detail: "正在确认最新版本，请稍候。", button: "检测中…" },
+  current: { title: "已是最新版本", detail: "当前应用已经是服务器上的最新版。", button: "再次检测" },
+  available: { title: "发现新版本", detail: "更新已准备好，可以直接安装。", button: "立即更新" },
+  updating: { title: "正在安装更新", detail: "请保持页面打开，安装完成后会自动刷新。", button: "更新中…" },
+  reloading: { title: "更新完成", detail: "正在重新打开应用，请稍候。", button: "正在打开…" },
+  restart: { title: "新版本已经下载", detail: "iPhone 暂未完成切换，请关闭应用后从主屏幕重新打开。", button: "再次尝试切换" },
+  error: { title: "暂时无法检查", detail: "网络恢复后可以直接重试。", button: "重新检测" },
+};
 
 export function MePage() {
   const { data, isLoading } = useTodayWorkspace();
@@ -40,6 +54,7 @@ export function MePage() {
   const { theme, setTheme } = useTheme();
   const [draftTheme, setDraftTheme] = useState<AppTheme>(theme);
   const { canOfferInstall, closeIosGuide, dismissIosGuide, isIosGuideOpen, requestInstall } = usePwaInstall();
+  const { applyUpdate, checkForUpdate, error: updateError, phase: updatePhase } = usePwaUpdate();
 
   useEffect(() => setForm(preferences), [preferences]);
   useEffect(() => setDraftTheme(theme), [theme]);
@@ -53,6 +68,8 @@ export function MePage() {
   const displayName = preferences.nickname.trim() || "学习者";
   const avatar = displayName.slice(0, 1).toUpperCase();
   const savedTheme = themes.find((item) => item.id === theme)?.label ?? "雾松";
+  const updateCopy = versionCopy[updatePhase];
+  const updateBusy = updatePhase === "checking" || updatePhase === "updating" || updatePhase === "reloading";
 
   function clearStatus() { setMessage(""); setError(""); }
 
@@ -195,6 +212,13 @@ export function MePage() {
           {!canUsePush ? <p className="field-error">当前浏览器不支持 Web Push。</p> : null}
           <SectionActions error={error} message={message} onCancel={cancelSection} saving={savingSection === "reminder"} />
         </form>
+      </SettingsItem>
+
+      <SettingsItem active={activeSection === "version"} controls="me-version-panel" icon={<ArrowClockwiseIcon aria-hidden="true" size={21} />} label="版本更新" note={updatePhase === "available" ? "有新版本可用" : updatePhase === "current" ? "已是最新版" : "主动检测，无需清缓存"} onToggle={() => toggleSection("version")}>
+        <div className="me-settings-panel" id="me-version-panel">
+          <div aria-live="polite" className={`me-version-state is-${updatePhase}`} role="status"><span>{updateBusy ? <SpinnerGapIcon aria-hidden="true" size={22} /> : updatePhase === "current" ? <CheckCircleIcon aria-hidden="true" size={22} weight="fill" /> : <ArrowClockwiseIcon aria-hidden="true" size={22} />}</span><div><strong>{updateCopy.title}</strong><p>{updateError || updateCopy.detail}</p></div></div>
+          <button className="button button-primary me-version-button" disabled={updateBusy} onClick={() => void (["available", "restart"].includes(updatePhase) ? applyUpdate() : checkForUpdate())} type="button">{updateBusy ? <SpinnerGapIcon aria-hidden="true" size={17} /> : <ArrowClockwiseIcon aria-hidden="true" size={17} weight="bold" />}{updateCopy.button}</button>
+        </div>
       </SettingsItem>
 
       <SettingsItem active={activeSection === "install"} controls="me-install-panel" icon={<DeviceMobileIcon aria-hidden="true" size={21} />} label="添加到主屏幕" note={canOfferInstall ? "获得完整屏幕与系统提醒" : "已安装或当前不可用"} onToggle={() => toggleSection("install")}>
