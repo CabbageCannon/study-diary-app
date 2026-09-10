@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { registerSW } from "virtual:pwa-register";
 
-export type PwaUpdatePhase = "idle" | "checking" | "current" | "available" | "updating" | "reloading" | "restart" | "error";
+export type PwaUpdatePhase = "idle" | "checking" | "downloading" | "current" | "available" | "updating" | "reloading" | "restart" | "error";
 
 interface PwaUpdateValue {
   phase: PwaUpdatePhase;
@@ -72,7 +72,7 @@ export function PwaUpdateProvider({ children }: { children: ReactNode }) {
       if (!navigator.serviceWorker.controller && registration.active) reloadPage();
       else if (registration.waiting) setPhase("available");
       else if (finished) setPhase("current");
-      else { setPhase("error"); setError("新版本仍在后台下载，准备好后会自动提醒你。"); }
+      else setPhase("downloading");
     } catch (reason) {
       setPhase("error");
       setError(reason instanceof Error ? reason.message : "检查失败，请稍后再试。");

@@ -65,6 +65,7 @@
 .me-version-state p { margin: 4px 0 0; color: var(--muted); font-size: 0.76rem; line-height: 1.5; }
 .me-version-state.is-error > span { color: var(--danger); }
 .me-version-state.is-checking svg,
+.me-version-state.is-downloading svg,
 .me-version-state.is-updating svg,
 .me-version-state.is-reloading svg,
 .me-version-button:disabled svg { animation: diary-spin 900ms linear infinite; }

@@ -34,6 +34,7 @@ type SettingsSection = "profile" | "appearance" | "goals" | "reminder" | "versio
 const versionCopy: Record<PwaUpdatePhase, { title: string; detail: string; button: string }> = {
   idle: { title: "随时检查新版本", detail: "主动向服务器确认，无需清空缓存。", button: "检测新版本" },
   checking: { title: "正在检测", detail: "正在确认最新版本，请稍候。", button: "检测中…" },
+  downloading: { title: "正在后台下载", detail: "你可以继续使用应用，准备好后会自动提醒。", button: "后台下载中" },
   current: { title: "已是最新版本", detail: "当前应用已经是服务器上的最新版。", button: "再次检测" },
   available: { title: "发现新版本", detail: "更新已准备好，可以直接安装。", button: "立即更新" },
   updating: { title: "正在安装更新", detail: "请保持页面打开，安装完成后会自动刷新。", button: "更新中…" },
@@ -69,7 +70,7 @@ export function MePage() {
   const avatar = displayName.slice(0, 1).toUpperCase();
   const savedTheme = themes.find((item) => item.id === theme)?.label ?? "雾松";
   const updateCopy = versionCopy[updatePhase];
-  const updateBusy = updatePhase === "checking" || updatePhase === "updating" || updatePhase === "reloading";
+  const updateBusy = updatePhase === "checking" || updatePhase === "downloading" || updatePhase === "updating" || updatePhase === "reloading";
 
   function clearStatus() { setMessage(""); setError(""); }
 
@@ -214,7 +215,7 @@ export function MePage() {
         </form>
       </SettingsItem>
 
-      <SettingsItem active={activeSection === "version"} controls="me-version-panel" icon={<ArrowClockwiseIcon aria-hidden="true" size={21} />} label="版本更新" note={updatePhase === "available" ? "有新版本可用" : updatePhase === "current" ? "已是最新版" : "一键检测，无需清缓存"} onToggle={() => toggleSection("version")}>
+      <SettingsItem active={activeSection === "version"} controls="me-version-panel" icon={<ArrowClockwiseIcon aria-hidden="true" size={21} />} label="版本更新" note={updatePhase === "available" ? "有新版本可用" : updatePhase === "downloading" ? "正在后台下载" : updatePhase === "current" ? "已是最新版" : "一键检测，无需清缓存"} onToggle={() => toggleSection("version")}>
         <div className="me-settings-panel" id="me-version-panel">
           <div aria-live="polite" className={`me-version-state is-${updatePhase}`} role="status"><span>{updateBusy ? <SpinnerGapIcon aria-hidden="true" size={22} /> : updatePhase === "current" ? <CheckCircleIcon aria-hidden="true" size={22} weight="fill" /> : <ArrowClockwiseIcon aria-hidden="true" size={22} />}</span><div><strong>{updateCopy.title}</strong><p>{updateError || updateCopy.detail}</p></div></div>
           <button className="button button-primary me-version-button" disabled={updateBusy} onClick={() => void (["available", "restart"].includes(updatePhase) ? applyUpdate() : checkForUpdate())} type="button">{updateBusy ? <SpinnerGapIcon aria-hidden="true" size={17} /> : <ArrowClockwiseIcon aria-hidden="true" size={17} weight="bold" />}{updateCopy.button}</button>
