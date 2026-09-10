@@ -2097,14 +2097,15 @@ textarea:focus-visible {
 .daily-extra-heading > div { display: grid; gap: 3px; }
 .daily-extra-heading strong { color: var(--ink); font-size: 0.96rem; }
 .daily-extra-rows { display: grid; align-content: start; }
-.daily-extra-row { display: flex; min-height: 58px; align-items: center; justify-content: space-between; gap: 12px; border: 0; border-bottom: 1px solid var(--rule); padding: 9px 20px; background: transparent; color: var(--ink); cursor: pointer; text-align: left; transition: background-color 160ms ease-out, color 160ms ease-out, transform 160ms ease-out; }
+.daily-extra-row { display: flex; min-height: 58px; align-items: center; justify-content: space-between; gap: 12px; border: 0; border-bottom: 1px solid var(--rule); padding: 9px 20px; background: transparent; color: var(--ink); cursor: pointer; text-align: left; touch-action: pan-y; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
 .daily-extra-row > span { display: grid; min-width: 0; gap: 4px; }
 .daily-extra-row strong { overflow: hidden; font-size: 0.85rem; text-overflow: ellipsis; white-space: nowrap; }
 .daily-extra-row small { color: var(--ink-muted); font-size: 0.73rem; }
-.daily-extra-row:hover:not(:disabled) { background: var(--accent-wash); color: var(--accent); }
 .daily-extra-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
-.daily-extra-row:active:not(:disabled) { transform: translateX(2px); }
 .daily-extra-row:disabled { cursor: wait; opacity: 0.58; }
+@media (hover: hover) and (pointer: fine) {
+  .daily-extra-row:hover:not(:disabled) { background: var(--accent-wash); color: var(--accent); }
+}
 .daily-extra-actions { display: flex; justify-content: space-between; gap: 10px; padding: 14px 16px; }
 .text-icon-button { display: inline-flex; min-height: 34px; align-items: center; gap: 5px; border: 0; padding: 0; background: transparent; color: var(--accent); cursor: pointer; font: inherit; font-size: 0.78rem; text-decoration: none; transition: color 160ms ease-out, transform 160ms ease-out; }
 .text-icon-button:hover:not(:disabled) { color: var(--ink); }

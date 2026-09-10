@@ -99,7 +99,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
 .algorithm-overview-item { min-height: 46px; border-color: var(--rule); padding: 8px 12px; }
 
 .algorithm-settings-layout { grid-template-columns: 1fr; }
-.daily-extra-row { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .algorithm-history-surface { overflow: hidden; border-radius: var(--apple-radius); background: var(--paper-strong); box-shadow: 0 8px 28px color-mix(in srgb, var(--ink) 5%, transparent); }
 .algorithm-history-toolbar { display: flex; min-height: 66px; align-items: center; justify-content: space-between; gap: 14px; border-bottom: 1px solid var(--rule); padding: 12px 15px; }
 .algorithm-history-toolbar > div { display: flex; gap: 8px; align-items: baseline; }

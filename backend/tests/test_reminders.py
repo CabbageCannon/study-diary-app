@@ -1,8 +1,13 @@
 from datetime import datetime, timezone
 import unittest
+from unittest.mock import patch
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+
+from app.database import Base
 from app.models import PushSubscription
-from app.services.reminder_service import reminder_copy, subscription_is_due
+from app.services.reminder_service import dispatch_due_reminders, reminder_copy, subscription_is_due
 
 
 class ReminderServiceTests(unittest.TestCase):
@@ -37,6 +42,22 @@ class ReminderServiceTests(unittest.TestCase):
         second = reminder_copy(subscription, ["八股 2 道", "一篇日记"], "2026-09-08")
         self.assertEqual(first, second)
         self.assertIn("八股 2 道、一篇日记", first[1])
+
+    def test_dispatch_skips_notification_when_everything_is_done(self) -> None:
+        engine = create_engine("sqlite://")
+        Base.metadata.create_all(engine)
+        with Session(engine) as db:
+            db.add(self.subscription())
+            db.commit()
+            with (
+                patch("app.services.reminder_service._missing_items", return_value=[]),
+                patch("app.services.reminder_service.settings.vapid_private_key", "private"),
+                patch("app.services.reminder_service.settings.vapid_subject", "mailto:test@example.com"),
+                patch("app.services.reminder_service.webpush") as send,
+            ):
+                result = dispatch_due_reminders(db, datetime(2026, 9, 8, 13, 31, tzinfo=timezone.utc))
+            self.assertEqual(result["sent"], 0)
+            send.assert_not_called()
 
 
 if __name__ == "__main__":

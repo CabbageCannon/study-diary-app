@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "study-diary",
+  "name": "study-diary-app",
   "main": "worker.js",
   "compatibility_date": "2026-09-07",
   "assets": {
@@ -12,6 +12,6 @@
     "BACKEND_URL": "https://study-diary-api.onrender.com"
   },
   "triggers": {
-    "crons": ["*/15 * * * *"]
+    "crons": ["* * * * *"]
   }
 }

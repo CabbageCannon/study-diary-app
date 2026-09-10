@@ -14,6 +14,7 @@ import { usePwaUpdate, type PwaUpdatePhase } from "../contexts/PwaUpdateContext"
 import { useTheme, type AppTheme } from "../contexts/ThemeContext";
 import { useTodayWorkspace } from "../hooks/useTodayWorkspace";
 import { useUserPreferences } from "../hooks/useUserPreferences";
+import { ConfirmActionDialog } from "../components/interview/ConfirmActionDialog";
 import {
   buildReminderCopy, clampGoal, createBrowserPushSubscription, deleteReminderPush,
   getTodayProgressItems, notificationPermission, pushSupported,
@@ -49,6 +50,7 @@ export function MePage() {
   const [form, setForm] = useState<UserPreferences>(preferences);
   const [activeSection, setActiveSection] = useState<SettingsSection | null>(null);
   const [savingSection, setSavingSection] = useState<SettingsSection | null>(null);
+  const [pendingReminderTime, setPendingReminderTime] = useState<string | null>(null);
   const [permission, setPermission] = useState(notificationPermission());
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -71,11 +73,14 @@ export function MePage() {
   const savedTheme = themes.find((item) => item.id === theme)?.label ?? "雾松";
   const updateCopy = versionCopy[updatePhase];
   const updateBusy = updatePhase === "checking" || updatePhase === "updating" || updatePhase === "reloading";
+  const reminderSaving = savingSection === "reminder";
+  const reminderHasMissingTasks = progressItems.some((item) => item.target > 0 && item.completed < item.target);
 
   function clearStatus() { setMessage(""); setError(""); }
 
   function toggleSection(section: SettingsSection) {
     clearStatus();
+    setPendingReminderTime(null);
     setForm(preferences);
     setDraftTheme(theme);
     if (activeSection === "install") closeIosGuide();
@@ -100,11 +105,6 @@ export function MePage() {
     clearStatus();
   }
 
-  function updateReminder(value: Partial<UserPreferences["reminder"]>) {
-    setForm((current) => ({ ...current, reminder: { ...current.reminder, ...value } }));
-    clearStatus();
-  }
-
   function saveProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const next = { ...preferences, nickname: form.nickname.trim(), targetRole: form.targetRole.trim(), learningStyle: form.learningStyle.trim() };
@@ -124,30 +124,77 @@ export function MePage() {
       diary: clampGoal(form.dailyGoals.diary), review: clampGoal(form.dailyGoals.review),
     } };
     setPreferences(next); setForm(next); setMessage("每日计划已保存。");
+    if (next.reminder.enabled && next.reminder.subscriptionId) {
+      void updateReminderPush(next.reminder.subscriptionId, reminderSettingsFromPreferences(next))
+        .catch(() => setError("计划已保存，但提醒目标同步失败，请稍后重试。"));
+    }
   }
 
-  async function saveReminder(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function toggleReminder(enabled: boolean) {
+    if (reminderSaving) return;
+    const previous = preferences;
+    const next: UserPreferences = {
+      ...previous,
+      reminder: { ...previous.reminder, enabled, subscriptionId: enabled ? previous.reminder.subscriptionId : null },
+    };
+    setPreferences(next); setForm(next);
     setSavingSection("reminder"); clearStatus();
-    const next: UserPreferences = { ...preferences, reminder: { ...form.reminder } };
     try {
-      if (!next.reminder.enabled && preferences.reminder.subscriptionId) {
-        await Promise.allSettled([deleteReminderPush(preferences.reminder.subscriptionId), unsubscribeBrowserPush()]);
-        next.reminder.subscriptionId = null;
-      }
-      if (next.reminder.enabled) {
+      if (enabled) {
         const subscription = await createBrowserPushSubscription();
-        const saved = preferences.reminder.subscriptionId
-          ? await updateReminderPush(preferences.reminder.subscriptionId, reminderSettingsFromPreferences(next))
+        const saved = previous.reminder.subscriptionId
+          ? await updateReminderPush(previous.reminder.subscriptionId, reminderSettingsFromPreferences(next))
           : await subscribeReminderPush(reminderPayloadFromPreferences(next, subscription));
-        next.reminder.subscriptionId = saved.id;
+        const committed = { ...next, reminder: { ...next.reminder, subscriptionId: saved.id } };
+        setPreferences(committed); setForm(committed);
+        setMessage(`已开启，每天 ${committed.reminder.time} 提醒。`);
+      } else {
+        if (previous.reminder.subscriptionId) await deleteReminderPush(previous.reminder.subscriptionId);
+        await unsubscribeBrowserPush().catch(() => undefined);
+        setMessage("每日提醒已关闭。");
       }
-      setPreferences(next); setForm(next); setPermission(notificationPermission());
-      setMessage("每日提醒已保存并同步。");
     } catch (reason) {
-      setPreferences(next); setForm(next); setPermission(notificationPermission());
-      setError(reason instanceof Error ? reason.message : "提醒同步失败，提醒设置已保存在这台设备上。");
-    } finally { setSavingSection(null); }
+      setPreferences(previous); setForm(previous);
+      setError(reason instanceof Error ? reason.message : "提醒同步失败，已恢复原来的设置。");
+    } finally {
+      setPermission(notificationPermission());
+      setSavingSection(null);
+    }
+  }
+
+  function requestReminderTimeChange(time: string) {
+    if (!time || !form.reminder.enabled || reminderSaving) return;
+    clearStatus();
+    setForm((current) => ({ ...current, reminder: { ...current.reminder, time } }));
+    setPendingReminderTime(time);
+  }
+
+  function cancelReminderTimeChange() {
+    setForm((current) => ({ ...current, reminder: { ...current.reminder, time: preferences.reminder.time } }));
+    setPendingReminderTime(null);
+  }
+
+  async function confirmReminderTimeChange() {
+    if (!pendingReminderTime || reminderSaving) return;
+    const previous = preferences;
+    const next: UserPreferences = { ...previous, reminder: { ...previous.reminder, time: pendingReminderTime } };
+    setPendingReminderTime(null);
+    setPreferences(next); setForm(next);
+    setSavingSection("reminder"); clearStatus();
+    try {
+      const saved = previous.reminder.subscriptionId
+        ? await updateReminderPush(previous.reminder.subscriptionId, reminderSettingsFromPreferences(next))
+        : await createBrowserPushSubscription().then((subscription) => subscribeReminderPush(reminderPayloadFromPreferences(next, subscription)));
+      const committed = { ...next, reminder: { ...next.reminder, subscriptionId: saved.id } };
+      setPreferences(committed); setForm(committed);
+      setMessage(`提醒时间已改为 ${committed.reminder.time}。`);
+    } catch (reason) {
+      setPreferences(previous); setForm(previous);
+      setError(reason instanceof Error ? reason.message : "修改失败，已恢复原来的提醒时间。");
+    } finally {
+      setPermission(notificationPermission());
+      setSavingSection(null);
+    }
   }
 
   async function installApp() {
@@ -205,14 +252,16 @@ export function MePage() {
       </SettingsItem>
 
       <SettingsItem active={activeSection === "reminder"} controls="me-reminder-panel" icon={<BellIcon aria-hidden="true" size={21} />} label="每日提醒" note={preferences.reminder.enabled ? `${preferences.reminder.time} · 已开启` : "未开启"} onToggle={() => toggleSection("reminder")}>
-        <form className="me-settings-panel" id="me-reminder-panel" onSubmit={(event) => void saveReminder(event)}>
-          <div className="settings-section-heading"><strong>开启提醒</strong><label className="ios-switch"><span className="sr-only">每日提醒</span><input checked={form.reminder.enabled} onChange={(event) => updateReminder({ enabled: event.currentTarget.checked })} type="checkbox" /><i aria-hidden="true" /></label></div>
-          <label className="setting-row"><span><strong>提醒时间</strong><small>按 Asia/Shanghai 推送</small></span><input aria-label="提醒时间" onChange={(event) => updateReminder({ time: event.currentTarget.value })} type="time" value={form.reminder.time} /></label>
+        <div className="me-settings-panel" id="me-reminder-panel">
+          <div className="settings-section-heading"><strong>开启提醒</strong><label className="ios-switch"><span className="sr-only">每日提醒</span><input checked={form.reminder.enabled} disabled={reminderSaving} onChange={(event) => void toggleReminder(event.currentTarget.checked)} type="checkbox" /><i aria-hidden="true" /></label></div>
+          <label className={form.reminder.enabled ? "setting-row" : "setting-row setting-row-disabled"}><span><strong>提醒时间</strong><small>按 Asia/Shanghai 推送</small></span><input aria-label="提醒时间" disabled={!form.reminder.enabled || reminderSaving} onChange={(event) => requestReminderTimeChange(event.currentTarget.value)} type="time" value={form.reminder.time} /></label>
           <div className="setting-row"><span><strong>通知权限</strong><small>iPhone 需从主屏幕打开</small></span><span className="setting-value">{permission === "unsupported" ? "不支持" : permission === "granted" ? "已允许" : permission === "denied" ? "已拒绝" : "未询问"}</span></div>
-          <div className="me-reminder-preview"><div><CheckCircleIcon aria-hidden="true" size={18} weight="fill" /><span>今晚可能收到</span></div><strong>{reminderCopy.title}</strong><p>{reminderCopy.body}</p></div>
+          <div className="me-reminder-preview"><div><CheckCircleIcon aria-hidden="true" size={18} weight="fill" /><span>{reminderHasMissingTasks ? "今晚可能收到" : "今日不再提醒"}</span></div><strong>{reminderCopy.title}</strong><p>{reminderCopy.body}</p></div>
           {!canUsePush ? <p className="field-error">当前浏览器不支持 Web Push。</p> : null}
-          <SectionActions error={error} message={message} onCancel={cancelSection} saving={savingSection === "reminder"} />
-        </form>
+          {reminderSaving ? <p className="me-reminder-sync" role="status"><SpinnerGapIcon aria-hidden="true" size={16} />正在同步提醒…</p> : null}
+          {!reminderSaving && message ? <p className="settings-success" role="status">{message}</p> : null}
+          {!reminderSaving && error ? <p className="field-error" role="alert">{error}</p> : null}
+        </div>
       </SettingsItem>
 
       <SettingsItem active={activeSection === "version"} controls="me-version-panel" icon={<ArrowClockwiseIcon aria-hidden="true" size={21} />} label="版本更新" note={updatePhase === "available" ? "有新版本可用" : updatePhase === "downloading" ? "正在后台下载" : updatePhase === "current" ? "已是最新版" : "一键检测，无需清缓存"} onToggle={() => toggleSection("version")}>
@@ -231,6 +280,7 @@ export function MePage() {
         </div>
       </SettingsItem>
     </div>
+    <ConfirmActionDialog confirmLabel={`改为 ${pendingReminderTime ?? ""}`} description={`之后每天将在 ${pendingReminderTime ?? ""} 左右提醒；当天任务全部完成时不会发送。`} onCancel={cancelReminderTimeChange} onConfirm={() => void confirmReminderTimeChange()} open={pendingReminderTime !== null} title="修改提醒时间？" />
   </div>;
 }
 
