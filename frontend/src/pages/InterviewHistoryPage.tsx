@@ -94,10 +94,21 @@ export function InterviewHistoryPage() {
 
   async function confirmAction() {
     if (!pendingAction) return;
+    const action = pendingAction;
+    if (action.type === "delete") {
+      const previous = sets;
+      setPendingAction(null);
+      setExpandedId(null);
+      setSets((current) => current.filter((item) => item.id !== action.summary.id));
+      void deleteInterviewQuestionSet(action.summary.id).catch((actionError) => {
+        setSets(previous);
+        setError(actionError instanceof Error ? actionError.message : "删除失败，训练记录已经恢复。");
+      });
+      return;
+    }
     setIsActing(true);
     try {
-      if (pendingAction.type === "delete") await deleteInterviewQuestionSet(pendingAction.summary.id);
-      else await abandonInterviewQuestionSet(pendingAction.summary.id);
+      await abandonInterviewQuestionSet(action.summary.id);
       setPendingAction(null);
       setExpandedId(null);
       await load(filter);

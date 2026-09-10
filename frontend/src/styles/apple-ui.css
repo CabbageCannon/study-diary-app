@@ -33,7 +33,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
 }
 .interview-workspace-header h1,
 .algorithm-workspace-header h1 { margin: 0; color: var(--ink); font-size: clamp(1.95rem, 3vw, 2.6rem); line-height: 1.08; letter-spacing: -0.035em; }
-.interview-workspace-header > p { align-self: center; justify-self: end; margin: 0; color: var(--muted); font-size: 0.8rem; }
+.interview-workspace-header > p,
+.algorithm-workspace-header > p { align-self: center; justify-self: end; margin: 0; color: var(--muted); font-size: 0.8rem; }
 
 .workspace-segmented-control,
 .algorithm-workspace-page > .algorithm-sub-navigation {
@@ -68,7 +69,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
 .workspace-segment:active,
 .algorithm-subnav-link:active { transform: scale(0.97); }
 .workspace-segment-active,
-.algorithm-subnav-link-active { background: var(--paper-strong); color: var(--ink); box-shadow: 0 1px 4px color-mix(in srgb, var(--ink) 12%, transparent); }
+.workspace-segment-active:hover,
+.algorithm-subnav-link-active,
+.algorithm-subnav-link-active:hover { background: var(--paper-strong); color: var(--ink); box-shadow: 0 1px 4px color-mix(in srgb, var(--ink) 12%, transparent); }
 
 .interview-workspace-content,
 .algorithm-workspace-content { display: grid; min-width: 0; padding: 20px var(--content-pad) 38px; }
@@ -130,7 +133,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
 @media (max-width: 980px) {
   .interview-workspace-header,
   .algorithm-workspace-header { grid-template-columns: 1fr; align-items: start; }
-  .interview-workspace-header > p { justify-self: start; }
+  .interview-workspace-header > p,
+  .algorithm-workspace-header > p { justify-self: start; }
 }
 
 @media (max-width: 760px) {
@@ -149,7 +153,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
   .algorithm-workspace-header { min-height: 0; justify-items: center; gap: 12px; padding-right: var(--content-pad); padding-bottom: 14px; padding-left: var(--content-pad); text-align: center; }
   .interview-workspace-header h1,
   .algorithm-workspace-header h1 { font-size: 1.95rem; }
-  .interview-workspace-header > p { justify-self: center; line-height: 1.55; }
+  .interview-workspace-header > p,
+  .algorithm-workspace-header > p { justify-self: center; line-height: 1.55; }
 
   .workspace-segmented-control,
   .algorithm-workspace-page > .algorithm-sub-navigation {

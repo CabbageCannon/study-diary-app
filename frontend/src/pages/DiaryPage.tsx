@@ -307,8 +307,8 @@ export function DiaryPage() {
 
       <div className="diary-waterfall" aria-label="日记瀑布流">
         {diaryColumns.map((column, columnIndex) => <div className="diary-column" key={columnIndex}>
-          {columnIndex === 0 && drafts.length ? <article className={`diary-draft-stack depth-${Math.min(3, drafts.length)}`}>
-            <button onClick={() => setDraftsOpen((value) => !value)} type="button"><span className="diary-draft-paper"><PencilSimpleIcon aria-hidden="true" size={20} /></span><strong>草稿箱</strong><small>{drafts.length} 篇写到一半</small></button>
+          {columnIndex === 0 && drafts.length ? <article className={`diary-draft-stack depth-${Math.min(3, drafts.length)}${draftsOpen ? " is-open" : ""}`}>
+            <button aria-expanded={draftsOpen} onClick={() => setDraftsOpen((value) => !value)} type="button"><span className="diary-draft-paper"><PencilSimpleIcon aria-hidden="true" size={20} /></span><span className="diary-draft-heading"><strong>草稿箱</strong><small>{drafts.length} 篇写到一半</small></span><CaretDownIcon aria-hidden="true" className="diary-draft-caret" size={16} weight="bold" /></button>
             {draftsOpen ? <div className="diary-draft-list">{drafts.map((draft) => <button aria-label={`打开草稿《${draft.title}》，长按可管理`} className={holdingId === draft.id ? "is-holding" : ""} key={draft.id} onClick={() => openDraft(draft)} type="button" {...longPressProps(draft)}><span>{draft.title}</span><time>{diaryTimestamp(draft)}</time></button>)}</div> : null}
           </article> : null}
           {column.map((diary) => <article className={`${diary.images.length ? "diary-card has-photo" : `diary-card text-card category-${diary.category}`}${holdingId === diary.id ? " is-holding" : ""}`} key={diary.id} {...longPressProps(diary)}>
