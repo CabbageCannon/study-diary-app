@@ -214,7 +214,7 @@ export function MePage() {
         </form>
       </SettingsItem>
 
-      <SettingsItem active={activeSection === "version"} controls="me-version-panel" icon={<ArrowClockwiseIcon aria-hidden="true" size={21} />} label="版本更新" note={updatePhase === "available" ? "有新版本可用" : updatePhase === "current" ? "已是最新版" : "主动检测，无需清缓存"} onToggle={() => toggleSection("version")}>
+      <SettingsItem active={activeSection === "version"} controls="me-version-panel" icon={<ArrowClockwiseIcon aria-hidden="true" size={21} />} label="版本更新" note={updatePhase === "available" ? "有新版本可用" : updatePhase === "current" ? "已是最新版" : "一键检测，无需清缓存"} onToggle={() => toggleSection("version")}>
         <div className="me-settings-panel" id="me-version-panel">
           <div aria-live="polite" className={`me-version-state is-${updatePhase}`} role="status"><span>{updateBusy ? <SpinnerGapIcon aria-hidden="true" size={22} /> : updatePhase === "current" ? <CheckCircleIcon aria-hidden="true" size={22} weight="fill" /> : <ArrowClockwiseIcon aria-hidden="true" size={22} />}</span><div><strong>{updateCopy.title}</strong><p>{updateError || updateCopy.detail}</p></div></div>
           <button className="button button-primary me-version-button" disabled={updateBusy} onClick={() => void (["available", "restart"].includes(updatePhase) ? applyUpdate() : checkForUpdate())} type="button">{updateBusy ? <SpinnerGapIcon aria-hidden="true" size={17} /> : <ArrowClockwiseIcon aria-hidden="true" size={17} weight="bold" />}{updateCopy.button}</button>
