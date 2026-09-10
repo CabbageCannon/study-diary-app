@@ -133,8 +133,8 @@
   z-index: var(--z-status);
   top: 0;
   display: grid;
-  grid-template-columns: minmax(110px, 1fr) auto minmax(110px, 1fr);
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 9px 18px;
   align-items: center;
   min-height: 64px;
   border-bottom: 1px solid var(--rule);
@@ -144,21 +144,36 @@
 }
 
 .focus-back-button {
+  display: inline-flex;
   width: fit-content;
+  min-height: 36px;
+  gap: 3px;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--accent-strong);
+  padding: 0;
+  font-size: 0.86rem;
+  font-weight: 700;
 }
 
 .focus-progress {
-  display: inline-flex;
-  min-height: 34px;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--rule);
-  background: var(--wash);
-  color: var(--accent-strong);
-  padding: 0 12px;
-  font-size: 0.82rem;
-  font-weight: 750;
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 7px;
 }
+
+.focus-progress > span {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  color: var(--ink);
+  font-size: 0.82rem;
+}
+
+.focus-progress small { color: var(--muted); font-size: 0.72rem; font-weight: 500; }
+.focus-progress > i { overflow: hidden; height: 4px; border-radius: 999px; background: var(--wash-strong); }
+.focus-progress > i > b { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: inline-size 220ms cubic-bezier(.2,.8,.2,1); }
 
 .focus-save-status {
   justify-self: end;
@@ -510,18 +525,14 @@
   }
 
   .focus-header {
-    grid-template-columns: auto 1fr auto;
-    min-height: 58px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-height: 78px;
     padding-right: max(14px, var(--safe-right));
     padding-left: max(14px, var(--safe-left));
   }
 
-  .focus-save-status {
-    display: none;
-  }
-
   .algorithm-focus-page {
-    padding-bottom: calc(154px + var(--safe-bottom));
+    padding-bottom: var(--safe-bottom);
   }
 
   .algorithm-focus-stack {
@@ -557,7 +568,7 @@
     position: static;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin: 0 var(--content-pad) 18px;
+    margin: 0;
     padding: 9px max(12px, var(--safe-right)) 9px max(12px, var(--safe-left));
   }
 

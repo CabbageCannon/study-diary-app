@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/ArrowCounterClockwise";
 import { ArrowLeftIcon } from "@phosphor-icons/react/ArrowLeft";
@@ -62,29 +62,6 @@ function reasoningCacheKey(sessionId: string, problemId: number) {
   return `study-diary:algorithm:session:${sessionId}:problem:${problemId}:reasoning`;
 }
 
-function useKeyboardOffset() {
-  const [offset, setOffset] = useState(0);
-
-  useEffect(() => {
-    const viewport = window.visualViewport;
-    if (!viewport) return;
-
-    const update = () => {
-      setOffset(Math.round(Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)));
-    };
-
-    update();
-    viewport.addEventListener("resize", update);
-    viewport.addEventListener("scroll", update);
-    return () => {
-      viewport.removeEventListener("resize", update);
-      viewport.removeEventListener("scroll", update);
-    };
-  }, []);
-
-  return offset;
-}
-
 function readCachedReasoning(key: string) {
   try {
     const raw = window.localStorage.getItem(key);
@@ -113,7 +90,6 @@ function phaseFromResponse(response: AlgorithmReasoningCheckResponse): Reasoning
 export function AlgorithmSessionPage() {
   const { sessionId = "" } = useParams();
   const navigate = useNavigate();
-  const keyboardOffset = useKeyboardOffset();
   const [session, setSession] = useState<AlgorithmSession | null>(() => peekAlgorithmSession(sessionId));
   const [contextResponse, setContextResponse] = useState<AlgorithmReasoningContextResponse | null>(null);
   const [reasoningResult, setReasoningResult] = useState<AlgorithmReasoningCheckResponse | null>(null);
@@ -135,7 +111,6 @@ export function AlgorithmSessionPage() {
   const canMovePrevious = Boolean(session && session.current_index > 0);
   const canMoveNext = Boolean(session && session.current_index < session.items.length - 1);
   const canCheck = Boolean(currentItem && session?.status === "in_progress" && draftState.draft.approach.trim() && draftState.draft.clientAnswerId && !isChecking && isOnline);
-  const actionStyle = { "--keyboard-offset": `${keyboardOffset}px` } as CSSProperties;
 
   const load = useCallback(async () => {
     if (!sessionId) return;
@@ -318,14 +293,18 @@ export function AlgorithmSessionPage() {
 
   async function skipCurrent() {
     if (!session || !isOnline) return;
+    const previous = session;
+    const nextIndex = Math.min(session.current_index + 1, session.items.length - 1);
+    setSession({ ...session, current_index: nextIndex, items: session.items.map((item, index) => index === session.current_index ? { ...item, status: "skipped" } : item) });
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    document.getElementById("main-content")?.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    timer.resetTimer();
     setError("");
     try {
       const next = await skipAlgorithmSessionProblem(session.id);
       setSession(next);
-      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
-      document.getElementById("main-content")?.scrollTo({ top: 0, left: 0, behavior: "smooth" });
-      timer.resetTimer();
     } catch (skipError) {
+      setSession(previous);
       setError(skipError instanceof Error ? skipError.message : "跳过题目失败。");
     }
   }
@@ -356,12 +335,11 @@ export function AlgorithmSessionPage() {
   if (!session || !currentItem) return <div className="page-stack"><div className="empty-state"><p>{error || "没有可恢复的训练会话。"}</p><Link className="button button-primary" to="/algorithms">返回算法训练</Link></div></div>;
 
   return (
-    <>
       <div className="algorithm-focus-page">
         <header className="focus-header">
-          <button className="back-link focus-back-button" onClick={() => navigate("/algorithms")} type="button"><ArrowLeftIcon aria-hidden="true" size={18} />算法</button>
-          <div className="focus-progress" aria-label={`训练进度 ${session.current_index + 1} / ${session.question_count}`}><span className="tabular-number">{session.current_index + 1} / {session.question_count}</span></div>
+          <button className="focus-back-button" onClick={() => navigate("/algorithms")} type="button"><ArrowLeftIcon aria-hidden="true" size={18} weight="bold" />算法训练</button>
           <span className="focus-save-status">{phaseText[phase]}</span>
+          <div className="focus-progress" aria-label={`训练进度 ${session.current_index + 1} / ${session.question_count}`}><span><strong className="tabular-number">第 {session.current_index + 1} 题</strong><small>共 {session.question_count} 题</small></span><i aria-hidden="true"><b style={{ inlineSize: `${((session.current_index + 1) / session.question_count) * 100}%` }} /></i></div>
         </header>
 
         {fixtureEnabled ? (
@@ -414,20 +392,18 @@ export function AlgorithmSessionPage() {
           </section>
 
           <ReasoningStatusPanel phase={phase} result={reasoningResult} stale={isFeedbackStale} onRetry={() => void retryCheck()} onReturnToEdit={() => setPhase("editing")} />
+          <footer className="mobile-focus-actions">
+            <button className="button button-secondary" disabled={!canMovePrevious || !isOnline || isChecking} onClick={() => void moveTo(session.current_index - 1)} type="button"><ArrowLeftIcon aria-hidden="true" size={16} />上一题</button>
+            <button className="button button-secondary" disabled={!isOnline || isChecking} onClick={() => void skipCurrent()} type="button"><SkipForwardIcon aria-hidden="true" size={16} />跳过</button>
+            {phase === "evaluationFailed" && reasoningResult?.answer ? (
+              <button className="button button-primary" disabled={!isOnline || isChecking} onClick={() => void retryCheck()} type="button"><ArrowCounterClockwiseIcon aria-hidden="true" size={16} weight="bold" />重新核对</button>
+            ) : (
+              <button className="button button-primary" disabled={!canCheck} onClick={() => void handleCheck()} type="button">{isChecking ? <SpinnerGapIcon aria-hidden="true" className="action-spinner" size={16} /> : <CheckIcon aria-hidden="true" size={16} weight="bold" />}{isChecking ? phaseText[phase] : "帮我核对"}</button>
+            )}
+            {canMoveNext ? <button className="button button-secondary" disabled={!isOnline || isChecking} onClick={() => void moveTo(session.current_index + 1)} type="button">下一题<ArrowRightIcon aria-hidden="true" size={16} /></button> : <button className="button button-secondary" disabled={!isOnline || isChecking} onClick={() => void completeSession()} type="button"><FlagIcon aria-hidden="true" size={16} />完成</button>}
+          </footer>
         </main>
       </div>
-
-      <footer className="mobile-focus-actions" style={actionStyle}>
-        <button className="button button-secondary" disabled={!canMovePrevious || !isOnline || isChecking} onClick={() => void moveTo(session.current_index - 1)} type="button"><ArrowLeftIcon aria-hidden="true" size={16} />上一题</button>
-        <button className="button button-secondary" disabled={!isOnline || isChecking} onClick={() => void skipCurrent()} type="button"><SkipForwardIcon aria-hidden="true" size={16} />跳过</button>
-        {phase === "evaluationFailed" && reasoningResult?.answer ? (
-          <button className="button button-primary" disabled={!isOnline || isChecking} onClick={() => void retryCheck()} type="button"><ArrowCounterClockwiseIcon aria-hidden="true" size={16} weight="bold" />重新核对</button>
-        ) : (
-          <button className="button button-primary" disabled={!canCheck} onClick={() => void handleCheck()} type="button">{isChecking ? <SpinnerGapIcon aria-hidden="true" className="action-spinner" size={16} /> : <CheckIcon aria-hidden="true" size={16} weight="bold" />}{isChecking ? phaseText[phase] : "帮我核对"}</button>
-        )}
-        {canMoveNext ? <button className="button button-secondary" disabled={!isOnline || isChecking} onClick={() => void moveTo(session.current_index + 1)} type="button">下一题<ArrowRightIcon aria-hidden="true" size={16} /></button> : <button className="button button-secondary" disabled={!isOnline || isChecking} onClick={() => void completeSession()} type="button"><FlagIcon aria-hidden="true" size={16} />完成</button>}
-      </footer>
-    </>
   );
 }
 

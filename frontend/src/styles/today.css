@@ -572,7 +572,7 @@
 @media (max-width: 760px) {
   .today-hero {
     min-height: 0;
-    padding: calc(26px + var(--safe-top)) 20px 20px;
+    padding: calc(26px + var(--safe-top)) 20px 10px;
   }
 
   .today-hero-copy h1 {
@@ -581,11 +581,12 @@
     font-size: 1.9rem;
     line-height: 1.28;
     letter-spacing: -0.025em;
+    margin-bottom: 0;
   }
 
   .today-workspace {
     gap: 0;
-    padding: 16px 20px 36px;
+    padding: 8px 20px 36px;
   }
 
   .today-section-heading {

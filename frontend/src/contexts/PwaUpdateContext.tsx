@@ -12,6 +12,30 @@ interface PwaUpdateValue {
 
 const PwaUpdateContext = createContext<PwaUpdateValue | null>(null);
 
+function requestUpdate(registration: ServiceWorkerRegistration) {
+  return new Promise<"checked" | "found" | "timeout">((resolve, reject) => {
+    let settled = false;
+    const finish = (result: "checked" | "found" | "timeout") => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      registration.removeEventListener("updatefound", found);
+      resolve(result);
+    };
+    const fail = (reason: unknown) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      registration.removeEventListener("updatefound", found);
+      reject(reason);
+    };
+    const found = () => finish("found");
+    const timer = window.setTimeout(() => finish("timeout"), 10_000);
+    registration.addEventListener("updatefound", found);
+    void registration.update().then(() => finish("checked"), fail);
+  });
+}
+
 function waitForInstall(worker: ServiceWorker) {
   if (["installed", "activated", "redundant"].includes(worker.state)) return Promise.resolve(true);
   return new Promise<boolean>((resolve) => {
@@ -32,7 +56,6 @@ export function PwaUpdateProvider({ children }: { children: ReactNode }) {
   const [phase, setPhase] = useState<PwaUpdatePhase>("idle");
   const [error, setError] = useState("");
   const registrationRef = useRef<ServiceWorkerRegistration | undefined>(undefined);
-  const updateServiceWorkerRef = useRef<() => Promise<void>>(async () => undefined);
   const reloadTimerRef = useRef<number | undefined>(undefined);
 
   const reloadPage = useCallback(() => {
@@ -43,7 +66,7 @@ export function PwaUpdateProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    updateServiceWorkerRef.current = registerSW({
+    registerSW({
       immediate: true,
       onNeedRefresh: () => { setPhase("available"); setError(""); },
       onNeedReload: reloadPage,
@@ -66,11 +89,12 @@ export function PwaUpdateProvider({ children }: { children: ReactNode }) {
     try {
       const registration = await getRegistration();
       if (!registration) throw new Error("当前浏览器不支持应用更新。");
-      await registration.update();
+      const result = await requestUpdate(registration);
       const finished = registration.installing ? await waitForInstall(registration.installing) : true;
       await new Promise((resolve) => window.setTimeout(resolve, 150));
       if (!navigator.serviceWorker.controller && registration.active) reloadPage();
       else if (registration.waiting) setPhase("available");
+      else if (result === "timeout") { setPhase("error"); setError("检测暂时超时，应用仍可继续使用，请稍后再试。"); }
       else if (finished) setPhase("current");
       else setPhase("downloading");
     } catch (reason) {
@@ -86,10 +110,11 @@ export function PwaUpdateProvider({ children }: { children: ReactNode }) {
       const registration = await getRegistration();
       if (!registration) throw new Error("当前浏览器不支持应用更新。");
       if (!registration.waiting) {
-        await registration.update();
+        await requestUpdate(registration);
         if (registration.installing) await waitForInstall(registration.installing);
       }
-      if (!registration.waiting) { setPhase("current"); return; }
+      const waiting = registration.waiting;
+      if (!waiting) { setPhase("current"); return; }
       const changed = new Promise<boolean>((resolve) => {
         const timer = window.setTimeout(() => finish(false), 6_000);
         const finish = (result: boolean) => {
@@ -100,7 +125,7 @@ export function PwaUpdateProvider({ children }: { children: ReactNode }) {
         const controlled = () => finish(true);
         navigator.serviceWorker.addEventListener("controllerchange", controlled);
       });
-      await updateServiceWorkerRef.current();
+      waiting.postMessage({ type: "SKIP_WAITING" });
       if (await changed) reloadPage();
       else setPhase("restart");
     } catch (reason) {

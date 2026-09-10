@@ -36,7 +36,6 @@ export function TodayPage() {
         <div className="today-hero-copy">
           <span className="page-kicker">{todayLabel()}</span>
           <h1>{getDailySentence()}</h1>
-          <p>今日一句 · 明天更新</p>
         </div>
       </header>
 
