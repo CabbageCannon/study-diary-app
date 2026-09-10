@@ -15,7 +15,7 @@ const PwaUpdateContext = createContext<PwaUpdateValue | null>(null);
 function waitForInstall(worker: ServiceWorker) {
   if (["installed", "activated", "redundant"].includes(worker.state)) return Promise.resolve(true);
   return new Promise<boolean>((resolve) => {
-    const timer = window.setTimeout(() => finish(false), 8_000);
+    const timer = window.setTimeout(() => finish(false), 15_000);
     const finish = (result: boolean) => {
       window.clearTimeout(timer);
       worker.removeEventListener("statechange", changed);
@@ -69,14 +69,15 @@ export function PwaUpdateProvider({ children }: { children: ReactNode }) {
       await registration.update();
       const finished = registration.installing ? await waitForInstall(registration.installing) : true;
       await new Promise((resolve) => window.setTimeout(resolve, 150));
-      if (registration.waiting) setPhase("available");
+      if (!navigator.serviceWorker.controller && registration.active) reloadPage();
+      else if (registration.waiting) setPhase("available");
       else if (finished) setPhase("current");
       else { setPhase("error"); setError("新版本仍在后台下载，准备好后会自动提醒你。"); }
     } catch (reason) {
       setPhase("error");
       setError(reason instanceof Error ? reason.message : "检查失败，请稍后再试。");
     }
-  }, [getRegistration]);
+  }, [getRegistration, reloadPage]);
 
   const applyUpdate = useCallback(async () => {
     if (!navigator.onLine) { setPhase("error"); setError("当前处于离线状态，联网后再更新。"); return; }
