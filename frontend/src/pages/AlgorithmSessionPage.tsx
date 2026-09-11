@@ -214,6 +214,7 @@ export function AlgorithmSessionPage() {
     setIsChecking(true);
     setError("");
     setPhase("saving");
+    timer.setIsRunning(false);
     try {
       const response = await checkAlgorithmReasoningAnswer({
         problem_id: problemKey,

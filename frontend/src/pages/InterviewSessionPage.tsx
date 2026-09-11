@@ -136,7 +136,7 @@ export function InterviewSessionPage() {
     return <p className="field-error page-error" role="alert">{error || "训练题集不存在。"}</p>;
   }
 
-  const historicalResult: InterviewAnswerSubmission | null = !result && hasPendingItems && currentItem?.latest_answer
+  const historicalResult: InterviewAnswerSubmission | null = !result && currentItem?.latest_answer
     ? {
         answer: currentItem.latest_answer,
         evaluation: currentItem.latest_evaluation,
@@ -145,8 +145,9 @@ export function InterviewSessionPage() {
         next_review_at: currentItem.next_review_at,
       }
     : null;
-  const displayedResult = result ?? historicalResult;
+  const displayedResult = result?.evaluation_status === "processing" ? null : result ?? (historicalResult?.evaluation_status === "processing" ? null : historicalResult);
   const activeQuestion = retryMode ? retryQuestion : currentItem?.status === "pending" ? currentItem.question : null;
+  const currentAnswerPendingReview = !displayedResult && currentItem?.latest_answer?.evaluation_status === "processing" && !currentItem.latest_evaluation;
   const currentPosition = questionSet.items.findIndex((item) => item.order_index === questionSet.current_index);
   const canSubmit = Boolean(answerText.trim()) && !isSubmitting;
 
@@ -307,6 +308,8 @@ export function InterviewSessionPage() {
             <button className="button button-secondary" disabled={isSubmitting} onClick={() => setShowAbandonConfirmation(true)} type="button"><FlagIcon aria-hidden="true" size={16} weight="bold" />放弃训练</button>
           </aside>
         </div>
+      ) : currentAnswerPendingReview ? (
+        <section className="interview-complete interview-processing-wait"><span className="pane-label">后台核对</span><h2>这题正在核对</h2><p>回答已经保存，结果完成后会出现在上方状态里。</p>{hasPendingItems ? <button className="button button-primary" disabled={isSubmitting} onClick={() => void handleNavigate(questionSet.items.find((item) => item.status === "pending")?.order_index ?? 0)} type="button"><PlayIcon aria-hidden="true" size={16} weight="fill" />继续下一题</button> : null}</section>
       ) : !hasPendingItems ? (
         <section className="interview-complete"><span className="pane-label">已完成全部题目</span><h2>结束训练</h2><p>确认结束后会归档本次训练，并清理对应的本地草稿。</p><button className="button button-primary" disabled={isSubmitting} onClick={() => void handleComplete()} type="button"><CheckIcon aria-hidden="true" size={16} weight="bold" />结束训练</button></section>
       ) : (

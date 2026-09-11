@@ -162,10 +162,21 @@ export function MePage() {
     }
   }
 
-  function requestReminderTimeChange(time: string) {
+  function updateReminderTimeDraft(time: string) {
     if (!time || !form.reminder.enabled || reminderSaving) return;
     clearStatus();
     setForm((current) => ({ ...current, reminder: { ...current.reminder, time } }));
+  }
+
+  function settleReminderTimeChange(time: string) {
+    if (!time || !form.reminder.enabled || reminderSaving) {
+      setForm((current) => ({ ...current, reminder: { ...current.reminder, time: preferences.reminder.time } }));
+      return;
+    }
+    if (time === preferences.reminder.time) {
+      setPendingReminderTime(null);
+      return;
+    }
     setPendingReminderTime(time);
   }
 
@@ -254,7 +265,7 @@ export function MePage() {
       <SettingsItem active={activeSection === "reminder"} controls="me-reminder-panel" icon={<BellIcon aria-hidden="true" size={21} />} label="每日提醒" note={preferences.reminder.enabled ? `${preferences.reminder.time} · 已开启` : "未开启"} onToggle={() => toggleSection("reminder")}>
         <div className="me-settings-panel" id="me-reminder-panel">
           <div className="settings-section-heading"><strong>开启提醒</strong><label className="ios-switch"><span className="sr-only">每日提醒</span><input checked={form.reminder.enabled} disabled={reminderSaving} onChange={(event) => void toggleReminder(event.currentTarget.checked)} type="checkbox" /><i aria-hidden="true" /></label></div>
-          <label className={form.reminder.enabled ? "setting-row" : "setting-row setting-row-disabled"}><span><strong>提醒时间</strong><small>按 Asia/Shanghai 推送</small></span><input aria-label="提醒时间" disabled={!form.reminder.enabled || reminderSaving} onChange={(event) => requestReminderTimeChange(event.currentTarget.value)} type="time" value={form.reminder.time} /></label>
+          <label className={form.reminder.enabled ? "setting-row" : "setting-row setting-row-disabled"}><span><strong>提醒时间</strong><small>按 Asia/Shanghai 推送</small></span><input aria-label="提醒时间" disabled={!form.reminder.enabled || reminderSaving} onBlur={(event) => settleReminderTimeChange(event.currentTarget.value)} onChange={(event) => { updateReminderTimeDraft(event.currentTarget.value); if (event.nativeEvent.type === "change") settleReminderTimeChange(event.currentTarget.value); }} onInput={(event) => updateReminderTimeDraft(event.currentTarget.value)} type="time" value={form.reminder.time} /></label>
           <div className="setting-row"><span><strong>通知权限</strong><small>iPhone 需从主屏幕打开</small></span><span className="setting-value">{permission === "unsupported" ? "不支持" : permission === "granted" ? "已允许" : permission === "denied" ? "已拒绝" : "未询问"}</span></div>
           <div className="me-reminder-preview"><div><CheckCircleIcon aria-hidden="true" size={18} weight="fill" /><span>{reminderHasMissingTasks ? "今晚可能收到" : "今日不再提醒"}</span></div><strong>{reminderCopy.title}</strong><p>{reminderCopy.body}</p></div>
           {!canUsePush ? <p className="field-error">当前浏览器不支持 Web Push。</p> : null}

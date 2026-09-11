@@ -1,4 +1,4 @@
-import { getAlgorithmDailyFeed, getAlgorithmSession, getAlgorithmStats, listAlgorithmSessions } from "../api/algorithms";
+import { getAlgorithmDailyFeed, getAlgorithmSession, getAlgorithmStats, listAlgorithmSessions, prefetchAlgorithmSettingsData } from "../api/algorithms";
 import { getAlgorithmReasoningContext } from "../api/algorithmReasoning";
 import { listDiaries } from "../api/client";
 import {
@@ -20,6 +20,7 @@ export async function prefetchAppData() {
     listDiaries(true),
     recentSetsPromise,
     activeSetsPromise,
+    prefetchAlgorithmSettingsData(true),
   ]);
 
   const detailIds = new Set<number>();

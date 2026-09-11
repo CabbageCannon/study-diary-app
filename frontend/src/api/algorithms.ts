@@ -26,8 +26,16 @@ function queryString(values: Record<string, string | number | boolean | undefine
   return text ? `?${text}` : "";
 }
 
-export function listAlgorithmProblems(filters: { difficulty?: AlgorithmDifficulty; topic?: string; source_list?: string; search?: string; completed?: boolean; needs_review?: boolean; limit?: number } = {}) {
-  return request<AlgorithmProblem[]>(`/api/algorithms/problems${queryString(filters)}`);
+function algorithmProblemsPath(filters: { difficulty?: AlgorithmDifficulty; topic?: string; source_list?: string; search?: string; completed?: boolean; needs_review?: boolean; limit?: number } = {}) {
+  return `/api/algorithms/problems${queryString(filters)}`;
+}
+
+export function listAlgorithmProblems(filters: { difficulty?: AlgorithmDifficulty; topic?: string; source_list?: string; search?: string; completed?: boolean; needs_review?: boolean; limit?: number } = {}, force = false) {
+  return cachedRequest<AlgorithmProblem[]>(algorithmProblemsPath(filters), undefined, force);
+}
+
+export function peekAlgorithmProblems(filters: { difficulty?: AlgorithmDifficulty; topic?: string; source_list?: string; search?: string; completed?: boolean; needs_review?: boolean; limit?: number } = {}) {
+  return peekCachedRequest<AlgorithmProblem[]>(algorithmProblemsPath(filters));
 }
 
 export function getAlgorithmProblem(id: number | string) {
@@ -53,16 +61,36 @@ export function refreshAlgorithmDailyFeed() {
   });
 }
 
-export function getAlgorithmDailySettings() {
-  return request<AlgorithmDailyRecommendationSettings>("/api/algorithms/daily-settings");
+export function getAlgorithmDailySettings(force = false) {
+  return cachedRequest<AlgorithmDailyRecommendationSettings>("/api/algorithms/daily-settings", undefined, force);
+}
+
+export function peekAlgorithmDailySettings() {
+  return peekCachedRequest<AlgorithmDailyRecommendationSettings>("/api/algorithms/daily-settings");
 }
 
 export function updateAlgorithmDailySettings(payload: UpdateAlgorithmDailyRecommendationSettingsPayload) {
-  return request<AlgorithmDailyRecommendationSettings>("/api/algorithms/daily-settings", { method: "PATCH", body: JSON.stringify(payload) });
+  return request<AlgorithmDailyRecommendationSettings>("/api/algorithms/daily-settings", { method: "PATCH", body: JSON.stringify(payload) }).then((settings) => {
+    primeCachedRequest("/api/algorithms/daily-settings", settings);
+    invalidateCachedRequests("/api/algorithms/daily-feed");
+    return settings;
+  });
 }
 
-export function getAlgorithmCatalogOverview() {
-  return request<AlgorithmCatalogOverview>("/api/algorithms/catalog-overview");
+export function getAlgorithmCatalogOverview(force = false) {
+  return cachedRequest<AlgorithmCatalogOverview>("/api/algorithms/catalog-overview", undefined, force);
+}
+
+export function peekAlgorithmCatalogOverview() {
+  return peekCachedRequest<AlgorithmCatalogOverview>("/api/algorithms/catalog-overview");
+}
+
+export function prefetchAlgorithmSettingsData(force = false) {
+  return Promise.allSettled([
+    getAlgorithmDailySettings(force),
+    getAlgorithmCatalogOverview(force),
+    listAlgorithmProblems({ limit: 60 }, force),
+  ]);
 }
 
 export function createAlgorithmSession(payload: CreateAlgorithmSessionPayload) {
@@ -112,14 +140,14 @@ export function skipAlgorithmSessionProblem(id: string) {
 
 export function completeAlgorithmSession(id: string) {
   return request<AlgorithmSession>(`/api/algorithms/sessions/${id}/complete`, { method: "POST" }).then((session) => {
-    invalidateCachedRequests("/api/algorithms/sessions", "/api/algorithms/stats");
+    invalidateCachedRequests("/api/algorithms/sessions", "/api/algorithms/stats", "/api/algorithms/problems", "/api/algorithms/catalog-overview");
     return session;
   });
 }
 
 export function abandonAlgorithmSession(id: string) {
   return request<AlgorithmSession>(`/api/algorithms/sessions/${id}/abandon`, { method: "POST" }).then((session) => {
-    invalidateCachedRequests("/api/algorithms/sessions", "/api/algorithms/stats");
+    invalidateCachedRequests("/api/algorithms/sessions", "/api/algorithms/stats", "/api/algorithms/problems", "/api/algorithms/catalog-overview");
     return session;
   });
 }
@@ -132,7 +160,7 @@ export function deleteAlgorithmSession(id: string) {
 
 export function saveAlgorithmAttempt(payload: SaveAlgorithmAttemptPayload) {
   return request<AlgorithmAttempt>("/api/algorithms/attempts", { method: "POST", body: JSON.stringify(payload) }).then((attempt) => {
-    invalidateCachedRequests("/api/algorithms/stats", "/api/algorithms/sessions?");
+    invalidateCachedRequests("/api/algorithms/stats", "/api/algorithms/sessions?", "/api/algorithms/problems", "/api/algorithms/catalog-overview");
     return attempt;
   });
 }

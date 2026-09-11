@@ -108,7 +108,7 @@
 .ios-switch { position: relative; }
 .ios-switch input { position: absolute; opacity: 0; pointer-events: none; }
 .ios-switch i { position: relative; display: block; width: 51px; height: 31px; border-radius: 999px; background: var(--rule-strong); transition: background-color 180ms ease-out; }
-.ios-switch i::after { position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: white; box-shadow: 0 2px 5px rgb(0 0 0 / 18%); content: ""; transition: transform 220ms cubic-bezier(.2,.8,.2,1); }
+.ios-switch i::after { position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: white; box-shadow: 0 2px 5px rgb(0 0 0 / 18%); content: ""; transition: transform 180ms ease-out; }
 .ios-switch input:checked + i { background: var(--accent); }
 .ios-switch input:checked + i::after { transform: translateX(20px); }
 .ios-switch input:focus-visible + i { outline: 2px solid var(--accent); outline-offset: 3px; }

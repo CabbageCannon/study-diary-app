@@ -15,13 +15,15 @@ from app.database import Base, get_db
 from app.llm import LLMError, generate_algorithm_reasoning_feedback
 from app.main import app
 from app.models import AlgorithmAttempt, AlgorithmProblemContext, AlgorithmProblemProgress
-from app.schemas import AlgorithmReasoningFeedbackModel
+from app.schemas import AlgorithmReasoningAnswerCreate, AlgorithmReasoningFeedbackModel
 from app.security import is_ai_request
-from app.services.algorithm_catalog_service import write_json
+from app.services.algorithm_catalog_service import read_json, write_json
+from app.services.algorithm_reasoning_service import check_saved_reasoning_answer, save_reasoning_answer
 from app.services.data_import_service import import_algorithms, import_mobile_problem_contexts
 
 
 CATALOG_PATH = Path(__file__).resolve().parents[1] / "data" / "algorithms" / "problem_catalog.json"
+REAL_CONTEXTS_DIR = Path(__file__).resolve().parents[1] / "data" / "mobile" / "algorithm_contexts"
 
 
 def context_payload(problem_key: str = "leetcode-1") -> dict[str, object]:
@@ -202,6 +204,31 @@ class MobileAlgorithmReasoningTests(unittest.TestCase):
         current = self.client.get("/api/algorithms/problems/leetcode-1/reasoning-context").json()
         self.assertEqual(current["context"]["content_version"], 2)
         self.assertEqual(self.session.query(AlgorithmProblemContext).count(), 2)
+
+    def test_real_active_catalog_contexts_include_recommended_problem_and_can_check(self) -> None:
+        active_ids = {problem["id"] for problem in read_json(CATALOG_PATH)["problems"] if problem["is_active"]}
+        context_ids = {path.stem for path in REAL_CONTEXTS_DIR.glob("*.json")}
+        self.assertFalse(active_ids - context_ids)
+
+        import_mobile_problem_contexts(self.session, REAL_CONTEXTS_DIR)
+        response = self.client.get("/api/algorithms/problems/leetcode-49/reasoning-context")
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertTrue(response.json()["reasoning_available"])
+
+        answer, created = save_reasoning_answer(
+            self.session,
+            AlgorithmReasoningAnswerCreate.model_validate(
+                self.payload(
+                    problem_id="leetcode-49",
+                    answer_text="把每个字符串转成 26 个字母计数元组作为 key，用哈希表收集同 key 的原字符串。",
+                )
+            ),
+        )
+        self.assertTrue(created)
+        with patch("app.services.algorithm_reasoning_service.generate_algorithm_reasoning_feedback", llm_correct):
+            checked = run(check_saved_reasoning_answer(self.session, answer.id))
+        self.assertEqual(checked.check_status, "completed")
+        self.assertEqual(checked.problem_context.problem_id, "leetcode-49")
 
     def test_context_missing_returns_200_without_llm_claim(self) -> None:
         response = self.client.get("/api/algorithms/problems/leetcode-15/reasoning-context")

@@ -1,4 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
+
+import { prefetchAlgorithmSettingsData } from "../../api/algorithms";
+
 const items = [
   { to: "/algorithms", label: "刷题", matches: (path: string) => path === "/algorithms" || path.startsWith("/algorithms/session/") || path.startsWith("/algorithms/problems/") },
   { to: "/algorithms/review", label: "复习", matches: (path: string) => path === "/algorithms/review" },
@@ -8,11 +11,13 @@ const items = [
 
 export function AlgorithmSubNavigation() {
   const { pathname } = useLocation();
+  const warmSettings = () => { void prefetchAlgorithmSettingsData(); };
 
   return (
     <nav className="algorithm-sub-navigation" aria-label="算法训练导航">
       {items.map((item) => {
-        return <NavLink className={item.matches(pathname) ? "algorithm-subnav-link algorithm-subnav-link-active" : "algorithm-subnav-link"} key={item.to} to={item.to}><span>{item.label}</span></NavLink>;
+        const preloadProps = item.to === "/algorithms/settings" ? { onFocus: warmSettings, onPointerEnter: warmSettings, onTouchStart: warmSettings } : {};
+        return <NavLink className={item.matches(pathname) ? "algorithm-subnav-link algorithm-subnav-link-active" : "algorithm-subnav-link"} key={item.to} to={item.to} {...preloadProps}><span>{item.label}</span></NavLink>;
       })}
     </nav>
   );

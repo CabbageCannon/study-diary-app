@@ -1,4 +1,4 @@
-import { ApiRequestError, cachedRequest, request } from "./client";
+import { ApiRequestError, cachedRequest, invalidateCachedRequests, request } from "./client";
 import type {
   AlgorithmReasoningAnswer,
   AlgorithmReasoningCheckPayload,
@@ -54,7 +54,7 @@ export async function checkAlgorithmReasoningAnswer(payload: AlgorithmReasoningC
   return request<AlgorithmReasoningCheckResponse>("/api/algorithms/reasoning/checks", {
     method: "POST",
     body: JSON.stringify(payload),
-  });
+  }).then(invalidateAlgorithmTrainingCaches);
 }
 
 export async function retryAlgorithmReasoningCheck(answerId: number) {
@@ -66,7 +66,12 @@ export async function retryAlgorithmReasoningCheck(answerId: number) {
   return request<AlgorithmReasoningCheckResponse>(`/api/algorithms/reasoning/answers/${answerId}/check`, {
     method: "POST",
     body: JSON.stringify({ refresh: false }),
-  });
+  }).then(invalidateAlgorithmTrainingCaches);
+}
+
+function invalidateAlgorithmTrainingCaches<T>(response: T) {
+  invalidateCachedRequests("/api/algorithms/daily-feed", "/api/algorithms/sessions", "/api/algorithms/stats", "/api/algorithms/problems", "/api/algorithms/catalog-overview");
+  return response;
 }
 
 export async function getAlgorithmReasoningAnswer(answerId: number) {

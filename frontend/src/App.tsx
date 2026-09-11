@@ -41,6 +41,7 @@ window.setTimeout(() => {
     import("./pages/InterviewHistoryPage"),
     import("./pages/InterviewSessionPage"),
     import("./pages/AlgorithmsPage"),
+    import("./pages/AlgorithmSettingsPage"),
     import("./pages/AlgorithmSessionPage"),
     import("./pages/DiaryPage"),
     import("./layout/InterviewWorkspaceLayout"),

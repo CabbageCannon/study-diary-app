@@ -7,13 +7,18 @@ import { PlayIcon } from "@phosphor-icons/react/Play";
 import {
   abandonInterviewQuestionSet,
   createInterviewQuestionSet,
+  getInterviewTrainingStats,
   listInterviewQuestionSets,
+  peekInterviewTrainingStats,
   peekInterviewQuestionSets,
 } from "../api/interviews";
 import { ConfirmActionDialog } from "../components/interview/ConfirmActionDialog";
-import { InterviewSetupForm } from "../components/interview/InterviewSetupForm";
+import { domainOptions, InterviewSetupForm } from "../components/interview/InterviewSetupForm";
 import { getLastActiveInterviewSession } from "../hooks/useInterviewAnswerDraft";
-import type { CreateQuestionSetPayload, InterviewQuestionSetSummary } from "../types/interview";
+import { useUserPreferences } from "../hooks/useUserPreferences";
+import type { CreateQuestionSetPayload, InterviewQuestionSetSummary, InterviewTrainingStats, QuestionDomain } from "../types/interview";
+
+const INTERVIEW_SETUP_KEY = "study-diary:interview:setup";
 
 const initialPayload: CreateQuestionSetPayload = {
   question_count: 3,
@@ -21,47 +26,97 @@ const initialPayload: CreateQuestionSetPayload = {
   random_order: true,
 };
 
+function loadSavedPayload(): CreateQuestionSetPayload {
+  try {
+    const raw = window.localStorage.getItem(INTERVIEW_SETUP_KEY);
+    if (!raw) return initialPayload;
+    const saved = JSON.parse(raw) as Partial<CreateQuestionSetPayload>;
+    return { ...initialPayload, ...saved, question_count: Number(saved.question_count) || initialPayload.question_count };
+  } catch {
+    return initialPayload;
+  }
+}
+
+function savePayload(value: CreateQuestionSetPayload) {
+  window.localStorage.setItem(INTERVIEW_SETUP_KEY, JSON.stringify(value));
+}
+
 function resumeLabel(summary: InterviewQuestionSetSummary) {
   return `${summary.domain ?? "综合"}${summary.topic ? ` · ${summary.topic}` : ""}`;
+}
+
+function domainLabel(domain?: QuestionDomain | null) {
+  return domainOptions.find((item) => item.value === domain)?.label ?? "综合";
 }
 
 export function InterviewPage() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const isSetup = pathname === "/interview/setup";
-  const [payload, setPayload] = useState<CreateQuestionSetPayload>(initialPayload);
+  const [preferences] = useUserPreferences();
+  const [payload, setPayload] = useState<CreateQuestionSetPayload>(loadSavedPayload);
   const [pendingSets, setPendingSets] = useState<InterviewQuestionSetSummary[]>(() => peekInterviewQuestionSets({ status: "in_progress", limit: 12 }) ?? []);
+  const [stats, setStats] = useState<InterviewTrainingStats | null>(() => peekInterviewTrainingStats() ?? null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [pendingAction, setPendingAction] = useState<"restart" | "abandon" | null>(null);
+  const [pendingStartPayload, setPendingStartPayload] = useState<CreateQuestionSetPayload | null>(null);
+  const [savedPromptOpen, setSavedPromptOpen] = useState(false);
 
   const resumableSet = useMemo(() => {
     const lastSessionId = getLastActiveInterviewSession();
     return pendingSets.find((item) => item.id === lastSessionId) ?? pendingSets[0] ?? null;
   }, [pendingSets]);
+  const resumableRemaining = resumableSet ? Math.max(0, resumableSet.question_count - resumableSet.answered_count - resumableSet.skipped_count) : 0;
+  const dailyGoal = preferences.dailyGoals.interview;
+  const todayAnswered = stats?.today_answered_count ?? 0;
+  const remainingToday = Math.max(0, dailyGoal - todayAnswered);
+  const dailyTitle = dailyGoal > 0
+    ? remainingToday > 0 ? `今日还差 ${remainingToday} 道` : `今日目标已完成 · 共答 ${todayAnswered} 道`
+    : "今天没有八股指标";
+  const recommendationCopy = remainingToday > 0
+    ? "优先安排到期复习，题量跟随今日剩余目标。"
+    : "优先安排到期复习，沿用已保存题量再练一组。";
+  const recommendedCount = remainingToday > 0 ? remainingToday : payload.question_count;
+  const strongestDomain = stats?.domains[0]?.domain ?? payload.domain;
+  const recommendedPayload = useMemo<CreateQuestionSetPayload>(() => ({
+    ...payload,
+    question_count: Math.max(1, recommendedCount),
+    include_due_reviews: true,
+  }), [payload, recommendedCount]);
+  const similarPayload = useMemo<CreateQuestionSetPayload>(() => ({
+    ...recommendedPayload,
+    domain: strongestDomain,
+    topic: strongestDomain === payload.domain ? payload.topic : undefined,
+  }), [payload.domain, payload.topic, recommendedPayload, strongestDomain]);
 
   useEffect(() => {
     const controller = new AbortController();
     async function load() {
-      const nextPending = await listInterviewQuestionSets({ status: "in_progress", limit: 12, signal: controller.signal }).catch(() => []);
+      const [nextPending, nextStats] = await Promise.all([
+        listInterviewQuestionSets({ status: "in_progress", limit: 12, signal: controller.signal }).catch(() => []),
+        getInterviewTrainingStats(controller.signal).catch(() => null),
+      ]);
       if (controller.signal.aborted) {
         return;
       }
       setPendingSets(nextPending);
+      if (nextStats) setStats(nextStats);
     }
     void load();
     return () => controller.abort();
   }, []);
 
-  async function startTraining(skipPendingConfirmation = false) {
+  async function startTraining(skipPendingConfirmation = false, nextPayload = payload) {
     if (resumableSet && !skipPendingConfirmation) {
+      setPendingStartPayload(nextPayload);
       setPendingAction("restart");
       return;
     }
     setIsSubmitting(true);
     setError("");
     try {
-      const questionSet = await createInterviewQuestionSet(payload);
+      const questionSet = await createInterviewQuestionSet(nextPayload);
       navigate(`/interview/session/${questionSet.id}`);
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : "训练题集创建失败。");
@@ -95,8 +150,14 @@ export function InterviewPage() {
       return;
     }
     if (await abandonResumableSet()) {
-      await startTraining(true);
+      await startTraining(true, pendingStartPayload ?? payload);
     }
+  }
+
+  function saveSetup() {
+    savePayload(payload);
+    setError("");
+    setSavedPromptOpen(true);
   }
 
   return (
@@ -104,9 +165,9 @@ export function InterviewPage() {
       {resumableSet ? (
         <section className="interview-resume-panel" aria-labelledby="resume-session-title">
           <div>
-            <span className="pane-label">未完成训练</span>
-            <h2 id="resume-session-title">还剩 {resumableSet.question_count - resumableSet.answered_count - resumableSet.skipped_count} / {resumableSet.question_count} 题</h2>
-            <p>最后练习：{resumeLabel(resumableSet)}</p>
+            <span className="pane-label">{resumableRemaining > 0 ? "未完成训练" : "待结束训练"}</span>
+            <h2 id="resume-session-title">{resumableRemaining > 0 ? `还剩 ${resumableRemaining} / ${resumableSet.question_count} 题` : "本轮已答完"}</h2>
+            <p>最后练习：{resumeLabel(resumableSet)}{resumableRemaining > 0 ? "" : " · 进入后结束训练"}</p>
           </div>
           <div className="interview-resume-actions">
             <button className="button button-primary" onClick={() => navigate(`/interview/session/${resumableSet.id}`)} type="button"><PlayIcon aria-hidden="true" size={16} weight="fill" />继续上次训练</button>
@@ -118,17 +179,28 @@ export function InterviewPage() {
 
       {isSetup ? (
         <section className="interview-setup-surface" aria-labelledby="interview-setup-heading">
-          <div><span className="pane-label">题集</span><h2 id="interview-setup-heading">按今天的状态调整</h2><p>选择题量、方向和难度，再开始一组训练。</p></div>
-          <InterviewSetupForm value={payload} isSubmitting={isSubmitting} error={error} onChange={setPayload} onSubmit={() => void startTraining()} />
+          <div><span className="pane-label">题集</span><h2 id="interview-setup-heading">按今天的状态调整</h2><p>选择题量、方向和难度，保存为下次默认训练。</p></div>
+          <InterviewSetupForm value={payload} isSubmitting={isSubmitting} error={error} onChange={setPayload} onSave={saveSetup} />
         </section>
       ) : (
         <section className="mobile-start-panel interview-quick-start" aria-labelledby="interview-start-title">
-          <span className="pane-label">快速开始</span>
-          <h2 id="interview-start-title">先练 3 道</h2>
-          <p>用一组短训练完成回忆、作答和核对，题集细节随时可以调整。</p>
+          <div className="interview-daily-summary">
+            <span className="pane-label">继续刷</span>
+            <h2 id="interview-start-title">{dailyTitle}</h2>
+            <p>{remainingToday > 0 ? "先补齐今日目标，再按同类方向加练。" : "指标完成后也可以继续加练，默认沿用上次保存的题集。"}</p>
+          </div>
           {error ? <p className="field-error" role="alert">{error}</p> : null}
+          <div className="interview-practice-options">
+            <article>
+              <div><span>推荐</span><h3>按今日目标练</h3><p>{recommendationCopy}</p></div>
+              <button className="button button-primary" disabled={isSubmitting} onClick={() => void startTraining(false, recommendedPayload)} type="button"><PlayIcon aria-hidden="true" size={16} weight="fill" />{isSubmitting ? "正在创建" : `练 ${Math.max(1, recommendedCount)} 道`}</button>
+            </article>
+            <article>
+              <div><span>同类练习</span><h3>{domainLabel(strongestDomain)} 方向</h3><p>沿用常练方向和已保存偏好，适合加深同一类问题。</p></div>
+              <button className="button button-secondary" disabled={isSubmitting} onClick={() => void startTraining(false, similarPayload)} type="button">开始同类练习</button>
+            </article>
+          </div>
           <div className="interview-quick-actions">
-            <button className="button button-primary" disabled={isSubmitting} onClick={() => void startTraining()} type="button"><PlayIcon aria-hidden="true" size={16} weight="fill" />{isSubmitting ? "正在创建" : "开始练 3 道"}</button>
             <Link className="button button-secondary" to="/interview/setup">调整题集</Link>
           </div>
         </section>
@@ -143,6 +215,19 @@ export function InterviewPage() {
         onConfirm={() => void confirmPendingAction()}
         open={pendingAction !== null}
         title={pendingAction === "restart" ? "开始新的训练？" : "放弃当前训练？"}
+      />
+      <ConfirmActionDialog
+        cancelLabel="稍后再说"
+        confirmLabel="立刻训练"
+        description="题量、方向和难度已经保存到本机，下次进入八股训练会继续使用。"
+        isConfirming={isSubmitting}
+        onCancel={() => setSavedPromptOpen(false)}
+        onConfirm={() => {
+          setSavedPromptOpen(false);
+          void startTraining(false, payload);
+        }}
+        open={savedPromptOpen}
+        title="题集已保存"
       />
     </div>
   );

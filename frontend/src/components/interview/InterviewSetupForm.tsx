@@ -1,5 +1,5 @@
 import type { CreateQuestionSetPayload, Difficulty, QuestionDomain } from "../../types/interview";
-import { PlayIcon } from "@phosphor-icons/react/Play";
+import { FloppyDiskIcon } from "@phosphor-icons/react/FloppyDisk";
 
 import { HoverSelect, type HoverSelectOption } from "./HoverSelect";
 
@@ -65,10 +65,10 @@ interface InterviewSetupFormProps {
   isSubmitting: boolean;
   error: string;
   onChange: (nextValue: CreateQuestionSetPayload) => void;
-  onSubmit: () => void;
+  onSave: () => void;
 }
 
-export function InterviewSetupForm({ value, isSubmitting, error, onChange, onSubmit }: InterviewSetupFormProps) {
+export function InterviewSetupForm({ value, isSubmitting, error, onChange, onSave }: InterviewSetupFormProps) {
   const topics = value.domain ? topicOptions[value.domain] : [];
 
   function update<K extends keyof CreateQuestionSetPayload>(key: K, nextValue: CreateQuestionSetPayload[K]) {
@@ -150,9 +150,9 @@ export function InterviewSetupForm({ value, isSubmitting, error, onChange, onSub
       {error ? <p className="field-error" role="alert">{error}</p> : null}
 
       <div className="interview-form-actions">
-        <button className="button button-primary" disabled={isSubmitting} onClick={onSubmit} type="button">
-          <PlayIcon aria-hidden="true" size={16} weight="fill" />
-          {isSubmitting ? "正在创建..." : "开始训练"}
+        <button className="button button-primary" disabled={isSubmitting} onClick={onSave} type="button">
+          <FloppyDiskIcon aria-hidden="true" size={16} weight="bold" />
+          {isSubmitting ? "保存中..." : "保存"}
         </button>
       </div>
     </section>
