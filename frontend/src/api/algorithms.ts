@@ -7,12 +7,14 @@ import type {
   AlgorithmDifficulty,
   AlgorithmHintRead,
   AlgorithmProblem,
+  AlgorithmReviewCandidate,
   AlgorithmReviewSchedule,
   AlgorithmSession,
   AlgorithmSessionSummary,
   AlgorithmStats,
   AlgorithmWeakness,
   CreateAlgorithmSessionPayload,
+  CreateAlgorithmReviewSessionPayload,
   SaveAlgorithmAttemptPayload,
   UpdateAlgorithmDailyRecommendationSettingsPayload,
 } from "../types/algorithm";
@@ -192,8 +194,15 @@ export function listDueAlgorithmReviews() {
   return request<AlgorithmReviewSchedule[]>("/api/algorithms/reviews/due?limit=50");
 }
 
-export function createAlgorithmReviewSession(count = 5) {
-  return request<AlgorithmSession>(`/api/algorithms/reviews/session?count=${count}`, { method: "POST" });
+export function listAlgorithmReviewCandidates(filters: { time_order?: "recommended" | "recent" | "older"; from_date?: string; to_date?: string; min_accuracy?: number; max_accuracy?: number; limit?: number } = {}) {
+  return request<AlgorithmReviewCandidate[]>(`/api/algorithms/reviews/candidates${queryString(filters)}`);
+}
+
+export function createAlgorithmReviewSession(payload: CreateAlgorithmReviewSessionPayload | number = 5) {
+  if (typeof payload === "number") {
+    return request<AlgorithmSession>(`/api/algorithms/reviews/session?count=${payload}`, { method: "POST" });
+  }
+  return request<AlgorithmSession>("/api/algorithms/reviews/session", { method: "POST", body: JSON.stringify(payload) });
 }
 
 export function getAlgorithmStats(force = false) {

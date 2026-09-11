@@ -1,3 +1,4 @@
+from datetime import date as date_type
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
@@ -30,7 +31,9 @@ from app.schemas import (
     AlgorithmReasoningCheckCreate,
     AlgorithmReasoningCheckResponse,
     AlgorithmReasoningRecheckRequest,
+    AlgorithmReviewCandidateRead,
     AlgorithmReviewScheduleRead,
+    AlgorithmReviewSessionCreate,
     AlgorithmStatsRead,
     AlgorithmWeaknessRead,
 )
@@ -62,6 +65,7 @@ from app.services.algorithm_practice_service import (
     get_daily_feed,
     get_daily_settings,
     get_session_read,
+    list_review_candidates,
     list_session_summaries,
     list_catalog_problems,
     mark_ai_review_failed,
@@ -320,12 +324,35 @@ def list_due_algorithm_reviews(
     return due_reviews(db, limit=limit)
 
 
+@router.get("/reviews/candidates", response_model=list[AlgorithmReviewCandidateRead])
+def list_algorithm_review_candidates(
+    time_order: Literal["recommended", "recent", "older"] = "recommended",
+    from_date: date_type | None = None,
+    to_date: date_type | None = None,
+    min_accuracy: int | None = Query(default=None, ge=0, le=100),
+    max_accuracy: int | None = Query(default=None, ge=0, le=100),
+    limit: int = Query(default=50, ge=1, le=100),
+    db: Session = Depends(get_db),
+) -> list[AlgorithmReviewCandidateRead]:
+    return list_review_candidates(
+        db,
+        time_order=time_order,
+        from_date=from_date,
+        to_date=to_date,
+        min_accuracy=min_accuracy,
+        max_accuracy=max_accuracy,
+        limit=limit,
+    )
+
+
 @router.post("/reviews/session", response_model=AlgorithmPracticeSessionRead, status_code=status.HTTP_201_CREATED)
 def create_algorithm_review_session(
-    count: int = Query(default=5, ge=1, le=20), db: Session = Depends(get_db)
+    payload: AlgorithmReviewSessionCreate | None = None,
+    count: int = Query(default=5, ge=1, le=20),
+    db: Session = Depends(get_db),
 ) -> AlgorithmPracticeSessionRead:
     try:
-        return create_review_session(db, count=count)
+        return create_review_session(db, count=payload.count if payload else count, problem_ids=payload.problem_ids if payload else None)
     except AlgorithmPracticeError as exc:
         raise _domain_error(exc) from exc
 

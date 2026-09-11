@@ -173,6 +173,7 @@ function fixtureFeedback(answer: AlgorithmReasoningAnswer): AlgorithmReasoningFe
     feedback_id: answer.answer_id + 5000,
     answer_id: answer.answer_id,
     conclusion: hasLookupOrder ? "correct" : "partially_correct",
+    accuracy_score: hasLookupOrder ? 100 : 65,
     headline: hasLookupOrder
       ? "思路成立。你已经讲清楚先查补数再存当前值，能避免复用同一位置。"
       : "方向成立。还需要说明先查补数再存当前值，这样不会把同一个位置使用两次。",

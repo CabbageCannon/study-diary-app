@@ -6,6 +6,7 @@ from unittest.mock import patch
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
+from pydantic import ValidationError
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
@@ -258,6 +259,32 @@ class MobileAlgorithmReasoningTests(unittest.TestCase):
                 self.assertEqual(body["feedback"]["conclusion"], conclusion)
                 if conclusion == "insufficient_context":
                     self.assertFalse(body["feedback"]["context_sufficient"])
+
+    def test_reasoning_accuracy_score_is_validated_and_old_feedback_gets_fallback(self) -> None:
+        old_feedback = AlgorithmReasoningFeedbackModel.model_validate(
+            {
+                "conclusion": "partially_correct",
+                "context_sufficient": True,
+                "headline": "方向成立，但缺少关键条件。",
+                "correct_parts": [{"point": "使用哈希表", "quote": None}],
+                "issues_or_missing": [{"type": "missing", "detail": "缺少先查后存。", "quote": None, "verification_point_id": None}],
+                "counterexample_or_followup": {"kind": "followup", "content": "如何避免复用同一位置？"},
+                "complexity": {
+                    "time": {"user_claim": None, "assessment": "not_stated", "expected": "O(n)", "note": None},
+                    "space": {"user_claim": None, "assessment": "not_stated", "expected": "O(n)", "note": None},
+                },
+                "alternative_approaches_accepted": [],
+                "reference_outline": "先查补数，再存当前值。",
+                "needs_review": True,
+                "followup_for_supplement": "补充哈希表更新顺序。",
+            }
+        )
+        self.assertEqual(old_feedback.accuracy_score, 65)
+
+        payload = old_feedback.model_dump()
+        payload["accuracy_score"] = 101
+        with self.assertRaises(ValidationError):
+            AlgorithmReasoningFeedbackModel.model_validate(payload)
 
     def test_llm_failure_keeps_saved_answer_and_recheck_does_not_duplicate_save(self) -> None:
         payload = self.payload(client_answer_id=str(uuid4()))

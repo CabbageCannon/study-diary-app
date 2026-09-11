@@ -57,6 +57,7 @@ export interface AlgorithmReasoningFeedback {
   conclusion: AlgorithmReasoningConclusion;
   headline: string;
   context_sufficient: boolean;
+  accuracy_score: number;
   correct_parts: AlgorithmReasoningFeedbackPoint[];
   issues_or_missing: AlgorithmReasoningIssue[];
   counterexample_or_followup: AlgorithmReasoningFollowup;

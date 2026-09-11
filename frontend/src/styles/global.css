@@ -4849,9 +4849,16 @@ html[data-theme="night"] .date-picker-day-selected:focus-visible {
 .algorithm-review-list,
 .algorithm-weakness-panel { padding: 22px; }
 .algorithm-review-list { display: grid; align-content: start; gap: 12px; }
+.algorithm-review-filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.algorithm-review-filters label { display: grid; gap: 5px; color: var(--ink-muted); font-size: 0.76rem; }
+.algorithm-review-filters select,
+.algorithm-review-filters input { width: 100%; border: 1px solid var(--rule); border-radius: 8px; background: var(--surface); color: var(--ink); padding: 9px 10px; font: inherit; }
 .algorithm-review-item { display: flex; align-items: center; justify-content: space-between; gap: 14px; border-top: 1px solid var(--rule); padding: 15px 0; }
 .algorithm-review-item h3 { margin: 3px 0; color: var(--ink); font-size: 0.97rem; }
 .algorithm-review-item p { margin: 0; color: var(--ink-muted); font-size: 0.8rem; }
+.algorithm-review-check > span { display: grid; gap: 3px; min-width: 0; }
+.algorithm-review-check strong { color: var(--ink); font-size: 0.97rem; }
+.algorithm-review-check small { color: var(--ink-muted); font-size: 0.8rem; }
 .algorithm-review-item > div:last-child { display: grid; justify-items: end; gap: 7px; color: var(--ink-muted); font-size: 0.75rem; }
 .algorithm-review-item a { display: grid; place-items: center; color: var(--accent); }
 .algorithm-weakness-panel { display: grid; align-content: start; gap: 16px; }

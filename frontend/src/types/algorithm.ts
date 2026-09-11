@@ -129,6 +129,16 @@ export interface AlgorithmReviewSchedule {
   last_attempt: AlgorithmAttempt | null;
 }
 
+export interface AlgorithmReviewCandidate {
+  problem: AlgorithmProblem;
+  last_attempt: AlgorithmAttempt;
+  last_practiced_at: string;
+  accuracy_score: number;
+  status: AlgorithmItemStatus;
+  next_review_at: string | null;
+  reason: string;
+}
+
 export interface AlgorithmStats {
   current_streak_days: number;
   today_completed_count: number;
@@ -208,6 +218,11 @@ export interface CreateAlgorithmSessionPayload {
   exclude_solved?: boolean;
   prioritize_due_review?: boolean;
   reference_problem_id?: string;
+}
+
+export interface CreateAlgorithmReviewSessionPayload {
+  problem_ids?: number[];
+  count?: number;
 }
 
 export interface SaveAlgorithmAttemptPayload {

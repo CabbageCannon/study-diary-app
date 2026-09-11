@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator, model_validator
 
 
 class DiaryCreate(BaseModel):
@@ -701,6 +701,7 @@ class AlgorithmReasoningComplexity(BaseModel):
 class AlgorithmReasoningFeedbackModel(BaseModel):
     conclusion: AlgorithmReasoningConclusion
     context_sufficient: bool
+    accuracy_score: int = Field(ge=0, le=100)
     headline: str = Field(min_length=1, max_length=120)
     correct_parts: list[AlgorithmReasoningQuotedPoint] = Field(default_factory=list, max_length=12)
     issues_or_missing: list[AlgorithmReasoningIssue] = Field(default_factory=list, max_length=12)
@@ -710,6 +711,19 @@ class AlgorithmReasoningFeedbackModel(BaseModel):
     reference_outline: str = Field(default="", max_length=2000)
     needs_review: bool = True
     followup_for_supplement: str | None = Field(default=None, max_length=500)
+
+    @model_validator(mode="before")
+    @classmethod
+    def default_accuracy_score(cls, value: Any) -> Any:
+        if isinstance(value, dict) and value.get("accuracy_score") is None and value.get("conclusion"):
+            value = dict(value)
+            value["accuracy_score"] = {
+                "correct": 100,
+                "partially_correct": 65,
+                "critical_error": 20,
+                "insufficient_context": 0,
+            }.get(value.get("conclusion"), 0)
+        return value
 
     def model_post_init(self, __context: Any) -> None:
         if self.conclusion == "insufficient_context" and self.context_sufficient:
@@ -899,6 +913,21 @@ class AlgorithmReviewScheduleRead(BaseModel):
     mastery_level: int
     reason: str
     last_attempt: AlgorithmAttemptRead | None = None
+
+
+class AlgorithmReviewCandidateRead(BaseModel):
+    problem: AlgorithmProblemRead
+    last_attempt: AlgorithmAttemptRead
+    last_practiced_at: datetime
+    accuracy_score: int
+    status: AlgorithmSessionItemStatus
+    next_review_at: datetime | None = None
+    reason: str
+
+
+class AlgorithmReviewSessionCreate(BaseModel):
+    problem_ids: list[int] = Field(default_factory=list, max_length=20)
+    count: int = Field(default=5, ge=1, le=20)
 
 
 class AlgorithmStatsRead(BaseModel):
