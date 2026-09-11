@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/ArrowCounterClockwise";
 import { ArrowLeftIcon } from "@phosphor-icons/react/ArrowLeft";
@@ -19,11 +19,11 @@ import {
   updateAlgorithmSessionProgress,
 } from "../api/algorithms";
 import {
-  checkAlgorithmReasoningAnswer,
   findAlgorithmReasoningAnswerByClientId,
   getAlgorithmReasoningContext,
   isAlgorithmReasoningFixtureEnabled,
   retryAlgorithmReasoningCheck,
+  saveAlgorithmReasoningAnswer,
   setAlgorithmReasoningFixtureEnabled,
 } from "../api/algorithmReasoning";
 import { ApiRequestError } from "../api/client";
@@ -32,6 +32,17 @@ import type { AlgorithmItemStatus, AlgorithmSession } from "../types/algorithm";
 import type { AlgorithmReasoningCheckResponse, AlgorithmReasoningContextResponse } from "../types/algorithmReasoning";
 
 type ReasoningPhase = "editing" | "saving" | "saveUnknown" | "saveFailed" | "saved" | "checking" | "evaluationFailed" | "contextUnavailable" | "completed";
+type AlgorithmAnswerTaskStatus = "saving" | "processing" | "completed" | "failed";
+
+interface AlgorithmAnswerTask {
+  key: string;
+  problemId: number;
+  problemTitle: string;
+  answerId: number | null;
+  status: AlgorithmAnswerTaskStatus;
+  error: string | null;
+  response: AlgorithmReasoningCheckResponse | null;
+}
 
 const phaseText: Record<ReasoningPhase, string> = {
   editing: "本机草稿",
@@ -79,6 +90,11 @@ function writeCachedReasoning(key: string, value: AlgorithmReasoningCheckRespons
   }
 }
 
+function scrollQuestionToTop() {
+  window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  document.getElementById("main-content")?.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+}
+
 function phaseFromResponse(response: AlgorithmReasoningCheckResponse): ReasoningPhase {
   if (response.save_status === "save_failed") return "saveFailed";
   if (response.check_status === "completed") return "completed";
@@ -96,10 +112,12 @@ export function AlgorithmSessionPage() {
   const [phase, setPhase] = useState<ReasoningPhase>("editing");
   const [isLoading, setIsLoading] = useState(() => !peekAlgorithmSession(sessionId));
   const [isChecking, setIsChecking] = useState(false);
+  const [answerTasks, setAnswerTasks] = useState<AlgorithmAnswerTask[]>([]);
   const [error, setError] = useState("");
   const [contextError, setContextError] = useState("");
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
   const [fixtureEnabled, setFixtureEnabled] = useState(() => isAlgorithmReasoningFixtureEnabled());
+  const currentProblemIdRef = useRef<number | null>(null);
   const currentItem = session?.items[session.current_index] ?? null;
   const effectiveSessionId = session?.id || sessionId || "pending";
   const draftState = useAlgorithmAttemptDraft(effectiveSessionId, currentItem?.problem_id ?? 0);
@@ -126,6 +144,10 @@ export function AlgorithmSessionPage() {
   }, [sessionId]);
 
   useEffect(() => { void load(); }, [load]);
+
+  useEffect(() => {
+    currentProblemIdRef.current = currentItem?.problem_id ?? null;
+  }, [currentItem?.problem_id]);
 
   useEffect(() => {
     const online = () => setIsOnline(true);
@@ -174,6 +196,56 @@ export function AlgorithmSessionPage() {
     if (cacheKey) writeCachedReasoning(cacheKey, value);
   }
 
+  function updateAnswerTask(nextTask: AlgorithmAnswerTask) {
+    setAnswerTasks((tasks) => {
+      const existingIndex = tasks.findIndex((task) => task.key === nextTask.key || (task.answerId !== null && task.answerId === nextTask.answerId));
+      if (existingIndex === -1) return [nextTask, ...tasks].slice(0, 5);
+      return tasks.map((task, index) => index === existingIndex ? nextTask : task);
+    });
+  }
+
+  function responseFromSavedAnswer(
+    detail: { answer: NonNullable<AlgorithmReasoningCheckResponse["answer"]>; feedback: AlgorithmReasoningCheckResponse["feedback"] },
+  ): AlgorithmReasoningCheckResponse {
+    return {
+      save_status: detail.answer.save_status,
+      check_status: detail.answer.check_status,
+      answer: detail.answer,
+      feedback: detail.feedback,
+      save_error: null,
+      check_error: detail.answer.check_status === "failed" ? "上次核对没有完成，可以重新核对。" : null,
+      retry: detail.answer.check_status === "failed" ? { check_url: `/api/algorithms/reasoning/answers/${detail.answer.answer_id}/check`, method: "POST" } : null,
+      problem_context: { problem_id: detail.answer.problem_id, content_version: null, reasoning_available: true },
+    };
+  }
+
+  function persistReasoningForProblem(problemId: number, value: AlgorithmReasoningCheckResponse) {
+    writeCachedReasoning(reasoningCacheKey(effectiveSessionId, problemId), value);
+    if (currentProblemIdRef.current === problemId) {
+      persistReasoning(value);
+      setPhase(phaseFromResponse(value));
+    }
+  }
+
+  function runBackgroundCheck(task: AlgorithmAnswerTask, answerId: number) {
+    void retryAlgorithmReasoningCheck(answerId)
+      .then((response) => {
+        const status = response.check_status === "completed" ? "completed" : "failed";
+        persistReasoningForProblem(task.problemId, response);
+        updateAnswerTask({ ...task, answerId, status, error: response.check_error, response });
+        if (response.check_status === "completed") void load();
+      })
+      .catch((checkError) => {
+        updateAnswerTask({
+          ...task,
+          answerId,
+          status: "failed",
+          error: checkError instanceof Error ? checkError.message : "核对失败，回答已保留。",
+          response: task.response,
+        });
+      });
+  }
+
   function updateDraftApproach(value: string) {
     if (reasoningResult?.answer && value.trim() !== reasoningResult.answer.answer_text.trim() && !draftState.draft.revisionOfAnswerId) {
       draftState.beginRevision(reasoningResult.answer.answer_id);
@@ -206,19 +278,30 @@ export function AlgorithmSessionPage() {
   }
 
   async function handleCheck() {
-    if (!currentItem || !problemKey || !draftState.draft.approach.trim()) {
+    const activeSession = session;
+    if (!activeSession || !currentItem || !problemKey || !draftState.draft.approach.trim()) {
       setError("请先描述你的思路。");
       return;
     }
 
+    const task: AlgorithmAnswerTask = {
+      key: `${currentItem.problem_id}:${draftState.draft.clientAnswerId}`,
+      problemId: currentItem.problem_id,
+      problemTitle: currentItem.problem.title_zh || currentItem.problem.title,
+      answerId: null,
+      status: "saving",
+      error: null,
+      response: null,
+    };
+    updateAnswerTask(task);
     setIsChecking(true);
     setError("");
     setPhase("saving");
     timer.setIsRunning(false);
     try {
-      const response = await checkAlgorithmReasoningAnswer({
+      const detail = await saveAlgorithmReasoningAnswer({
         problem_id: problemKey,
-        session_id: session?.id ?? null,
+        session_id: activeSession.id,
         answer_text: draftState.draft.approach,
         answer_source: "text",
         details: {
@@ -230,25 +313,52 @@ export function AlgorithmSessionPage() {
         client_answer_id: draftState.draft.clientAnswerId,
         revision_of_answer_id: draftState.draft.revisionOfAnswerId,
       });
+      const response = responseFromSavedAnswer(detail);
       persistReasoning(response);
       setPhase(phaseFromResponse(response));
       if (response.answer) draftState.markCommitted(response.answer.answer_id, response.answer.answer_text);
+      const savedTask = { ...task, answerId: detail.answer.answer_id, status: "processing" as const, response };
+      updateAnswerTask(savedTask);
+      if (detail.answer.check_status === "completed") {
+        updateAnswerTask({ ...savedTask, status: "completed" });
+      } else {
+        runBackgroundCheck(savedTask, detail.answer.answer_id);
+      }
+      if (canMoveNext) {
+        await moveTo(activeSession.current_index + 1);
+      } else {
+        await completeSession(null);
+      }
     } catch (checkError) {
       if (checkError instanceof ApiRequestError && checkError.status === 422) {
         setPhase("saveFailed");
         setError(checkError.message);
+        updateAnswerTask({ ...task, status: "failed", error: checkError.message });
       } else if (checkError instanceof ApiRequestError && checkError.status === 409) {
         draftState.beginRevision(reasoningResult?.answer?.answer_id ?? draftState.draft.committedAnswerId);
         setPhase("saveFailed");
         setError("这版回答的提交标识已经被占用。已为当前文字生成新版本，请重新保存并核对。");
+        updateAnswerTask({ ...task, status: "failed", error: "client_answer_id 已存在，已生成新版本标识。" });
       } else {
         const recovered = await recoverByClientAnswerId();
         if (recovered) {
           persistReasoning(recovered);
           setPhase(phaseFromResponse(recovered));
+          if (recovered.answer) {
+            draftState.markCommitted(recovered.answer.answer_id, recovered.answer.answer_text);
+            const recoveredTask = { ...task, answerId: recovered.answer.answer_id, status: "processing" as const, response: recovered };
+            updateAnswerTask(recoveredTask);
+            runBackgroundCheck(recoveredTask, recovered.answer.answer_id);
+            if (canMoveNext) {
+              await moveTo(activeSession.current_index + 1);
+            } else {
+              await completeSession(null);
+            }
+          }
         } else {
           setPhase("saveUnknown");
           setError("请求没有返回可确认结果。草稿仍在本机，请用同一版回答重试。");
+          updateAnswerTask({ ...task, status: "failed", error: "无法确认服务端已保存，请用同一版回答重试。" });
         }
       }
     } finally {
@@ -275,17 +385,43 @@ export function AlgorithmSessionPage() {
     }
   }
 
+  async function openAnswerTask(task: AlgorithmAnswerTask) {
+    const currentSession = session;
+    if (!currentSession) return;
+    if (task.response) {
+      writeCachedReasoning(reasoningCacheKey(effectiveSessionId, task.problemId), task.response);
+      persistReasoning(task.response);
+      setPhase(phaseFromResponse(task.response));
+    }
+    const index = currentSession.items.findIndex((item) => item.problem_id === task.problemId);
+    if (currentSession.status !== "in_progress") {
+      if (index >= 0) {
+        setSession({ ...currentSession, current_index: index });
+        scrollQuestionToTop();
+      }
+      return;
+    }
+    if (index >= 0) await moveTo(index);
+  }
+
+  async function retryAnswerTask(task: AlgorithmAnswerTask) {
+    if (!task.answerId) return;
+    const nextTask = { ...task, status: "processing" as const, error: null };
+    updateAnswerTask(nextTask);
+    runBackgroundCheck(nextTask, task.answerId);
+  }
+
   async function moveTo(index: number) {
     if (!session || !isOnline) return;
     const previous = session;
     setSession({ ...session, current_index: index });
-    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
-    document.getElementById("main-content")?.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    scrollQuestionToTop();
     setError("");
     try {
       const next = await updateAlgorithmSessionProgress(session.id, index, "in_progress" as AlgorithmItemStatus);
       setSession(next);
       timer.resetTimer();
+      timer.setIsRunning(true);
     } catch (moveError) {
       setSession(previous);
       setError(moveError instanceof Error ? moveError.message : "无法更新训练进度。");
@@ -297,9 +433,9 @@ export function AlgorithmSessionPage() {
     const previous = session;
     const nextIndex = Math.min(session.current_index + 1, session.items.length - 1);
     setSession({ ...session, current_index: nextIndex, items: session.items.map((item, index) => index === session.current_index ? { ...item, status: "skipped" } : item) });
-    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
-    document.getElementById("main-content")?.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    scrollQuestionToTop();
     timer.resetTimer();
+    timer.setIsRunning(true);
     setError("");
     try {
       const next = await skipAlgorithmSessionProblem(session.id);
@@ -310,14 +446,15 @@ export function AlgorithmSessionPage() {
     }
   }
 
-  async function completeSession() {
+  async function completeSession(nextPath: string | null = "/algorithms/history") {
     if (!session || !isOnline) return;
     setError("");
     try {
-      await completeAlgorithmSession(session.id);
+      const next = await completeAlgorithmSession(session.id);
+      setSession(next);
       window.localStorage.removeItem("study-diary:algorithm:last-active-session");
       timer.resetTimer();
-      navigate("/algorithms/history");
+      if (nextPath) navigate(nextPath);
     } catch (completeError) {
       setError(completeError instanceof Error ? completeError.message : "完成训练失败。");
     }
@@ -334,6 +471,27 @@ export function AlgorithmSessionPage() {
 
   if (isLoading) return <div className="page-stack"><div className="skeleton-block skeleton-session" /></div>;
   if (!session || !currentItem) return <div className="page-stack"><div className="empty-state"><p>{error || "没有可恢复的训练会话。"}</p><Link className="button button-primary" to="/algorithms">返回算法训练</Link></div></div>;
+  if (session.status !== "in_progress") {
+    return (
+      <div className="algorithm-focus-page">
+        <header className="focus-header">
+          <button className="focus-back-button" onClick={() => navigate("/algorithms")} type="button"><ArrowLeftIcon aria-hidden="true" size={18} weight="bold" />算法训练</button>
+          <span className="focus-save-status">训练已完成</span>
+          <div className="focus-progress" aria-label={`训练进度 ${session.question_count} / ${session.question_count}`}><span><strong className="tabular-number">共 {session.question_count} 题</strong><small>已保存</small></span><i aria-hidden="true"><b style={{ inlineSize: "100%" }} /></i></div>
+        </header>
+        {answerTasks.length ? <AlgorithmAnswerTaskTray tasks={answerTasks} isChecking={isChecking} onDismiss={(key) => setAnswerTasks((tasks) => tasks.filter((task) => task.key !== key))} onOpen={(task) => void openAnswerTask(task)} onRetry={(task) => void retryAnswerTask(task)} /> : null}
+        <main className="algorithm-focus-stack">
+          <section className="reasoning-status-panel" aria-live="polite">
+            <span className="pane-label">已完成全部题目</span>
+            <h2>本轮训练已保存</h2>
+            <p>后台核对完成后，结果会写入对应题目和今日统计。</p>
+            <Link className="button button-primary" to="/algorithms">返回算法首页</Link>
+          </section>
+          <ReasoningStatusPanel phase={phase} result={reasoningResult} stale={false} onRetry={() => void retryCheck()} onReturnToEdit={() => setPhase("editing")} />
+        </main>
+      </div>
+    );
+  }
 
   return (
       <div className="algorithm-focus-page">
@@ -351,6 +509,7 @@ export function AlgorithmSessionPage() {
 
         {!isOnline ? <p className="offline-training-note" role="status">离线模式：草稿会留在此设备；恢复网络后再保存并核对。</p> : null}
         {error ? <p className="field-error page-error" role="alert">{error}</p> : null}
+        {answerTasks.length ? <AlgorithmAnswerTaskTray tasks={answerTasks} isChecking={isChecking} onDismiss={(key) => setAnswerTasks((tasks) => tasks.filter((task) => task.key !== key))} onOpen={(task) => void openAnswerTask(task)} onRetry={(task) => void retryAnswerTask(task)} /> : null}
 
         <main className="algorithm-focus-stack">
           <section className="algorithm-focus-problem" aria-labelledby="algorithm-problem-title">
@@ -452,6 +611,55 @@ function ReasoningStatusPanel({
       {feedback.counterexample_or_followup.content ? <section className="feedback-block"><h3>{feedback.counterexample_or_followup.kind === "counterexample" ? "反例" : "追问"}</h3><p>{feedback.counterexample_or_followup.content}</p></section> : null}
 
       <details className="feedback-details"><summary>查看复杂度与参考思路</summary><p>时间：{feedback.complexity.time.expected ?? "待确认"}。{feedback.complexity.time.note}</p><p>空间：{feedback.complexity.space.expected ?? "待确认"}。{feedback.complexity.space.note}</p><p>{feedback.reference_outline}</p></details>
+    </section>
+  );
+}
+
+function AlgorithmAnswerTaskTray({
+  tasks,
+  isChecking,
+  onDismiss,
+  onOpen,
+  onRetry,
+}: {
+  tasks: AlgorithmAnswerTask[];
+  isChecking: boolean;
+  onDismiss: (key: string) => void;
+  onOpen: (task: AlgorithmAnswerTask) => void;
+  onRetry: (task: AlgorithmAnswerTask) => void;
+}) {
+  const statusLabel = {
+    saving: "保存中",
+    processing: "核对中",
+    completed: "完成",
+    failed: "失败",
+  };
+
+  return (
+    <section className="interview-answer-task-tray" aria-label="算法回答核对状态" aria-live="polite">
+      <div className="section-heading">
+        <div><span className="pane-label">后台核对</span><h2>回答状态</h2></div>
+        <span>{tasks.length} 条</span>
+      </div>
+      <div className="interview-answer-task-list">
+        {tasks.map((task) => (
+          <article className={`interview-answer-task interview-answer-task-${task.status}`} key={task.key}>
+            <div>
+              <span className="pane-label">{task.status === "saving" || task.status === "processing" ? <SpinnerGapIcon aria-hidden="true" className="interview-task-spinner" size={13} /> : null}{statusLabel[task.status]}</span>
+              <h3>{task.problemTitle}</h3>
+              {task.status === "saving" ? <p>正在确认保存，计时已经停住。</p> : null}
+              {task.status === "processing" ? <p>回答已保存，正在后台核对。可以继续刷下一题。</p> : null}
+              {task.status === "completed" ? <p>核对完成，结果已写入本题记录。</p> : null}
+              {task.status === "failed" ? <p>{task.error ?? "核对失败，回答已保留。"}</p> : null}
+            </div>
+            <div className="interview-answer-task-actions">
+              <button className="button button-secondary" onClick={() => onOpen(task)} type="button">查看</button>
+              {task.status === "failed" && task.answerId ? <button className="button button-secondary" disabled={isChecking} onClick={() => onRetry(task)} type="button">重新核对</button> : null}
+              {task.status === "completed" || task.status === "failed" ? <button className="text-danger-button" onClick={() => onDismiss(task.key)} type="button">关闭</button> : null}
+            </div>
+          </article>
+        ))}
+      </div>
     </section>
   );
 }

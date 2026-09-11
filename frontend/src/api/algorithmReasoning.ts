@@ -57,6 +57,21 @@ export async function checkAlgorithmReasoningAnswer(payload: AlgorithmReasoningC
   }).then(invalidateAlgorithmTrainingCaches);
 }
 
+export async function saveAlgorithmReasoningAnswer(payload: AlgorithmReasoningCheckPayload) {
+  if (isAlgorithmReasoningFixtureEnabled()) {
+    await fixtureDelay();
+    return { answer: fixtureAnswer(payload, "not_attempted"), feedback: null };
+  }
+
+  return request<{ answer: AlgorithmReasoningAnswer; feedback: AlgorithmReasoningFeedback | null }>(
+    "/api/algorithms/reasoning/answers",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
 export async function retryAlgorithmReasoningCheck(answerId: number) {
   if (isAlgorithmReasoningFixtureEnabled()) {
     await fixtureDelay();

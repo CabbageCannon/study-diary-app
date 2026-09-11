@@ -176,16 +176,20 @@ def _select_problems(db: Session, request: AlgorithmPracticeSessionCreate, sessi
     if not problems:
         raise AlgorithmPracticeError("算法题库为空。请先导入经过验证的本地题目元数据。")
 
+    daily_selected: list[AlgorithmProblem] = []
     if request.mode == "hot100":
         request = request.model_copy(update={"source_lists": sorted(set(request.source_lists) | {"hot100"})})
     if request.mode == "daily":
-        request = request.model_copy(update={"count": 1})
         if request.problem_ids:
             lookup = {problem.stable_key: problem for problem in problems} | {str(problem.id): problem for problem in problems}
-            selected = lookup.get(request.problem_ids[0])
-            if selected is None:
-                raise AlgorithmPracticeError("今日主推荐题目不存在于本地题库。")
-            return [selected], 1
+            for identifier in request.problem_ids:
+                problem = lookup.get(identifier)
+                if problem is None:
+                    raise AlgorithmPracticeError("今日推荐题目不存在于本地题库。")
+                if problem not in daily_selected:
+                    daily_selected.append(problem)
+            if len(daily_selected) >= request.count:
+                return daily_selected[: request.count], len(daily_selected)
     if request.mode == "custom":
         if not request.problem_ids:
             raise AlgorithmPracticeError("自定义训练需要至少选择一道本地题库中的题目。")
@@ -245,7 +249,8 @@ def _select_problems(db: Session, request: AlgorithmPracticeSessionCreate, sessi
         unsolved = [problem for problem in candidates if progress.get(problem.id) is None or progress[problem.id].status != "solved"]
         pool = [problem for problem in candidates if problem.id in due_ids] or unsolved or candidates
         day_seed = app_local_date(now).isoformat()
-        return [sorted(pool, key=lambda problem: _stable_sort_key(day_seed, problem))[0]], len(pool)
+        ordered = daily_selected + [problem for problem in sorted(pool, key=lambda problem: _stable_sort_key(day_seed, problem)) if problem not in daily_selected]
+        return ordered[: request.count], len(ordered)
 
     ordered = sorted(candidates, key=lambda problem: _stable_sort_key(session_seed, problem))
     if request.prioritize_due_review:

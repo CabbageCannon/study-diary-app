@@ -257,6 +257,19 @@ class AlgorithmPracticeApiTests(unittest.TestCase):
         feed_ids = [first.json()["primary_problem"]["id"], *[item["id"] for item in first.json()["extra_problems"]]]
         self.assertEqual(len(feed_ids), len(set(feed_ids)))
 
+    def test_daily_session_uses_requested_count_after_pinned_primary_problem(self) -> None:
+        feed = self.client.get("/api/algorithms/daily-feed").json()
+        response = self.client.post(
+            "/api/algorithms/sessions",
+            json={"mode": "daily", "count": 3, "problem_ids": [str(feed["primary_problem"]["id"])]},
+        )
+        self.assertEqual(response.status_code, 201, response.text)
+        body = response.json()
+        ids = [item["problem_id"] for item in body["items"]]
+        self.assertEqual(len(ids), 3)
+        self.assertEqual(ids[0], feed["primary_problem"]["id"])
+        self.assertEqual(len(ids), len(set(ids)))
+
     def test_saving_daily_settings_does_not_replace_today_until_explicit_refresh(self) -> None:
         before = self.client.get("/api/algorithms/daily-feed").json()
         topic = self.session.query(AlgorithmProblem).filter(AlgorithmProblem.topics_json.contains("数组")).first().topics[0]
