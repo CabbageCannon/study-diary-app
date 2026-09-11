@@ -56,8 +56,8 @@
 .me-settings-caret { color: var(--muted); transition: transform 180ms ease-out; }
 .me-settings-item-active .me-settings-caret { transform: rotate(180deg); }
 .me-settings-panel { display: grid; gap: 18px; border-top: 1px solid var(--rule); padding: 20px; animation: me-section-enter 180ms ease-out both; }
-.me-section-actions { display: flex; justify-content: flex-end; gap: 9px; }
-.me-section-actions .button { min-width: 88px; justify-content: center; }
+.me-section-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.me-section-actions .button { width: 100%; justify-content: center; }
 .me-install-copy { margin: 0; color: var(--muted); font-size: 0.88rem; line-height: 1.55; }
 .me-version-state { display: flex; gap: 13px; align-items: center; border-radius: 14px; background: var(--wash); padding: 15px; }
 .me-version-state > span { display: grid; flex: 0 0 40px; height: 40px; place-items: center; border-radius: 12px; background: var(--paper-strong); color: var(--accent-strong); }

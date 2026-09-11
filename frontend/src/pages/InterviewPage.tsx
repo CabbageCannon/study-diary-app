@@ -72,8 +72,11 @@ export function InterviewPage() {
   const todayAnswered = stats?.today_answered_count ?? 0;
   const remainingToday = Math.max(0, dailyGoal - todayAnswered);
   const dailyTitle = dailyGoal > 0
-    ? remainingToday > 0 ? `今日还差 ${remainingToday} 道` : `今日目标已完成 · 共答 ${todayAnswered} 道`
+    ? remainingToday > 0 ? `今日还差 ${remainingToday} 道` : "今日八股已完成"
     : "今天没有八股指标";
+  const dailyDetail = dailyGoal > 0
+    ? remainingToday > 0 ? "先补齐今日目标，再按同类方向加练。" : `已完成 ${todayAnswered} 道，下面可以继续加练。`
+    : "今天没有固定题量，下面可以直接练一组。";
   const recommendationCopy = remainingToday > 0
     ? "优先安排到期复习，题量跟随今日剩余目标。"
     : "优先安排到期复习，沿用已保存题量再练一组。";
@@ -185,11 +188,12 @@ export function InterviewPage() {
       ) : (
         <section className="mobile-start-panel interview-quick-start" aria-labelledby="interview-start-title">
           <div className="interview-daily-summary">
-            <span className="pane-label">继续刷</span>
+            <span className="pane-label">{remainingToday > 0 ? "今日目标" : "完成态"}</span>
             <h2 id="interview-start-title">{dailyTitle}</h2>
-            <p>{remainingToday > 0 ? "先补齐今日目标，再按同类方向加练。" : "指标完成后也可以继续加练，默认沿用上次保存的题集。"}</p>
+            <p>{dailyDetail}</p>
           </div>
           {error ? <p className="field-error" role="alert">{error}</p> : null}
+          {remainingToday === 0 ? <div className="interview-continue-heading"><span className="pane-label">继续刷</span><h3>推荐 / 同类练习</h3></div> : null}
           <div className="interview-practice-options">
             <article>
               <div><span>推荐</span><h3>按今日目标练</h3><p>{recommendationCopy}</p></div>

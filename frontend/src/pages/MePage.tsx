@@ -15,6 +15,7 @@ import { useTheme, type AppTheme } from "../contexts/ThemeContext";
 import { useTodayWorkspace } from "../hooks/useTodayWorkspace";
 import { useUserPreferences } from "../hooks/useUserPreferences";
 import { ConfirmActionDialog } from "../components/interview/ConfirmActionDialog";
+import { dailyGoalsDirty, profileSettingsDirty } from "../utils/settingsDirty";
 import {
   buildReminderCopy, clampGoal, createBrowserPushSubscription, deleteReminderPush,
   getTodayProgressItems, notificationPermission, pushSupported,
@@ -75,6 +76,9 @@ export function MePage() {
   const updateBusy = updatePhase === "checking" || updatePhase === "updating" || updatePhase === "reloading";
   const reminderSaving = savingSection === "reminder";
   const reminderHasMissingTasks = progressItems.some((item) => item.target > 0 && item.completed < item.target);
+  const profileDirty = profileSettingsDirty(form, preferences);
+  const appearanceDirty = draftTheme !== theme;
+  const goalsDirty = dailyGoalsDirty(form.dailyGoals, preferences.dailyGoals);
 
   function clearStatus() { setMessage(""); setError(""); }
 
@@ -107,18 +111,21 @@ export function MePage() {
 
   function saveProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!profileDirty) return;
     const next = { ...preferences, nickname: form.nickname.trim(), targetRole: form.targetRole.trim(), learningStyle: form.learningStyle.trim() };
     setPreferences(next); setForm(next); setMessage("个人资料已保存。");
   }
 
   function saveAppearance(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!appearanceDirty) return;
     setTheme(draftTheme);
     setMessage("外观已保存。");
   }
 
   function saveGoals(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!goalsDirty) return;
     const next = { ...preferences, dailyGoals: {
       interview: clampGoal(form.dailyGoals.interview), algorithm: clampGoal(form.dailyGoals.algorithm),
       diary: clampGoal(form.dailyGoals.diary), review: clampGoal(form.dailyGoals.review),
@@ -236,7 +243,7 @@ export function MePage() {
             <label className="form-field"><span>学习方向</span><input maxLength={80} onChange={(event) => updateField("targetRole", event.currentTarget.value)} value={form.targetRole} /></label>
             <label className="form-field me-wide-field"><span>一句话目标</span><textarea maxLength={180} onChange={(event) => updateField("learningStyle", event.currentTarget.value)} value={form.learningStyle} /></label>
           </div>
-          <SectionActions error={error} message={message} onCancel={cancelSection} />
+          <SectionActions dirty={profileDirty} error={error} message={message} onCancel={cancelSection} />
         </form>
       </SettingsItem>
 
@@ -245,7 +252,7 @@ export function MePage() {
           <div className="theme-picker" role="radiogroup" aria-label="外观主题">
             {themes.map((item) => <button aria-checked={draftTheme === item.id} className={draftTheme === item.id ? "theme-option theme-option-active" : "theme-option"} key={item.id} onClick={() => { setDraftTheme(item.id); clearStatus(); }} role="radio" type="button"><span className="theme-swatches" aria-hidden="true">{item.colors.map((color) => <i key={color} style={{ background: color }} />)}</span><span><strong>{item.label}</strong><small>{item.note}</small></span></button>)}
           </div>
-          <SectionActions error={error} message={message} onCancel={cancelSection} />
+          <SectionActions dirty={appearanceDirty} error={error} message={message} onCancel={cancelSection} />
         </form>
       </SettingsItem>
 
@@ -258,7 +265,7 @@ export function MePage() {
             <GoalInput label="复习" value={form.dailyGoals.review} onChange={(value) => updateGoal("review", value)} />
           </div>
           <p className="me-inline-preview">{progressItems.map((item) => `${item.label} ${isLoading ? "-" : `${Math.min(item.completed, item.target)}/${item.target}`}`).join(" · ")}</p>
-          <SectionActions error={error} message={message} onCancel={cancelSection} />
+          <SectionActions dirty={goalsDirty} error={error} message={message} onCancel={cancelSection} />
         </form>
       </SettingsItem>
 
@@ -299,8 +306,8 @@ function SettingsItem({ active, children, controls, icon, label, note, onToggle 
   return <section className={active ? "me-settings-item me-settings-item-active" : "me-settings-item"}><button aria-controls={controls} aria-expanded={active} className="me-settings-trigger" onClick={onToggle} type="button"><span className="me-settings-icon">{icon}</span><span><strong>{label}</strong><small>{note}</small></span><CaretDownIcon aria-hidden="true" className="me-settings-caret" size={18} weight="bold" /></button>{active ? children : null}</section>;
 }
 
-function SectionActions({ error, message, onCancel, saving = false }: { error: string; message: string; onCancel: () => void; saving?: boolean }) {
-  return <><div className="me-section-actions"><button className="button button-secondary" disabled={saving} onClick={onCancel} type="button">取消</button><button className="button button-primary" disabled={saving} type="submit">{saving ? "保存中…" : "保存"}</button></div>{message ? <p className="settings-success" role="status">{message}</p> : null}{error ? <p className="field-error" role="alert">{error}</p> : null}</>;
+function SectionActions({ dirty, error, message, onCancel, saving = false }: { dirty: boolean; error: string; message: string; onCancel: () => void; saving?: boolean }) {
+  return <><div className="me-section-actions"><button className="button button-secondary" disabled={saving} onClick={onCancel} type="button">取消</button><button className="button button-primary" disabled={saving || !dirty} type="submit">{saving ? "保存中…" : "保存"}</button></div>{message ? <p className="settings-success" role="status">{message}</p> : null}{error ? <p className="field-error" role="alert">{error}</p> : null}</>;
 }
 
 function GoalInput({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
