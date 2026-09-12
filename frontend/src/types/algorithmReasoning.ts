@@ -68,6 +68,7 @@ export interface AlgorithmReasoningFeedback {
   alternative_approaches_accepted: string[];
   reference_outline: string;
   needs_review: boolean;
+  followup_for_supplement?: string | null;
   model_name: string;
   prompt_version: string;
   context_version: number;

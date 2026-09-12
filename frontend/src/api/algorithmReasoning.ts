@@ -95,6 +95,13 @@ export async function getAlgorithmReasoningAnswer(answerId: number) {
   );
 }
 
+export function listAlgorithmReasoningAnswers(sessionId: string) {
+  const search = new URLSearchParams({ session_id: sessionId, limit: "200" });
+  return request<{ answer: AlgorithmReasoningAnswer; feedback: AlgorithmReasoningFeedback | null }[]>(
+    `/api/algorithms/reasoning/answers?${search.toString()}`,
+  );
+}
+
 export async function findAlgorithmReasoningAnswerByClientId(clientAnswerId: string) {
   if (isAlgorithmReasoningFixtureEnabled()) {
     return [] as { answer: AlgorithmReasoningAnswer; feedback: AlgorithmReasoningFeedback | null; retry: AlgorithmReasoningRetry | null }[];

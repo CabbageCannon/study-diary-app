@@ -124,6 +124,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
 .algorithm-history-summary strong { color: var(--ink); font-size: 0.9rem; }
 .algorithm-history-actions { display: flex; gap: 8px; }
 .algorithm-history-actions .button { min-height: 38px; padding: 7px 11px; font-size: 0.72rem; }
+.algorithm-history-actions.training-set-actions-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.training-set-actions-pair .button { width: 100%; justify-content: center; }
 .algorithm-history-problems { display: grid; gap: 7px; }
 .algorithm-history-problems > article { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 12px; border-radius: 10px; background: color-mix(in srgb, var(--paper-strong) 78%, transparent); padding: 10px 11px; }
 .algorithm-history-problems > article > div { min-width: 0; }
@@ -131,6 +133,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
 .algorithm-history-problems h3 { overflow: hidden; margin: 3px 0 2px; color: var(--ink); font-size: 0.78rem; text-overflow: ellipsis; white-space: nowrap; }
 .algorithm-history-problems p { overflow: hidden; margin: 0; color: var(--muted); font-size: 0.66rem; text-overflow: ellipsis; white-space: nowrap; }
 .algorithm-history-problems > article > span { flex: 0 0 auto; color: var(--muted); font-size: 0.66rem; }
+.algorithm-history-problems > .algorithm-history-record { display: grid; align-items: stretch; gap: 14px; padding: 14px; }
+.algorithm-history-attempt-detail { display: grid; min-width: 0; gap: 12px; }
+.algorithm-history-attempt-meta { display: flex; flex-wrap: wrap; gap: 6px; }
+.algorithm-history-attempt-meta span { border-radius: 999px; background: var(--wash-strong); color: var(--ink-soft); padding: 4px 7px; font-size: 0.66rem; }
+.algorithm-history-attempt-detail > p { display: grid; gap: 3px; white-space: normal; }
+.algorithm-history-attempt-detail > p strong { color: var(--ink); }
+.algorithm-history-code { overflow-x: auto; margin: 0; border-radius: 10px; background: var(--ink); color: var(--paper-strong); padding: 12px; font-size: 0.72rem; line-height: 1.6; }
+.daily-feed-loading { display: flex; min-height: 360px; align-items: center; justify-content: center; gap: 8px; color: var(--muted); }
+.interview-continuation-body { display: grid; gap: 12px; border-top: 1px solid var(--rule); padding: 12px 0 4px; }
+.interview-continuation-body p { margin: 0; color: var(--muted); font-size: 0.78rem; line-height: 1.6; }
+.interview-continuation-body .button { justify-self: start; }
 .algorithm-resume-banner,
 .daily-feed-layout,
 .daily-settings-panel {
@@ -250,6 +263,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
   .workspace-segment,
   .algorithm-subnav-link,
   .mobile-nav-link { transition-duration: 0.01ms; }
+  .action-spinner,
+  .algorithm-history-loading svg { animation: none; }
 }
 
 @media (prefers-reduced-transparency: reduce) {

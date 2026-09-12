@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/ArrowCounterClockwise";
+import { CaretDownIcon } from "@phosphor-icons/react/CaretDown";
 import { FlagIcon } from "@phosphor-icons/react/Flag";
 import { PlayIcon } from "@phosphor-icons/react/Play";
+import { SpinnerGapIcon } from "@phosphor-icons/react/SpinnerGap";
 
 import {
   abandonInterviewQuestionSet,
@@ -57,6 +59,7 @@ export function InterviewPage() {
   const [payload, setPayload] = useState<CreateQuestionSetPayload>(loadSavedPayload);
   const [pendingSets, setPendingSets] = useState<InterviewQuestionSetSummary[]>(() => peekInterviewQuestionSets({ status: "in_progress", limit: 12 }) ?? []);
   const [stats, setStats] = useState<InterviewTrainingStats | null>(() => peekInterviewTrainingStats() ?? null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [pendingAction, setPendingAction] = useState<"restart" | "abandon" | null>(null);
@@ -97,14 +100,15 @@ export function InterviewPage() {
     const controller = new AbortController();
     async function load() {
       const [nextPending, nextStats] = await Promise.all([
-        listInterviewQuestionSets({ status: "in_progress", limit: 12, signal: controller.signal }).catch(() => []),
-        getInterviewTrainingStats(controller.signal).catch(() => null),
+        listInterviewQuestionSets({ status: "in_progress", limit: 12, signal: controller.signal, force: true }).catch(() => []),
+        getInterviewTrainingStats(controller.signal, true).catch(() => null),
       ]);
       if (controller.signal.aborted) {
         return;
       }
       setPendingSets(nextPending);
-      if (nextStats) setStats(nextStats);
+      setStats(nextStats);
+      setIsLoading(false);
     }
     void load();
     return () => controller.abort();
@@ -188,7 +192,7 @@ export function InterviewPage() {
       ) : (
         <>
           {error ? <p className="field-error" role="alert">{error}</p> : null}
-          <section className="daily-feed-layout interview-daily-layout" aria-label="八股训练推荐">
+          {isLoading ? <section className="daily-feed-loading" role="status"><SpinnerGapIcon aria-hidden="true" className="action-spinner" size={22} />正在加载今日训练数据…</section> : stats ? <section className="daily-feed-layout interview-daily-layout" aria-label="八股训练推荐">
             {remainingToday === 0 && dailyGoal > 0 ? (
               <section className="daily-primary-problem">
                 <div className="daily-primary-heading"><span>今日八股已完成</span></div>
@@ -213,18 +217,22 @@ export function InterviewPage() {
             )}
             <aside className="daily-continuation-panel" aria-labelledby="interview-continuation-title">
               <h2 id="interview-continuation-title">继续刷</h2>
-              <div className="interview-practice-options">
-                <article>
-                  <div><span>同类练习</span><h3>{domainLabel(strongestDomain)}方向</h3><p>沿用常练方向和已保存偏好，适合加深同一类问题。</p></div>
+              <details className="daily-continuation-section interview-continuation-section">
+                <summary><span><strong>同类练习</strong><small>{domainLabel(strongestDomain)}方向</small></span><CaretDownIcon aria-hidden="true" size={18} weight="bold" /></summary>
+                <div className="interview-continuation-body">
+                  <p>沿用常练方向和已保存偏好，适合加深同一类问题。</p>
                   <button className="button button-secondary" disabled={isSubmitting} onClick={() => void startTraining(false, similarPayload)} type="button">开始同类练习</button>
-                </article>
-                <article>
-                  <div><span>指定偏好</span><h3>调整题集</h3><p>选择题量、方向和难度，保存为下次默认训练。</p></div>
+                </div>
+              </details>
+              <details className="daily-continuation-section interview-continuation-section">
+                <summary><span><strong>指定偏好</strong><small>调整题集</small></span><CaretDownIcon aria-hidden="true" size={18} weight="bold" /></summary>
+                <div className="interview-continuation-body">
+                  <p>选择题量、方向和难度，保存为下次默认训练。</p>
                   <Link className="button button-secondary" to="/interview/setup">打开题集设置</Link>
-                </article>
-              </div>
+                </div>
+              </details>
             </aside>
-          </section>
+          </section> : <section className="empty-state" role="status"><p>训练数据暂时没有加载成功。</p><button className="button button-secondary" onClick={() => window.location.reload()} type="button">重新加载</button></section>}
         </>
       )}
 

@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/ArrowCounterClockwise";
 import { CaretDownIcon } from "@phosphor-icons/react/CaretDown";
-import { CaretUpIcon } from "@phosphor-icons/react/CaretUp";
 import { FlagIcon } from "@phosphor-icons/react/Flag";
 import { PlayIcon } from "@phosphor-icons/react/Play";
+import { SpinnerGapIcon } from "@phosphor-icons/react/SpinnerGap";
 import { TrashIcon } from "@phosphor-icons/react/Trash";
 
 import {
@@ -121,11 +121,10 @@ export function InterviewHistoryPage() {
 
   return (
     <div className="page-stack interview-history-page interview-workspace-panel">
-      <section className="archive-list interview-history-accordion" aria-labelledby="training-history-title">
-        <div className="archive-list-header"><h2 id="training-history-title">训练题集</h2><span>{isLoading ? "读取中" : `${sets.length} 组`}</span></div>
-        <label className="history-filter"><span>状态</span><select value={filter} onChange={(event) => { const next = event.target.value as HistoryFilter; setFilter(next); void load(next); }}><option value="all">全部记录</option><option value="in_progress">进行中</option><option value="completed">已完成</option><option value="abandoned">已放弃</option></select></label>
+      <section className="algorithm-history-surface" aria-labelledby="training-history-title">
+        <header className="algorithm-history-toolbar"><div><h2 id="training-history-title">训练记录</h2><span>{isLoading ? "读取中" : `${sets.length} 组`}</span></div><label className="algorithm-history-filter"><span>状态</span><select value={filter} onChange={(event) => { const next = event.target.value as HistoryFilter; setFilter(next); void load(next); }}><option value="all">全部</option><option value="in_progress">进行中</option><option value="completed">已完成</option><option value="abandoned">已放弃</option></select></label></header>
         {!isLoading && sets.length === 0 ? <div className="empty-state"><p>还没有符合条件的训练记录。</p><Link className="button button-primary" to="/interview">开始训练</Link></div> : null}
-        <div className="training-set-list">
+        <div className="algorithm-history-list">
           {sets.map((item) => (
             <HistoryRow
               detail={details[item.id]}
@@ -135,7 +134,6 @@ export function InterviewHistoryPage() {
               item={item}
               key={item.id}
               onAbandon={() => setPendingAction({ type: "abandon", summary: item })}
-              onCollapse={() => setExpandedId(null)}
               onDelete={() => setPendingAction({ type: "delete", summary: item })}
               onRestart={() => void restart(item)}
               onResume={() => navigate(`/interview/session/${item.id}`)}
@@ -157,32 +155,30 @@ interface HistoryRowProps {
   isActing: boolean;
   isLoading: boolean;
   onToggle: () => void;
-  onCollapse: () => void;
   onResume: () => void;
   onRestart: () => void;
   onAbandon: () => void;
   onDelete: () => void;
 }
 
-function HistoryRow({ item, detail, expanded, isActing, isLoading, onToggle, onCollapse, onResume, onRestart, onAbandon, onDelete }: HistoryRowProps) {
+function HistoryRow({ item, detail, expanded, isActing, isLoading, onToggle, onResume, onRestart, onAbandon, onDelete }: HistoryRowProps) {
   return (
-    <article className={expanded ? "training-set-entry training-set-item-active" : "training-set-entry"}>
-      <button aria-controls={`training-set-detail-${item.id}`} aria-expanded={expanded} className="training-set-item" onClick={onToggle} type="button">
+    <article className={expanded ? "algorithm-history-entry is-expanded" : "algorithm-history-entry"}>
+      <button aria-controls={`training-set-detail-${item.id}`} aria-expanded={expanded} className="algorithm-history-row" onClick={onToggle} type="button">
         <time>{formatDate(item.date)}</time>
-        <strong>{item.domain ?? "综合"} · {item.topic ?? "不限主题"}</strong>
-        <span className="tabular-number">{item.answered_count}/{item.question_count} 题 · {item.average_score ?? "—"} 分</span>
+        <strong>{item.domain ?? "综合"} · {item.topic ?? "不限主题"} · {item.answered_count}/{item.question_count} 题 · {item.average_score ?? "—"} 分</strong>
         <small>{statusLabel(item.status)}</small>
-        <CaretDownIcon aria-hidden="true" className="training-set-caret" size={18} weight="bold" />
+        <CaretDownIcon aria-hidden="true" size={16} weight="bold" />
       </button>
       {expanded ? (
-        <section className="interview-history-inline-detail" id={`training-set-detail-${item.id}`}>
-          <div className="history-collapse-bar"><span>本轮详情</span><button onClick={onCollapse} type="button"><CaretUpIcon aria-hidden="true" size={17} weight="bold" />收起本轮</button></div>
-          <div className="training-set-actions">
-            {item.status === "in_progress" ? <button className="button button-secondary" onClick={onResume} type="button"><PlayIcon aria-hidden="true" size={16} weight="fill" />继续训练</button> : <button className="button button-secondary" disabled={isActing} onClick={onRestart} type="button"><ArrowCounterClockwiseIcon aria-hidden="true" size={16} weight="bold" />再次练习</button>}
+        <section className="algorithm-history-inline-detail interview-history-inline-detail" id={`training-set-detail-${item.id}`}>
+          <div className="algorithm-history-summary"><span><strong>{item.question_count}</strong>题</span><span><strong>{item.answered_count}</strong>已答</span><span><strong>{item.average_score ?? "—"}</strong>平均分</span></div>
+          <div className={item.status === "in_progress" ? "algorithm-history-actions" : "algorithm-history-actions training-set-actions-pair"}>
+            {item.status === "in_progress" ? <button className="button button-secondary" onClick={onResume} type="button"><PlayIcon aria-hidden="true" size={16} weight="fill" />继续训练</button> : <button className="button button-secondary" disabled={isActing} onClick={onRestart} type="button"><ArrowCounterClockwiseIcon aria-hidden="true" size={16} weight="bold" />再次训练</button>}
             {item.status === "in_progress" ? <button className="button button-secondary" disabled={isActing} onClick={onAbandon} type="button"><FlagIcon aria-hidden="true" size={16} weight="bold" />放弃</button> : null}
             <button className="button button-danger" disabled={isActing} onClick={onDelete} type="button"><TrashIcon aria-hidden="true" size={16} weight="bold" />删除</button>
           </div>
-          {isLoading ? <div className="history-detail-loading" role="status">正在读取本轮详情…</div> : null}
+          {isLoading ? <div className="algorithm-history-loading" role="status"><SpinnerGapIcon aria-hidden="true" size={18} />正在读取详情…</div> : null}
           {detail ? <HistorySetDetail questionSet={detail} /> : null}
         </section>
       ) : null}
