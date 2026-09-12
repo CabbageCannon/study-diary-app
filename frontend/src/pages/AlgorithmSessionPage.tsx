@@ -390,13 +390,15 @@ export function AlgorithmSessionPage() {
     if (!currentSession) return;
     if (task.response) {
       writeCachedReasoning(reasoningCacheKey(effectiveSessionId, task.problemId), task.response);
-      persistReasoning(task.response);
-      setPhase(phaseFromResponse(task.response));
     }
     const index = currentSession.items.findIndex((item) => item.problem_id === task.problemId);
     if (currentSession.status !== "in_progress") {
       if (index >= 0) {
         setSession({ ...currentSession, current_index: index });
+        if (task.response) {
+          setReasoningResult(task.response);
+          setPhase(phaseFromResponse(task.response));
+        }
         scrollQuestionToTop();
       }
       return;
