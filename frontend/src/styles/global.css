@@ -1049,6 +1049,22 @@ textarea:focus-visible {
   text-wrap: pretty;
 }
 
+.interview-home-page {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 18px;
+}
+
+.interview-daily-layout .interview-practice-options {
+  grid-template-columns: 1fr;
+  margin: 0;
+}
+
+.interview-daily-layout .interview-practice-options article {
+  min-height: 0;
+}
+
 .interview-form-actions {
   display: flex;
   justify-content: flex-end;
@@ -4701,7 +4717,6 @@ html[data-theme="night"] .date-picker-day-selected:focus-visible {
 .algorithm-mode-workbench,
 .algorithm-insight-panel,
 .algorithm-review-list,
-.algorithm-weakness-panel,
 .algorithm-problem-grid > section,
 .similar-problem-panel,
 .algorithm-attempt-editor,
@@ -4845,14 +4860,12 @@ html[data-theme="night"] .date-picker-day-selected:focus-visible {
 .algorithm-review-hero span { color: var(--ink-muted); font-size: 0.84rem; }
 .algorithm-review-hero strong { color: var(--ink); font-size: 2.3rem; line-height: 1; }
 .algorithm-review-hero small { color: var(--ink-muted); }
-.algorithm-review-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(270px, 0.65fr); gap: 18px; }
-.algorithm-review-list,
-.algorithm-weakness-panel { padding: 22px; }
-.algorithm-review-list { display: grid; align-content: start; gap: 12px; }
+.algorithm-review-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.algorithm-review-list { display: grid; min-width: 0; align-content: start; gap: 12px; padding: 22px; }
 .algorithm-review-filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
-.algorithm-review-filters label { display: grid; gap: 5px; color: var(--ink-muted); font-size: 0.76rem; }
+.algorithm-review-filters label { display: grid; min-width: 0; gap: 5px; color: var(--ink-muted); font-size: 0.76rem; }
 .algorithm-review-filters select,
-.algorithm-review-filters input { width: 100%; border: 1px solid var(--rule); border-radius: 8px; background: var(--surface); color: var(--ink); padding: 9px 10px; font: inherit; }
+.algorithm-review-filters input { box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; border: 1px solid var(--rule); border-radius: 8px; background: var(--surface); color: var(--ink); padding: 9px 10px; font: inherit; }
 .algorithm-review-item { display: flex; align-items: center; justify-content: space-between; gap: 14px; border-top: 1px solid var(--rule); padding: 15px 0; }
 .algorithm-review-item h3 { margin: 3px 0; color: var(--ink); font-size: 0.97rem; }
 .algorithm-review-item p { margin: 0; color: var(--ink-muted); font-size: 0.8rem; }
@@ -4861,12 +4874,6 @@ html[data-theme="night"] .date-picker-day-selected:focus-visible {
 .algorithm-review-check small { color: var(--ink-muted); font-size: 0.8rem; }
 .algorithm-review-item > div:last-child { display: grid; justify-items: end; gap: 7px; color: var(--ink-muted); font-size: 0.75rem; }
 .algorithm-review-item a { display: grid; place-items: center; color: var(--accent); }
-.algorithm-weakness-panel { display: grid; align-content: start; gap: 16px; }
-.weakness-list { display: grid; }
-.weakness-list article { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--rule); padding: 12px 0; }
-.weakness-list article > div { display: grid; gap: 4px; }
-.weakness-list small { color: var(--ink-muted); font-size: 0.76rem; }
-.weakness-list > article > span { color: var(--accent); font-size: 1.05rem; }
 
 .algorithm-problem-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--rule-strong); padding-bottom: 22px; }
 .algorithm-problem-header h1 { margin: 12px 0 5px; }
@@ -4908,7 +4915,6 @@ html[data-theme="night"] .date-picker-day-selected:focus-visible {
   .algorithm-mode-workbench,
   .algorithm-insight-panel,
   .algorithm-review-list,
-  .algorithm-weakness-panel,
   .algorithm-problem-grid > section,
   .similar-problem-panel,
   .algorithm-attempt-editor,
@@ -4946,6 +4952,7 @@ html[data-theme="night"] .date-picker-day-selected:focus-visible {
   .history-detail-actions { justify-content: start; }
   .algorithm-history-attempt { justify-items: start; text-align: left; }
   .algorithm-review-hero { padding: 18px; }
+  .algorithm-review-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .algorithm-review-item { align-items: start; }
 .algorithm-problem-header,
 .problem-attempt-list article { align-items: start; flex-direction: column; }

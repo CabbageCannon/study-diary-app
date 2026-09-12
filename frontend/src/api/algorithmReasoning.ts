@@ -69,7 +69,7 @@ export async function saveAlgorithmReasoningAnswer(payload: AlgorithmReasoningCh
       method: "POST",
       body: JSON.stringify(payload),
     },
-  );
+  ).then(invalidateAlgorithmTrainingCaches);
 }
 
 export async function retryAlgorithmReasoningCheck(answerId: number) {

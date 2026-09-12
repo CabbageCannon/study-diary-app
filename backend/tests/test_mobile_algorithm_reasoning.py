@@ -260,6 +260,53 @@ class MobileAlgorithmReasoningTests(unittest.TestCase):
                 if conclusion == "insufficient_context":
                     self.assertFalse(body["feedback"]["context_sufficient"])
 
+    def test_saved_reasoning_answers_count_daily_progress_before_and_after_ai_feedback(self) -> None:
+        import_mobile_problem_contexts(self.session, REAL_CONTEXTS_DIR)
+        training = self.client.post(
+            "/api/algorithms/sessions",
+            json={"mode": "custom", "count": 3, "problem_ids": ["leetcode-1", "leetcode-49", "leetcode-15"]},
+        )
+        self.assertEqual(training.status_code, 201, training.text)
+        session = training.json()
+        skipped = self.client.post(f"/api/algorithms/sessions/{session['id']}/skip")
+        self.assertEqual(skipped.status_code, 200, skipped.text)
+        self.assertEqual(self.client.get("/api/algorithms/stats").json()["today_completed_count"], 0)
+
+        saved_answer_ids: list[int] = []
+        for item in session["items"]:
+            saved = self.client.post(
+                "/api/algorithms/reasoning/answers",
+                json=self.payload(problem_id=item["problem"]["stable_key"], session_id=session["id"]),
+            )
+            self.assertEqual(saved.status_code, 201, saved.text)
+            saved_answer_ids.append(saved.json()["answer"]["answer_id"])
+
+        self.assertEqual(self.client.get("/api/algorithms/stats").json()["today_completed_count"], 3)
+        self.assertEqual(self.session.query(AlgorithmAttempt).count(), 0)
+
+        with patch("app.services.algorithm_reasoning_service.generate_algorithm_reasoning_feedback", llm_correct):
+            checked = self.client.post(f"/api/algorithms/reasoning/answers/{saved_answer_ids[0]}/check", json={})
+        self.assertEqual(checked.status_code, 200, checked.text)
+        self.assertEqual(self.client.get("/api/algorithms/stats").json()["today_completed_count"], 3)
+
+        with patch("app.services.algorithm_reasoning_service.generate_algorithm_reasoning_feedback", llm_insufficient):
+            unclear = self.client.post(f"/api/algorithms/reasoning/answers/{saved_answer_ids[2]}/check", json={})
+        self.assertEqual(unclear.status_code, 200, unclear.text)
+        self.assertEqual(unclear.json()["feedback"]["conclusion"], "insufficient_context")
+        self.assertEqual(self.client.get("/api/algorithms/stats").json()["today_completed_count"], 3)
+        self.assertEqual(self.session.query(AlgorithmAttempt).count(), 1)
+
+        revision = self.client.post(
+            "/api/algorithms/reasoning/answers",
+            json=self.payload(
+                problem_id=session["items"][0]["problem"]["stable_key"],
+                session_id=session["id"],
+                revision_of_answer_id=saved_answer_ids[0],
+            ),
+        )
+        self.assertEqual(revision.status_code, 201, revision.text)
+        self.assertEqual(self.client.get("/api/algorithms/stats").json()["today_completed_count"], 3)
+
     def test_reasoning_accuracy_score_is_validated_and_old_feedback_gets_fallback(self) -> None:
         old_feedback = AlgorithmReasoningFeedbackModel.model_validate(
             {

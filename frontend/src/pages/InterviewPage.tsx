@@ -75,8 +75,8 @@ export function InterviewPage() {
     ? remainingToday > 0 ? `今日还差 ${remainingToday} 道` : "今日八股已完成"
     : "今天没有八股指标";
   const dailyDetail = dailyGoal > 0
-    ? remainingToday > 0 ? "先补齐今日目标，再按同类方向加练。" : `已完成 ${todayAnswered} 道，下面可以继续加练。`
-    : "今天没有固定题量，下面可以直接练一组。";
+    ? remainingToday > 0 ? "优先安排到期复习，题量跟随今日剩余目标。" : `已完成 ${todayAnswered} / ${dailyGoal} 道。还想加练的话，继续刷会保留。`
+    : "今天没有固定题量，可以直接练一组。";
   const recommendationCopy = remainingToday > 0
     ? "优先安排到期复习，题量跟随今日剩余目标。"
     : "优先安排到期复习，沿用已保存题量再练一组。";
@@ -164,7 +164,7 @@ export function InterviewPage() {
   }
 
   return (
-    <div className="page-stack interview-page interview-workspace-panel">
+    <div className="interview-page interview-home-page interview-workspace-panel">
       {resumableSet ? (
         <section className="interview-resume-panel" aria-labelledby="resume-session-title">
           <div>
@@ -186,28 +186,46 @@ export function InterviewPage() {
           <InterviewSetupForm value={payload} isSubmitting={isSubmitting} error={error} onChange={setPayload} onSave={saveSetup} />
         </section>
       ) : (
-        <section className="mobile-start-panel interview-quick-start" aria-labelledby="interview-start-title">
-          <div className="interview-daily-summary">
-            <span className="pane-label">{remainingToday > 0 ? "今日目标" : "完成态"}</span>
-            <h2 id="interview-start-title">{dailyTitle}</h2>
-            <p>{dailyDetail}</p>
-          </div>
+        <>
           {error ? <p className="field-error" role="alert">{error}</p> : null}
-          {remainingToday === 0 ? <div className="interview-continue-heading"><span className="pane-label">继续刷</span><h3>推荐 / 同类练习</h3></div> : null}
-          <div className="interview-practice-options">
-            <article>
-              <div><span>推荐</span><h3>按今日目标练</h3><p>{recommendationCopy}</p></div>
-              <button className="button button-primary" disabled={isSubmitting} onClick={() => void startTraining(false, recommendedPayload)} type="button"><PlayIcon aria-hidden="true" size={16} weight="fill" />{isSubmitting ? "正在创建" : `练 ${Math.max(1, recommendedCount)} 道`}</button>
-            </article>
-            <article>
-              <div><span>同类练习</span><h3>{domainLabel(strongestDomain)} 方向</h3><p>沿用常练方向和已保存偏好，适合加深同一类问题。</p></div>
-              <button className="button button-secondary" disabled={isSubmitting} onClick={() => void startTraining(false, similarPayload)} type="button">开始同类练习</button>
-            </article>
-          </div>
-          <div className="interview-quick-actions">
-            <Link className="button button-secondary" to="/interview/setup">调整题集</Link>
-          </div>
-        </section>
+          <section className="daily-feed-layout interview-daily-layout" aria-label="八股训练推荐">
+            {remainingToday === 0 && dailyGoal > 0 ? (
+              <section className="daily-primary-problem">
+                <div className="daily-primary-heading"><span>今日八股已完成</span></div>
+                <h2 id="interview-start-title">{dailyTitle}</h2>
+                <p className="daily-strategy-summary">{dailyDetail}</p>
+              </section>
+            ) : (
+              <article className="daily-primary-problem" aria-labelledby="interview-start-title">
+                <div className="daily-primary-heading"><span>今日主推荐</span></div>
+                <h2 id="interview-start-title">{dailyTitle}</h2>
+                <p className="daily-problem-original-title">按今日目标练</p>
+                <p className="daily-strategy-summary">{recommendationCopy}</p>
+                <div className="daily-problem-state">
+                  {dailyGoal > 0 ? <span>今日还剩 {remainingToday} 道</span> : null}
+                  <span>{domainLabel(recommendedPayload.domain)}方向</span>
+                  <span>{Math.max(1, recommendedCount)} 道题</span>
+                </div>
+                <div className="daily-primary-actions">
+                  <button className="button button-primary" disabled={isSubmitting} onClick={() => void startTraining(false, recommendedPayload)} type="button"><PlayIcon aria-hidden="true" size={16} weight="fill" />{isSubmitting ? "正在创建" : `练 ${Math.max(1, recommendedCount)} 道`}</button>
+                </div>
+              </article>
+            )}
+            <aside className="daily-continuation-panel" aria-labelledby="interview-continuation-title">
+              <h2 id="interview-continuation-title">继续刷</h2>
+              <div className="interview-practice-options">
+                <article>
+                  <div><span>同类练习</span><h3>{domainLabel(strongestDomain)}方向</h3><p>沿用常练方向和已保存偏好，适合加深同一类问题。</p></div>
+                  <button className="button button-secondary" disabled={isSubmitting} onClick={() => void startTraining(false, similarPayload)} type="button">开始同类练习</button>
+                </article>
+                <article>
+                  <div><span>指定偏好</span><h3>调整题集</h3><p>选择题量、方向和难度，保存为下次默认训练。</p></div>
+                  <Link className="button button-secondary" to="/interview/setup">打开题集设置</Link>
+                </article>
+              </div>
+            </aside>
+          </section>
+        </>
       )}
 
       <ConfirmActionDialog

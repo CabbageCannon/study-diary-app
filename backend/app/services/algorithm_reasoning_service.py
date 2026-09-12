@@ -47,6 +47,7 @@ CONCLUSION_TO_ATTEMPT_RESULT = {
     "partially_correct": "partially_solved",
     "critical_error": "failed",
 }
+ANSWERED_ITEM_STATUSES = {"solved", "needs_review"}
 
 
 class AlgorithmReasoningError(ValueError):
@@ -243,12 +244,26 @@ def _assert_idempotent_match(
             raise AlgorithmReasoningConflict("client_answer_id 已存在，但提交内容与已保存回答不一致。请为修改后的回答生成新的 UUID。")
 
 
+def _mark_session_item_answered(db: Session, item: AlgorithmPracticeSessionItem | None, now) -> bool:
+    if item is None or item.status in ANSWERED_ITEM_STATUSES:
+        return False
+    item.status = "needs_review"
+    item.started_at = item.started_at or now
+    item.completed_at = item.completed_at or now
+    if item.session_id and (session := get_session(db, item.session_id)):
+        session.last_active_at = now
+    return True
+
+
 def save_reasoning_answer(db: Session, payload: AlgorithmReasoningAnswerCreate) -> tuple[AlgorithmReasoningAnswer, bool]:
     existing = db.scalar(
         select(AlgorithmReasoningAnswer).where(AlgorithmReasoningAnswer.client_answer_id == payload.client_answer_id)
     )
     if existing is not None:
         _assert_idempotent_match(db, existing, payload)
+        item = db.get(AlgorithmPracticeSessionItem, existing.session_item_id) if existing.session_item_id else None
+        if _mark_session_item_answered(db, item, existing.saved_at):
+            db.commit()
         return existing, False
 
     problem = _ensure_problem(db, payload.problem_id)
@@ -268,6 +283,7 @@ def save_reasoning_answer(db: Session, payload: AlgorithmReasoningAnswerCreate) 
         saved_at=now,
     )
     db.add(answer)
+    _mark_session_item_answered(db, session_item, now)
     db.commit()
     db.refresh(answer)
     return answer, True
@@ -356,7 +372,7 @@ def _sync_feedback_progress(db: Session, answer: AlgorithmReasoningAnswer, feedb
     item = db.get(AlgorithmPracticeSessionItem, answer.session_item_id) if answer.session_item_id else None
     if item:
         item.status = "solved" if result == "solved" and not attempt.needs_review else "needs_review"
-        item.completed_at = now
+        item.completed_at = item.completed_at or now
     _sync_progress_and_review(db, attempt)
     feedback.synced_attempt_id = attempt.id
     answer.checked_at = now

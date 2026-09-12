@@ -1159,6 +1159,14 @@ def _date_key(value: datetime | None) -> str | None:
 def algorithm_stats(db: Session) -> AlgorithmStatsRead:
     now = utc_now()
     attempts = list(db.scalars(select(AlgorithmAttempt).where(AlgorithmAttempt.submitted_at.is_not(None))).all())
+    completed_items = list(
+        db.scalars(
+            select(AlgorithmPracticeSessionItem).where(
+                AlgorithmPracticeSessionItem.completed_at.is_not(None),
+                AlgorithmPracticeSessionItem.status.in_(("solved", "needs_review")),
+            )
+        ).all()
+    )
     problems = {problem.id: problem for problem in list_active_problems(db)}
     progress = list(db.scalars(select(AlgorithmProblemProgress)).all())
     sessions = list(
@@ -1175,13 +1183,20 @@ def algorithm_stats(db: Session) -> AlgorithmStatsRead:
     topic_duration_totals: dict[str, list[int]] = defaultdict(list)
     day_counts: dict[str, int] = defaultdict(int)
     durations: list[int] = []
+    counted_item_ids = {item.id for item in completed_items}
+    for item in completed_items:
+        if item.problem_id in problems:
+            date_key = _date_key(item.completed_at)
+            if date_key:
+                day_counts[date_key] += 1
     for attempt in attempts:
         problem = problems.get(attempt.problem_id)
         if problem is None:
             continue
-        date_key = _date_key(attempt.submitted_at)
-        if date_key:
-            day_counts[date_key] += 1
+        if attempt.session_item_id not in counted_item_ids:
+            date_key = _date_key(attempt.submitted_at)
+            if date_key:
+                day_counts[date_key] += 1
         if attempt.duration_seconds is not None:
             durations.append(attempt.duration_seconds)
         for topic in problem.topics:
@@ -1210,9 +1225,7 @@ def algorithm_stats(db: Session) -> AlgorithmStatsRead:
 
     return AlgorithmStatsRead(
         current_streak_days=streak,
-        today_completed_count=sum(
-            attempt.result == "solved" and _date_key(attempt.submitted_at) == today.isoformat() for attempt in attempts
-        ),
+        today_completed_count=day_counts.get(today.isoformat(), 0),
         total_attempt_count=len(attempts),
         unique_solved_count=sum(record.solved_count > 0 for record in progress),
         completed_by_difficulty=completed_by_difficulty,
