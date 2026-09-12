@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections import defaultdict
+from datetime import date as date_type
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
@@ -18,6 +19,7 @@ from app.models import (
     AlgorithmPracticeSessionItem,
     AlgorithmProblem,
     AlgorithmProblemProgress,
+    AlgorithmReasoningFeedback,
     AlgorithmReviewSchedule,
 )
 from app.repositories.algorithm_practice_repository import (
@@ -55,6 +57,7 @@ from app.schemas import (
     AlgorithmPracticeSessionRead,
     AlgorithmPracticeSessionSummary,
     AlgorithmProblemRead,
+    AlgorithmReviewCandidateRead,
     AlgorithmReviewScheduleRead,
     AlgorithmStatsRead,
     AlgorithmWeaknessRead,
@@ -82,6 +85,26 @@ def _attempt_read(attempt: AlgorithmAttempt | None) -> AlgorithmAttemptRead | No
     return AlgorithmAttemptRead.model_validate(attempt) if attempt else None
 
 
+def _fallback_accuracy(result: str) -> int:
+    return {"solved": 100, "partially_solved": 65, "failed": 20, "gave_up": 0}.get(result, 0)
+
+
+def _feedback_accuracy(feedback: AlgorithmReasoningFeedback | None, fallback: int) -> int:
+    if feedback is None:
+        return fallback
+    score = feedback.feedback.get("accuracy_score")
+    if isinstance(score, int):
+        return max(0, min(100, score))
+    if isinstance(score, float):
+        return max(0, min(100, round(score)))
+    return {
+        "correct": 100,
+        "partially_correct": 65,
+        "critical_error": 20,
+        "insufficient_context": 0,
+    }.get(feedback.conclusion, fallback)
+
+
 def _stable_sort_key(seed: str, problem: AlgorithmProblem) -> str:
     return hashlib.sha256(f"{seed}:{problem.id}:{problem.stable_key}".encode("utf-8")).hexdigest()
 
@@ -103,6 +126,10 @@ def _due_problem_ids(db: Session, now: datetime) -> set[int]:
             select(AlgorithmReviewSchedule.problem_id).where(AlgorithmReviewSchedule.next_review_at <= now)
         ).all()
     }
+
+
+def _attempted_problem_ids(db: Session) -> set[int]:
+    return set(db.scalars(select(AlgorithmAttempt.problem_id).where(AlgorithmAttempt.submitted_at.is_not(None))).all())
 
 
 def _weak_topics(db: Session, problems: list[AlgorithmProblem]) -> set[str]:
@@ -149,16 +176,20 @@ def _select_problems(db: Session, request: AlgorithmPracticeSessionCreate, sessi
     if not problems:
         raise AlgorithmPracticeError("算法题库为空。请先导入经过验证的本地题目元数据。")
 
+    daily_selected: list[AlgorithmProblem] = []
     if request.mode == "hot100":
         request = request.model_copy(update={"source_lists": sorted(set(request.source_lists) | {"hot100"})})
     if request.mode == "daily":
-        request = request.model_copy(update={"count": 1})
         if request.problem_ids:
             lookup = {problem.stable_key: problem for problem in problems} | {str(problem.id): problem for problem in problems}
-            selected = lookup.get(request.problem_ids[0])
-            if selected is None:
-                raise AlgorithmPracticeError("今日主推荐题目不存在于本地题库。")
-            return [selected], 1
+            for identifier in request.problem_ids:
+                problem = lookup.get(identifier)
+                if problem is None:
+                    raise AlgorithmPracticeError("今日推荐题目不存在于本地题库。")
+                if problem not in daily_selected:
+                    daily_selected.append(problem)
+            if len(daily_selected) >= request.count:
+                return daily_selected[: request.count], len(daily_selected)
     if request.mode == "custom":
         if not request.problem_ids:
             raise AlgorithmPracticeError("自定义训练需要至少选择一道本地题库中的题目。")
@@ -178,7 +209,18 @@ def _select_problems(db: Session, request: AlgorithmPracticeSessionCreate, sessi
     due_ids = _due_problem_ids(db, now)
 
     if request.mode == "review":
-        candidates = [problem for problem in candidates if problem.id in due_ids]
+        attempted_ids = _attempted_problem_ids(db)
+        if request.problem_ids:
+            lookup = {problem.stable_key: problem for problem in problems} | {str(problem.id): problem for problem in problems}
+            selected = [lookup.get(identifier) for identifier in request.problem_ids]
+            if any(problem is None for problem in selected):
+                raise AlgorithmPracticeError("复习题目不存在于本地题库。")
+            unattempted = [problem for problem in selected if problem and problem.id not in attempted_ids]
+            if unattempted:
+                raise AlgorithmPracticeError("复习只能选择已有刷题记录的题目。")
+            return [problem for problem in selected if problem][: request.count], len(selected)
+        else:
+            candidates = [problem for problem in candidates if problem.id in due_ids and problem.id in attempted_ids]
     elif request.mode == "wrong":
         candidates = [
             problem
@@ -207,7 +249,8 @@ def _select_problems(db: Session, request: AlgorithmPracticeSessionCreate, sessi
         unsolved = [problem for problem in candidates if progress.get(problem.id) is None or progress[problem.id].status != "solved"]
         pool = [problem for problem in candidates if problem.id in due_ids] or unsolved or candidates
         day_seed = app_local_date(now).isoformat()
-        return [sorted(pool, key=lambda problem: _stable_sort_key(day_seed, problem))[0]], len(pool)
+        ordered = daily_selected + [problem for problem in sorted(pool, key=lambda problem: _stable_sort_key(day_seed, problem)) if problem not in daily_selected]
+        return ordered[: request.count], len(ordered)
 
     ordered = sorted(candidates, key=lambda problem: _stable_sort_key(session_seed, problem))
     if request.prioritize_due_review:
@@ -1031,8 +1074,73 @@ def due_reviews(db: Session, *, limit: int) -> list[AlgorithmReviewScheduleRead]
     ]
 
 
-def create_review_session(db: Session, *, count: int) -> AlgorithmPracticeSessionRead:
-    return create_session(db, AlgorithmPracticeSessionCreate(mode="review", count=count, prioritize_due_review=True))
+def list_review_candidates(
+    db: Session,
+    *,
+    time_order: str = "recommended",
+    from_date: date_type | None = None,
+    to_date: date_type | None = None,
+    min_accuracy: int | None = None,
+    max_accuracy: int | None = None,
+    limit: int = 50,
+) -> list[AlgorithmReviewCandidateRead]:
+    problems = list_active_problems(db)
+    latest_attempts = latest_attempts_by_problem(db, [problem.id for problem in problems])
+    schedules = review_schedules_by_problem(db, [problem.id for problem in problems])
+    progress = progress_by_problem(db, [problem.id for problem in problems])
+    feedbacks = {
+        feedback.synced_attempt_id: feedback
+        for feedback in db.scalars(
+            select(AlgorithmReasoningFeedback).where(
+                AlgorithmReasoningFeedback.synced_attempt_id.in_([attempt.id for attempt in latest_attempts.values()])
+            )
+        ).all()
+        if feedback.synced_attempt_id is not None
+    }
+    rows: list[AlgorithmReviewCandidateRead] = []
+    for problem in problems:
+        attempt = latest_attempts.get(problem.id)
+        practiced_at = attempt.submitted_at if attempt else None
+        if attempt is None or practiced_at is None:
+            continue
+        practiced_date = app_local_date(practiced_at)
+        if from_date and practiced_date < from_date:
+            continue
+        if to_date and practiced_date > to_date:
+            continue
+        accuracy = _feedback_accuracy(feedbacks.get(attempt.id), _fallback_accuracy(attempt.result))
+        if min_accuracy is not None and accuracy < min_accuracy:
+            continue
+        if max_accuracy is not None and accuracy > max_accuracy:
+            continue
+        record = progress.get(problem.id)
+        schedule = schedules.get(problem.id)
+        status = "needs_review" if (record and record.needs_review) or attempt.result != "solved" else "solved"
+        rows.append(
+            AlgorithmReviewCandidateRead(
+                problem=_problem_read(problem),
+                last_attempt=_attempt_read(attempt),  # type: ignore[arg-type]
+                last_practiced_at=practiced_at,
+                accuracy_score=accuracy,
+                status=status,  # type: ignore[arg-type]
+                next_review_at=schedule.next_review_at if schedule else None,
+                reason=schedule.reason if schedule else "attempted",
+            )
+        )
+
+    def sort_key(row: AlgorithmReviewCandidateRead) -> tuple[object, ...]:
+        if time_order == "recent":
+            return (-row.last_practiced_at.timestamp(), row.accuracy_score)
+        if time_order == "older":
+            return (row.last_practiced_at.timestamp(), row.accuracy_score)
+        return (row.status != "needs_review", row.accuracy_score, row.last_practiced_at.timestamp())
+
+    return sorted(rows, key=sort_key)[:limit]
+
+
+def create_review_session(db: Session, *, count: int, problem_ids: list[int] | None = None) -> AlgorithmPracticeSessionRead:
+    ids = [str(problem_id) for problem_id in problem_ids or []]
+    return create_session(db, AlgorithmPracticeSessionCreate(mode="review", count=len(ids) or count, problem_ids=ids, prioritize_due_review=True))
 
 
 def similar_problems(db: Session, problem_id: str, *, limit: int) -> list[AlgorithmProblemRead]:
@@ -1051,6 +1159,14 @@ def _date_key(value: datetime | None) -> str | None:
 def algorithm_stats(db: Session) -> AlgorithmStatsRead:
     now = utc_now()
     attempts = list(db.scalars(select(AlgorithmAttempt).where(AlgorithmAttempt.submitted_at.is_not(None))).all())
+    completed_items = list(
+        db.scalars(
+            select(AlgorithmPracticeSessionItem).where(
+                AlgorithmPracticeSessionItem.completed_at.is_not(None),
+                AlgorithmPracticeSessionItem.status.in_(("solved", "needs_review")),
+            )
+        ).all()
+    )
     problems = {problem.id: problem for problem in list_active_problems(db)}
     progress = list(db.scalars(select(AlgorithmProblemProgress)).all())
     sessions = list(
@@ -1067,13 +1183,20 @@ def algorithm_stats(db: Session) -> AlgorithmStatsRead:
     topic_duration_totals: dict[str, list[int]] = defaultdict(list)
     day_counts: dict[str, int] = defaultdict(int)
     durations: list[int] = []
+    counted_item_ids = {item.id for item in completed_items}
+    for item in completed_items:
+        if item.problem_id in problems:
+            date_key = _date_key(item.completed_at)
+            if date_key:
+                day_counts[date_key] += 1
     for attempt in attempts:
         problem = problems.get(attempt.problem_id)
         if problem is None:
             continue
-        date_key = _date_key(attempt.submitted_at)
-        if date_key:
-            day_counts[date_key] += 1
+        if attempt.session_item_id not in counted_item_ids:
+            date_key = _date_key(attempt.submitted_at)
+            if date_key:
+                day_counts[date_key] += 1
         if attempt.duration_seconds is not None:
             durations.append(attempt.duration_seconds)
         for topic in problem.topics:
@@ -1102,9 +1225,7 @@ def algorithm_stats(db: Session) -> AlgorithmStatsRead:
 
     return AlgorithmStatsRead(
         current_streak_days=streak,
-        today_completed_count=sum(
-            attempt.result == "solved" and _date_key(attempt.submitted_at) == today.isoformat() for attempt in attempts
-        ),
+        today_completed_count=day_counts.get(today.isoformat(), 0),
         total_attempt_count=len(attempts),
         unique_solved_count=sum(record.solved_count > 0 for record in progress),
         completed_by_difficulty=completed_by_difficulty,

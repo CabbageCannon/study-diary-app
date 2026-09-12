@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "problem_key": "leetcode-21",
+  "title": "Merge Two Sorted Lists",
+  "title_zh": "合并两个有序链表",
+  "statement_zh": "给定两个按非递减顺序排列的单链表 l1 和 l2，请将它们合并成一个同样按非递减顺序排列的链表，并返回合并后链表的头节点。可以复用原有节点，也可以按值创建新节点；重点是保持排序和不丢节点。",
+  "input_output": {
+    "input": "l1 和 l2：两个单链表头节点，任一链表都可能为空，节点值已按非递减顺序排列。",
+    "output": "合并后有序链表的头节点。"
+  },
+  "constraints": [
+    "两个链表的节点数量都在 0 到 50 之间",
+    "-100 <= Node.val <= 100",
+    "l1 和 l2 均按非递减顺序排列",
+    "输出链表应包含两个输入链表的全部节点值"
+  ],
+  "examples": [
+    {
+      "input": "l1 = [1, 3, 5], l2 = [2, 4]",
+      "output": "[1, 2, 3, 4, 5]",
+      "explanation": "每次取两个当前头节点中较小的一个接到结果后面。"
+    },
+    {
+      "input": "l1 = [], l2 = [-1, 2]",
+      "output": "[-1, 2]",
+      "explanation": "一个链表为空时，直接返回另一个链表。"
+    },
+    {
+      "input": "l1 = [2, 2], l2 = [2]",
+      "output": "[2, 2, 2]",
+      "explanation": "相等值都要保留，不能去重。"
+    }
+  ],
+  "verification_points": [
+    {
+      "id": "vp-two-heads-compare",
+      "kind": "key_insight",
+      "statement": "同时维护两个链表的当前节点，每次选择值更小或相等的一方接入结果。",
+      "required": true,
+      "acceptable_variants": [
+        "递归中比较 l1.val 与 l2.val 后选择较小节点作为当前头，也可接受。"
+      ]
+    },
+    {
+      "id": "vp-append-remainder",
+      "kind": "correctness_condition",
+      "statement": "当其中一个链表耗尽时，需要把另一个链表剩余部分整体接上。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-preserve-duplicates",
+      "kind": "correctness_condition",
+      "statement": "相同值也要全部保留，合并不是去重。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-empty-list",
+      "kind": "edge_case",
+      "statement": "正确处理一个或两个输入链表为空的情况。",
+      "required": false,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-complexity",
+      "kind": "complexity",
+      "statement": "每个节点处理一次，时间 O(m+n)；迭代复用节点额外空间 O(1)，递归栈 O(m+n)。",
+      "required": false,
+      "acceptable_variants": []
+    }
+  ],
+  "acceptable_approaches": [
+    {
+      "name": "哑节点迭代合并",
+      "idea": "创建 dummy 和 tail 指针，比较 l1、l2 当前节点，把较小节点接到 tail 后并前进对应链表；循环结束后接上剩余链表。",
+      "time_complexity": "O(m+n)",
+      "space_complexity": "O(1)",
+      "is_reference": true,
+      "note": "复用原节点时额外空间 O(1)。"
+    },
+    {
+      "name": "递归合并",
+      "idea": "若某个链表为空返回另一个；否则选较小头节点，并递归合并该节点的 next 与另一链表。",
+      "time_complexity": "O(m+n)",
+      "space_complexity": "O(m+n)",
+      "is_reference": false,
+      "note": "正确但有递归栈。"
+    },
+    {
+      "name": "收集值排序后重建",
+      "idea": "收集两个链表所有值，排序后创建新链表。",
+      "time_complexity": "O((m+n) log(m+n))",
+      "space_complexity": "O(m+n)",
+      "is_reference": false,
+      "note": "能得到正确值序列，但没有利用输入已排序；应引导到线性合并。"
+    }
+  ],
+  "common_mistakes": [
+    {
+      "description": "合并时把相等值去重。",
+      "counterexample": "l1 = [2,2], l2 = [2]：正确输出包含三个 2。"
+    },
+    {
+      "description": "一个链表遍历完后忘记接上另一个链表剩余节点。",
+      "counterexample": "l1 = [1], l2 = [2,3]：若忘接剩余，输出可能只有 [1,2]。"
+    },
+    {
+      "description": "返回 dummy 本身而不是 dummy.next。",
+      "counterexample": "哑节点只是占位，不应出现在结果链表中。"
+    }
+  ],
+  "edge_cases": [
+    {
+      "description": "两个链表都为空。",
+      "expected_handling": "返回空链表。"
+    },
+    {
+      "description": "一个为空、一个非空。",
+      "expected_handling": "直接返回非空链表。"
+    },
+    {
+      "description": "大量相等值。",
+      "expected_handling": "保持非递减顺序并保留所有节点。"
+    }
+  ],
+  "source": {
+    "name": "LeetCode CN 21. 合并两个有序链表",
+    "url": "https://leetcode.cn/problems/merge-two-sorted-lists/",
+    "license_note": "题意、示例、核对要点和反例均为原创中文转写，未复制外站题面或题解。",
+    "source_version": "2026-09-06 对照 leetcode.cn 官方题面核对"
+  },
+  "content_notes": "已核对官方题名、URL 和约束；迭代哑节点为参考方案，递归同样正确。",
+  "content_status": "ready"
+}

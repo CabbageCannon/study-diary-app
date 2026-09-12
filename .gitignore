@@ -1,6 +1,7 @@
 .env
 .env.*
 !.env.example
+!frontend/.env.production
 
 node_modules/
 dist/
@@ -19,6 +20,7 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 .playwright-cli/
+.wrangler/
 output/playwright/
 *.log
 

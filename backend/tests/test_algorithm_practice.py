@@ -12,7 +12,7 @@ from app import database
 from app.database import Base, get_db
 from app.llm import LLMError
 from app.main import app
-from app.models import AlgorithmAttempt, AlgorithmDailyFeed, AlgorithmProblem, AlgorithmProblemProgress, AlgorithmReviewSchedule
+from app.models import AlgorithmAttempt, AlgorithmDailyFeed, AlgorithmProblem, AlgorithmProblemProgress, AlgorithmReasoningFeedback, AlgorithmReviewSchedule
 from app.schemas import AlgorithmAIReview
 from app.services.algorithm_practice_service import get_daily_feed, utc_now
 from app.services.data_import_service import import_algorithms
@@ -172,6 +172,61 @@ class AlgorithmPracticeApiTests(unittest.TestCase):
         self.assertEqual(removed.status_code, 204)
         self.assertIsNotNone(self.session.get(AlgorithmProblem, attempt["problem_id"]))
 
+    def test_review_candidates_only_include_attempted_problems_and_create_selected_review_session(self) -> None:
+        done_problem = self.session.query(AlgorithmProblem).filter_by(slug="two-sum").one()
+        new_problem = self.session.query(AlgorithmProblem).filter_by(slug="group-anagrams").one()
+        training = self.create_session("custom", count=1, problem_ids=[str(done_problem.id)])
+        attempt = self.save_attempt(training, result="solved")
+
+        candidates = self.client.get("/api/algorithms/reviews/candidates")
+        self.assertEqual(candidates.status_code, 200, candidates.text)
+        self.assertEqual([item["problem"]["id"] for item in candidates.json()], [done_problem.id])
+        self.assertEqual(candidates.json()[0]["last_practiced_at"], attempt["submitted_at"])
+
+        rejected = self.client.post("/api/algorithms/reviews/session", json={"problem_ids": [done_problem.id, new_problem.id]})
+        self.assertEqual(rejected.status_code, 422)
+
+        selected = self.client.post("/api/algorithms/reviews/session", json={"problem_ids": [done_problem.id]})
+        self.assertEqual(selected.status_code, 201, selected.text)
+        self.assertEqual(selected.json()["mode"], "review")
+        self.assertEqual([item["problem_id"] for item in selected.json()["items"]], [done_problem.id])
+
+    def test_review_candidates_filter_by_practice_date_and_accuracy(self) -> None:
+        first_problem = self.session.query(AlgorithmProblem).filter_by(slug="two-sum").one()
+        second_problem = self.session.query(AlgorithmProblem).filter_by(slug="group-anagrams").one()
+        first_session = self.create_session("custom", count=1, problem_ids=[str(first_problem.id)])
+        second_session = self.create_session("custom", count=1, problem_ids=[str(second_problem.id)])
+        old_attempt = self.save_attempt(first_session, result="failed")
+        recent_attempt = self.save_attempt(second_session, result="solved")
+        self.session.get(AlgorithmAttempt, old_attempt["id"]).submitted_at = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        self.session.get(AlgorithmAttempt, recent_attempt["id"]).submitted_at = datetime(2026, 1, 5, tzinfo=timezone.utc)
+        self.session.add(
+            AlgorithmReasoningFeedback(
+                answer_id=1,
+                problem_context_id=1,
+                synced_attempt_id=recent_attempt["id"],
+                conclusion="partially_correct",
+                headline="方向正确，边界不足。",
+                context_sufficient=True,
+                feedback_json='{"accuracy_score":72}',
+                model_name="test",
+                prompt_version="test",
+                context_version=1,
+            )
+        )
+        self.session.commit()
+
+        recent = self.client.get("/api/algorithms/reviews/candidates?time_order=recent")
+        self.assertEqual([item["problem"]["id"] for item in recent.json()], [second_problem.id, first_problem.id])
+
+        older = self.client.get("/api/algorithms/reviews/candidates?time_order=older&to_date=2026-01-02")
+        self.assertEqual([item["problem"]["id"] for item in older.json()], [first_problem.id])
+        self.assertEqual(older.json()[0]["accuracy_score"], 20)
+
+        partial = self.client.get("/api/algorithms/reviews/candidates?min_accuracy=70&max_accuracy=89")
+        self.assertEqual([item["problem"]["id"] for item in partial.json()], [second_problem.id])
+        self.assertEqual(partial.json()[0]["accuracy_score"], 72)
+
     def test_ai_recommendations_are_filtered_to_local_candidates_and_failure_keeps_attempt(self) -> None:
         training = self.create_session()
         attempt = self.save_attempt(training, result="partially_solved")
@@ -201,6 +256,19 @@ class AlgorithmPracticeApiTests(unittest.TestCase):
         self.assertEqual(first.json()["primary_problem"]["id"], legacy.json()["id"])
         feed_ids = [first.json()["primary_problem"]["id"], *[item["id"] for item in first.json()["extra_problems"]]]
         self.assertEqual(len(feed_ids), len(set(feed_ids)))
+
+    def test_daily_session_uses_requested_count_after_pinned_primary_problem(self) -> None:
+        feed = self.client.get("/api/algorithms/daily-feed").json()
+        response = self.client.post(
+            "/api/algorithms/sessions",
+            json={"mode": "daily", "count": 3, "problem_ids": [str(feed["primary_problem"]["id"])]},
+        )
+        self.assertEqual(response.status_code, 201, response.text)
+        body = response.json()
+        ids = [item["problem_id"] for item in body["items"]]
+        self.assertEqual(len(ids), 3)
+        self.assertEqual(ids[0], feed["primary_problem"]["id"])
+        self.assertEqual(len(ids), len(set(ids)))
 
     def test_saving_daily_settings_does_not_replace_today_until_explicit_refresh(self) -> None:
         before = self.client.get("/api/algorithms/daily-feed").json()

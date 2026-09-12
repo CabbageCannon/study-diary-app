@@ -1,25 +1,28 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
-type InterviewTheme = "editorial" | "quiet";
+export type AppTheme = "mist" | "sea" | "tea" | "night";
 
 interface ThemeContextValue {
-  theme: InterviewTheme;
+  theme: AppTheme;
+  setTheme: (theme: AppTheme) => void;
   toggleTheme: () => void;
 }
 
 const THEME_STORAGE_KEY = "study-diary:theme";
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-function readInitialTheme(): InterviewTheme {
+function readInitialTheme(): AppTheme {
   try {
-    return window.localStorage.getItem(THEME_STORAGE_KEY) === "quiet" ? "quiet" : "editorial";
+    const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
+    if (saved === "sea" || saved === "tea" || saved === "night" || saved === "mist") return saved;
+    return saved === "quiet" ? "night" : "mist";
   } catch {
-    return "editorial";
+    return "mist";
   }
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<InterviewTheme>(readInitialTheme);
+  const [theme, setTheme] = useState<AppTheme>(readInitialTheme);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -32,7 +35,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<ThemeContextValue>(() => ({
     theme,
-    toggleTheme: () => setTheme((current) => current === "editorial" ? "quiet" : "editorial"),
+    setTheme,
+    toggleTheme: () => setTheme((current) => current === "night" ? "mist" : "night"),
   }), [theme]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

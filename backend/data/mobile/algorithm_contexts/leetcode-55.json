@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "problem_key": "leetcode-55",
+  "title": "Jump Game",
+  "title_zh": "跳跃游戏",
+  "statement_zh": "给定一个非负整数数组 nums，初始位于下标 0。nums[i] 表示从下标 i 最远可以向右跳多少步。请判断是否能够到达最后一个下标。",
+  "input_output": {
+    "input": "nums：非负整数数组，每个元素表示该位置的最大跳跃长度。",
+    "output": "布尔值；能从下标 0 到达最后一个下标则为 true，否则为 false。"
+  },
+  "constraints": [
+    "1 <= nums.length <= 10^4",
+    "0 <= nums[i] <= 10^5",
+    "从下标 0 出发",
+    "每次可以跳 0 到 nums[i] 步",
+    "只需要判断是否可达最后一个下标"
+  ],
+  "examples": [
+    {
+      "input": "nums = [2, 3, 1, 1, 4]",
+      "output": "true",
+      "explanation": "可以从下标 0 跳到 1，再从 1 跳到最后。"
+    },
+    {
+      "input": "nums = [3, 2, 1, 0, 4]",
+      "output": "false",
+      "explanation": "最远会被卡在下标 3，无法越过值为 0 的位置到达下标 4。"
+    },
+    {
+      "input": "nums = [0]",
+      "output": "true",
+      "explanation": "起点已经是最后一个下标。"
+    }
+  ],
+  "verification_points": [
+    {
+      "id": "vp-farthest-reach",
+      "kind": "key_insight",
+      "statement": "维护当前能到达的最远下标 farthest，遍历可达位置并更新 farthest。",
+      "required": true,
+      "acceptable_variants": [
+        "从右向左维护最左可达目标位置也可。"
+      ]
+    },
+    {
+      "id": "vp-stop-on-unreachable-index",
+      "kind": "correctness_condition",
+      "statement": "当遍历到 i > farthest 时，说明该位置不可达，应返回 false 或停止。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-reach-last-index",
+      "kind": "correctness_condition",
+      "statement": "只要 farthest >= 最后一个下标即可返回 true，不需要求最少跳跃次数。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-complexity",
+      "kind": "complexity",
+      "statement": "贪心方案一次遍历，时间 O(n)，额外空间 O(1)。",
+      "required": false,
+      "acceptable_variants": []
+    }
+  ],
+  "acceptable_approaches": [
+    {
+      "name": "从左到右维护最远可达位置",
+      "idea": "遍历数组，如果当前位置 i 在 farthest 范围内，就用 i + nums[i] 更新 farthest；一旦 farthest 覆盖最后下标返回 true，遍历到不可达位置则返回 false。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(1)",
+      "is_reference": true,
+      "note": null
+    },
+    {
+      "name": "从右到左维护目标位置",
+      "idea": "从末尾向前扫描，若 i + nums[i] 能到达当前目标，就把目标移到 i；最后判断目标是否为 0。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(1)",
+      "is_reference": false,
+      "note": "同样是贪心，方向不同。"
+    },
+    {
+      "name": "动态规划可达性",
+      "idea": "记录每个下标是否可达，再由可达位置向后标记能跳到的位置。",
+      "time_complexity": "O(n^2)",
+      "space_complexity": "O(n)",
+      "is_reference": false,
+      "note": "正确但更慢，可作为理解用。"
+    }
+  ],
+  "common_mistakes": [
+    {
+      "description": "把题目误解成求最少跳跃次数。",
+      "counterexample": "nums = [2,3,1,1,4] 只需要返回 true，不需要返回 2。"
+    },
+    {
+      "description": "遇到 0 就直接返回 false。",
+      "counterexample": "nums = [2,0,0] 可以从下标 0 跳到最后，应返回 true。"
+    },
+    {
+      "description": "继续用不可达位置更新 farthest。",
+      "counterexample": "nums = [0, 100] 中下标 1 不可达，不能用 100 更新答案。"
+    }
+  ],
+  "edge_cases": [
+    {
+      "description": "数组长度为 1。",
+      "expected_handling": "起点即终点，返回 true。"
+    },
+    {
+      "description": "中间有 0。",
+      "expected_handling": "只有当当前最远可达位置能越过或正好到达终点时才不受影响。"
+    },
+    {
+      "description": "第一步为 0 且长度大于 1。",
+      "expected_handling": "无法离开起点，返回 false。"
+    }
+  ],
+  "source": {
+    "name": "LeetCode CN 55. 跳跃游戏",
+    "url": "https://leetcode.cn/problems/jump-game/",
+    "license_note": "题意、示例、核对要点和反例均为原创中文转写，未复制外站题面或题解。",
+    "source_version": "2026-09-11 对照 leetcode.cn 官方题面核对"
+  },
+  "content_notes": "按官方题目约束补齐移动端思路核对上下文；示例与反例为本项目原创构造。",
+  "content_status": "ready"
+}

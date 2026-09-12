@@ -1,78 +1,89 @@
-# PWA 与生产部署
+# HTTPS PWA 部署与 iPhone 验收
 
-## 前端
+这是一套个人使用的 HTTPS PWA 交付方案，不是 TestFlight、App Store 或原生 App 上架方案。首选单台长期在线的 Linux 主机：Nginx 通过同一 HTTPS 域名提供前端与 `/api/`，FastAPI 仅监听本机回环地址，SQLite 放在主机持久磁盘并备份。这样 Safari 主屏幕安装使用一个稳定地址，前端不需要配置独立 API 域名；若设置 `APP_ACCESS_TOKEN`，用户仍需在当前浏览器会话输入访问码。
 
-构建前在 `frontend/.env` 设置正式后端地址。不要把访问码或模型密钥写入任何 `VITE_` 变量。
+未确定域名、服务器或账户前，不得发布。缺少的实际条件列在本文末尾。
 
-```env
-VITE_API_BASE_URL=https://api.example.com
-VITE_ENABLE_QUESTION_REVIEW=true
-VITE_ENABLE_AI_QUESTION_REVIEW=true
-VITE_ENABLE_QUESTION_QUICK_PUBLISH=true
-```
+## 已随工程提供的 PWA 条件
+
+- Vite PWA 构建会生成 manifest 与 Service Worker；清单声明 standalone、portrait、中文名称，并提供 192、512 和 iPhone 180 px PNG 图标。
+- `index.html` 已设置 `viewport-fit=cover`、Apple 主屏幕元数据与 `apple-touch-icon`。
+- 预缓存仅覆盖 Web 应用壳和静态资源。所有 `/api/` 请求、AI 核对、写入、删除、训练状态都不缓存；离线只承诺恢复已有应用壳和本机未提交草稿，不承诺离线评分或完整题库。
+- 更新使用提示模式，用户可选“稍后”或“立即更新”，不会在有输入时强制刷新。
+
+## 一次性部署步骤（Nginx + systemd + SQLite）
+
+以下示例把公开地址设为 `https://app.example.com`。将仓库放在 `/srv/study-diary`，不要把 `.env`、SQLite 或浏览器数据提交到 Git。
+
+1. 在主机安装 Node.js、Python 3.12、Nginx、Certbot 和 SQLite 命令行工具；创建不可登录的 `study-diary` 用户与目录：`/var/lib/study-diary`、`/etc/study-diary`，两者仅该用户可读写。
+2. 创建 `/etc/study-diary/api.env`（权限 `600`，属主 `study-diary`）：
+
+   ```env
+   DATABASE_URL=sqlite:////var/lib/study-diary/study_diary.db
+   FRONTEND_ORIGIN=https://app.example.com
+   LLM_API_KEY=<实际密钥，仅此文件保存>
+   LLM_BASE_URL=https://api.openai.com/v1
+   LLM_MODEL=gpt-4o-mini
+   APP_TIMEZONE=Asia/Shanghai
+   APP_ACCESS_TOKEN=<足够长的随机访问码>
+   AI_RATE_LIMIT_PER_MINUTE=12
+   ```
+
+   `APP_ACCESS_TOKEN` 会保护写入和管理 API；客户端只在当前会话保存它。不要设置任何 `VITE_*` 密钥。
+3. 后端在 `/srv/study-diary/backend` 建立虚拟环境、安装 `requirements.txt`。迁移必须加载与 systemd 相同的环境文件，避免误用默认 `./data` 数据库：
+
+   ```bash
+   set -a
+   . /etc/study-diary/api.env
+   set +a
+   cd /srv/study-diary/backend
+   .venv/bin/alembic upgrade head
+   ```
+
+   首次空库需要题库时，再按项目数据导入说明导入；已有 SQLite 文件应先停服务、制作备份，然后复制到上述持久目录并执行迁移检查，不要覆盖正在使用的数据。
+4. 复制 [`deploy/systemd/study-diary-api.service.example`](../deploy/systemd/study-diary-api.service.example) 到 `/etc/systemd/system/study-diary-api.service`，随后执行 `systemctl daemon-reload`、`systemctl enable --now study-diary-api`，并从主机检查 `curl http://127.0.0.1:8000/api/health`。
+5. 复制 [`frontend/pwa-production.env.sample`](../frontend/pwa-production.env.sample) 为 `frontend/.env.production`，在 `frontend` 执行 `npm ci`、`npm run build`。同源部署将基址留空，因为各 API 调用已包含 `/api/...`；将生成的 `dist/` 保留在 `/srv/study-diary/frontend/dist`。
+6. 首次签发证书不能先加载引用不存在证书的 HTTPS 配置。先复制 [`deploy/nginx/study-diary-http-bootstrap.conf.example`](../deploy/nginx/study-diary-http-bootstrap.conf.example) 为启用的 Nginx site 配置，替换域名，执行 `nginx -t`、`systemctl reload nginx`，并确认 DNS 已指向该主机。然后执行：
+
+   ```bash
+   certbot certonly --webroot -w /var/www/certbot -d app.example.com
+   ```
+
+   证书生成后，再用 [`deploy/nginx/study-diary.conf.example`](../deploy/nginx/study-diary.conf.example) 替换 bootstrap 配置，执行 `nginx -t` 和 `systemctl reload nginx`。访问 `https://app.example.com/api/health` 应返回 `{"status":"ok"}`。
+7. 每次发布先构建与检查，再替换 `dist/`，并重启 API（仅后端变更时）。`index.html` 与 `sw.js` 禁止缓存，带 hash 的 `/assets/` 长缓存；发布后用真实 Safari 看见更新提示再选择更新，避免在答题中强制刷新。
+
+`frontend/public/_redirects` 与 `frontend/vercel.json` 仍适用于纯前端托管的 SPA 回退，但它们不会部署或持久化本项目的 FastAPI/SQLite 后端；在未另外设计数据库卷与 HTTPS API 前，不能把它们当成完整个人部署方案。
+
+## SQLite 备份与恢复
+
+SQLite 是本阶段的正式单用户存储，不迁移为账号平台或高并发数据库。每天在低使用时段执行一次一致性备份，并把备份同步到主机以外的私人加密位置：
 
 ```bash
-cd frontend
-npm ci
-npm run build
+sqlite3 /var/lib/study-diary/study_diary.db ".backup '/var/backups/study-diary/study_diary-$(date +%F).db'"
+sqlite3 /var/backups/study-diary/study_diary-$(date +%F).db "PRAGMA integrity_check;"
 ```
 
-`vite-plugin-pwa` 会生成 `manifest.webmanifest` 与 Service Worker。静态资源和 SPA 壳使用预缓存；`/api/*`、AI 评估、写入、删除、训练状态均不会缓存。离线时应用会明确提示，未提交回答仍只由本地草稿恢复。
+保留策略、异地位置和恢复演练时间由部署者记录。恢复前停止 `study-diary-api`，保留当前数据库副本，再替换数据库文件、检查完整性并启动服务；绝不直接覆盖唯一副本。
 
-- Cloudflare Pages：`frontend/public/_redirects` 已提供 `/* /index.html 200`。
-- Vercel：以 `frontend` 为项目根目录，`vercel.json` 已提供 SPA rewrite。
-- 自建 Nginx：将未知前端路径回退到 `/index.html`，并让 `/api/` 反向代理到后端。
+## 真机验收记录（必须实测）
 
-## 后端与 PostgreSQL
+模拟器、桌面浏览器和截图只能作为工程检查，不能替代客户 iPhone Safari 验收。使用 [iPhone HTTPS PWA 验收记录](mobile-app/IPHONE_ACCEPTANCE.md) 填写设备型号、iOS 版本、Safari 版本、PWA 构建 SHA、部署 URL、日期和每项结果：
 
-生产环境变量：
+1. 在蜂窝网络或离开开发电脑局域网后访问 HTTPS 地址；刷新深链接不返回 404。
+2. Safari 分享菜单“添加到主屏幕”，从主屏幕 standalone 启动并返回上次位置。
+3. 用真实 Safari 键盘输入，检查安全区、软键盘、长题目滚动和主操作不被遮挡。
+4. 输入未提交草稿后切后台、锁屏/恢复、刷新；确认草稿恢复符合页面承诺。
+5. 模拟核对超时或断网，确认已保存回答不丢失、重试不生成重复记录；恢复联网后再次核对。
+6. 连续完成下一题、复习入口和返回导航；确认历史/日记仍可达。
+7. 离线重新打开已安装应用、恢复网络后刷新数据；明确离线不能评分或同步。
+8. 发布一次新构建，确认“稍后 / 立即更新”可控且不打断正在输入的内容。
 
-```env
-PORT=8000
-DATABASE_URL=postgresql://user:password@host:5432/study_diary
-FRONTEND_ORIGIN=https://app.example.com,https://www.example.com
-LLM_API_KEY=replace_me
-LLM_BASE_URL=https://api.openai.com/v1
-LLM_MODEL=gpt-4o-mini
-APP_ACCESS_TOKEN=replace_with_a_long_random_value
-AI_RATE_LIMIT_PER_MINUTE=12
-```
+## 仍需部署者提供的外部条件
 
-`DATABASE_URL` 可使用 `postgresql://` 或 `postgres://`；运行时会选择 SQLAlchemy 的 `psycopg` 驱动。SQLite 仍适用于本地开发。PostgreSQL 不再在应用启动时使用 `create_all` 建表，必须先运行迁移：
+- 一个可公开解析的域名及 DNS 管理权，用于 TLS 证书；
+- 一台长期在线、可运行 Nginx、Python 与持久磁盘的 Linux 主机，或同等能力的已付费托管账户；
+- HTTPS 证书签发权限（通常为 DNS/HTTP-01）和主机防火墙的 80/443 入站规则；
+- LLM 服务的有效凭据与可接受的费用；
+- 私有备份存储位置，以及客户自己的 iPhone、iOS/Safari 版本和实测时间。
 
-```bash
-cd backend
-pip install -r requirements.txt
-alembic upgrade head
-uvicorn app.main:app --host 0.0.0.0 --port $PORT
-```
-
-仓库提供的 `backend/Dockerfile` 会在启动 Uvicorn 前执行 `alembic upgrade head`。首次部署完成后再导入种子数据。
-
-将现有 SQLite 数据迁入一个已执行 Alembic、且业务表为空的 PostgreSQL 数据库：
-
-```bash
-cd backend
-python scripts/migrate_sqlite_to_postgres.py \
-  --source sqlite:///./data/study_diary.db \
-  --target postgresql://user:password@host:5432/study_diary
-```
-
-该脚本会按外键顺序复制全部模型表；目标表已有业务数据时会停止，不会覆盖审核状态或训练记录。
-
-## 公网保护
-
-设置 `APP_ACCESS_TOKEN` 后，所有 `/api/` 写入和管理请求都需要 `X-Study-Diary-Access` 请求头。移动端可在“更多 -> 输入访问码”中输入一次，令牌只保留在当前浏览器会话。模型密钥始终只留在后端。
-
-应用还会对草稿生成、AI 审核、评估和答题提交使用按 IP、按路径的 60 秒滑动窗口限制，超限返回 `429` 与 `Retry-After`。对于单用户公网部署，仍建议在前端和 API 域名外层启用 Cloudflare Access、Vercel Authentication 或反向代理的 Basic Auth，以同时保护只读内容。
-
-## iPhone 验收
-
-1. 用 iPhone Safari 打开正式 HTTPS 地址，检查 428 x 926 下无横向滚动。
-2. 在“训练”中输入回答并唤起键盘，确认输入框和提交区仍可见。
-3. 点按底部“更多”，检查训练历史、题库审核、主题切换和安装入口。
-4. 点按 Safari 分享，选择“添加到主屏幕”，再从主屏幕启动，确认独立窗口内路由刷新不返回 404。
-5. 断网后重新打开应用，确认出现离线提示；恢复网络后刷新训练和历史数据。
-6. 发布一个新版本，确认用户看到“稍后 / 立即更新”，且答题不会被强制刷新。
-
-上线前仍需由部署者填写：正式域名、PostgreSQL URL、LLM 配置、`APP_ACCESS_TOKEN`，以及平台侧访问保护规则。
+在这些条件到位前，本项目只完成可构建的 PWA 工程与具体部署方案，不能声称已在公网可用或已完成 iPhone 验收。

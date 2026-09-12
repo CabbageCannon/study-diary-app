@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine, event, inspect
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
@@ -155,6 +155,19 @@ class InterviewTrainingApiTests(unittest.TestCase):
                 improved_answer="这是一段满足最小长度要求的改进答案，用于验证模型输出中的分数边界会被严格校验。",
             )
 
+    def test_mobile_diary_draft_can_be_published_and_pinned(self) -> None:
+        created = self.client.post("/api/diaries", json={
+            "date": "2026-09-09", "title": "未完成的日记", "raw_text": "写到一半",
+            "polished_text": "写到一半", "summary": "写到一半", "tags": ["生活"],
+            "category": "life", "status": "draft", "images": [],
+        })
+        self.assertEqual(created.status_code, 201)
+        diary_id = created.json()["id"]
+        updated = self.client.patch(f"/api/diaries/{diary_id}", json={"status": "published", "is_pinned": True})
+        self.assertEqual(updated.status_code, 200)
+        self.assertEqual(updated.json()["status"], "published")
+        self.assertTrue(updated.json()["is_pinned"])
+
     def test_question_set_only_uses_verified_questions_and_shortage_is_explicit(self) -> None:
         question_set = self.create_set()
         self.assertEqual(question_set["question_count"], 1)
@@ -182,15 +195,19 @@ class InterviewTrainingApiTests(unittest.TestCase):
             submitted = self.client.post(f"/api/interviews/question-sets/{set_id}/answers", json=payload)
             self.assertEqual(submitted.status_code, 201)
             body = submitted.json()
-            self.assertEqual(body["evaluation_status"], "completed")
-            self.assertEqual(body["evaluation"]["total_score"], 74.5)
-            self.assertIsNotNone(body["next_review_at"])
+            self.assertEqual(body["evaluation_status"], "processing")
+            self.assertIsNone(body["evaluation"])
+            self.session.expire_all()
+            saved_answer = self.session.get(InterviewAnswer, body["answer"]["id"])
+            assert saved_answer is not None
+            self.assertEqual(saved_answer.evaluation_status, "completed")
 
             duplicate = self.client.post(f"/api/interviews/question-sets/{set_id}/answers", json=payload)
             self.assertEqual(duplicate.status_code, 409)
 
             retry = self.client.post(f"/api/interviews/answers/{body['answer']['id']}/retry", json=payload)
             self.assertEqual(retry.status_code, 201)
+            self.assertEqual(retry.json()["evaluation_status"], "processing")
             self.assertEqual(retry.json()["answer"]["attempt_index"], 2)
 
         answers = self.session.query(InterviewAnswer).filter_by(question_set_id=set_id).all()
@@ -207,21 +224,29 @@ class InterviewTrainingApiTests(unittest.TestCase):
         with patch("app.services.interview_training_service.evaluate_interview_answer", failed_evaluation):
             response = self.client.post(f"/api/interviews/question-sets/{set_id}/answers", json=payload)
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.json()["evaluation_status"], "failed")
+        self.assertEqual(response.json()["evaluation_status"], "processing")
         answer_id = response.json()["answer"]["id"]
+        self.session.expire_all()
         self.assertIsNotNone(self.session.get(InterviewAnswer, answer_id))
 
         answer = self.session.get(InterviewAnswer, answer_id)
         assert answer is not None
-        schedule = InterviewReviewSchedule(
-            question_id="verified-training-001",
-            last_answer_id=answer.id,
-            last_score=55,
-            next_review_at=utc_now() - timedelta(hours=1),
-            review_interval_days=review_interval_days(55),
-            review_count=1,
-        )
-        self.session.add(schedule)
+        self.assertEqual(answer.evaluation_status, "failed")
+        self.assertEqual(answer.evaluation_error, "模拟模型服务不可用")
+
+        with patch("app.services.interview_training_service.evaluate_interview_answer", successful_evaluation):
+            retry_evaluation = self.client.post(f"/api/interviews/answers/{answer_id}/evaluate")
+        self.assertEqual(retry_evaluation.status_code, 200)
+        self.assertEqual(retry_evaluation.json()["evaluation_status"], "processing")
+        self.session.expire_all()
+        answer = self.session.get(InterviewAnswer, answer_id)
+        assert answer is not None
+        self.assertEqual(answer.evaluation_status, "completed")
+
+        schedule = self.session.query(InterviewReviewSchedule).filter_by(question_id="verified-training-001").one()
+        schedule.last_score = 55
+        schedule.next_review_at = utc_now() - timedelta(hours=1)
+        schedule.review_interval_days = review_interval_days(55)
         self.session.commit()
         due = self.client.get("/api/interviews/reviews/due?domain=python")
         self.assertEqual(due.status_code, 200)
@@ -236,6 +261,11 @@ class InterviewSessionStateApiTests(unittest.TestCase):
             connect_args={"check_same_thread": False},
             poolclass=StaticPool,
         )
+
+        @event.listens_for(self.engine, "connect")
+        def _enable_sqlite_foreign_keys(dbapi_connection, _connection_record) -> None:
+            dbapi_connection.execute("PRAGMA foreign_keys=ON")
+
         Base.metadata.create_all(self.engine)
         self.session = Session(self.engine)
         for question_id in ("session-state-001", "session-state-002", "session-state-003"):
@@ -334,6 +364,32 @@ class InterviewSessionStateApiTests(unittest.TestCase):
             200,
         )
 
+    def test_delete_question_set_removes_schedule_before_answer_when_no_replacement(self) -> None:
+        created = self.create_set()
+        set_id = created["id"]
+        question_id = created["items"][0]["question"]["id"]
+
+        with patch("app.services.interview_training_service.evaluate_interview_answer", successful_evaluation):
+            submitted = self.client.post(
+                f"/api/interviews/question-sets/{set_id}/answers",
+                json={
+                    "question_id": question_id,
+                    "answer_text": "这条回答被复习计划引用，删除题集时没有其它回答可替换。",
+                    "answer_source": "text",
+                },
+            )
+        self.assertEqual(submitted.status_code, 201)
+        answer_id = submitted.json()["answer"]["id"]
+        self.session.expire_all()
+        schedule = self.session.query(InterviewReviewSchedule).filter_by(question_id=question_id).one()
+        self.assertEqual(schedule.last_answer_id, answer_id)
+
+        deleted = self.client.delete(f"/api/interviews/question-sets/{set_id}")
+        self.assertEqual(deleted.status_code, 204)
+        self.session.expire_all()
+        self.assertIsNone(self.session.get(InterviewAnswer, answer_id))
+        self.assertEqual(self.session.query(InterviewReviewSchedule).filter_by(question_id=question_id).count(), 0)
+
     def test_stats_uses_persisted_answers_and_pending_sessions(self) -> None:
         created = self.create_set()
         with patch("app.services.interview_training_service.evaluate_interview_answer", successful_evaluation):
@@ -386,3 +442,36 @@ class InterviewSessionMigrationTests(unittest.TestCase):
             ).one()
         self.assertEqual(row.status, "in_progress")
         self.assertTrue(all(value is not None for value in row[1:]))
+
+    def test_existing_sqlite_answers_receive_evaluation_status_columns(self) -> None:
+        engine = create_engine("sqlite://")
+        with engine.begin() as connection:
+            connection.exec_driver_sql(
+                "CREATE TABLE interview_answers ("
+                "id INTEGER PRIMARY KEY, question_set_id INTEGER, question_id VARCHAR(160), attempt_index INTEGER, "
+                "answer_text TEXT, answer_source VARCHAR(20), duration_seconds INTEGER, created_at DATETIME, updated_at DATETIME)"
+            )
+            connection.exec_driver_sql(
+                "CREATE TABLE interview_evaluations (id INTEGER PRIMARY KEY, answer_id INTEGER)"
+            )
+            connection.exec_driver_sql(
+                "INSERT INTO interview_answers "
+                "(id, question_set_id, question_id, attempt_index, answer_text, answer_source, created_at, updated_at) "
+                "VALUES (1, 1, 'q1', 1, 'answer', 'text', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+            )
+
+        original_engine = database.engine
+        database.engine = engine
+        try:
+            database._apply_sqlite_interview_answer_migration()
+        finally:
+            database.engine = original_engine
+
+        columns = {column["name"] for column in inspect(engine).get_columns("interview_answers")}
+        self.assertTrue(set(database.INTERVIEW_ANSWER_COLUMN_DEFINITIONS).issubset(columns))
+        with engine.connect() as connection:
+            row = connection.exec_driver_sql(
+                "SELECT evaluation_status, evaluation_error FROM interview_answers WHERE id = 1"
+            ).one()
+        self.assertEqual(row.evaluation_status, "failed")
+        self.assertIsNotNone(row.evaluation_error)

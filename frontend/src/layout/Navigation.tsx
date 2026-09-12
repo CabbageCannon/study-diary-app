@@ -1,19 +1,18 @@
-import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { BookOpenIcon } from "@phosphor-icons/react/BookOpen";
-import { DotsThreeIcon } from "@phosphor-icons/react/DotsThree";
 import { HouseIcon } from "@phosphor-icons/react/House";
 import { MoonIcon } from "@phosphor-icons/react/Moon";
-import { PlayCircleIcon } from "@phosphor-icons/react/PlayCircle";
+import { PlusIcon } from "@phosphor-icons/react/Plus";
 import { TreeStructureIcon } from "@phosphor-icons/react/TreeStructure";
 import { SunIcon } from "@phosphor-icons/react/Sun";
+import { UserCircleIcon } from "@phosphor-icons/react/UserCircle";
 
 import { useTheme } from "../contexts/ThemeContext";
-import { MobileMoreSheet } from "./MobileMoreSheet";
 
 const desktopPrimaryItems = [
   { to: "/today", label: "今日", matches: (pathname: string) => pathname === "/today" },
-  { to: "/write", label: "写日记", matches: (pathname: string) => pathname === "/write" },
+  { to: "/me", label: "我的", matches: (pathname: string) => pathname === "/me" },
+  { to: "/diary", label: "日记", matches: (pathname: string) => pathname === "/diary" || pathname === "/write" || pathname === "/history" },
   { to: "/algorithms", label: "算法训练", matches: (pathname: string) => pathname === "/algorithms" || pathname.startsWith("/algorithms/session/") || pathname.startsWith("/algorithms/problems/") },
   { to: "/interview", label: "八股训练", matches: (pathname: string) => pathname === "/interview" || pathname.startsWith("/interview/session/") },
 ];
@@ -32,14 +31,22 @@ const desktopToolItems = [
 
 const questionReviewEnabled = import.meta.env.VITE_ENABLE_QUESTION_REVIEW === "true";
 
+function scrollToTop() {
+  window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  document.getElementById("main-content")?.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+}
+
 export function Navigation() {
   const { pathname } = useLocation();
   const { theme, toggleTheme } = useTheme();
-  const [moreOpen, setMoreOpen] = useState(false);
   const desktopTools = [...desktopToolItems, ...(questionReviewEnabled ? [{ to: "/interview/review", label: "题库审核", matches: (path: string) => path === "/interview/review" }] : [])];
-  const algorithmTrainingActive = pathname === "/algorithms" || pathname.startsWith("/algorithms/session/") || pathname.startsWith("/algorithms/problems/");
-  const interviewTrainingActive = pathname === "/interview" || pathname.startsWith("/interview/session/");
-  const moreActive = moreOpen || pathname === "/history" || pathname === "/interview/history" || pathname === "/interview/review" || pathname === "/settings/desktop-pet" || pathname === "/algorithms/history" || pathname === "/algorithms/review" || pathname === "/algorithms/settings";
+  const algorithmTrainingActive = pathname.startsWith("/algorithms");
+  const interviewTrainingActive = pathname.startsWith("/interview");
+  const diaryActive = pathname === "/diary" || pathname === "/write" || pathname === "/history";
+
+  const activeTabClick = (active: boolean) => () => {
+    if (active) scrollToTop();
+  };
 
   return (
     <>
@@ -76,24 +83,23 @@ export function Navigation() {
         <div className="navigation-footer">
           <button
             className="theme-toggle"
-            aria-label={theme === "editorial" ? "切换到安静深色主题" : "切换到编辑浅色主题"}
-            title={theme === "editorial" ? "切换到安静深色主题" : "切换到编辑浅色主题"}
+            aria-label={theme === "night" ? "切换到雾松主题" : "切换到墨夜主题"}
+            title={theme === "night" ? "切换到雾松主题" : "切换到墨夜主题"}
             onClick={toggleTheme}
             type="button"
           >
-            {theme === "editorial" ? <MoonIcon aria-hidden="true" size={18} weight="bold" /> : <SunIcon aria-hidden="true" size={18} weight="bold" />}
+            {theme === "night" ? <SunIcon aria-hidden="true" size={18} weight="bold" /> : <MoonIcon aria-hidden="true" size={18} weight="bold" />}
           </button>
         </div>
       </nav>
 
       <nav className="mobile-bottom-navigation" aria-label="移动端主导航">
-        <NavLink className={pathname === "/today" ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/today"><HouseIcon aria-hidden="true" size={21} weight="bold" /><span>今日</span></NavLink>
-        <NavLink className={pathname === "/write" ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/write"><BookOpenIcon aria-hidden="true" size={21} weight="bold" /><span>日记</span></NavLink>
-        <NavLink className={algorithmTrainingActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/algorithms"><TreeStructureIcon aria-hidden="true" size={21} weight="bold" /><span>算法</span></NavLink>
-        <NavLink className={interviewTrainingActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} to="/interview"><PlayCircleIcon aria-hidden="true" size={21} weight="fill" /><span>训练</span></NavLink>
-        <button className={moreActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} aria-expanded={moreOpen} aria-haspopup="dialog" onClick={() => setMoreOpen(true)} type="button"><DotsThreeIcon aria-hidden="true" size={21} weight="bold" /><span>更多</span></button>
+        <NavLink className={pathname === "/today" ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} onClick={activeTabClick(pathname === "/today")} to="/today"><HouseIcon aria-hidden="true" size={20} weight="regular" /><span>今日</span></NavLink>
+        <NavLink className={interviewTrainingActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} onClick={activeTabClick(interviewTrainingActive)} to="/interview"><BookOpenIcon aria-hidden="true" size={20} weight="regular" /><span>八股</span></NavLink>
+        <NavLink className={diaryActive ? "mobile-nav-link mobile-nav-diary mobile-nav-link-active" : "mobile-nav-link mobile-nav-diary"} onClick={activeTabClick(diaryActive)} to="/diary"><i><PlusIcon aria-hidden="true" size={22} weight="bold" /></i><span>日记</span></NavLink>
+        <NavLink className={algorithmTrainingActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} onClick={activeTabClick(algorithmTrainingActive)} to="/algorithms"><TreeStructureIcon aria-hidden="true" size={20} weight="regular" /><span>算法</span></NavLink>
+        <NavLink className={pathname === "/me" ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} onClick={activeTabClick(pathname === "/me")} to="/me"><UserCircleIcon aria-hidden="true" size={20} weight="regular" /><span>我的</span></NavLink>
       </nav>
-      <MobileMoreSheet open={moreOpen} reviewEnabled={questionReviewEnabled} onClose={() => setMoreOpen(false)} />
     </>
   );
 }

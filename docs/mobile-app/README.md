@@ -1,6 +1,8 @@
 # 学习日记 · 个人 iPhone 学习 App
 
-版本：2026-09-06 / 产品经理提案，尚未实施。
+版本：2026-09-07 / 移动集成候选版。
+
+当前 A–E 移动端工作已集成到 `codex/mobile-integration`。在 iPhone 上启动、安装和刷题请先阅读 [iPhone 使用教程](IPHONE_USAGE_GUIDE.md)；真实设备结果记录在 [iPhone HTTPS PWA 验收表](IPHONE_ACCEPTANCE.md)。本文其余“当前 demo”描述保留为最初评审依据。
 
 ## 目标与范围
 
@@ -8,7 +10,7 @@
 
 已确认：个人自用；主要设备为 iPhone；不扩展多用户、复杂权限、高并发或商业化系统。保留模型密钥在服务端、个人数据不进入公开 GitHub、可恢复备份这些基础操作即可。
 
-建议默认：保留现有 React + TypeScript + Vite / FastAPI 技术栈和 SQLite。第一阶段交付可添加到 iPhone 主屏幕的 PWA；这需要一个手机可访问的 HTTPS 服务，不能把电脑 localhost 当成随时可用的地址。后端要在客户希望使用的时段可访问。若以后明确需要 TestFlight 或 App Store 分发，再评估 Capacitor 打包；本阶段不承诺商店上架或原生应用安装包。
+当前方案保留 React + TypeScript + Vite / FastAPI 技术栈；本地开发继续用 SQLite，线上数据改用 Supabase PostgreSQL，前后端分别部署到 Cloudflare 和 Render。第一阶段交付可添加到 iPhone 主屏幕的 PWA。若以后明确需要 TestFlight 或 App Store 分发，再评估 Capacitor 打包；本阶段不承诺商店上架或原生应用安装包。
 
 输入默认采用文字 + iPhone 键盘语音。客户尚未明确要求应用内录音为首发必需，独立录音、转写、重录暂列后续增强。LLM 核对需要联网；第一阶段离线保障本机草稿，不承诺完整离线题库或离线评分。
 
@@ -105,4 +107,4 @@ ins 感来自色彩、留白和排版：暖白或非常浅的灰绿背景，墨�
 - [MDN：SpeechRecognition](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition)：浏览器语音识别仍有限制，不能把现有 Web Speech API 当成 iPhone 已验收能力。
 - [Capacitor 官方文档](https://capacitorjs.com/docs)：后续可复用 Web 工程构建 iOS / Android 应用，但原生打包是单独交付阶段。
 
-PWA 优先、保留 SQLite 和暂缓应用内录音，是结合现有代码与个人使用范围作出的产品建议，并非客户已确认的所有实现细节。
+PWA 优先、本地保留 SQLite 和暂缓应用内录音，是结合现有代码与个人使用范围作出的产品建议；线上数据库已按客户选择改为 Supabase PostgreSQL。

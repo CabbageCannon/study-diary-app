@@ -38,4 +38,11 @@
   .mobile-bottom-navigation {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
+
+  .mobile-nav-link { gap: 1px; align-content: center; }
+  .mobile-nav-diary { overflow: visible; background: transparent !important; }
+  .mobile-nav-diary > i { display: grid; width: 43px; height: 34px; place-items: center; border-radius: 11px; background: var(--ink); color: var(--paper-strong); box-shadow: 0 5px 16px color-mix(in srgb, var(--ink) 18%, transparent); transform: translateY(-4px); transition: transform 120ms ease-out, background-color 180ms ease-out; }
+  .mobile-nav-diary > span { transform: translateY(-2px); }
+  .mobile-nav-diary:active > i { transform: translateY(-4px) scale(.92); }
+  .mobile-nav-diary.mobile-nav-link-active > i { background: var(--accent); color: white; }
 }

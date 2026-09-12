@@ -1,8 +1,9 @@
 from datetime import date as date_type
 from datetime import datetime
 from typing import Any, Literal
+from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator, model_validator
 
 
 class DiaryCreate(BaseModel):
@@ -109,6 +110,12 @@ class DiarySave(BaseModel):
     polished_text: str
     summary: str
     tags: list[str]
+    category: Literal["learning", "life"] = "learning"
+    status: Literal["draft", "published"] = "published"
+    images: list[str] = Field(default_factory=list, max_length=4)
+    weather: str | None = Field(default=None, max_length=80)
+    location: str | None = Field(default=None, max_length=120)
+    is_pinned: bool = False
 
     @field_validator("date")
     @classmethod
@@ -129,6 +136,38 @@ class DiarySave(BaseModel):
     def normalize_tags(cls, value: Any) -> list[str]:
         return PolishedDiary.normalize_tags(value)
 
+    @field_validator("images")
+    @classmethod
+    def validate_images(cls, value: list[str]) -> list[str]:
+        if any(not image.startswith("data:image/") for image in value):
+            raise ValueError("images 只接受图片 data URL")
+        return value
+
+
+class DiaryUpdate(BaseModel):
+    date: str | None = None
+    title: str | None = Field(default=None, max_length=160)
+    raw_text: str | None = None
+    polished_text: str | None = None
+    summary: str | None = None
+    tags: list[str] | None = None
+    category: Literal["learning", "life"] | None = None
+    status: Literal["draft", "published"] | None = None
+    images: list[str] | None = Field(default=None, max_length=4)
+    weather: str | None = Field(default=None, max_length=80)
+    location: str | None = Field(default=None, max_length=120)
+    is_pinned: bool | None = None
+
+    @field_validator("date")
+    @classmethod
+    def validate_optional_date(cls, value: str | None) -> str | None:
+        return DiaryCreate.validate_date(value) if value is not None else value
+
+    @field_validator("images")
+    @classmethod
+    def validate_optional_images(cls, value: list[str] | None) -> list[str] | None:
+        return DiarySave.validate_images(value) if value is not None else value
+
 
 class DiaryRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -140,6 +179,12 @@ class DiaryRead(BaseModel):
     polished_text: str
     summary: str
     tags: list[str]
+    category: Literal["learning", "life"]
+    status: Literal["draft", "published"]
+    images: list[str]
+    weather: str | None
+    location: str | None
+    is_pinned: bool
     created_at: datetime
     updated_at: datetime
 
@@ -393,6 +438,12 @@ AlgorithmTrainingMode = Literal[
 AlgorithmSessionStatus = Literal["in_progress", "completed", "abandoned"]
 AlgorithmSessionItemStatus = Literal["pending", "in_progress", "solved", "needs_review", "skipped"]
 AlgorithmAttemptResult = Literal["solved", "partially_solved", "failed", "gave_up"]
+AlgorithmReasoningConclusion = Literal["correct", "partially_correct", "critical_error", "insufficient_context"]
+AlgorithmReasoningSaveStatus = Literal["saved", "save_failed"]
+AlgorithmReasoningCheckStatus = Literal["not_attempted", "completed", "failed", "context_unavailable"]
+AlgorithmReasoningIssueType = Literal["key_error", "missing", "unclear"]
+AlgorithmReasoningCounterexampleKind = Literal["counterexample", "followup", "none"]
+AlgorithmComplexityVerdict = Literal["correct", "incorrect", "partially_correct", "not_stated"]
 
 
 class AlgorithmPracticeSessionCreate(BaseModel):
@@ -443,6 +494,288 @@ class AlgorithmAttemptCreate(BaseModel):
         if value is None:
             return None
         return value.strip()
+
+
+class AlgorithmReasoningInputOutput(BaseModel):
+    input: str = Field(min_length=1, max_length=500)
+    output: str = Field(min_length=1, max_length=500)
+
+
+class AlgorithmReasoningExample(BaseModel):
+    input: str = Field(min_length=1, max_length=500)
+    output: str = Field(min_length=1, max_length=500)
+    explanation: str | None = Field(default=None, max_length=800)
+
+
+class AlgorithmReasoningVerificationPoint(BaseModel):
+    id: str = Field(min_length=4, max_length=80, pattern=r"^vp-[a-z0-9][a-z0-9-]*$")
+    kind: Literal["key_insight", "correctness_condition", "complexity", "edge_case"]
+    statement: str = Field(min_length=1, max_length=500)
+    required: bool
+    acceptable_variants: list[str] = Field(default_factory=list, max_length=8)
+
+    @field_validator("acceptable_variants")
+    @classmethod
+    def normalize_variants(cls, values: list[str]) -> list[str]:
+        return [item.strip() for item in values if item.strip()]
+
+
+class AlgorithmReasoningAcceptableApproach(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    idea: str = Field(min_length=1, max_length=800)
+    time_complexity: str = Field(min_length=1, max_length=80)
+    space_complexity: str = Field(min_length=1, max_length=80)
+    is_reference: bool = False
+    note: str | None = Field(default=None, max_length=500)
+
+
+class AlgorithmReasoningCommonMistake(BaseModel):
+    description: str = Field(min_length=1, max_length=500)
+    counterexample: str | None = Field(default=None, max_length=500)
+
+
+class AlgorithmReasoningEdgeCase(BaseModel):
+    description: str = Field(min_length=1, max_length=400)
+    expected_handling: str = Field(min_length=1, max_length=500)
+
+
+class AlgorithmReasoningSource(BaseModel):
+    name: str = Field(min_length=1, max_length=240)
+    url: str = Field(min_length=1, max_length=600)
+    license_note: str = Field(min_length=1, max_length=240)
+    source_version: str = Field(min_length=1, max_length=240)
+
+
+class AlgorithmProblemContextSeed(BaseModel):
+    schema_version: Literal[1]
+    problem_key: str = Field(min_length=1, max_length=160)
+    title: str | None = Field(default=None, max_length=320)
+    title_zh: str = Field(min_length=1, max_length=320)
+    statement_zh: str = Field(min_length=20, max_length=2000)
+    input_output: AlgorithmReasoningInputOutput
+    constraints: list[str] = Field(min_length=1, max_length=20)
+    examples: list[AlgorithmReasoningExample] = Field(min_length=1, max_length=8)
+    verification_points: list[AlgorithmReasoningVerificationPoint] = Field(min_length=1, max_length=20)
+    acceptable_approaches: list[AlgorithmReasoningAcceptableApproach] = Field(min_length=1, max_length=12)
+    common_mistakes: list[AlgorithmReasoningCommonMistake] = Field(default_factory=list, max_length=12)
+    edge_cases: list[AlgorithmReasoningEdgeCase] = Field(default_factory=list, max_length=12)
+    source: AlgorithmReasoningSource
+    content_notes: str | None = Field(default=None, max_length=1000)
+    content_status: Literal["draft", "ready"]
+
+    @field_validator("problem_key", "title", "title_zh", "statement_zh", "constraints", "content_notes")
+    @classmethod
+    def normalize_context_text(cls, value: Any) -> Any:
+        if isinstance(value, str):
+            value = value.strip()
+            if not value:
+                raise ValueError("文本字段不能为空")
+        if isinstance(value, list):
+            value = [str(item).strip() for item in value if str(item).strip()]
+        return value
+
+    @field_validator("verification_points")
+    @classmethod
+    def validate_unique_verification_point_ids(
+        cls, values: list[AlgorithmReasoningVerificationPoint]
+    ) -> list[AlgorithmReasoningVerificationPoint]:
+        ids = [item.id for item in values]
+        if len(ids) != len(set(ids)):
+            raise ValueError("verification_points.id 必须在文件内唯一")
+        return values
+
+    @field_validator("acceptable_approaches")
+    @classmethod
+    def validate_single_reference(
+        cls, values: list[AlgorithmReasoningAcceptableApproach]
+    ) -> list[AlgorithmReasoningAcceptableApproach]:
+        if sum(item.is_reference for item in values) != 1:
+            raise ValueError("acceptable_approaches 必须恰好包含一个 is_reference=true")
+        return values
+
+
+class AlgorithmProblemContextRead(AlgorithmProblemContextSeed):
+    content_version: int
+    content_hash: str
+    content_updated_at: datetime
+
+
+class AlgorithmProblemReasoningContextResponse(BaseModel):
+    problem_id: str
+    reasoning_available: bool
+    context: AlgorithmProblemContextRead | None = None
+
+
+class AlgorithmReasoningAnswerDetails(BaseModel):
+    time_complexity: str | None = Field(default=None, max_length=160)
+    space_complexity: str | None = Field(default=None, max_length=160)
+    code: str | None = Field(default=None, max_length=40_000)
+    notes: str | None = Field(default=None, max_length=8_000)
+
+    @field_validator("time_complexity", "space_complexity", "code", "notes")
+    @classmethod
+    def trim_optional_detail(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        return value or None
+
+
+class AlgorithmReasoningAnswerCreate(BaseModel):
+    problem_id: str = Field(min_length=1, max_length=160)
+    session_id: str | None = Field(default=None, max_length=36)
+    revision_of_answer_id: int | None = Field(default=None, ge=1)
+    answer_text: str = Field(min_length=1, max_length=12_000)
+    answer_source: Literal["voice", "text"] = "text"
+    details: AlgorithmReasoningAnswerDetails = Field(default_factory=AlgorithmReasoningAnswerDetails)
+    client_answer_id: str
+    duration_seconds: int | None = Field(default=None, ge=0, le=86_400)
+
+    @field_validator("answer_text")
+    @classmethod
+    def normalize_answer_text(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("answer_text 不能为空")
+        return value
+
+    @field_validator("client_answer_id")
+    @classmethod
+    def validate_client_answer_id(cls, value: str) -> str:
+        return str(UUID(value.strip()))
+
+
+class AlgorithmReasoningCheckCreate(AlgorithmReasoningAnswerCreate):
+    pass
+
+
+class AlgorithmReasoningRecheckRequest(BaseModel):
+    refresh: bool = False
+
+
+class AlgorithmReasoningAnswerRead(BaseModel):
+    answer_id: int
+    problem_id: str
+    session_id: str | None
+    version: int
+    revision_of_answer_id: int | None
+    answer_text: str
+    answer_source: Literal["voice", "text"]
+    details: AlgorithmReasoningAnswerDetails
+    client_answer_id: str
+    save_status: Literal["saved"] = "saved"
+    check_status: AlgorithmReasoningCheckStatus
+    saved_at: datetime
+    checked_at: datetime | None
+
+
+class AlgorithmReasoningQuotedPoint(BaseModel):
+    point: str = Field(min_length=1, max_length=600)
+    quote: str | None = Field(default=None, max_length=500)
+
+
+class AlgorithmReasoningIssue(BaseModel):
+    type: AlgorithmReasoningIssueType
+    detail: str = Field(min_length=1, max_length=800)
+    quote: str | None = Field(default=None, max_length=500)
+    verification_point_id: str | None = Field(default=None, max_length=80)
+
+
+class AlgorithmReasoningCounterexample(BaseModel):
+    kind: AlgorithmReasoningCounterexampleKind
+    content: str | None = Field(default=None, max_length=1000)
+
+
+class AlgorithmReasoningComplexityItem(BaseModel):
+    user_claim: str | None = Field(default=None, max_length=160)
+    assessment: AlgorithmComplexityVerdict
+    expected: str | None = Field(default=None, max_length=160)
+    note: str | None = Field(default=None, max_length=500)
+
+
+class AlgorithmReasoningComplexity(BaseModel):
+    time: AlgorithmReasoningComplexityItem
+    space: AlgorithmReasoningComplexityItem
+
+
+class AlgorithmReasoningFeedbackModel(BaseModel):
+    conclusion: AlgorithmReasoningConclusion
+    context_sufficient: bool
+    accuracy_score: int = Field(ge=0, le=100)
+    headline: str = Field(min_length=1, max_length=120)
+    correct_parts: list[AlgorithmReasoningQuotedPoint] = Field(default_factory=list, max_length=12)
+    issues_or_missing: list[AlgorithmReasoningIssue] = Field(default_factory=list, max_length=12)
+    counterexample_or_followup: AlgorithmReasoningCounterexample
+    complexity: AlgorithmReasoningComplexity
+    alternative_approaches_accepted: list[str] = Field(default_factory=list, max_length=8)
+    reference_outline: str = Field(default="", max_length=2000)
+    needs_review: bool = True
+    followup_for_supplement: str | None = Field(default=None, max_length=500)
+
+    @model_validator(mode="before")
+    @classmethod
+    def default_accuracy_score(cls, value: Any) -> Any:
+        if isinstance(value, dict) and value.get("accuracy_score") is None and value.get("conclusion"):
+            value = dict(value)
+            value["accuracy_score"] = {
+                "correct": 100,
+                "partially_correct": 65,
+                "critical_error": 20,
+                "insufficient_context": 0,
+            }.get(value.get("conclusion"), 0)
+        return value
+
+    def model_post_init(self, __context: Any) -> None:
+        if self.conclusion == "insufficient_context" and self.context_sufficient:
+            raise ValueError("insufficient_context 必须设置 context_sufficient=false")
+        if self.conclusion != "insufficient_context" and not self.context_sufficient:
+            raise ValueError("context_sufficient=false 只能用于 insufficient_context")
+        if self.conclusion == "critical_error" and not any(item.type == "key_error" for item in self.issues_or_missing):
+            raise ValueError("critical_error 至少需要一条 key_error")
+        if self.conclusion == "insufficient_context" and not any(item.type == "unclear" for item in self.issues_or_missing):
+            raise ValueError("insufficient_context 至少需要一条 unclear")
+        if self.conclusion in {"partially_correct", "insufficient_context"} and not self.followup_for_supplement:
+            raise ValueError("待补充或信息不足时必须提供 followup_for_supplement")
+        if self.counterexample_or_followup.kind != "none" and not self.counterexample_or_followup.content:
+            raise ValueError("反例或追问内容不能为空")
+        if self.counterexample_or_followup.kind == "none" and self.counterexample_or_followup.content:
+            raise ValueError("kind=none 时 content 必须为空")
+
+
+class AlgorithmReasoningFeedbackRead(AlgorithmReasoningFeedbackModel):
+    feedback_id: int
+    answer_id: int
+    model_name: str
+    prompt_version: str
+    context_version: int
+    created_at: datetime
+
+
+class AlgorithmReasoningRetry(BaseModel):
+    check_url: str
+    method: Literal["POST"] = "POST"
+
+
+class AlgorithmReasoningProblemContextSummary(BaseModel):
+    problem_id: str
+    content_version: int | None = None
+    reasoning_available: bool
+
+
+class AlgorithmReasoningCheckResponse(BaseModel):
+    save_status: AlgorithmReasoningSaveStatus
+    check_status: AlgorithmReasoningCheckStatus
+    answer: AlgorithmReasoningAnswerRead | None = None
+    feedback: AlgorithmReasoningFeedbackRead | None = None
+    save_error: str | None = None
+    check_error: str | None = None
+    retry: AlgorithmReasoningRetry | None = None
+    problem_context: AlgorithmReasoningProblemContextSummary | None = None
+
+
+class AlgorithmReasoningAnswerDetailRead(BaseModel):
+    answer: AlgorithmReasoningAnswerRead
+    feedback: AlgorithmReasoningFeedbackRead | None = None
 
 
 class AlgorithmAttemptUpdate(BaseModel):
@@ -580,6 +913,21 @@ class AlgorithmReviewScheduleRead(BaseModel):
     mastery_level: int
     reason: str
     last_attempt: AlgorithmAttemptRead | None = None
+
+
+class AlgorithmReviewCandidateRead(BaseModel):
+    problem: AlgorithmProblemRead
+    last_attempt: AlgorithmAttemptRead
+    last_practiced_at: datetime
+    accuracy_score: int
+    status: AlgorithmSessionItemStatus
+    next_review_at: datetime | None = None
+    reason: str
+
+
+class AlgorithmReviewSessionCreate(BaseModel):
+    problem_ids: list[int] = Field(default_factory=list, max_length=20)
+    count: int = Field(default=5, ge=1, le=20)
 
 
 class AlgorithmStatsRead(BaseModel):
@@ -728,6 +1076,7 @@ class AnswerEvaluation(BaseModel):
 QuestionSetStatus = Literal["in_progress", "completed", "abandoned"]
 QuestionSetItemStatus = Literal["pending", "answered", "skipped"]
 AnswerSource = Literal["voice", "text"]
+InterviewEvaluationStatus = Literal["processing", "completed", "failed"]
 
 
 class InterviewQuestionReviewUpdate(BaseModel):
@@ -910,6 +1259,8 @@ class InterviewAnswerRead(BaseModel):
     answer_text: str
     answer_source: AnswerSource
     duration_seconds: int | None
+    evaluation_status: InterviewEvaluationStatus
+    evaluation_error: str | None
     created_at: datetime
     updated_at: datetime
 
@@ -932,7 +1283,7 @@ class InterviewAnswerCreate(BaseModel):
 class InterviewAnswerSubmissionRead(BaseModel):
     answer: InterviewAnswerRead
     evaluation: InterviewEvaluationRead | None = None
-    evaluation_status: Literal["completed", "failed"]
+    evaluation_status: InterviewEvaluationStatus
     evaluation_error: str | None = None
     next_review_at: datetime | None = None
 
@@ -1147,3 +1498,65 @@ class DesktopPetControlState(BaseModel):
 
 class ShowDesktopPetResponse(DesktopPetControlState):
     pass
+
+
+class PushSubscriptionCreate(BaseModel):
+    endpoint: str = Field(min_length=1, max_length=4096)
+    p256dh: str = Field(min_length=1, max_length=1024)
+    auth: str = Field(min_length=1, max_length=512)
+    enabled: bool = True
+    reminder_time: str = "21:30"
+    timezone: str = Field(default="Asia/Shanghai", min_length=1, max_length=80)
+    interview_goal: int = Field(default=3, ge=0, le=50)
+    algorithm_goal: int = Field(default=3, ge=0, le=50)
+    include_diary: bool = True
+    include_review: bool = True
+
+    @field_validator("reminder_time")
+    @classmethod
+    def validate_reminder_time(cls, value: str) -> str:
+        try:
+            hour, minute = (int(part) for part in value.split(":"))
+        except (TypeError, ValueError) as exc:
+            raise ValueError("reminder_time 必须使用 HH:MM") from exc
+        if not (0 <= hour <= 23 and 0 <= minute <= 59):
+            raise ValueError("reminder_time 必须使用有效的 HH:MM")
+        return f"{hour:02d}:{minute:02d}"
+
+
+class PushSubscriptionUpdate(BaseModel):
+    enabled: bool
+    reminder_time: str
+    timezone: str = Field(min_length=1, max_length=80)
+    interview_goal: int = Field(ge=0, le=50)
+    algorithm_goal: int = Field(ge=0, le=50)
+    include_diary: bool
+    include_review: bool
+
+    @field_validator("reminder_time")
+    @classmethod
+    def validate_reminder_time(cls, value: str) -> str:
+        return PushSubscriptionCreate.validate_reminder_time(value)
+
+
+class PushSubscriptionRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    enabled: bool
+    reminder_time: str
+    timezone: str
+    interview_goal: int
+    algorithm_goal: int
+    include_diary: bool
+    include_review: bool
+
+
+class PushPublicKeyRead(BaseModel):
+    public_key: str
+
+
+class ReminderDispatchRead(BaseModel):
+    checked: int
+    sent: int
+    disabled: int
