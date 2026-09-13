@@ -120,7 +120,7 @@ export function ThemeSwitcher() {
       ref={buttonRef}
       type="button"
     >
-      <PaletteIcon aria-hidden="true" size={21} />
+      <PaletteIcon aria-hidden="true" size={24} />
     </button>
   </>;
 }
