@@ -186,6 +186,13 @@ export function requestAlgorithmHint(id: number, hintLevel: number, approach: st
   });
 }
 
+export function requestAlgorithmProblemHint(problemId: number | string, hintLevel: number, approach: string) {
+  return request<AlgorithmHintRead>(`/api/algorithms/problems/${problemId}/hint`, {
+    method: "POST",
+    body: JSON.stringify({ hint_level: hintLevel, approach }),
+  });
+}
+
 export function requestAlgorithmAiReview(id: number) {
   return request<AlgorithmAttempt>(`/api/algorithms/attempts/${id}/ai-review`, { method: "POST" });
 }

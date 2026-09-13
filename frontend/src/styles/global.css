@@ -4830,6 +4830,9 @@ html[data-theme="night"] .date-picker-day-selected:focus-visible {
 .hint-controls button:hover:not(:disabled) { background: var(--accent-wash); }
 .hint-controls button:active:not(:disabled) { transform: scale(0.98); }
 .hint-controls button:disabled { cursor: not-allowed; opacity: 0.52; }
+.hint-panel summary { display: flex; align-items: center; gap: 7px; }
+.hint-panel .hint-controls button { display: flex; align-items: center; justify-content: center; gap: 5px; }
+.hint-panel .hint-controls button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-wash); }
 .algorithm-custom-problem-picker select { min-height: 112px; }
 .algorithm-custom-problem-picker small { color: var(--ink-muted); font-size: 0.72rem; font-weight: 500; }
 .ai-response-block,

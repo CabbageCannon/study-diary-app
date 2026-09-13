@@ -5,6 +5,7 @@ import { ArrowLeftIcon } from "@phosphor-icons/react/ArrowLeft";
 import { ArrowRightIcon } from "@phosphor-icons/react/ArrowRight";
 import { CheckIcon } from "@phosphor-icons/react/Check";
 import { FlagIcon } from "@phosphor-icons/react/Flag";
+import { LightbulbIcon } from "@phosphor-icons/react/Lightbulb";
 import { PauseIcon } from "@phosphor-icons/react/Pause";
 import { PlayIcon } from "@phosphor-icons/react/Play";
 import { SkipForwardIcon } from "@phosphor-icons/react/SkipForward";
@@ -15,6 +16,7 @@ import {
   completeAlgorithmSession,
   getAlgorithmSession,
   peekAlgorithmSession,
+  requestAlgorithmProblemHint,
   skipAlgorithmSessionProblem,
   updateAlgorithmSessionProgress,
 } from "../api/algorithms";
@@ -117,6 +119,10 @@ export function AlgorithmSessionPage() {
   const [contextError, setContextError] = useState("");
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
   const [fixtureEnabled, setFixtureEnabled] = useState(() => isAlgorithmReasoningFixtureEnabled());
+  const [hints, setHints] = useState<Record<number, string>>({});
+  const [activeHintLevel, setActiveHintLevel] = useState(0);
+  const [pendingHintLevel, setPendingHintLevel] = useState(0);
+  const [hintError, setHintError] = useState("");
   const currentProblemIdRef = useRef<number | null>(null);
   const currentItem = session?.items[session.current_index] ?? null;
   const effectiveSessionId = session?.id || sessionId || "pending";
@@ -126,6 +132,7 @@ export function AlgorithmSessionPage() {
   const problemKey = currentItem?.problem.stable_key || (currentItem ? String(currentItem.problem_id) : "");
   const context = contextResponse?.context ?? null;
   const isFeedbackStale = Boolean(reasoningResult?.answer && draftState.draft.approach.trim() !== reasoningResult.answer.answer_text.trim());
+  const activeHint = hints[activeHintLevel] ?? "";
   const canMovePrevious = Boolean(session && session.current_index > 0);
   const canMoveNext = Boolean(session && session.current_index < session.items.length - 1);
   const canCheck = Boolean(currentItem && session?.status === "in_progress" && draftState.draft.approach.trim() && draftState.draft.clientAnswerId && !isChecking && isOnline);
@@ -147,6 +154,13 @@ export function AlgorithmSessionPage() {
 
   useEffect(() => {
     currentProblemIdRef.current = currentItem?.problem_id ?? null;
+  }, [currentItem?.problem_id]);
+
+  useEffect(() => {
+    setHints({});
+    setActiveHintLevel(0);
+    setPendingHintLevel(0);
+    setHintError("");
   }, [currentItem?.problem_id]);
 
   useEffect(() => {
@@ -274,6 +288,29 @@ export function AlgorithmSessionPage() {
       } satisfies AlgorithmReasoningCheckResponse;
     } catch {
       return null;
+    }
+  }
+
+  async function getHint(level: number) {
+    const problemId = currentItem?.problem_id;
+    if (!problemId || pendingHintLevel) return;
+    if (hints[level]) {
+      setActiveHintLevel(level);
+      setHintError("");
+      return;
+    }
+    setPendingHintLevel(level);
+    setHintError("");
+    try {
+      const result = await requestAlgorithmProblemHint(problemId, level, draftState.draft.approach);
+      if (currentProblemIdRef.current !== problemId) return;
+      setHints((value) => ({ ...value, [result.hint_level]: result.content }));
+      setActiveHintLevel(result.hint_level);
+    } catch (hintLoadError) {
+      if (currentProblemIdRef.current !== problemId) return;
+      setHintError(hintLoadError instanceof Error ? hintLoadError.message : "AI 提示暂时不可用，可以稍后重试。");
+    } finally {
+      setPendingHintLevel(0);
     }
   }
 
@@ -550,6 +587,17 @@ export function AlgorithmSessionPage() {
               <div className="form-two-columns"><label className="form-field"><span>时间复杂度</span><input onChange={(event) => draftState.setDraft((value) => ({ ...value, timeComplexity: event.target.value }))} placeholder="例如 O(n)" value={draftState.draft.timeComplexity} /></label><label className="form-field"><span>空间复杂度</span><input onChange={(event) => draftState.setDraft((value) => ({ ...value, spaceComplexity: event.target.value }))} placeholder="例如 O(n)" value={draftState.draft.spaceComplexity} /></label></div>
               <label className="form-field"><span>边界和备注</span><textarea onChange={(event) => draftState.setDraft((value) => ({ ...value, reflection: event.target.value }))} value={draftState.draft.reflection} /></label>
               <label className="form-field"><span>代码文本</span><textarea className="algorithm-code-input" onChange={(event) => draftState.setDraft((value) => ({ ...value, code: event.target.value }))} spellCheck={false} value={draftState.draft.code} /></label>
+            </details>
+            <details className="mobile-entry-details hint-panel">
+              <summary><LightbulbIcon aria-hidden="true" size={16} weight="fill" />渐进提示</summary>
+              <div className="hint-controls">
+                <span>卡住时可以分级求助，提示不会直接给出完整答案。</span>
+                {[1, 2, 3, 4].map((level) => (
+                  <button aria-pressed={activeHintLevel === level} disabled={!isOnline || pendingHintLevel > 0} key={level} onClick={() => void getHint(level)} type="button">{pendingHintLevel === level ? <SpinnerGapIcon aria-hidden="true" className="action-spinner" size={13} /> : null}提示 {level}</button>
+                ))}
+              </div>
+              {hintError ? <p className="field-error" role="alert">{hintError}</p> : null}
+              {activeHint ? <div className="ai-response-block"><LightbulbIcon aria-hidden="true" size={18} weight="fill" /><p>{activeHint}</p></div> : null}
             </details>
           </section>
 
