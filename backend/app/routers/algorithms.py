@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.llm import LLMError
+from app.llm import LLMError, generate_algorithm_hint
 from app.repositories.algorithm_practice_repository import get_problem, list_attempts
 from app.repositories.algorithm_repository import get_by_identifier
 from app.schemas import (
@@ -24,6 +24,7 @@ from app.schemas import (
     AlgorithmPracticeSessionProgressUpdate,
     AlgorithmPracticeSessionRead,
     AlgorithmPracticeSessionSummary,
+    AlgorithmProblemHintRequest,
     AlgorithmProblemRead,
     AlgorithmProblemReasoningContextResponse,
     AlgorithmReasoningAnswerCreate,
@@ -365,6 +366,37 @@ def get_algorithm_stats(db: Session = Depends(get_db)) -> AlgorithmStatsRead:
 @router.get("/weaknesses", response_model=list[AlgorithmWeaknessRead])
 def get_algorithm_weaknesses(db: Session = Depends(get_db)) -> list[AlgorithmWeaknessRead]:
     return algorithm_weaknesses(db)
+
+
+@router.post(
+    "/problems/{problem_id}/hint",
+    response_model=AlgorithmHintRead,
+)
+async def get_algorithm_problem_hint(
+    problem_id: str,
+    payload: AlgorithmProblemHintRequest,
+    db: Session = Depends(get_db),
+) -> AlgorithmHintRead:
+    """按题目取渐进提示。不写库、不依赖 AlgorithmAttempt，核对之前也能用。"""
+
+    try:
+        problem = get_by_identifier(db, problem_id)
+        if problem is None:
+            raise AlgorithmPracticeError("算法题不存在。")
+        content = await generate_algorithm_hint(
+            problem=problem,
+            approach=payload.approach,
+            hint_level=payload.hint_level,
+        )
+    except AlgorithmPracticeError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except LLMError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="AI 提示暂时不可用，可以稍后重试；你的思路草稿留在本机，不会丢失。") from exc
+    return AlgorithmHintRead(
+        hint_level=payload.hint_level,
+        content=content,
+        remaining_hint_levels=max(0, 4 - payload.hint_level),
+    )
 
 
 @router.get(

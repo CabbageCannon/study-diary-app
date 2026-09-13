@@ -823,6 +823,13 @@ class AlgorithmHintRequest(BaseModel):
     approach: str = Field(default="", max_length=8_000)
 
 
+class AlgorithmProblemHintRequest(BaseModel):
+    """按题目请求提示，不依赖 AlgorithmAttempt：核对之前也可以求助。"""
+
+    hint_level: int = Field(ge=1, le=4)
+    approach: str = Field(default="", max_length=8_000)
+
+
 class AlgorithmHintRead(BaseModel):
     hint_level: int
     content: str

@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
+from starlette.requests import Request
 
 from app import database
 from app.database import Base, get_db
@@ -14,6 +15,7 @@ from app.llm import LLMError
 from app.main import app
 from app.models import AlgorithmAttempt, AlgorithmDailyFeed, AlgorithmProblem, AlgorithmProblemProgress, AlgorithmReasoningFeedback, AlgorithmReviewSchedule
 from app.schemas import AlgorithmAIReview
+from app.security import is_ai_request
 from app.services.algorithm_practice_service import get_daily_feed, utc_now
 from app.services.data_import_service import import_algorithms
 
@@ -362,3 +364,103 @@ class AlgorithmPracticeApiTests(unittest.TestCase):
             selected = [feed["primary_problem"], *feed["extra_problems"]]
             self.assertTrue(any(problem["difficulty"] == "medium" for problem in selected))
             self.assertIn("相邻难度", feed["warning"])
+
+
+async def hint_content(*_args: object, **_kwargs: object) -> str:
+    return "先想清楚要查找什么，再决定用什么结构保存已经见过的信息。"
+
+
+async def hint_failure(*_args: object, **_kwargs: object) -> str:
+    raise LLMError("simulated outage")
+
+
+class AlgorithmProblemHintApiTests(unittest.TestCase):
+    """渐进提示按题目取用，不依赖 AlgorithmAttempt，也不写库。"""
+
+    def setUp(self) -> None:
+        self.engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+        Base.metadata.create_all(self.engine)
+        self.session = Session(self.engine)
+        import_algorithms(self.session, CATALOG_PATH)
+        self.problem_id = self.session.query(AlgorithmProblem).order_by(AlgorithmProblem.id).first().id
+
+        def override_db():
+            yield self.session
+
+        app.dependency_overrides[get_db] = override_db
+        self.client = TestClient(app)
+
+    def tearDown(self) -> None:
+        app.dependency_overrides.clear()
+        self.client.close()
+        self.session.close()
+
+    def test_hint_works_before_any_attempt_and_returns_remaining_levels(self) -> None:
+        self.assertEqual(self.session.query(AlgorithmAttempt).count(), 0)
+
+        with patch("app.routers.algorithms.generate_algorithm_hint", hint_content):
+            response = self.client.post(
+                f"/api/algorithms/problems/{self.problem_id}/hint",
+                json={"approach": "用哈希表记已经见过的数。", "hint_level": 2},
+            )
+
+        self.assertEqual(response.status_code, 200, response.text)
+        body = response.json()
+        self.assertEqual(body["hint_level"], 2)
+        self.assertEqual(body["remaining_hint_levels"], 2)
+        self.assertIn("已经见过的信息", body["content"])
+        self.assertEqual(self.session.query(AlgorithmAttempt).count(), 0)
+
+    def test_hint_passes_draft_approach_and_level_to_the_shared_llm_helper(self) -> None:
+        captured: dict[str, object] = {}
+
+        async def capture(*, problem: object, approach: str, hint_level: int) -> str:
+            captured.update(problem=problem, approach=approach, hint_level=hint_level)
+            return "先确认查找的目标是什么。"
+
+        with patch("app.routers.algorithms.generate_algorithm_hint", capture):
+            response = self.client.post(
+                "/api/algorithms/problems/leetcode-1/hint",
+                json={"approach": "我想先排序再用双指针。", "hint_level": 4},
+            )
+
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(captured["approach"], "我想先排序再用双指针。")
+        self.assertEqual(captured["hint_level"], 4)
+        self.assertEqual(captured["problem"].stable_key, "leetcode-1")
+        self.assertEqual(response.json()["remaining_hint_levels"], 0)
+
+    def test_hint_returns_404_for_unknown_problem(self) -> None:
+        with patch("app.routers.algorithms.generate_algorithm_hint", hint_content):
+            response = self.client.post(
+                "/api/algorithms/problems/not-in-catalog/hint",
+                json={"approach": "随便写点思路。", "hint_level": 1},
+            )
+
+        self.assertEqual(response.status_code, 404, response.text)
+
+    def test_hint_returns_503_without_touching_saved_records(self) -> None:
+        with patch("app.routers.algorithms.generate_algorithm_hint", hint_failure):
+            response = self.client.post(
+                f"/api/algorithms/problems/{self.problem_id}/hint",
+                json={"approach": "用哈希表。", "hint_level": 1},
+            )
+
+        self.assertEqual(response.status_code, 503, response.text)
+        self.assertIn("AI 提示暂时不可用", response.json()["detail"])
+        self.assertEqual(self.session.query(AlgorithmAttempt).count(), 0)
+
+    def test_hint_rejects_out_of_range_level(self) -> None:
+        for level in (0, 5):
+            with self.subTest(level=level):
+                response = self.client.post(
+                    f"/api/algorithms/problems/{self.problem_id}/hint",
+                    json={"approach": "用哈希表。", "hint_level": level},
+                )
+                self.assertEqual(response.status_code, 422, response.text)
+
+    def test_problem_hint_is_rate_limited_like_other_ai_routes(self) -> None:
+        request = Request(
+            {"type": "http", "method": "POST", "path": f"/api/algorithms/problems/{self.problem_id}/hint", "headers": []}
+        )
+        self.assertTrue(is_ai_request(request))
