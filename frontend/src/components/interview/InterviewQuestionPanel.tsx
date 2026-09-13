@@ -32,7 +32,7 @@ export function InterviewQuestionPanel({
         <span>{difficultyLabel[question.difficulty]}</span>
         <span>建议 {question.expected_duration_seconds} 秒</span>
       </div>
-      <h1 id="interview-question-title">{question.question}</h1>
+      <h1 className="copyable-text" id="interview-question-title">{question.question}</h1>
       <div className="question-tags" aria-label="题目标签">
         {question.tags.map((tag) => <span key={tag}>#{tag}</span>)}
       </div>

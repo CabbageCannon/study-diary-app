@@ -116,7 +116,7 @@ function AlgorithmAttemptDetail({ attempt, reasoning }: { attempt: AlgorithmAtte
   const legacyFeedback = attempt?.ai_feedback && "summary" in attempt.ai_feedback ? attempt.ai_feedback : null;
 
   return (
-    <div className="algorithm-history-attempt-detail">
+    <div className="algorithm-history-attempt-detail copyable-text">
       {attempt ? <div className="algorithm-history-attempt-meta"><span>{resultLabel(attempt.result)}</span><span className="tabular-number">{attempt.duration_seconds ? `${Math.ceil(attempt.duration_seconds / 60)} 分钟` : "未计时"}</span>{attempt.needs_review ? <span>已加入复习</span> : null}</div> : null}
       <section className="history-answer-section"><h4>我的回答</h4><p>{reasoning?.answer.answer_text || attempt?.approach || "未记录思路"}</p></section>
       {details?.time_complexity || attempt?.time_complexity ? <p><strong>时间复杂度</strong>{details?.time_complexity || attempt?.time_complexity}</p> : null}

@@ -35,7 +35,7 @@ export function InterviewEvaluationResult({ result }: InterviewEvaluationResultP
   const missingPoints = [...evaluation.incorrect_points, ...evaluation.missing_points].slice(0, 3);
 
   return (
-    <section className="evaluation-result" aria-live="polite" aria-labelledby="evaluation-title">
+    <section className="evaluation-result copyable-text" aria-live="polite" aria-labelledby="evaluation-title">
       <div className="evaluation-header">
         <div>
           <span className="pane-label">这次核对</span>

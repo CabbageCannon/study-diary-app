@@ -195,9 +195,9 @@ function HistorySetDetail({ questionSet }: { questionSet: InterviewQuestionSet }
         return (
           <article className="history-answer-item" key={item.id}>
             <div className="history-question-heading"><span className="pane-label">第 {item.order_index + 1} 题 · {itemStatusLabel(item.status)}</span><h3>{item.question.question}</h3></div>
-            <section className="history-answer-section"><h4>我的回答</h4>{item.latest_answer ? <p>{item.latest_answer.answer_text}</p> : <p className="history-answer-empty">{item.status === "skipped" ? "本题已跳过。" : "本题尚未作答。"}</p>}</section>
+            <section className="history-answer-section copyable-text"><h4>我的回答</h4>{item.latest_answer ? <p>{item.latest_answer.answer_text}</p> : <p className="history-answer-empty">{item.status === "skipped" ? "本题已跳过。" : "本题尚未作答。"}</p>}</section>
             {evaluation ? (
-              <section className="history-analysis-section">
+              <section className="history-analysis-section copyable-text">
                 <div className="history-analysis-heading"><h4>LLM 解析</h4><strong className="tabular-number">{evaluation.total_score} 分</strong></div>
                 {evaluation.matched_points.length ? <div><h5>回答到的要点</h5><ul>{evaluation.matched_points.map((point) => <li key={point}>{point}</li>)}</ul></div> : null}
                 {needsWork.length ? <div><h5>需要补充</h5><ul>{needsWork.map((point) => <li key={point}>{point}</li>)}</ul></div> : null}

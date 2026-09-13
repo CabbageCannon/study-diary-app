@@ -551,7 +551,7 @@ export function AlgorithmSessionPage() {
         {answerTasks.length ? <AlgorithmAnswerTaskTray tasks={answerTasks} isChecking={isChecking} onDismiss={(key) => setAnswerTasks((tasks) => tasks.filter((task) => task.key !== key))} onOpen={(task) => void openAnswerTask(task)} onRetry={(task) => void retryAnswerTask(task)} /> : null}
 
         <main className="algorithm-focus-stack">
-          <section className="algorithm-focus-problem" aria-labelledby="algorithm-problem-title">
+          <section className="algorithm-focus-problem copyable-text" aria-labelledby="algorithm-problem-title">
             <div className="problem-meta-row">
               <span className={`difficulty-badge difficulty-${currentItem.problem.difficulty}`}>{difficultyLabel(currentItem.problem.difficulty)}</span>
               {currentItem.problem.topics.slice(0, 3).map((topic) => <span className="topic-token" key={topic}>{topic}</span>)}
@@ -597,7 +597,7 @@ export function AlgorithmSessionPage() {
                 ))}
               </div>
               {hintError ? <p className="field-error" role="alert">{hintError}</p> : null}
-              {activeHint ? <div className="ai-response-block"><LightbulbIcon aria-hidden="true" size={18} weight="fill" /><p>{activeHint}</p></div> : null}
+              {activeHint ? <div className="ai-response-block copyable-text"><LightbulbIcon aria-hidden="true" size={18} weight="fill" /><p>{activeHint}</p></div> : null}
             </details>
           </section>
 
@@ -651,7 +651,7 @@ function ReasoningStatusPanel({
   const missing = feedback.issues_or_missing.slice(0, 3);
 
   return (
-    <section className="reasoning-feedback" aria-live="polite" aria-labelledby="reasoning-feedback-title">
+    <section className="reasoning-feedback copyable-text" aria-live="polite" aria-labelledby="reasoning-feedback-title">
       <span className="pane-label">这次核对</span>
       <h2 id="reasoning-feedback-title">{conclusionLabel(feedback.conclusion)}</h2>
       <p>{feedback.headline}</p>

@@ -102,6 +102,24 @@ body {
   overflow-x: hidden;
 }
 
+@media (max-width: 760px), (pointer: coarse) {
+  body {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  input,
+  textarea,
+  pre,
+  code,
+  [contenteditable]:not([contenteditable="false"]),
+  .copyable-text,
+  .copyable-text * {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+}
+
 .mobile-bottom-navigation {
   display: none;
 }
