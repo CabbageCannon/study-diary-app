@@ -21,7 +21,8 @@ __pycache__/
 .ruff_cache/
 .playwright-cli/
 .wrangler/
-output/playwright/
+output/
+.worktrees/
 *.log
 
 backend/data/*.db
