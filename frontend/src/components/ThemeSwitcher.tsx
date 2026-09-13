@@ -51,6 +51,8 @@ export function ThemeSwitcher() {
 
   function onPointerDown(event: ReactPointerEvent<HTMLButtonElement>) {
     if (event.pointerType === "mouse" && event.button !== 0) return;
+    // 触摸有浏览器隐式捕获，鼠标没有：不显式捕获的话，拖出按钮再松手收不到 pointerup，圆盘会卡住不关。
+    event.currentTarget.setPointerCapture(event.pointerId);
     suppressClick.current = false;
     const rect = event.currentTarget.getBoundingClientRect();
     centerRef.current = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
