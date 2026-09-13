@@ -58,3 +58,9 @@
   .theme-switcher.is-holding { transform: none; }
   .theme-disc { animation: none; }
 }
+
+/* 桌面宽度下侧栏已有同功能的主题按钮（.navigation 在 ≤760px 才隐藏），这个悬浮按钮就多余了。 */
+@media (min-width: 761px) {
+  .theme-switcher,
+  .theme-disc { display: none; }
+}
