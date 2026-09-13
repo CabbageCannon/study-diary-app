@@ -17,7 +17,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 function readInitialTheme(): AppTheme {
   try {
     const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
-    if (saved === "sea" || saved === "tea" || saved === "night" || saved === "mist") return saved;
+    if (THEMES.some((item) => item.id === saved)) return saved as AppTheme;
     return saved === "quiet" ? "night" : "mist";
   } catch {
     return "mist";
