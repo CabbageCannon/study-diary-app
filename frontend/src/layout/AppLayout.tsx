@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
 import { BackgroundTaskCenter } from "../components/interview/BackgroundTaskCenter";
+import { ThemeSwitcher } from "../components/ThemeSwitcher";
 import { PwaStatus } from "../pwa/PwaStatus";
 import { Navigation } from "./Navigation";
 
@@ -28,6 +29,7 @@ export function AppLayout() {
       </a>
       <div className={frameClassName}>
         {isFocusRoute ? null : <Navigation />}
+        {isFocusRoute ? null : <ThemeSwitcher />}
         <main className={usesContainedWorkspace ? "main-surface main-surface-contained" : "main-surface"} id="main-content" ref={mainRef}>
           <Outlet />
         </main>

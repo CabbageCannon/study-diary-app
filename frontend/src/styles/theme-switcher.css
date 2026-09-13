@@ -1,0 +1,74 @@
+.theme-switcher {
+  position: fixed;
+  z-index: 90;
+  top: calc(10px + var(--safe-top));
+  right: max(12px, var(--safe-right));
+  display: grid;
+  overflow: hidden;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--paper-strong) 82%, transparent);
+  color: var(--accent-strong);
+  backdrop-filter: blur(12px);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 180ms cubic-bezier(.2,.8,.2,1);
+}
+
+/* 进度条缩进 7px：44px 圆形的底部边缘会把它裁掉。 */
+.theme-switcher::after {
+  position: absolute;
+  right: 7px;
+  bottom: 7px;
+  left: 7px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--accent);
+  content: "";
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.theme-switcher:active,
+.theme-switcher.is-holding { transform: scale(.94); }
+.theme-switcher.is-holding::after { opacity: 1; animation: diary-hold-fill 520ms linear both; }
+
+.theme-disc {
+  position: fixed;
+  z-index: 89;
+  pointer-events: none;
+  animation: theme-disc-in 160ms cubic-bezier(.2,.8,.2,1) both;
+  transform-origin: 100% 0;
+}
+
+.theme-disc-sector path { fill: var(--paper-strong); stroke: var(--rule); }
+.theme-disc-sector circle { stroke: var(--rule-strong); }
+.theme-disc-sector text { fill: var(--muted); font-size: 12px; font-weight: 650; text-anchor: middle; }
+.theme-disc-sector.is-picked path { fill: var(--accent-wash); stroke: var(--accent); }
+.theme-disc-sector.is-picked text { fill: var(--accent-strong); }
+
+@keyframes theme-disc-in { from { opacity: 0; transform: scale(.9); } }
+
+/* 主题切换：新配色从按钮中心圆形扩散覆盖全页。 */
+::view-transition-old(root),
+::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+::view-transition-new(root) { animation: theme-ripple 520ms cubic-bezier(.2,.8,.2,1); }
+
+@keyframes theme-ripple {
+  from { clip-path: circle(0% at var(--vt-x, 50%) var(--vt-y, 50%)); }
+  to { clip-path: circle(150% at var(--vt-x, 50%) var(--vt-y, 50%)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-switcher { transition: none; }
+  .theme-switcher:active,
+  .theme-switcher.is-holding { transform: none; }
+  .theme-disc { animation: none; }
+}

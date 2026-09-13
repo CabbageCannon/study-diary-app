@@ -1,11 +1,14 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useLayoutEffect, useMemo, useState, type ReactNode } from "react";
 
-export type AppTheme = "mist" | "sea" | "tea" | "night";
+import { THEMES, type AppTheme } from "./themes";
+
+export type { AppTheme };
 
 interface ThemeContextValue {
   theme: AppTheme;
   setTheme: (theme: AppTheme) => void;
   toggleTheme: () => void;
+  cycleTheme: () => void;
 }
 
 const THEME_STORAGE_KEY = "study-diary:theme";
@@ -24,8 +27,10 @@ function readInitialTheme(): AppTheme {
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<AppTheme>(readInitialTheme);
 
-  useEffect(() => {
+  // useLayoutEffect（而非 useEffect）：波纹过渡要求 data-theme 在 flushSync 期间同步落到 DOM 上。
+  useLayoutEffect(() => {
     document.documentElement.dataset.theme = theme;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEMES.find((item) => item.id === theme)?.colors[0] ?? "#eef1ed");
     try {
       window.localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch {
@@ -37,6 +42,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     theme,
     setTheme,
     toggleTheme: () => setTheme((current) => current === "night" ? "mist" : "night"),
+    cycleTheme: () => setTheme((current) => THEMES[(THEMES.findIndex((item) => item.id === current) + 1) % THEMES.length].id),
   }), [theme]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

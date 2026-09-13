@@ -11,6 +11,7 @@ import "./styles/today.css";
 import "./styles/me.css";
 import "./styles/mobile-learning.css";
 import "./styles/apple-ui.css";
+import "./styles/theme-switcher.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

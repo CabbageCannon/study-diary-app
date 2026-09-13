@@ -12,6 +12,7 @@ import { UserCircleIcon } from "@phosphor-icons/react/UserCircle";
 import { usePwaInstall } from "../contexts/PwaInstallContext";
 import { usePwaUpdate, type PwaUpdatePhase } from "../contexts/PwaUpdateContext";
 import { useTheme, type AppTheme } from "../contexts/ThemeContext";
+import { THEMES } from "../contexts/themes";
 import { useTodayWorkspace } from "../hooks/useTodayWorkspace";
 import { useUserPreferences } from "../hooks/useUserPreferences";
 import { ConfirmActionDialog } from "../components/interview/ConfirmActionDialog";
@@ -23,13 +24,6 @@ import {
   subscribeReminderPush, unsubscribeBrowserPush, updateReminderPush,
   type UserPreferences,
 } from "../services/userPreferences";
-
-const themes: { id: AppTheme; label: string; note: string; colors: string[] }[] = [
-  { id: "mist", label: "雾松", note: "安静自然", colors: ["#f3f4f0", "#e3eee8", "#39755e"] },
-  { id: "sea", label: "海盐", note: "清爽蓝灰", colors: ["#f2f5f5", "#e1ecef", "#527986"] },
-  { id: "tea", label: "杏茶", note: "温暖纸感", colors: ["#f5f0e8", "#f1e1d2", "#9a6848"] },
-  { id: "night", label: "墨夜", note: "夜间阅读", colors: ["#1a201d", "#2d3d31", "#a9ca8b"] },
-];
 
 type SettingsSection = "profile" | "appearance" | "goals" | "reminder" | "version" | "install";
 
@@ -71,7 +65,7 @@ export function MePage() {
   const streak = Math.max(data.interviewStats?.streak_days ?? 0, data.algorithmStats?.current_streak_days ?? 0);
   const displayName = preferences.nickname.trim() || "学习者";
   const avatar = displayName.slice(0, 1).toUpperCase();
-  const savedTheme = themes.find((item) => item.id === theme)?.label ?? "雾松";
+  const savedTheme = THEMES.find((item) => item.id === theme)?.label ?? "雾松";
   const updateCopy = versionCopy[updatePhase];
   const updateBusy = updatePhase === "checking" || updatePhase === "updating" || updatePhase === "reloading";
   const reminderSaving = savingSection === "reminder";
@@ -250,7 +244,7 @@ export function MePage() {
       <SettingsItem active={activeSection === "appearance"} controls="me-appearance-panel" icon={<PaletteIcon aria-hidden="true" size={21} />} label="外观" note={savedTheme} onToggle={() => toggleSection("appearance")}>
         <form className="me-settings-panel" id="me-appearance-panel" onSubmit={saveAppearance}>
           <div className="theme-picker" role="radiogroup" aria-label="外观主题">
-            {themes.map((item) => <button aria-checked={draftTheme === item.id} className={draftTheme === item.id ? "theme-option theme-option-active" : "theme-option"} key={item.id} onClick={() => { setDraftTheme(item.id); clearStatus(); }} role="radio" type="button"><span className="theme-swatches" aria-hidden="true">{item.colors.map((color) => <i key={color} style={{ background: color }} />)}</span><span><strong>{item.label}</strong><small>{item.note}</small></span></button>)}
+            {THEMES.map((item) => <button aria-checked={draftTheme === item.id} className={draftTheme === item.id ? "theme-option theme-option-active" : "theme-option"} key={item.id} onClick={() => { setDraftTheme(item.id); clearStatus(); }} role="radio" type="button"><span className="theme-swatches" aria-hidden="true">{item.colors.map((color) => <i key={color} style={{ background: color }} />)}</span><span><strong>{item.label}</strong><small>{item.note}</small></span></button>)}
           </div>
           <SectionActions dirty={appearanceDirty} error={error} message={message} onCancel={cancelSection} />
         </form>
