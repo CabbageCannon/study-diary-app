@@ -4831,7 +4831,9 @@ html[data-theme="night"] .date-picker-day-selected:focus-visible {
 .hint-controls button:active:not(:disabled) { transform: scale(0.98); }
 .hint-controls button:disabled { cursor: not-allowed; opacity: 0.52; }
 .hint-panel summary { display: flex; align-items: center; gap: 7px; }
-.hint-panel .hint-controls button { display: flex; align-items: center; justify-content: center; gap: 5px; }
+/* 34px 是旧侧栏时代为鼠标写的高度，手机上一行四键容易误触，误触会多剧透一级答案。抬到 Apple 44px 最小触控标准。 */
+.hint-panel .hint-controls { gap: 10px; }
+.hint-panel .hint-controls button { display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 44px; }
 .hint-panel .hint-controls button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-wash); }
 .algorithm-custom-problem-picker select { min-height: 112px; }
 .algorithm-custom-problem-picker small { color: var(--ink-muted); font-size: 0.72rem; font-weight: 500; }
