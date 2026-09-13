@@ -1,4 +1,4 @@
-import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { PaletteIcon } from "@phosphor-icons/react/Palette";
 import { flushSync } from "react-dom";
 
@@ -49,14 +49,10 @@ export function ThemeSwitcher() {
     setPicked(null);
   }
 
-  function onPointerDown(event: ReactPointerEvent<HTMLButtonElement>) {
-    if (event.pointerType === "mouse" && event.button !== 0) return;
-    // 触摸有浏览器隐式捕获，鼠标没有：不显式捕获的话，拖出按钮再松手收不到 pointerup，圆盘会卡住不关。
-    event.currentTarget.setPointerCapture(event.pointerId);
+  function beginHold(clientX: number, clientY: number, rect: DOMRect) {
     suppressClick.current = false;
-    const rect = event.currentTarget.getBoundingClientRect();
     centerRef.current = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-    startRef.current = { x: event.clientX, y: event.clientY };
+    startRef.current = { x: clientX, y: clientY };
     setHolding(true);
     timerRef.current = window.setTimeout(() => {
       suppressClick.current = true;
@@ -66,6 +62,29 @@ export function ThemeSwitcher() {
       navigator.vibrate?.(20);
     }, HOLD_MS);
   }
+
+  function onPointerDown(event: ReactPointerEvent<HTMLButtonElement>) {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    // 触摸有浏览器隐式捕获，鼠标没有：不显式捕获的话，拖出按钮再松手收不到 pointerup，圆盘会卡住不关。
+    event.currentTarget.setPointerCapture(event.pointerId);
+    beginHold(event.clientX, event.clientY, event.currentTarget.getBoundingClientRect());
+  }
+
+  // View Transitions 期间浏览器让 :root 子树跳过命中测试，pointerdown 到不了按钮，长按就废了；
+  // CSS 的 ::view-transition { pointer-events: none } 是标准解法但不保证生效（该跳过行为作者无法撤销）。
+  // 这里在 document 捕获阶段按坐标补一次判定，并把指针捕获到按钮上，后续 move/up 仍走按钮原有逻辑。
+  useEffect(() => {
+    function onDocumentPointerDown(event: PointerEvent) {
+      const node = buttonRef.current;
+      if (!node || node.contains(event.target as Node)) return;
+      const rect = node.getBoundingClientRect();
+      if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) return;
+      node.setPointerCapture(event.pointerId);
+      beginHold(event.clientX, event.clientY, rect);
+    }
+    document.addEventListener("pointerdown", onDocumentPointerDown, true);
+    return () => document.removeEventListener("pointerdown", onDocumentPointerDown, true);
+  }, []);
 
   function onPointerMove(event: ReactPointerEvent<HTMLButtonElement>) {
     if (!menu) {
