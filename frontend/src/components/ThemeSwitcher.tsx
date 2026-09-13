@@ -6,7 +6,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import { THEMES } from "../contexts/themes";
 
 const HOLD_MS = 520;
-const RADIUS = 190;
+const RADIUS = 160;
 const DEAD_ZONE = 46;
 /** 四分之一圆盘覆盖 atan2 的 90°（正下）→ 180°（正左）。 */
 const SECTOR = 90 / THEMES.length;

@@ -7,7 +7,6 @@ export type { AppTheme };
 interface ThemeContextValue {
   theme: AppTheme;
   setTheme: (theme: AppTheme) => void;
-  toggleTheme: () => void;
   cycleTheme: () => void;
 }
 
@@ -41,7 +40,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const value = useMemo<ThemeContextValue>(() => ({
     theme,
     setTheme,
-    toggleTheme: () => setTheme((current) => current === "night" ? "mist" : "night"),
     cycleTheme: () => setTheme((current) => THEMES[(THEMES.findIndex((item) => item.id === current) + 1) % THEMES.length].id),
   }), [theme]);
 

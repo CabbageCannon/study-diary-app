@@ -1,10 +1,9 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { BookOpenIcon } from "@phosphor-icons/react/BookOpen";
+import { CircleHalfIcon } from "@phosphor-icons/react/CircleHalf";
 import { HouseIcon } from "@phosphor-icons/react/House";
-import { MoonIcon } from "@phosphor-icons/react/Moon";
 import { PlusIcon } from "@phosphor-icons/react/Plus";
 import { TreeStructureIcon } from "@phosphor-icons/react/TreeStructure";
-import { SunIcon } from "@phosphor-icons/react/Sun";
 import { UserCircleIcon } from "@phosphor-icons/react/UserCircle";
 
 import { useTheme } from "../contexts/ThemeContext";
@@ -38,7 +37,7 @@ function scrollToTop() {
 
 export function Navigation() {
   const { pathname } = useLocation();
-  const { theme, toggleTheme } = useTheme();
+  const { cycleTheme } = useTheme();
   const desktopTools = [...desktopToolItems, ...(questionReviewEnabled ? [{ to: "/interview/review", label: "题库审核", matches: (path: string) => path === "/interview/review" }] : [])];
   const algorithmTrainingActive = pathname.startsWith("/algorithms");
   const interviewTrainingActive = pathname.startsWith("/interview");
@@ -83,12 +82,12 @@ export function Navigation() {
         <div className="navigation-footer">
           <button
             className="theme-toggle"
-            aria-label={theme === "night" ? "切换到雾松主题" : "切换到墨夜主题"}
-            title={theme === "night" ? "切换到雾松主题" : "切换到墨夜主题"}
-            onClick={toggleTheme}
+            aria-label="切换主题"
+            title="切换主题"
+            onClick={cycleTheme}
             type="button"
           >
-            {theme === "night" ? <SunIcon aria-hidden="true" size={18} weight="bold" /> : <MoonIcon aria-hidden="true" size={18} weight="bold" />}
+            <CircleHalfIcon aria-hidden="true" size={18} weight="bold" />
           </button>
         </div>
       </nav>
