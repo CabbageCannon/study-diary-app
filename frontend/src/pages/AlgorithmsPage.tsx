@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { getAlgorithmDailyFeed, createAlgorithmSession, getAlgorithmStats, listAlgorithmProblems, listAlgorithmSessions, peekAlgorithmDailyFeed, peekAlgorithmProblems, peekAlgorithmSessions, peekAlgorithmStats, refreshAlgorithmDailyFeed } from "../api/algorithms";
+import { getAlgorithmDailyFeed, createAlgorithmSession, getAlgorithmStats, listAlgorithmProblems, listAlgorithmSessions, peekAlgorithmDailyFeed, peekAlgorithmProblems, peekAlgorithmSessions, peekAlgorithmStats, peekAnyAlgorithmDailyFeed, peekAnyAlgorithmSessions, peekAnyAlgorithmStats, refreshAlgorithmDailyFeed } from "../api/algorithms";
 import { AlgorithmResumeBanner } from "../components/algorithms/AlgorithmResumeBanner";
 import { DailyExtraProblemList } from "../components/algorithms/DailyExtraProblemList";
 import { DailyPrimaryProblem } from "../components/algorithms/DailyPrimaryProblem";
@@ -14,11 +14,19 @@ export function AlgorithmsPage() {
   const navigate = useNavigate();
   const [preferences] = useUserPreferences();
   const problemFilters = useMemo(() => ({ limit: 60 }), []);
-  const [feed, setFeed] = useState<AlgorithmDailyFeed | null>(() => peekAlgorithmDailyFeed());
-  const [sessions, setSessions] = useState<AlgorithmSessionSummary[]>(() => peekAlgorithmSessions() ?? []);
-  const [stats, setStats] = useState<AlgorithmStats | null>(() => peekAlgorithmStats());
+  const [initialCache] = useState(() => ({
+    feed: peekAnyAlgorithmDailyFeed(),
+    feedFresh: Boolean(peekAlgorithmDailyFeed()),
+    sessions: peekAnyAlgorithmSessions(),
+    sessionsFresh: Boolean(peekAlgorithmSessions()),
+    stats: peekAnyAlgorithmStats(),
+    statsFresh: Boolean(peekAlgorithmStats()),
+  }));
+  const [feed, setFeed] = useState<AlgorithmDailyFeed | null>(() => initialCache.feed);
+  const [sessions, setSessions] = useState<AlgorithmSessionSummary[]>(() => initialCache.sessions ?? []);
+  const [stats, setStats] = useState<AlgorithmStats | null>(() => initialCache.stats);
   const [problems, setProblems] = useState<AlgorithmProblem[]>(() => peekAlgorithmProblems(problemFilters) ?? []);
-  const [isLoading, setIsLoading] = useState(() => !peekAlgorithmDailyFeed());
+  const [isLoading, setIsLoading] = useState(() => !initialCache.feed);
   const [isCreatingDaily, setIsCreatingDaily] = useState(false);
   const [isCreatingTemporary, setIsCreatingTemporary] = useState(false);
   const [isLoadingProblems, setIsLoadingProblems] = useState(false);
@@ -27,11 +35,11 @@ export function AlgorithmsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState("");
 
-  const load = useCallback(async () => {
-    setIsLoading(!peekAlgorithmDailyFeed());
+  const load = useCallback(async (showLoading: boolean) => {
+    if (showLoading) setIsLoading(true);
     setError("");
     try {
-      const [nextFeed, nextSessions, nextStats] = await Promise.all([getAlgorithmDailyFeed(), listAlgorithmSessions(), getAlgorithmStats()]);
+      const [nextFeed, nextSessions, nextStats] = await Promise.all([getAlgorithmDailyFeed(true), listAlgorithmSessions(undefined, true), getAlgorithmStats(true)]);
       setFeed(nextFeed);
       setSessions(nextSessions);
       setStats(nextStats);
@@ -42,7 +50,10 @@ export function AlgorithmsPage() {
     }
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    const needsRefresh = !initialCache.feedFresh || !initialCache.sessionsFresh || !initialCache.statsFresh;
+    if (needsRefresh) void load(!initialCache.feed);
+  }, [initialCache, load]);
 
   const activeDailySession = useMemo(() => sessions.find((session) => session.status === "in_progress" && session.mode === "daily"), [sessions]);
   const resumeSession = useMemo(() => sessions.find((session) => session.status === "in_progress"), [sessions]);

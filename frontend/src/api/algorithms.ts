@@ -1,4 +1,4 @@
-import { cachedRequest, invalidateCachedRequests, peekCachedRequest, primeCachedRequest, request } from "./client";
+import { cachedRequest, expireCachedRequests, invalidateCachedRequests, peekCachedRequest, primeCachedRequest, request } from "./client";
 import type {
   AlgorithmAttempt,
   AlgorithmCatalogOverview,
@@ -56,6 +56,10 @@ export function peekAlgorithmDailyFeed() {
   return peekCachedRequest<AlgorithmDailyFeed>("/api/algorithms/daily-feed");
 }
 
+export function peekAnyAlgorithmDailyFeed() {
+  return peekCachedRequest<AlgorithmDailyFeed>("/api/algorithms/daily-feed", Number.POSITIVE_INFINITY);
+}
+
 export function refreshAlgorithmDailyFeed() {
   return request<AlgorithmDailyFeed>("/api/algorithms/daily-feed/refresh", { method: "POST" }).then((feed) => {
     primeCachedRequest("/api/algorithms/daily-feed", feed);
@@ -74,7 +78,7 @@ export function peekAlgorithmDailySettings() {
 export function updateAlgorithmDailySettings(payload: UpdateAlgorithmDailyRecommendationSettingsPayload) {
   return request<AlgorithmDailyRecommendationSettings>("/api/algorithms/daily-settings", { method: "PATCH", body: JSON.stringify(payload) }).then((settings) => {
     primeCachedRequest("/api/algorithms/daily-settings", settings);
-    invalidateCachedRequests("/api/algorithms/daily-feed");
+    expireCachedRequests("/api/algorithms/daily-feed");
     return settings;
   });
 }
@@ -98,7 +102,7 @@ export function prefetchAlgorithmSettingsData(force = false) {
 export function createAlgorithmSession(payload: CreateAlgorithmSessionPayload) {
   return request<AlgorithmSession>("/api/algorithms/sessions", { method: "POST", body: JSON.stringify(payload) }).then((session) => {
     primeCachedRequest(`/api/algorithms/sessions/${session.id}`, session);
-    invalidateCachedRequests("/api/algorithms/sessions?", "/api/algorithms/stats");
+    expireCachedRequests("/api/algorithms/sessions?", "/api/algorithms/stats");
     return session;
   });
 }
@@ -115,6 +119,10 @@ export function peekAlgorithmSessions(status?: string) {
   return peekCachedRequest<AlgorithmSessionSummary[]>(algorithmSessionsPath(status));
 }
 
+export function peekAnyAlgorithmSessions(status?: string) {
+  return peekCachedRequest<AlgorithmSessionSummary[]>(algorithmSessionsPath(status), Number.POSITIVE_INFINITY);
+}
+
 export function getAlgorithmSession(id: string, force = false) {
   return cachedRequest<AlgorithmSession>(`/api/algorithms/sessions/${id}`, undefined, force);
 }
@@ -129,6 +137,7 @@ export function updateAlgorithmSessionProgress(id: string, currentIndex: number,
     body: JSON.stringify({ current_index: currentIndex, item_status: itemStatus }),
   }).then((session) => {
     primeCachedRequest(`/api/algorithms/sessions/${id}`, session);
+    expireCachedRequests("/api/algorithms/sessions?");
     return session;
   });
 }
@@ -136,33 +145,37 @@ export function updateAlgorithmSessionProgress(id: string, currentIndex: number,
 export function skipAlgorithmSessionProblem(id: string) {
   return request<AlgorithmSession>(`/api/algorithms/sessions/${id}/skip`, { method: "POST" }).then((session) => {
     primeCachedRequest(`/api/algorithms/sessions/${id}`, session);
+    expireCachedRequests("/api/algorithms/sessions?");
     return session;
   });
 }
 
 export function completeAlgorithmSession(id: string) {
   return request<AlgorithmSession>(`/api/algorithms/sessions/${id}/complete`, { method: "POST" }).then((session) => {
-    invalidateCachedRequests("/api/algorithms/sessions", "/api/algorithms/stats", "/api/algorithms/problems", "/api/algorithms/catalog-overview");
+    expireCachedRequests("/api/algorithms/daily-feed", "/api/algorithms/sessions", "/api/algorithms/stats");
+    invalidateCachedRequests("/api/algorithms/problems", "/api/algorithms/catalog-overview");
     return session;
   });
 }
 
 export function abandonAlgorithmSession(id: string) {
   return request<AlgorithmSession>(`/api/algorithms/sessions/${id}/abandon`, { method: "POST" }).then((session) => {
-    invalidateCachedRequests("/api/algorithms/sessions", "/api/algorithms/stats", "/api/algorithms/problems", "/api/algorithms/catalog-overview");
+    expireCachedRequests("/api/algorithms/daily-feed", "/api/algorithms/sessions", "/api/algorithms/stats");
+    invalidateCachedRequests("/api/algorithms/problems", "/api/algorithms/catalog-overview");
     return session;
   });
 }
 
 export function deleteAlgorithmSession(id: string) {
   return request<void>(`/api/algorithms/sessions/${id}`, { method: "DELETE" }).then(() => {
-    invalidateCachedRequests("/api/algorithms/sessions", "/api/algorithms/stats");
+    expireCachedRequests("/api/algorithms/sessions", "/api/algorithms/stats");
   });
 }
 
 export function saveAlgorithmAttempt(payload: SaveAlgorithmAttemptPayload) {
   return request<AlgorithmAttempt>("/api/algorithms/attempts", { method: "POST", body: JSON.stringify(payload) }).then((attempt) => {
-    invalidateCachedRequests("/api/algorithms/stats", "/api/algorithms/sessions?", "/api/algorithms/problems", "/api/algorithms/catalog-overview");
+    expireCachedRequests("/api/algorithms/daily-feed", "/api/algorithms/stats", "/api/algorithms/sessions?");
+    invalidateCachedRequests("/api/algorithms/problems", "/api/algorithms/catalog-overview");
     return attempt;
   });
 }
@@ -218,6 +231,10 @@ export function getAlgorithmStats(force = false) {
 
 export function peekAlgorithmStats() {
   return peekCachedRequest<AlgorithmStats>("/api/algorithms/stats");
+}
+
+export function peekAnyAlgorithmStats() {
+  return peekCachedRequest<AlgorithmStats>("/api/algorithms/stats", Number.POSITIVE_INFINITY);
 }
 
 export function getAlgorithmWeaknesses() {

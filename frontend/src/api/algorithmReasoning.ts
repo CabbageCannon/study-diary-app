@@ -1,4 +1,4 @@
-import { ApiRequestError, cachedRequest, invalidateCachedRequests, request } from "./client";
+import { ApiRequestError, cachedRequest, expireCachedRequests, invalidateCachedRequests, request } from "./client";
 import type {
   AlgorithmReasoningAnswer,
   AlgorithmReasoningCheckPayload,
@@ -85,7 +85,8 @@ export async function retryAlgorithmReasoningCheck(answerId: number) {
 }
 
 function invalidateAlgorithmTrainingCaches<T>(response: T) {
-  invalidateCachedRequests("/api/algorithms/daily-feed", "/api/algorithms/sessions", "/api/algorithms/stats", "/api/algorithms/problems", "/api/algorithms/catalog-overview");
+  expireCachedRequests("/api/algorithms/daily-feed", "/api/algorithms/sessions", "/api/algorithms/stats");
+  invalidateCachedRequests("/api/algorithms/problems", "/api/algorithms/catalog-overview");
   return response;
 }
 

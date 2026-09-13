@@ -59,7 +59,7 @@ export async function request<T>(path: string, options?: RequestInit): Promise<T
   return response.json() as Promise<T>;
 }
 
-function readCachedValue<T>(path: string, maxAgeMs: number): T | null {
+function readCachedEntry(path: string) {
   let cached = memoryCache.get(path);
   if (!cached) {
     try {
@@ -70,6 +70,20 @@ function readCachedValue<T>(path: string, maxAgeMs: number): T | null {
       cached = undefined;
     }
   }
+  return cached ?? null;
+}
+
+function writeCachedEntry(path: string, cached: CachedValue) {
+  memoryCache.set(path, cached);
+  try {
+    window.localStorage.setItem(`${API_CACHE_PREFIX}${path}`, JSON.stringify(cached));
+  } catch {
+    // Memory cache still keeps the current session fast when storage is full.
+  }
+}
+
+function readCachedValue<T>(path: string, maxAgeMs: number): T | null {
+  const cached = readCachedEntry(path);
   return cached && Date.now() - cached.storedAt <= maxAgeMs ? cached.value as T : null;
 }
 
@@ -79,12 +93,7 @@ export function peekCachedRequest<T>(path: string, maxAgeMs = DEFAULT_CACHE_AGE)
 
 export function primeCachedRequest<T>(path: string, value: T) {
   const cached = { storedAt: Date.now(), value } satisfies CachedValue;
-  memoryCache.set(path, cached);
-  try {
-    window.localStorage.setItem(`${API_CACHE_PREFIX}${path}`, JSON.stringify(cached));
-  } catch {
-    // Memory cache still keeps the current session fast when storage is full.
-  }
+  writeCachedEntry(path, cached);
 }
 
 export function invalidateCachedRequests(...pathPrefixes: string[]) {
@@ -97,6 +106,24 @@ export function invalidateCachedRequests(...pathPrefixes: string[]) {
       if (!key?.startsWith(API_CACHE_PREFIX)) continue;
       const path = key.slice(API_CACHE_PREFIX.length);
       if (pathPrefixes.some((prefix) => path.startsWith(prefix))) window.localStorage.removeItem(key);
+    }
+  } catch {
+    // Local storage can be unavailable in private browsing; memory cache is enough.
+  }
+}
+
+export function expireCachedRequests(...pathPrefixes: string[]) {
+  for (const [path, cached] of memoryCache.entries()) {
+    if (pathPrefixes.some((prefix) => path.startsWith(prefix))) writeCachedEntry(path, { ...cached, storedAt: 0 });
+  }
+  try {
+    for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
+      const key = window.localStorage.key(index);
+      if (!key?.startsWith(API_CACHE_PREFIX)) continue;
+      const path = key.slice(API_CACHE_PREFIX.length);
+      if (!pathPrefixes.some((prefix) => path.startsWith(prefix)) || memoryCache.has(path)) continue;
+      const raw = window.localStorage.getItem(key);
+      if (raw) writeCachedEntry(path, { ...JSON.parse(raw) as CachedValue, storedAt: 0 });
     }
   } catch {
     // Local storage can be unavailable in private browsing; memory cache is enough.
