@@ -21,24 +21,8 @@
   transition: transform 180ms cubic-bezier(.2,.8,.2,1);
 }
 
-/* 进度条缩进 7px：44px 圆形的底部边缘会把它裁掉。 */
-.theme-switcher::after {
-  position: absolute;
-  right: 7px;
-  bottom: 7px;
-  left: 7px;
-  height: 3px;
-  border-radius: 999px;
-  background: var(--accent);
-  content: "";
-  opacity: 0;
-  transform: scaleX(0);
-  transform-origin: left;
-}
-
 .theme-switcher:active,
 .theme-switcher.is-holding { transform: scale(.94); }
-.theme-switcher.is-holding::after { opacity: 1; animation: diary-hold-fill 520ms linear both; }
 
 .theme-disc {
   position: fixed;

@@ -16,18 +16,6 @@ function polar(degrees: number, radius: number) {
   return [Math.cos(radians) * radius, Math.sin(radians) * radius] as const;
 }
 
-/** 用 View Transitions 从按钮中心做圆形扩散；不支持或用户要求减弱动效时直接切换。 */
-function ripple(origin: HTMLElement | null, commit: () => void) {
-  const rect = origin?.getBoundingClientRect();
-  if (!rect || !document.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    commit();
-    return;
-  }
-  document.documentElement.style.setProperty("--vt-x", `${rect.left + rect.width / 2}px`);
-  document.documentElement.style.setProperty("--vt-y", `${rect.top + rect.height / 2}px`);
-  document.startViewTransition(() => flushSync(commit));
-}
-
 export function ThemeSwitcher() {
   const { setTheme, cycleTheme } = useTheme();
   const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -35,6 +23,24 @@ export function ThemeSwitcher() {
   const startRef = useRef({ x: 0, y: 0 });
   const timerRef = useRef(0);
   const suppressClick = useRef(false);
+  /** 兜底路径启动的长按：过渡期间 pointerup 同样到不了按钮，得在 document 上收尾。 */
+  const fallbackRef = useRef(false);
+  /** 波纹进行中：此时再点或再选都限流，避免叠第二层过渡。 */
+  const transitioningRef = useRef(false);
+
+  /** 用 View Transitions 从按钮中心做圆形扩散；不支持或用户要求减弱动效时直接切换。 */
+  function ripple(commit: () => void) {
+    const rect = buttonRef.current?.getBoundingClientRect();
+    if (!rect || !document.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      commit();
+      return;
+    }
+    document.documentElement.style.setProperty("--vt-x", `${rect.left + rect.width / 2}px`);
+    document.documentElement.style.setProperty("--vt-y", `${rect.top + rect.height / 2}px`);
+    transitioningRef.current = true;
+    // 过渡被跳过时 finished 会 reject，接住以免变成 unhandled rejection
+    void document.startViewTransition(() => flushSync(commit)).finished.catch(() => {}).finally(() => { transitioningRef.current = false; });
+  }
   const [holding, setHolding] = useState(false);
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   const [picked, setPicked] = useState<number | null>(null);
@@ -72,7 +78,7 @@ export function ThemeSwitcher() {
 
   // View Transitions 期间浏览器让 :root 子树跳过命中测试，pointerdown 到不了按钮，长按就废了；
   // CSS 的 ::view-transition { pointer-events: none } 是标准解法但不保证生效（该跳过行为作者无法撤销）。
-  // 这里在 document 捕获阶段按坐标补一次判定，并把指针捕获到按钮上，后续 move/up 仍走按钮原有逻辑。
+  // 这里在 document 捕获阶段按坐标补一次判定，并把指针捕获到按钮上，后续 move/up 尽量走按钮原有逻辑。
   useEffect(() => {
     function onDocumentPointerDown(event: PointerEvent) {
       const node = buttonRef.current;
@@ -80,10 +86,24 @@ export function ThemeSwitcher() {
       const rect = node.getBoundingClientRect();
       if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) return;
       node.setPointerCapture(event.pointerId);
+      fallbackRef.current = true;
       beginHold(event.clientX, event.clientY, rect);
     }
+    // 兜底路径下 up/cancel 也可能到不了按钮。不在这里收尾的话，过渡期间的轻点会因为计时器没被清掉，
+    // 在 520ms 后自己弹出圆盘 —— 看起来就是「点击变成长按」。
+    function onDocumentPointerEnd() {
+      if (!fallbackRef.current) return;
+      fallbackRef.current = false;
+      cancelHold();
+    }
     document.addEventListener("pointerdown", onDocumentPointerDown, true);
-    return () => document.removeEventListener("pointerdown", onDocumentPointerDown, true);
+    document.addEventListener("pointerup", onDocumentPointerEnd, true);
+    document.addEventListener("pointercancel", onDocumentPointerEnd, true);
+    return () => {
+      document.removeEventListener("pointerdown", onDocumentPointerDown, true);
+      document.removeEventListener("pointerup", onDocumentPointerEnd, true);
+      document.removeEventListener("pointercancel", onDocumentPointerEnd, true);
+    };
   }, []);
 
   function onPointerMove(event: ReactPointerEvent<HTMLButtonElement>) {
@@ -102,10 +122,13 @@ export function ThemeSwitcher() {
 
   function onPointerUp() {
     cancelHold();
+    fallbackRef.current = false;
     if (!menu) return;
     const index = picked;
     closeMenu();
-    if (index !== null) ripple(buttonRef.current, () => setTheme(THEMES[index].id));
+    // 过渡还在跑就限流：这次选择不生效，也就不叠第二层波纹
+    if (index === null || transitioningRef.current) return;
+    ripple(() => setTheme(THEMES[index].id));
   }
 
   return <>
@@ -129,7 +152,9 @@ export function ThemeSwitcher() {
       className={holding ? "theme-switcher is-holding" : "theme-switcher"}
       onClick={() => {
         if (suppressClick.current) { suppressClick.current = false; return; }
-        ripple(buttonRef.current, cycleTheme);
+        // 过渡期间限流：这一次点击不换主题，避免叠第二层波纹
+        if (transitioningRef.current) return;
+        ripple(cycleTheme);
       }}
       onContextMenu={(event) => event.preventDefault()}
       onPointerCancel={() => { cancelHold(); closeMenu(); }}
