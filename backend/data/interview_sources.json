@@ -28,11 +28,11 @@
     "accessed_at": "2026-08-02"
   },
   "langgraph-docs": {
-    "name": "LangGraph Documentation",
-    "url": "https://langchain-ai.github.io/langgraph/",
+    "name": "LangGraph overview",
+    "url": "https://docs.langchain.com/oss/python/langgraph/overview",
     "source_type": "official_documentation",
     "license": "MIT (project); no verbatim text imported",
-    "accessed_at": "2026-08-02"
+    "accessed_at": "2026-09-14"
   },
   "python-asyncio-docs": {
     "name": "Python asyncio Documentation",
@@ -89,5 +89,124 @@
     "source_type": "official_documentation",
     "license": "Documentation terms apply; no verbatim text imported",
     "accessed_at": "2026-08-02"
+  },
+  "anthropic-effective-agents": {
+    "name": "Anthropic: Building Effective Agents",
+    "url": "https://www.anthropic.com/engineering/building-effective-agents",
+    "source_type": "official_documentation",
+    "license": "Website terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "openai-agents-sdk": {
+    "name": "OpenAI Agents SDK Documentation",
+    "url": "https://openai.github.io/openai-agents-python/",
+    "source_type": "official_documentation",
+    "license": "MIT (project); no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "openai-agents-tracing": {
+    "name": "OpenAI Agents SDK: Tracing",
+    "url": "https://openai.github.io/openai-agents-python/tracing/",
+    "source_type": "official_documentation",
+    "license": "MIT (project); no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "openai-agents-guardrails": {
+    "name": "OpenAI Agents SDK: Guardrails",
+    "url": "https://openai.github.io/openai-agents-python/guardrails/",
+    "source_type": "official_documentation",
+    "license": "MIT (project); no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "openai-agents-orchestration": {
+    "name": "OpenAI Agents SDK: Multi-agent orchestration",
+    "url": "https://openai.github.io/openai-agents-python/multi_agent/",
+    "source_type": "official_documentation",
+    "license": "MIT (project); no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "langchain-overview": {
+    "name": "LangChain overview",
+    "url": "https://docs.langchain.com/oss/python/langchain/overview",
+    "source_type": "official_documentation",
+    "license": "MIT (project); no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "langchain-agents-docs": {
+    "name": "LangChain agents",
+    "url": "https://docs.langchain.com/oss/python/langchain/agents",
+    "source_type": "official_documentation",
+    "license": "MIT (project); no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "langchain-tools-docs": {
+    "name": "LangChain tools",
+    "url": "https://docs.langchain.com/oss/python/langchain/tools",
+    "source_type": "official_documentation",
+    "license": "MIT (project); no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "langchain-memory-docs": {
+    "name": "LangChain memory",
+    "url": "https://docs.langchain.com/oss/python/concepts/memory",
+    "source_type": "official_documentation",
+    "license": "MIT (project); no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "langchain-context-docs": {
+    "name": "LangChain context engineering",
+    "url": "https://docs.langchain.com/oss/python/langchain/context-engineering",
+    "source_type": "official_documentation",
+    "license": "MIT (project); no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "langchain-runnables-docs": {
+    "name": "LangChain Runnable interface",
+    "url": "https://reference.langchain.com/python/langchain-core/runnables",
+    "source_type": "official_documentation",
+    "license": "MIT (project); no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "langchain-v1-docs": {
+    "name": "LangChain v1 release notes",
+    "url": "https://docs.langchain.com/oss/python/releases/langchain-v1",
+    "source_type": "official_documentation",
+    "license": "MIT (project); no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "langchain-v1-migration-docs": {
+    "name": "LangChain v1 migration guide",
+    "url": "https://docs.langchain.com/oss/python/migrate/langchain-v1",
+    "source_type": "official_documentation",
+    "license": "MIT (project); no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "langchain-deep-research-docs": {
+    "name": "LangChain Deep Research example",
+    "url": "https://docs.langchain.com/oss/python/deepagents/deep-research",
+    "source_type": "official_documentation",
+    "license": "MIT (project); no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "langgraph-persistence-docs": {
+    "name": "LangGraph persistence",
+    "url": "https://docs.langchain.com/oss/python/langgraph/persistence",
+    "source_type": "official_documentation",
+    "license": "MIT (project); no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "langchain4j-docs": {
+    "name": "LangChain4j documentation",
+    "url": "https://docs.langchain4j.dev/intro/",
+    "source_type": "official_documentation",
+    "license": "Apache-2.0 (project); no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "llamaindex-docs": {
+    "name": "LlamaIndex documentation",
+    "url": "https://developers.llamaindex.ai/python/framework/",
+    "source_type": "official_documentation",
+    "license": "MIT (project); no verbatim text imported",
+    "accessed_at": "2026-09-14"
   }
 }

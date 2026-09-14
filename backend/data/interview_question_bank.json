@@ -2,6 +2,272 @@
   "catalog_version": 1,
   "questions": [
     {
+      "id": "agent-architecture-components-001",
+      "domain": "agent",
+      "topic": "agent_architecture",
+      "subtopic": "core_components",
+      "question": "设计一个可上线的 Agent，核心模块通常有哪些？各自负责什么？",
+      "difficulty": "medium",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Agent",
+        "系统设计",
+        "运行时"
+      ],
+      "reference_points": [
+        "模型和指令负责理解目标与提出下一步",
+        "工具层以清晰契约执行外部动作并返回结果",
+        "状态与记忆保存当前线程及跨线程信息",
+        "控制循环、护栏和追踪负责终止、权限、恢复与观测"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "模型和指令负责理解目标与提出下一步",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "工具层以清晰契约执行外部动作并返回结果",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "状态与记忆保存当前线程及跨线程信息",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "认为模型本身就等于完整 Agent",
+        "没有把权限校验和终止条件放在应用层"
+      ],
+      "oral_answer_outline": [
+        "从决策、行动、状态三部分展开",
+        "补充控制与安全边界",
+        "最后说明追踪和评估"
+      ],
+      "reference_answer": "可上线的 Agent 至少包含模型与指令、工具、状态、运行时控制和可观测性。模型只负责提出决策；工具层验证参数并执行动作；短期状态记录当前线程，长期记忆按命名空间存储可复用信息。运行时还要管理重试、预算、终止和人工确认，追踪系统记录模型与工具调用，便于定位失败和评估效果。",
+      "follow_up_questions": [
+        "哪些模块应该保持确定性？",
+        "如何为每个模块建立独立测试？"
+      ],
+      "sources": [
+        {
+          "title": "OpenAI Agents SDK Documentation",
+          "url": "https://openai.github.io/openai-agents-python/",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "LangChain agents",
+          "url": "https://docs.langchain.com/oss/python/langchain/agents",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "agent-context-engineering-001",
+      "domain": "agent",
+      "topic": "agent_architecture",
+      "subtopic": "context_engineering",
+      "question": "Agent 的上下文工程具体在管理什么，怎样做到信息足够但不过载？",
+      "difficulty": "hard",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Agent",
+        "上下文工程",
+        "Token"
+      ],
+      "reference_points": [
+        "上下文包括指令、对话、工具定义、检索内容与运行状态",
+        "按当前决策动态选择最少且足够的信息",
+        "对外部内容标注来源、可信度、时效与权限",
+        "通过裁剪、摘要、检索和中间件控制 token 预算"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "上下文包括指令、对话、工具定义、检索内容与运行状态",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "按当前决策动态选择最少且足够的信息",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "对外部内容标注来源、可信度、时效与权限",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "把上下文工程等同于写一段很长的系统提示",
+        "只追求少 token 而删除完成任务所需的约束"
+      ],
+      "oral_answer_outline": [
+        "先列出上下文组成",
+        "说明动态选择与可信度",
+        "用预算和效果指标收尾"
+      ],
+      "reference_answer": "上下文工程不是把所有资料塞进提示词，而是为当前一步选择正确的信息。它同时管理系统约束、消息历史、工具说明、检索证据、用户状态和中间结果。应用应按决策阶段裁剪与检索，给外部内容附上来源和时效，并避免把敏感信息传给无关工具。最后用 token、延迟、事实命中率和任务成功率共同衡量策略。",
+      "follow_up_questions": [
+        "工具数量很多时如何动态选择工具描述？",
+        "上下文中相互冲突的事实应如何处理？"
+      ],
+      "sources": [
+        {
+          "title": "LangChain context engineering",
+          "url": "https://docs.langchain.com/oss/python/langchain/context-engineering",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "LangChain agents",
+          "url": "https://docs.langchain.com/oss/python/langchain/agents",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "agent-conversation-state-001",
+      "domain": "agent",
+      "topic": "memory",
+      "subtopic": "state_resume",
+      "question": "多轮 Agent 如何保存状态并支持中断后恢复，为什么不能只存完整聊天记录？",
+      "difficulty": "hard",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Agent",
+        "状态管理",
+        "断点恢复"
+      ],
+      "reference_points": [
+        "用 thread 标识隔离会话并在关键步骤写入 checkpoint",
+        "显式保存任务状态、工具结果、待审批项和版本",
+        "外部副作用要有幂等键并区分已请求、已执行、已验证",
+        "恢复时从一致检查点重放或继续而不是盲目重跑"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "用 thread 标识隔离会话并在关键步骤写入 checkpoint",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "显式保存任务状态、工具结果、待审批项和版本",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "外部副作用要有幂等键并区分已请求、已执行、已验证",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只把消息数组持久化就认为可以恢复",
+        "恢复时重新执行所有工具调用"
+      ],
+      "oral_answer_outline": [
+        "说明聊天记录的局限",
+        "给出线程、状态和检查点模型",
+        "补充幂等与版本迁移"
+      ],
+      "reference_answer": "完整聊天记录只描述交流，并不能可靠表示任务是否执行、某次写入是否成功或审批是否完成。系统应按 thread 保存结构化状态和检查点，包括当前节点、工具回执、待处理动作与版本。外部操作要使用幂等键，恢复时先核对执行状态，再从最近一致检查点继续。这样既能防止重复副作用，也便于回放和人工介入。",
+      "follow_up_questions": [
+        "checkpoint 写入和外部 API 成功之间如何处理不一致？",
+        "状态结构升级后旧线程怎样恢复？"
+      ],
+      "sources": [
+        {
+          "title": "LangGraph persistence",
+          "url": "https://docs.langchain.com/oss/python/langgraph/persistence",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "agent-database-safety-001",
+      "domain": "agent",
+      "topic": "agent_safety",
+      "subtopic": "database_access",
+      "question": "如果允许 Agent 查询或修改数据库，应如何设计权限与执行边界？",
+      "difficulty": "hard",
+      "question_type": "security_reasoning",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Agent",
+        "数据库",
+        "安全"
+      ],
+      "reference_points": [
+        "模型只调用参数化且白名单化的领域工具，不直接持有管理员凭据",
+        "使用最小权限账号、行级范围、只读副本和结果限额",
+        "写操作在服务端校验并对高风险变更增加预览与人工确认",
+        "设置超时、事务、审计、脱敏和幂等机制"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "模型只调用参数化且白名单化的领域工具，不直接持有管理员凭据",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "使用最小权限账号、行级范围、只读副本和结果限额",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "写操作在服务端校验并对高风险变更增加预览与人工确认",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "依赖系统提示词禁止危险 SQL",
+        "为了方便让 Agent 共用数据库管理员账号"
+      ],
+      "oral_answer_outline": [
+        "先限制可调用能力",
+        "再说明最小权限与写入审批",
+        "补充事务、审计和脱敏"
+      ],
+      "reference_answer": "不要把数据库连接串和任意 SQL 能力交给模型。应用应暴露少量参数化领域工具，在服务端验证表、字段、租户范围和最大返回量；查询尽量走只读账号或副本。写操作使用事务、幂等键和业务校验，对批量删除、权限变更等先预览并人工确认。所有调用记录审计信息，返回结果还需脱敏并限制体积。",
+      "follow_up_questions": [
+        "自然语言转 SQL 场景还能怎样限制风险？",
+        "怎样验证 Agent 没有跨用户读取数据？"
+      ],
+      "sources": [
+        {
+          "title": "OpenAI Agents SDK: Guardrails",
+          "url": "https://openai.github.io/openai-agents-python/guardrails/",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
       "id": "agent-evaluation-001",
       "domain": "agent",
       "topic": "agent_evaluation",
@@ -130,6 +396,76 @@
       "verified_by_human": false
     },
     {
+      "id": "agent-framework-or-custom-001",
+      "domain": "agent",
+      "topic": "agent_architecture",
+      "subtopic": "framework_selection",
+      "question": "什么情况下应使用 Agent 框架，什么情况下手写简单执行循环更合适？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Agent",
+        "框架选型",
+        "工程权衡"
+      ],
+      "reference_points": [
+        "简单、稳定、少工具的任务可用短小的自定义循环",
+        "需要持久化、人工介入、流式输出和生态集成时框架更省成本",
+        "比较可调试性、升级成本、锁定风险与团队熟悉度",
+        "先做最小实现再用真实瓶颈决定是否引入框架"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "简单、稳定、少工具的任务可用短小的自定义循环",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "需要持久化、人工介入、流式输出和生态集成时框架更省成本",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "比较可调试性、升级成本、锁定风险与团队熟悉度",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "一开始就引入最重的框架",
+        "忽略框架抽象后仍需自己处理的业务状态"
+      ],
+      "oral_answer_outline": [
+        "按任务复杂度划分",
+        "比较框架提供的运行时能力",
+        "以最小验证和维护成本决策"
+      ],
+      "reference_answer": "只有几个工具、固定停止条件且状态简单时，自定义循环更透明，依赖也少。任务需要断点恢复、长时运行、人工审批、子图或大量集成时，成熟框架能提供现成运行时。选型不应只看功能表，还要验证调试体验、追踪、版本升级和团队维护成本。最稳妥的做法是先完成最小纵向流程，再让真实需求决定抽象层级。",
+      "follow_up_questions": [
+        "如何避免框架升级影响已有 Agent 行为？",
+        "迁移框架前应保存哪些可回放数据？"
+      ],
+      "sources": [
+        {
+          "title": "Anthropic: Building Effective Agents",
+          "url": "https://www.anthropic.com/engineering/building-effective-agents",
+          "source_type": "official_documentation",
+          "license": "Website terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "LangGraph overview",
+          "url": "https://docs.langchain.com/oss/python/langgraph/overview",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
       "id": "agent-human-in-loop-001",
       "domain": "agent",
       "topic": "human_in_the_loop",
@@ -188,6 +524,76 @@
           "source_type": "official_documentation",
           "license": "Documentation terms apply; no verbatim text imported",
           "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "agent-loop-governance-001",
+      "domain": "agent",
+      "topic": "react_pattern",
+      "subtopic": "loop_detection",
+      "question": "Agent 出现路径震荡、重复调用工具或死循环时，如何检测和终止？",
+      "difficulty": "hard",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Agent",
+        "死循环",
+        "可靠性"
+      ],
+      "reference_points": [
+        "为状态、动作和工具参数生成指纹以识别重复模式",
+        "定义可度量的进展信号而不只看模型自述",
+        "设置最大轮数、时间、token、费用和同类错误阈值",
+        "终止后返回可恢复状态并选择降级或人工接管"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "为状态、动作和工具参数生成指纹以识别重复模式",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "定义可度量的进展信号而不只看模型自述",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "设置最大轮数、时间、token、费用和同类错误阈值",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只靠提示词要求模型不要循环",
+        "触发上限后直接丢弃所有中间成果"
+      ],
+      "oral_answer_outline": [
+        "先讲重复模式检测",
+        "再讲进展指标与硬预算",
+        "最后说明停止后的恢复路径"
+      ],
+      "reference_answer": "可以对最近若干轮的状态摘要、动作名和规范化参数生成指纹，检测 A-B-A 或连续相同调用。与此同时定义任务进度，例如新增证据数、未完成子任务数或测试通过数；多轮无进展即触发停止。硬限制还应覆盖轮数、时间、token 和费用。终止时保存检查点与失败原因，随后降级为固定流程、请求用户信息或交给人工。",
+      "follow_up_questions": [
+        "合法重试与无效重复调用如何区分？",
+        "怎样让终止结果仍对用户有帮助？"
+      ],
+      "sources": [
+        {
+          "title": "OpenAI Agents SDK: Tracing",
+          "url": "https://openai.github.io/openai-agents-python/tracing/",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "Anthropic: Building Effective Agents",
+          "url": "https://www.anthropic.com/engineering/building-effective-agents",
+          "source_type": "official_documentation",
+          "license": "Website terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
         }
       ],
       "review_status": "pending",
@@ -311,11 +717,81 @@
       ],
       "sources": [
         {
-          "title": "LangGraph Documentation",
-          "url": "https://langchain-ai.github.io/langgraph/",
+          "title": "LangGraph overview",
+          "url": "https://docs.langchain.com/oss/python/langgraph/overview",
           "source_type": "official_documentation",
           "license": "MIT (project); no verbatim text imported",
-          "accessed_at": "2026-08-02"
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "agent-memory-compression-001",
+      "domain": "agent",
+      "topic": "memory",
+      "subtopic": "memory_compression",
+      "question": "Agent 上下文过长时，如何压缩记忆又尽量不丢失关键事实？",
+      "difficulty": "hard",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Agent",
+        "记忆压缩",
+        "上下文工程"
+      ],
+      "reference_points": [
+        "区分必须原样保留的指令、近期消息与工具调用配对",
+        "结合滑动窗口、结构化摘要和按需检索",
+        "为摘要保留来源、时间和版本以便追溯",
+        "用任务成功率和事实召回测试信息损失"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "区分必须原样保留的指令、近期消息与工具调用配对",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "结合滑动窗口、结构化摘要和按需检索",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "为摘要保留来源、时间和版本以便追溯",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只保留最后若干条消息",
+        "反复摘要旧摘要却不保留可追溯来源"
+      ],
+      "oral_answer_outline": [
+        "先给记忆分类",
+        "说明窗口、摘要和检索的组合",
+        "最后说明可追溯与评估"
+      ],
+      "reference_answer": "压缩前先给信息分层：系统约束、未完成承诺、近期交互和工具调用结果通常优先保留。较旧内容可写入结构化摘要或长期存储，需要时再按相关性检索。摘要要记录来源、时间和版本，并保持工具调用与结果成对，避免上下文失真。压缩策略不能只看节省 token，还要用事实召回、任务成功率和错误恢复能力评估。",
+      "follow_up_questions": [
+        "摘要本身逐轮失真怎么办？",
+        "哪些信息不应交给模型决定是否删除？"
+      ],
+      "sources": [
+        {
+          "title": "LangChain memory",
+          "url": "https://docs.langchain.com/oss/python/concepts/memory",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "LangGraph persistence",
+          "url": "https://docs.langchain.com/oss/python/langgraph/persistence",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
         }
       ],
       "review_status": "pending",
@@ -375,10 +851,151 @@
       ],
       "sources": [
         {
-          "title": "LangGraph Documentation",
-          "url": "https://langchain-ai.github.io/langgraph/",
+          "title": "LangGraph overview",
+          "url": "https://docs.langchain.com/oss/python/langgraph/overview",
           "source_type": "official_documentation",
           "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "agent-multi-agent-faults-001",
+      "domain": "agent",
+      "topic": "multi_agent",
+      "subtopic": "fault_coordination",
+      "question": "多 Agent 系统中，子 Agent 超时、失联或并发写冲突应如何处理？",
+      "difficulty": "hard",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Multi-Agent",
+        "容错",
+        "并发冲突"
+      ],
+      "reference_points": [
+        "协调器记录每个子任务的状态、期限、尝试次数和幂等键",
+        "超时后可取消、重试、降级或重新分配并保留部分结果",
+        "共享资源写入使用版本号、事务或比较交换检测冲突",
+        "汇总阶段标注缺失与冲突，不能把部分成功伪装成全部完成"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "协调器记录每个子任务的状态、期限、尝试次数和幂等键",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "超时后可取消、重试、降级或重新分配并保留部分结果",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "共享资源写入使用版本号、事务或比较交换检测冲突",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "广播同一任务后采用最先返回结果而不取消其余执行",
+        "多个 Agent 直接覆盖同一份共享状态"
+      ],
+      "oral_answer_outline": [
+        "先定义子任务状态机",
+        "说明超时与重新分配",
+        "补充并发控制和结果完整性"
+      ],
+      "reference_answer": "协调器应把子任务建模为可追踪状态机，记录负责人、截止时间、幂等键与已产出证据。超时后先取消旧执行，再按错误类型重试、重新分配或降级，防止多个副本同时产生副作用。共享状态使用版本号、事务或 compare-and-swap 检测写冲突，并通过明确合并规则解决。最终结果必须暴露部分失败和未决冲突。",
+      "follow_up_questions": [
+        "重试后的旧子 Agent 又返回结果怎么办？",
+        "多 Agent 共享上下文应怎样控制版本？"
+      ],
+      "sources": [
+        {
+          "title": "OpenAI Agents SDK: Multi-agent orchestration",
+          "url": "https://openai.github.io/openai-agents-python/multi_agent/",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "LangGraph persistence",
+          "url": "https://docs.langchain.com/oss/python/langgraph/persistence",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "agent-pattern-selection-001",
+      "domain": "agent",
+      "topic": "planning",
+      "subtopic": "pattern_selection",
+      "question": "ReAct、Plan-and-Execute 与 Reflection 三种 Agent 模式如何选择？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Agent",
+        "ReAct",
+        "Plan-and-Execute",
+        "Reflection"
+      ],
+      "reference_points": [
+        "ReAct 交替推理与行动，适合逐步探索",
+        "Plan-and-Execute 先形成计划再执行，适合依赖关系明显的长任务",
+        "Reflection 引入评价与修订，适合可验证的质量迭代",
+        "比较延迟、成本、可恢复性并允许混合使用"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "ReAct 交替推理与行动，适合逐步探索",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "Plan-and-Execute 先形成计划再执行，适合依赖关系明显的长任务",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "Reflection 引入评价与修订，适合可验证的质量迭代",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "认为某一种模式适合所有任务",
+        "只比较效果而不考虑调用成本和终止条件"
+      ],
+      "oral_answer_outline": [
+        "逐一解释工作方式",
+        "按任务结构匹配场景",
+        "补充成本与混合策略"
+      ],
+      "reference_answer": "ReAct 每拿到一次工具结果就决定下一步，路径灵活但调用次数可能较多。Plan-and-Execute 先拆解任务再执行，便于并行和检查依赖，但计划可能过早失效。Reflection 在生成后增加评价和修订，适合代码、报告等有明确标准的产物，同时必须限制迭代次数。实际可按任务阶段混合，并用预算和停止条件控制成本。",
+      "follow_up_questions": [
+        "怎样避免 Reflection 自我肯定却没有实质改进？",
+        "计划失效后应局部重排还是全部重做？"
+      ],
+      "sources": [
+        {
+          "title": "Anthropic: Building Effective Agents",
+          "url": "https://www.anthropic.com/engineering/building-effective-agents",
+          "source_type": "official_documentation",
+          "license": "Website terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "ReAct: Synergizing Reasoning and Acting in Language Models",
+          "url": "https://arxiv.org/abs/2210.03629",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
           "accessed_at": "2026-08-02"
         }
       ],
@@ -444,6 +1061,69 @@
           "source_type": "research_paper",
           "license": "arXiv terms; no verbatim text imported",
           "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "agent-reflection-001",
+      "domain": "agent",
+      "topic": "agent_evaluation",
+      "subtopic": "reflection_loop",
+      "question": "Agent 的 Reflection 机制应如何设计，才能真正提高结果质量？",
+      "difficulty": "medium",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Agent",
+        "Reflection",
+        "质量评估"
+      ],
+      "reference_points": [
+        "评价器应依据明确标准检查产物而不是泛泛点评",
+        "反馈应转化为可执行修改并重新验证",
+        "尽量使用测试、检索证据或独立评价器提供外部信号",
+        "设置迭代上限、无改进停止和成本预算"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "评价器应依据明确标准检查产物而不是泛泛点评",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "反馈应转化为可执行修改并重新验证",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "尽量使用测试、检索证据或独立评价器提供外部信号",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "让模型自由反省却不给评价标准",
+        "没有停止条件导致反复改写"
+      ],
+      "oral_answer_outline": [
+        "定义闭环步骤",
+        "说明外部验证信号",
+        "补充偏差和终止治理"
+      ],
+      "reference_answer": "有效 Reflection 是生成、评价、修订、再验证的闭环。评价器应围绕正确性、覆盖度和约束等明确标准输出具体缺口，修订后用测试或来源证据再次检查。若生成者和评价者使用同一上下文，要警惕共同偏差，因此关键任务最好加入确定性检查或独立模型。系统还应在评分不再提升、达到轮数或预算时停止。",
+      "follow_up_questions": [
+        "评价器与生成器是否应该用不同模型？",
+        "怎样判断一次反思只是改写而非改进？"
+      ],
+      "sources": [
+        {
+          "title": "Anthropic: Building Effective Agents",
+          "url": "https://www.anthropic.com/engineering/building-effective-agents",
+          "source_type": "official_documentation",
+          "license": "Website terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
         }
       ],
       "review_status": "pending",
@@ -578,6 +1258,146 @@
       "verified_by_human": false
     },
     {
+      "id": "agent-task-decomposition-001",
+      "domain": "agent",
+      "topic": "planning",
+      "subtopic": "task_decomposition",
+      "question": "Agent 应怎样拆解复杂任务，才能支持并行执行又避免过度切分？",
+      "difficulty": "hard",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Agent",
+        "任务分解",
+        "并行"
+      ],
+      "reference_points": [
+        "先识别目标、依赖关系和不可并行的关键路径",
+        "每个子任务应有明确输入、输出与验收条件",
+        "独立子任务才能并行并需要统一汇总协议",
+        "根据执行反馈动态重排，同时限制粒度和子任务数量"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "先识别目标、依赖关系和不可并行的关键路径",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "每个子任务应有明确输入、输出与验收条件",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "独立子任务才能并行并需要统一汇总协议",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "把一句提示词机械切成很多小步骤",
+        "没有声明依赖和验收条件就直接并行"
+      ],
+      "oral_answer_outline": [
+        "从最终目标与依赖开始",
+        "定义子任务契约",
+        "说明并行、合并和重排"
+      ],
+      "reference_answer": "任务分解应从最终验收条件反推，先画出依赖，再把可独立产出和验证的部分切成子任务。每个子任务都要声明所需上下文、输出格式、截止时间和完成证据；无依赖的任务才并行。协调器合并结果时处理冲突和缺失，并根据新信息局部重排。切得过细会增加上下文复制、协调和失败面，因此应以可独立验收为最小粒度。",
+      "follow_up_questions": [
+        "如何发现两个子任务其实写入同一资源？",
+        "并行结果互相矛盾时由谁裁决？"
+      ],
+      "sources": [
+        {
+          "title": "Anthropic: Building Effective Agents",
+          "url": "https://www.anthropic.com/engineering/building-effective-agents",
+          "source_type": "official_documentation",
+          "license": "Website terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "OpenAI Agents SDK: Multi-agent orchestration",
+          "url": "https://openai.github.io/openai-agents-python/multi_agent/",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "agent-task-hallucination-001",
+      "domain": "agent",
+      "topic": "agent_safety",
+      "subtopic": "completion_evidence",
+      "question": "如何防止 Agent 没有真正执行任务，却向用户声称已经完成？",
+      "difficulty": "hard",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Agent",
+        "任务幻觉",
+        "完成证据"
+      ],
+      "reference_points": [
+        "区分计划、已发起、已执行和已验证等状态",
+        "完成状态必须由工具回执或确定性检查产生",
+        "为外部操作记录对象、参数、时间与结果标识",
+        "面向用户明确展示失败、部分完成和待确认状态"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "区分计划、已发起、已执行和已验证等状态",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "完成状态必须由工具回执或确定性检查产生",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "为外部操作记录对象、参数、时间与结果标识",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "把模型说“已完成”当成成功信号",
+        "只记录工具是否被调用而不验证业务结果"
+      ],
+      "oral_answer_outline": [
+        "先拆分任务状态",
+        "定义工具回执与后置验证",
+        "说明面向用户的状态表达"
+      ],
+      "reference_answer": "不能让模型文本决定任务是否完成。运行时应把任务状态拆成计划、执行中、已执行、已验证和失败，只有工具返回可核验回执或后置检查通过后才能进入完成状态。对发送、部署、写数据库等动作记录目标、参数摘要、时间和结果 ID，并可再次查询验证。最终回复由结构化状态生成，部分成功就明确列出剩余项。",
+      "follow_up_questions": [
+        "工具返回 200 是否足以证明业务完成？",
+        "异步任务的完成证据应如何获取？"
+      ],
+      "sources": [
+        {
+          "title": "OpenAI Agents SDK: Tracing",
+          "url": "https://openai.github.io/openai-agents-python/tracing/",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "OpenAI Agents SDK: Guardrails",
+          "url": "https://openai.github.io/openai-agents-python/guardrails/",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
       "id": "agent-tool-calling-loop-001",
       "domain": "llm_application",
       "topic": "tool_calling",
@@ -636,6 +1456,209 @@
           "source_type": "official_documentation",
           "license": "Documentation terms apply; no verbatim text imported",
           "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "agent-trace-latency-001",
+      "domain": "agent",
+      "topic": "agent_evaluation",
+      "subtopic": "trace_latency",
+      "question": "Agent 响应很慢时，如何从 Trace 定位真正的延迟瓶颈？",
+      "difficulty": "medium",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Agent",
+        "Tracing",
+        "延迟"
+      ],
+      "reference_points": [
+        "把一次请求拆成模型、工具、检索、队列和重试等 span",
+        "同时记录首 token、总耗时、token 数、错误和重试次数",
+        "用关键路径识别串行阻塞并查看 p50、p95、p99",
+        "根据证据选择并行、缓存、缩短上下文或替换慢工具"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "把一次请求拆成模型、工具、检索、队列和重试等 span",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "同时记录首 token、总耗时、token 数、错误和重试次数",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "用关键路径识别串行阻塞并查看 p50、p95、p99",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只记录整个请求的总耗时",
+        "看到模型耗时高就直接换模型而不检查上下文和重试"
+      ],
+      "oral_answer_outline": [
+        "建立端到端 trace",
+        "补齐关键 span 与指标",
+        "沿关键路径提出优化"
+      ],
+      "reference_answer": "先给整次 Agent 运行建立 trace，再为模型调用、检索、工具、排队和重试建立带父子关系的 span。关注首 token 时间与总耗时，并关联 token 量、工具参数规模、网络错误和重试。多分支流程要看关键路径而不是简单相加，线上还要比较 p50、p95、p99。确认瓶颈后再决定并行、缓存、减少上下文或优化具体工具。",
+      "follow_up_questions": [
+        "为什么平均延迟会掩盖真实体验问题？",
+        "并行工具调用一定能降低总延迟吗？"
+      ],
+      "sources": [
+        {
+          "title": "OpenAI Agents SDK: Tracing",
+          "url": "https://openai.github.io/openai-agents-python/tracing/",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "OpenTelemetry Documentation",
+          "url": "https://opentelemetry.io/docs/",
+          "source_type": "official_documentation",
+          "license": "Apache-2.0",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "agent-vs-llm-001",
+      "domain": "agent",
+      "topic": "agent_architecture",
+      "subtopic": "agent_vs_llm",
+      "question": "Agent 和普通的大模型调用有什么区别？什么情况下不必做成 Agent？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "Agent",
+        "LLM",
+        "架构选择"
+      ],
+      "reference_points": [
+        "区分一次生成与围绕目标持续决策的执行循环",
+        "说明 Agent 由模型、工具、状态和控制逻辑共同组成",
+        "能按任务确定性、步骤数量和外部操作需求判断是否需要 Agent",
+        "指出简单请求优先使用单次调用或固定工作流"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "区分一次生成与围绕目标持续决策的执行循环",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "说明 Agent 由模型、工具、状态和控制逻辑共同组成",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "能按任务确定性、步骤数量和外部操作需求判断是否需要 Agent",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "把任何接入大模型的应用都称为 Agent",
+        "只谈提示词而忽略工具执行与状态管理"
+      ],
+      "oral_answer_outline": [
+        "先说明一次调用和执行循环的边界",
+        "再列出 Agent 的运行时组成",
+        "最后给出选型条件"
+      ],
+      "reference_answer": "普通大模型调用通常根据一次输入生成一次输出；Agent 则让模型在受控循环里根据环境反馈决定下一步，并由应用执行工具、维护状态和约束权限。任务若步骤固定、结果可用确定性代码得到，单次调用或普通工作流更容易测试，也更快更便宜。只有任务需要动态规划、调用外部能力并根据结果改路时，Agent 才有明显价值。",
+      "follow_up_questions": [
+        "Agent 的自主程度应如何限制？",
+        "如何用指标证明 Agent 比固定工作流更合适？"
+      ],
+      "sources": [
+        {
+          "title": "Anthropic: Building Effective Agents",
+          "url": "https://www.anthropic.com/engineering/building-effective-agents",
+          "source_type": "official_documentation",
+          "license": "Website terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "OpenAI Agents SDK Documentation",
+          "url": "https://openai.github.io/openai-agents-python/",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "agent-workflow-tools-boundary-001",
+      "domain": "agent",
+      "topic": "workflow",
+      "subtopic": "workflow_agent_tool_boundary",
+      "question": "Workflow、Agent 和 Tool 分别解决什么问题，三者应如何组合？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "Agent",
+        "Workflow",
+        "Tool"
+      ],
+      "reference_points": [
+        "Tool 是带输入输出契约的原子能力",
+        "Workflow 由代码预先规定步骤和分支",
+        "Agent 让模型根据中间结果动态选择行动",
+        "说明实际系统常以固定工作流包住局部 Agent"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "Tool 是带输入输出契约的原子能力",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "Workflow 由代码预先规定步骤和分支",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "Agent 让模型根据中间结果动态选择行动",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "把工作流和 Agent 当成同义词",
+        "允许模型绕过工具层直接操作外部系统"
+      ],
+      "oral_answer_outline": [
+        "先分别定义三者",
+        "再比较控制权所在",
+        "用混合架构收尾"
+      ],
+      "reference_answer": "Tool 是搜索、查询或写入等可执行能力；Workflow 把步骤与分支写在代码里，适合规则明确的流程；Agent 把部分下一步选择交给模型，适合路径无法预先枚举的任务。生产系统通常把三者组合：外层工作流控制权限、审批和终止，局部 Agent 处理开放式判断，具体动作仍通过受控 Tool 执行。",
+      "follow_up_questions": [
+        "何时应把 Agent 节点改回确定性节点？",
+        "工具契约设计不好会产生什么问题？"
+      ],
+      "sources": [
+        {
+          "title": "Anthropic: Building Effective Agents",
+          "url": "https://www.anthropic.com/engineering/building-effective-agents",
+          "source_type": "official_documentation",
+          "license": "Website terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
         }
       ],
       "review_status": "pending",
@@ -1020,6 +2043,851 @@
           "source_type": "official_documentation",
           "license": "CC-BY-SA 2.5; no verbatim text imported",
           "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "deep-research-architecture-001",
+      "domain": "agent",
+      "topic": "multi_agent",
+      "subtopic": "deep_research",
+      "question": "怎样设计一个 Deep Research Agent，使它能给出可追溯、覆盖充分且成本可控的研究结果？",
+      "difficulty": "hard",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Deep Research",
+        "Agent",
+        "证据",
+        "多 Agent"
+      ],
+      "reference_points": [
+        "先澄清范围、交付格式和停止条件",
+        "按子问题规划并对独立方向并行检索",
+        "保存来源、摘录位置、时间和观点冲突形成证据链",
+        "综合后执行覆盖度与引用核验，并设置搜索、token、时间预算"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "先澄清范围、交付格式和停止条件",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "按子问题规划并对独立方向并行检索",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "保存来源、摘录位置、时间和观点冲突形成证据链",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "用一个很长的提示词代替研究流程",
+        "只收集支持预设结论的材料"
+      ],
+      "oral_answer_outline": [
+        "先定义范围与验收",
+        "说明分解、并行和证据记录",
+        "最后讲综合核验与预算"
+      ],
+      "reference_answer": "Deep Research 应先把模糊问题转成范围、受众、时间界限和交付标准，再拆成可独立研究的子问题。检索或子 Agent 并行收集资料时，要记录来源、时间、对应主张和冲突证据，随后去重并综合。最终输出前检查每个关键结论是否有可靠引用、是否遗漏反例。系统还要限制搜索次数、token、总时间和子任务数量，并在证据饱和或预算耗尽时停止。",
+      "follow_up_questions": [
+        "如何衡量研究已经达到证据饱和？",
+        "多个来源互相冲突时应如何呈现？"
+      ],
+      "sources": [
+        {
+          "title": "LangChain Deep Research example",
+          "url": "https://docs.langchain.com/oss/python/deepagents/deep-research",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "OpenAI Agents SDK: Multi-agent orchestration",
+          "url": "https://openai.github.io/openai-agents-python/multi_agent/",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "langchain-agent-build-001",
+      "domain": "agent",
+      "topic": "agent_architecture",
+      "subtopic": "build_agent",
+      "question": "用当前 LangChain 构建一个带工具、记忆和护栏的 Agent，关键步骤是什么？",
+      "difficulty": "medium",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "LangChain",
+        "create_agent",
+        "工具",
+        "记忆"
+      ],
+      "reference_points": [
+        "先明确任务、工具边界和可验证的成功标准",
+        "定义模型、结构化工具与系统提示并调用 create_agent",
+        "使用 checkpointer 保存线程状态，需要跨线程信息时配置 store",
+        "通过 middleware 加入工具筛选、重试、审批或护栏并用 trace 评估"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "先明确任务、工具边界和可验证的成功标准",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "定义模型、结构化工具与系统提示并调用 create_agent",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "使用 checkpointer 保存线程状态，需要跨线程信息时配置 store",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "先写复杂提示再考虑工具权限",
+        "只测试最终文本而不检查工具轨迹"
+      ],
+      "oral_answer_outline": [
+        "定义任务和工具契约",
+        "组装 Agent 与状态",
+        "补充中间件和评估"
+      ],
+      "reference_answer": "先明确 Agent 必须完成的任务和禁止执行的动作，再定义参数清晰的工具与模型。当前 LangChain 可用 create_agent 组合模型、工具和系统提示；通过 thread 标识与 checkpointer 保存短期状态，跨线程记忆放入 store。动态提示、工具权限、重试和人工确认适合通过 middleware 注入。最后用真实样例回放工具轨迹、失败恢复和最终结果。",
+      "follow_up_questions": [
+        "怎样根据用户权限动态隐藏工具？",
+        "工具调用失败后重试逻辑应放在哪里？"
+      ],
+      "sources": [
+        {
+          "title": "LangChain agents",
+          "url": "https://docs.langchain.com/oss/python/langchain/agents",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "LangChain tools",
+          "url": "https://docs.langchain.com/oss/python/langchain/tools",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "LangChain memory",
+          "url": "https://docs.langchain.com/oss/python/concepts/memory",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "langchain-chain-runnable-lcel-001",
+      "domain": "agent",
+      "topic": "workflow",
+      "subtopic": "runnable_composition",
+      "question": "LangChain 中 Chain、Runnable 与 LCEL 分别是什么关系？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "LangChain",
+        "Runnable",
+        "LCEL"
+      ],
+      "reference_points": [
+        "Runnable 是统一的可调用组件接口",
+        "LCEL 用声明式组合表达数据在 Runnable 之间的流动",
+        "组合通常继承同步、异步、批处理和流式能力",
+        "旧式 Chain 是较早的高层封装，新代码更常围绕 Runnable 或 Agent API"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "Runnable 是统一的可调用组件接口",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "LCEL 用声明式组合表达数据在 Runnable 之间的流动",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "组合通常继承同步、异步、批处理和流式能力",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "把 Chain 理解成只能顺序执行的 Python 列表",
+        "认为使用 LCEL 后无需处理异常和观测"
+      ],
+      "oral_answer_outline": [
+        "先解释 Runnable 接口",
+        "再说明 LCEL 如何组合",
+        "最后交代与旧式 Chain 的关系"
+      ],
+      "reference_answer": "Runnable 抽象统一了输入输出和 invoke、ainvoke、batch、stream 等执行方式。LCEL 使用管道等声明式写法把提示、模型、解析器等 Runnable 组合成执行图，并让组合后的对象继续保持相同调用接口。传统 Chain 是较早的任务封装概念；维护旧项目时仍会遇到，但新代码通常优先使用 Runnable 组合或更高层的 Agent API。",
+      "follow_up_questions": [
+        "Runnable 的输入输出类型不匹配时如何发现？",
+        "LCEL 管道中怎样加入并行分支？"
+      ],
+      "sources": [
+        {
+          "title": "LangChain Runnable interface",
+          "url": "https://reference.langchain.com/python/langchain-core/runnables",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "langchain-framework-selection-001",
+      "domain": "agent",
+      "topic": "agent_architecture",
+      "subtopic": "framework_landscape",
+      "question": "常见大模型应用框架各自更擅长什么，项目选型时应看哪些因素？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "LangChain",
+        "LangGraph",
+        "LlamaIndex",
+        "框架选型"
+      ],
+      "reference_points": [
+        "LangChain 提供高层 Agent、模型和工具集成",
+        "LangGraph 更适合显式状态图与长时运行编排",
+        "LlamaIndex 侧重数据接入、索引与检索增强",
+        "按任务、团队语言、可观测性、生态和迁移成本做最小验证"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "LangChain 提供高层 Agent、模型和工具集成",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "LangGraph 更适合显式状态图与长时运行编排",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "LlamaIndex 侧重数据接入、索引与检索增强",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只根据 GitHub 热度选型",
+        "把框架能力清单当成业务效果保证"
+      ],
+      "oral_answer_outline": [
+        "先给框架定位",
+        "再列工程选型维度",
+        "以真实任务验证收尾"
+      ],
+      "reference_answer": "框架没有统一最优：LangChain 适合快速组合模型、工具和常见 Agent；LangGraph 适合需要显式状态、持久化与复杂分支的流程；LlamaIndex 在数据接入、索引和 RAG 管线方面更集中。选型还要看团队语言、提供商支持、调试追踪、版本稳定和锁定成本。应先用真实任务做小型纵向验证，再决定是否引入更低层运行时。",
+      "follow_up_questions": [
+        "同一个项目可以同时使用多个框架吗？",
+        "如何评估框架锁定风险？"
+      ],
+      "sources": [
+        {
+          "title": "LangChain overview",
+          "url": "https://docs.langchain.com/oss/python/langchain/overview",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "LangGraph overview",
+          "url": "https://docs.langchain.com/oss/python/langgraph/overview",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "LlamaIndex documentation",
+          "url": "https://developers.llamaindex.ai/python/framework/",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "langchain-memory-001",
+      "domain": "agent",
+      "topic": "memory",
+      "subtopic": "short_long_term_memory",
+      "question": "LangChain 与 LangGraph 中短期记忆和长期记忆应如何划分与持久化？",
+      "difficulty": "hard",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "LangChain",
+        "LangGraph",
+        "短期记忆",
+        "长期记忆"
+      ],
+      "reference_points": [
+        "短期记忆属于单个 thread 的图状态并由 checkpointer 持久化",
+        "长期记忆通过 store 按 namespace 跨线程保存",
+        "短期历史需要裁剪或摘要，长期内容需要检索与更新策略",
+        "同时设计隔离、删除、版本和敏感信息生命周期"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "短期记忆属于单个 thread 的图状态并由 checkpointer 持久化",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "长期记忆通过 store 按 namespace 跨线程保存",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "短期历史需要裁剪或摘要，长期内容需要检索与更新策略",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "把所有历史消息永久塞进上下文",
+        "长期记忆不按用户或业务命名空间隔离"
+      ],
+      "oral_answer_outline": [
+        "先用 thread 与跨 thread 划界",
+        "说明 checkpointer 和 store",
+        "补充压缩、检索与生命周期"
+      ],
+      "reference_answer": "短期记忆是当前会话运行所需的消息和状态，通常绑定 thread_id 并通过 checkpointer 保存检查点。长期记忆跨会话复用，放在 store 中并用用户、应用等 namespace 隔离。随着历史增长，短期状态要裁剪或摘要；长期信息要定义何时写入、如何检索、冲突如何更新。两类记忆都应具备权限、删除和版本策略。",
+      "follow_up_questions": [
+        "用户更正长期偏好后如何避免旧信息被继续召回？",
+        "短期记忆何时应提升为长期记忆？"
+      ],
+      "sources": [
+        {
+          "title": "LangChain memory",
+          "url": "https://docs.langchain.com/oss/python/concepts/memory",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "LangGraph persistence",
+          "url": "https://docs.langchain.com/oss/python/langgraph/persistence",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "langchain-runtime-architecture-001",
+      "domain": "agent",
+      "topic": "agent_architecture",
+      "subtopic": "langchain_architecture",
+      "question": "当前 LangChain 的核心架构如何分层，LangGraph 在其中扮演什么角色？",
+      "difficulty": "hard",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "LangChain",
+        "LangGraph",
+        "架构"
+      ],
+      "reference_points": [
+        "langchain-core 提供消息、模型、工具和 Runnable 等通用抽象",
+        "模型提供商能力通常由独立集成包接入",
+        "create_agent 提供高层 Agent API 并运行在 LangGraph 图运行时之上",
+        "中间件、持久化和可观测性分别处理扩展、状态与追踪"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "langchain-core 提供消息、模型、工具和 Runnable 等通用抽象",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "模型提供商能力通常由独立集成包接入",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "create_agent 提供高层 Agent API 并运行在 LangGraph 图运行时之上",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "把 LangChain 和 LangGraph 当成互斥框架",
+        "认为框架会自动提供业务权限和正确性"
+      ],
+      "oral_answer_outline": [
+        "从核心抽象与集成层说起",
+        "解释高层 Agent 与图运行时",
+        "补充扩展、状态和观测"
+      ],
+      "reference_answer": "LangChain 把消息、模型接口、工具和 Runnable 等基础抽象放在核心层，具体模型通过独立集成包接入。高层 create_agent 负责快速构建工具调用 Agent，其执行循环基于 LangGraph 的图运行时。需要修改提示、工具选择、重试或护栏时可使用 middleware；需要持久状态时配置 checkpointer 与 store；调试和评估则可接入追踪平台。",
+      "follow_up_questions": [
+        "为什么 LangChain Agent 仍可能需要直接使用 LangGraph？",
+        "提供商集成拆包有什么工程影响？"
+      ],
+      "sources": [
+        {
+          "title": "LangChain overview",
+          "url": "https://docs.langchain.com/oss/python/langchain/overview",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "LangChain agents",
+          "url": "https://docs.langchain.com/oss/python/langchain/agents",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "LangGraph overview",
+          "url": "https://docs.langchain.com/oss/python/langgraph/overview",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "langchain-tool-registration-001",
+      "domain": "agent",
+      "topic": "tool_calling",
+      "subtopic": "tool_registration",
+      "question": "LangChain 中如何注册 Tool，怎样让模型更稳定地选择和调用它？",
+      "difficulty": "medium",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "LangChain",
+        "Tool",
+        "Schema"
+      ],
+      "reference_points": [
+        "可用装饰器或函数创建工具并提供明确名称与描述",
+        "通过类型标注或参数模型生成严格输入 schema",
+        "工具内部仍需做权限、参数、超时和异常处理",
+        "按上下文动态筛选工具并观察误选率与调用成功率"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "可用装饰器或函数创建工具并提供明确名称与描述",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "通过类型标注或参数模型生成严格输入 schema",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "工具内部仍需做权限、参数、超时和异常处理",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "认为加上装饰器就完成了安全控制",
+        "注册大量同义工具让模型自行判断"
+      ],
+      "oral_answer_outline": [
+        "说明注册方式与 schema",
+        "强调工具内的确定性校验",
+        "补充动态选择和评估"
+      ],
+      "reference_answer": "LangChain 可把普通函数或协程声明为 Tool，函数名、文档说明和类型标注会影响模型看到的工具契约。名称应表达动作，描述要写清使用条件和边界，参数用明确类型与枚举减少歧义。运行时可以向工具注入上下文、状态或 store，但这些能力不能取代服务端授权。工具很多时应按用户权限和任务阶段动态筛选，并用轨迹统计误选与参数错误。",
+      "follow_up_questions": [
+        "工具描述相似导致模型误选时怎么改？",
+        "哪些参数不应该暴露给模型填写？"
+      ],
+      "sources": [
+        {
+          "title": "LangChain tools",
+          "url": "https://docs.langchain.com/oss/python/langchain/tools",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "langchain-v1-migration-001",
+      "domain": "agent",
+      "topic": "agent_architecture",
+      "subtopic": "v1_migration",
+      "question": "LangChain v1 的主要变化有哪些，从旧版迁移时应重点检查什么？",
+      "difficulty": "hard",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "LangChain",
+        "v1",
+        "迁移"
+      ],
+      "reference_points": [
+        "create_agent 成为标准 Agent 构建入口并取代旧预构建接口",
+        "旧 chains、retrievers 等遗留能力迁入 langchain-classic",
+        "middleware 取代旧式 hooks，消息内容支持标准 content blocks",
+        "检查 Python 版本、导入路径、状态 schema、工具错误和流式事件兼容性"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "create_agent 成为标准 Agent 构建入口并取代旧预构建接口",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "旧 chains、retrievers 等遗留能力迁入 langchain-classic",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "middleware 取代旧式 hooks，消息内容支持标准 content blocks",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "直接全局替换 API 名称",
+        "忽略工具错误和流式输出事件的行为差异"
+      ],
+      "oral_answer_outline": [
+        "列出接口与包结构变化",
+        "说明代码迁移重点",
+        "用状态和轨迹回归收尾"
+      ],
+      "reference_answer": "LangChain v1 收敛了高层接口：create_agent 成为标准 Agent 入口，旧版部分 chains 和 retrievers 移入 langchain-classic，原有 hooks 迁向 middleware，同时消息增加统一 content blocks 表达。迁移时先升级受支持的 Python 版本，再逐项处理导入路径、Agent 构造、状态结构和中间件。应使用已有会话与工具轨迹做回归，特别检查流式事件和错误处理。",
+      "follow_up_questions": [
+        "为什么不能只修复 import 后就认为迁移完成？",
+        "迁移期间如何保持旧会话状态可读？"
+      ],
+      "sources": [
+        {
+          "title": "LangChain v1 release notes",
+          "url": "https://docs.langchain.com/oss/python/releases/langchain-v1",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "LangChain v1 migration guide",
+          "url": "https://docs.langchain.com/oss/python/migrate/langchain-v1",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "langchain-vs-langgraph-001",
+      "domain": "agent",
+      "topic": "agent_architecture",
+      "subtopic": "langchain_vs_langgraph",
+      "question": "LangChain 与 LangGraph 有什么关系，什么时候应直接使用 LangGraph？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "LangChain",
+        "LangGraph",
+        "状态图"
+      ],
+      "reference_points": [
+        "LangChain 提供高层 Agent、模型和工具接口",
+        "LangGraph 提供低层有状态图编排与运行时能力",
+        "当前 LangChain Agent 构建在 LangGraph 之上",
+        "需要自定义状态、分支、恢复、人工介入或多 Agent 协调时可直接用 LangGraph"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "LangChain 提供高层 Agent、模型和工具接口",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "LangGraph 提供低层有状态图编排与运行时能力",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "当前 LangChain Agent 构建在 LangGraph 之上",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "把两者看成同层级竞争框架",
+        "为了显示流程图而把简单调用拆成很多节点"
+      ],
+      "oral_answer_outline": [
+        "先说明抽象层级",
+        "解释运行时依赖关系",
+        "按控制需求给出选型"
+      ],
+      "reference_answer": "LangChain 面向快速构建常见 Agent，封装模型、工具、中间件和 create_agent；LangGraph 则让开发者显式定义状态、节点和边，负责持久化与长时运行。两者不是互斥关系，因为 LangChain 的 Agent 运行在 LangGraph 上。默认先用高层 API，只有需要定制状态迁移、复杂分支、断点恢复或多 Agent 拓扑时再直接使用 LangGraph。",
+      "follow_up_questions": [
+        "从 LangChain Agent 迁移到自定义 LangGraph 时哪些部分可以复用？",
+        "简单聊天机器人使用 LangGraph 会带来哪些额外成本？"
+      ],
+      "sources": [
+        {
+          "title": "LangChain overview",
+          "url": "https://docs.langchain.com/oss/python/langchain/overview",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "LangGraph overview",
+          "url": "https://docs.langchain.com/oss/python/langgraph/overview",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "langchain-vs-llamaindex-001",
+      "domain": "agent",
+      "topic": "agent_architecture",
+      "subtopic": "langchain_vs_llamaindex",
+      "question": "LangChain 和 LlamaIndex 的定位有什么差异，实际项目应如何选择或组合？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "LangChain",
+        "LlamaIndex",
+        "RAG",
+        "选型"
+      ],
+      "reference_points": [
+        "LangChain 强调模型、工具、Agent 与应用编排",
+        "LlamaIndex 更集中于数据接入、索引、检索和 RAG",
+        "两者能力有重叠，选择取决于主要复杂度所在",
+        "可以让 LlamaIndex 负责检索，让 LangChain 或 LangGraph 负责编排"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "LangChain 强调模型、工具、Agent 与应用编排",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "LlamaIndex 更集中于数据接入、索引、检索和 RAG",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "两者能力有重叠，选择取决于主要复杂度所在",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "认为 LlamaIndex 只能做向量数据库",
+        "为了使用两个生态而重复维护相同状态"
+      ],
+      "oral_answer_outline": [
+        "先说明各自主轴",
+        "承认功能重叠",
+        "按真实复杂度给出选择与组合方式"
+      ],
+      "reference_answer": "LangChain 的优势在模型与工具集成、Agent 和工作流组合；LlamaIndex 从数据框架出发，对加载、索引、检索和知识增强提供较完整抽象。两者现在都有 Agent 与 RAG 能力，不能只靠标签判断。若难点是数据管线，优先验证 LlamaIndex；若难点是工具编排和状态流程，优先验证 LangChain 或 LangGraph，也可以把检索器作为工具组合使用。",
+      "follow_up_questions": [
+        "同时使用两个框架会增加哪些维护成本？",
+        "如何用同一评测集比较两种 RAG 实现？"
+      ],
+      "sources": [
+        {
+          "title": "LangChain overview",
+          "url": "https://docs.langchain.com/oss/python/langchain/overview",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "LlamaIndex documentation",
+          "url": "https://developers.llamaindex.ai/python/framework/",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "langchain4j-001",
+      "domain": "agent",
+      "topic": "agent_architecture",
+      "subtopic": "langchain4j",
+      "question": "LangChain4j 是什么，它适合哪些 Java 项目，使用时要注意什么？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "LangChain4j",
+        "Java",
+        "AI Services"
+      ],
+      "reference_points": [
+        "LangChain4j 是面向 Java 生态的独立大模型应用库而非 Python LangChain 的直接移植",
+        "提供统一模型、工具、记忆和 RAG 接口",
+        "AI Services 可用 Java 接口声明生成代理实现",
+        "适合 Java 服务集成，同时要验证版本、提供商能力和运行时观测"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "LangChain4j 是面向 Java 生态的独立大模型应用库而非 Python LangChain 的直接移植",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "提供统一模型、工具、记忆和 RAG 接口",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "AI Services 可用 Java 接口声明生成代理实现",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "把 LangChain4j 当成 Python LangChain 的官方 Java 端口",
+        "只看统一接口而不验证提供商特有能力"
+      ],
+      "oral_answer_outline": [
+        "先澄清定位",
+        "说明核心能力和 AI Services",
+        "最后给出适用场景与风险"
+      ],
+      "reference_answer": "LangChain4j 是 Java 原生的大模型应用库，不应理解成 Python LangChain 的逐项翻译。它统一不同模型和向量存储的接口，并提供工具调用、聊天记忆、RAG 与 AI Services；后者可从带注解的 Java 接口生成实现。它适合 Spring Boot、Quarkus 等 Java 服务，但仍需检查目标模型功能、异步行为、序列化、版本兼容和可观测性。",
+      "follow_up_questions": [
+        "AI Services 与传统 Service 类的边界应如何划分？",
+        "Java 项目何时更适合直接调用模型 SDK？"
+      ],
+      "sources": [
+        {
+          "title": "LangChain4j documentation",
+          "url": "https://docs.langchain4j.dev/intro/",
+          "source_type": "official_documentation",
+          "license": "Apache-2.0 (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "langgraph-advantages-001",
+      "domain": "agent",
+      "topic": "workflow",
+      "subtopic": "langgraph_use_cases",
+      "question": "LangGraph 的核心优势是什么，哪些场景值得采用，哪些场景属于过度设计？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "LangGraph",
+        "持久化",
+        "Human-in-the-loop"
+      ],
+      "reference_points": [
+        "用显式状态、节点和条件边描述可控流程",
+        "检查点支持耐久执行、中断恢复和人工介入",
+        "适合长时、多分支、可恢复或多 Agent 流程",
+        "一次模型调用或简单固定管道通常无需图运行时"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "用显式状态、节点和条件边描述可控流程",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "检查点支持耐久执行、中断恢复和人工介入",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "适合长时、多分支、可恢复或多 Agent 流程",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只因为流程有两步就引入状态图",
+        "认为有 checkpoint 就自动避免重复副作用"
+      ],
+      "oral_answer_outline": [
+        "说明显式状态与控制流",
+        "列举持久化和人工介入能力",
+        "给出适用与不适用边界"
+      ],
+      "reference_answer": "LangGraph 的价值是把状态变化和控制流显式化，并通过检查点支持耐久执行、恢复、流式输出和人工介入。它适合长时任务、复杂条件分支、需要暂停审批或多个 Agent 协作的流程。若业务只是一次模型调用或几个稳定的顺序步骤，普通函数或高层 Agent API更清楚。采用前应确认确实需要状态恢复或自定义控制。",
+      "follow_up_questions": [
+        "耐久执行为什么要求副作用具备幂等性？",
+        "子图适合解决什么样的复用问题？"
+      ],
+      "sources": [
+        {
+          "title": "LangGraph overview",
+          "url": "https://docs.langchain.com/oss/python/langgraph/overview",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "LangGraph persistence",
+          "url": "https://docs.langchain.com/oss/python/langgraph/persistence",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
         }
       ],
       "review_status": "pending",

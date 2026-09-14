@@ -1,17 +1,34 @@
 {
-  "generated_at": "2026-08-03T06:21:04.740776+00:00",
+  "generated_at": "2026-09-14T14:00:19.224888+00:00",
   "algorithm_count": 18,
-  "interview_question_count": 27,
+  "interview_question_count": 54,
   "algorithm_sources": [
     "neetcode-gh/leetcode"
   ],
   "interview_sources": [
+    "anthropic-effective-agents",
     "docker-docs",
     "fastapi-docs",
+    "langchain-agents-docs",
+    "langchain-context-docs",
+    "langchain-deep-research-docs",
+    "langchain-memory-docs",
+    "langchain-overview",
+    "langchain-runnables-docs",
+    "langchain-tools-docs",
+    "langchain-v1-docs",
+    "langchain-v1-migration-docs",
+    "langchain4j-docs",
     "langgraph-docs",
+    "langgraph-persistence-docs",
+    "llamaindex-docs",
     "mcp-spec",
     "mdn-sse",
     "mdn-websocket",
+    "openai-agents-guardrails",
+    "openai-agents-orchestration",
+    "openai-agents-sdk",
+    "openai-agents-tracing",
     "openai-api-docs",
     "opentelemetry-docs",
     "pydantic-docs",
@@ -23,13 +40,13 @@
   "files": [
     {
       "path": "data/algorithms/problem_catalog.json",
-      "sha256": "234e3b699ab690df6e3c1963bdbeb340263a5c31e29605c697c5bbe90e576ba1",
+      "sha256": "de54cc6a198364976d1d12f7fbefef0bbc2c6fcccbc0a2268292e15ee14942b4",
       "record_count": 18
     },
     {
       "path": "data/interview_question_bank.json",
-      "sha256": "12ceceebddda4c68e013f597c8a2ca1194bf1f7d70c8b2ab216dccb32db1d558",
-      "record_count": 27
+      "sha256": "6468fbf100fcb319e432ee08da7d8b6e0e4c2e5a6cb1e0e0d6e83fb84f885c8d",
+      "record_count": 54
     }
   ]
 }
