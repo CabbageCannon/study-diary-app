@@ -1,7 +1,7 @@
 export type Difficulty = "easy" | "medium" | "hard";
 export type ReviewStatus = "pending" | "verified" | "rejected";
 export type ReviewMethod = "human" | "ai_auto" | "manual_override";
-export type QuestionDomain = "agent" | "rag" | "llm_application" | "python" | "network" | "ai_engineering";
+export type QuestionDomain = "agent" | "rag" | "llm_application" | "python" | "network" | "mysql" | "ai_engineering";
 export type AnswerSource = "voice" | "text";
 export type InterviewEvaluationStatus = "processing" | "completed" | "failed";
 export type QuestionSetStatus = "in_progress" | "completed" | "abandoned";

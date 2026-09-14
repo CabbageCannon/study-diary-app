@@ -474,5 +474,425 @@
     "source_type": "research_paper",
     "license": "arXiv terms; no verbatim text imported",
     "accessed_at": "2026-09-14"
+  },
+  "rfc1122": {
+    "name": "RFC 1122: Requirements for Internet Hosts",
+    "url": "https://www.rfc-editor.org/rfc/rfc1122",
+    "source_type": "specification",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "rfc792": {
+    "name": "RFC 792: Internet Control Message Protocol",
+    "url": "https://www.rfc-editor.org/rfc/rfc792",
+    "source_type": "specification",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "rfc4443": {
+    "name": "RFC 4443: ICMPv6",
+    "url": "https://www.rfc-editor.org/rfc/rfc4443",
+    "source_type": "specification",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "rfc8200": {
+    "name": "RFC 8200: Internet Protocol, Version 6",
+    "url": "https://www.rfc-editor.org/rfc/rfc8200",
+    "source_type": "specification",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "rfc9293": {
+    "name": "RFC 9293: Transmission Control Protocol",
+    "url": "https://www.rfc-editor.org/rfc/rfc9293",
+    "source_type": "specification",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "rfc768": {
+    "name": "RFC 768: User Datagram Protocol",
+    "url": "https://www.rfc-editor.org/rfc/rfc768",
+    "source_type": "specification",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "rfc1034": {
+    "name": "RFC 1034: Domain Names - Concepts and Facilities",
+    "url": "https://www.rfc-editor.org/rfc/rfc1034",
+    "source_type": "specification",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "rfc1035": {
+    "name": "RFC 1035: Domain Names - Implementation and Specification",
+    "url": "https://www.rfc-editor.org/rfc/rfc1035",
+    "source_type": "specification",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "rfc9112": {
+    "name": "RFC 9112: HTTP/1.1",
+    "url": "https://www.rfc-editor.org/rfc/rfc9112",
+    "source_type": "specification",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "rfc9113": {
+    "name": "RFC 9113: HTTP/2",
+    "url": "https://www.rfc-editor.org/rfc/rfc9113",
+    "source_type": "specification",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "rfc9114": {
+    "name": "RFC 9114: HTTP/3",
+    "url": "https://www.rfc-editor.org/rfc/rfc9114",
+    "source_type": "specification",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "rfc8446": {
+    "name": "RFC 8446: The Transport Layer Security Protocol Version 1.3",
+    "url": "https://www.rfc-editor.org/rfc/rfc8446",
+    "source_type": "specification",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "rfc9000": {
+    "name": "RFC 9000: QUIC",
+    "url": "https://www.rfc-editor.org/rfc/rfc9000",
+    "source_type": "specification",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "rfc6455": {
+    "name": "RFC 6455: The WebSocket Protocol",
+    "url": "https://www.rfc-editor.org/rfc/rfc6455",
+    "source_type": "specification",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "rfc6265": {
+    "name": "RFC 6265: HTTP State Management Mechanism",
+    "url": "https://www.rfc-editor.org/rfc/rfc6265",
+    "source_type": "specification",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "rfc7519": {
+    "name": "RFC 7519: JSON Web Token",
+    "url": "https://www.rfc-editor.org/rfc/rfc7519",
+    "source_type": "specification",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "rfc4987": {
+    "name": "RFC 4987: TCP SYN Flooding Attacks and Common Mitigations",
+    "url": "https://www.rfc-editor.org/rfc/rfc4987",
+    "source_type": "specification",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "rfc5681": {
+    "name": "RFC 5681: TCP Congestion Control",
+    "url": "https://www.rfc-editor.org/rfc/rfc5681",
+    "source_type": "specification",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "rfc4033": {
+    "name": "RFC 4033: DNS Security Introduction and Requirements",
+    "url": "https://www.rfc-editor.org/rfc/rfc4033",
+    "source_type": "specification",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "nginx-load-balancing": {
+    "name": "NGINX HTTP Load Balancing",
+    "url": "https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "owasp-session": {
+    "name": "OWASP Session Management Cheat Sheet",
+    "url": "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "owasp-web": {
+    "name": "OWASP Cheat Sheet Series",
+    "url": "https://cheatsheetseries.owasp.org/",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-manual": {
+    "name": "MySQL 8.4 Reference Manual",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-join": {
+    "name": "MySQL 8.4 JOIN Clause",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/join.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-insert-on-duplicate": {
+    "name": "MySQL 8.4 INSERT ... ON DUPLICATE KEY UPDATE",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/insert-on-duplicate.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-string-types": {
+    "name": "MySQL 8.4 String Data Types",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/string-types.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-misc-functions": {
+    "name": "MySQL 8.4 Miscellaneous Functions",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/miscellaneous-functions.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-foreign-keys": {
+    "name": "MySQL 8.4 InnoDB Foreign Key Constraints",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-foreign-key-constraints.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-subquery-optimization": {
+    "name": "MySQL 8.4 Optimizing Subqueries",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/subquery-optimization.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-select": {
+    "name": "MySQL 8.4 SELECT Statement",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/select.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-architecture": {
+    "name": "MySQL 8.4 Optimization Overview",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/optimize-overview.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-innodb-intro": {
+    "name": "MySQL 8.4 Introduction to InnoDB",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-introduction.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-innodb-storage": {
+    "name": "MySQL 8.4 InnoDB Storage Architecture",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-architecture.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-indexes": {
+    "name": "MySQL 8.4 How MySQL Uses Indexes",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/mysql-indexes.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-innodb-index-types": {
+    "name": "MySQL 8.4 Clustered and Secondary Indexes",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-index-types.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-adaptive-hash": {
+    "name": "MySQL 8.4 Adaptive Hash Index",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-adaptive-hash.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-multiple-column": {
+    "name": "MySQL 8.4 Multiple-Column Indexes",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/multiple-column-indexes.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-range-optimization": {
+    "name": "MySQL 8.4 Range Optimization",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/range-optimization.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-explain": {
+    "name": "MySQL 8.4 EXPLAIN Statement",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/explain.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-column-indexes": {
+    "name": "MySQL 8.4 Column Indexes",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/column-indexes.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-redo": {
+    "name": "MySQL 8.4 InnoDB Redo Log",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-redo-log.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-undo": {
+    "name": "MySQL 8.4 InnoDB Undo Logs",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-undo-logs.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-innodb-transaction": {
+    "name": "MySQL 8.4 InnoDB Transaction Model",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-transaction-model.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-isolation": {
+    "name": "MySQL 8.4 Transaction Isolation Levels",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-transaction-isolation-levels.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-consistent-read": {
+    "name": "MySQL 8.4 Consistent Nonlocking Reads",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-consistent-read.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-mvcc": {
+    "name": "MySQL 8.4 InnoDB Multi-Versioning",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-multi-versioning.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-locking": {
+    "name": "MySQL 8.4 InnoDB Locking",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-locking.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-transaction-optimization": {
+    "name": "MySQL 8.4 Optimizing InnoDB Transaction Management",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/optimizing-innodb-transaction-management.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-deadlocks": {
+    "name": "MySQL 8.4 How to Minimize and Handle Deadlocks",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-deadlocks-handling.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-binlog": {
+    "name": "MySQL 8.4 The Binary Log",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/binary-log.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-binlog-formats": {
+    "name": "MySQL 8.4 Replication Formats",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/replication-formats.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-two-phase-commit": {
+    "name": "MySQL 8.4 Optimizing InnoDB Redo Logging",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/optimizing-innodb-logging.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-doublewrite": {
+    "name": "MySQL 8.4 Doublewrite Buffer",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-doublewrite-buffer.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-buffer-pool": {
+    "name": "MySQL 8.4 InnoDB Buffer Pool",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-buffer-pool.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-optimizer-hints": {
+    "name": "MySQL 8.4 Optimizer Hints",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/optimizer-hints.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-aggregate-functions": {
+    "name": "MySQL 8.4 Aggregate Function Descriptions",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/aggregate-functions.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-limit-optimization": {
+    "name": "MySQL 8.4 LIMIT Query Optimization",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/limit-optimization.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-replication": {
+    "name": "MySQL 8.4 Replication",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/replication.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-replication-troubleshooting": {
+    "name": "MySQL 8.4 Troubleshooting Replication",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/replication-problems.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mysql-partitioning": {
+    "name": "MySQL 8.4 Partitioning",
+    "url": "https://dev.mysql.com/doc/refman/8.4/en/partitioning.html",
+    "source_type": "official_documentation",
+    "license": "Documentation/specification terms apply; no verbatim text imported",
+    "accessed_at": "2026-09-14"
   }
 }

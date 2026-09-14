@@ -5152,6 +5152,3496 @@
       "verified_by_human": false
     },
     {
+      "id": "mysql-acid-025",
+      "domain": "mysql",
+      "topic": "transaction",
+      "subtopic": "acid",
+      "question": "事务 ACID 四个特性是什么，InnoDB 分别依靠哪些机制实现？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "transaction"
+      ],
+      "reference_points": [
+        "原子性保证事务整体提交或回滚，一致性要求约束和业务不变量在事务前后成立",
+        "隔离性通过锁与 MVCC 控制并发可见性，持久性依靠 redo、刷盘和恢复机制",
+        "undo 支持回滚与旧版本读取，但不能简单把每个特性只对应到单一日志"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "原子性保证事务整体提交或回滚，一致性要求约束和业务不变量在事务前后成立",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "隔离性通过锁与 MVCC 控制并发可见性，持久性依靠 redo、刷盘和恢复机制",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "undo 支持回滚与旧版本读取，但不能简单把每个特性只对应到单一日志",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：原子性保证事务整体提交或回滚，一致性要求约束和业务不变量在事务前后成立；隔离性通过锁与 MVCC 控制并发可见性，持久性依靠 redo、刷盘和恢复机制；undo 支持回滚与旧版本读取，但不能简单把每个特性只对应到单一日志。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 InnoDB Transaction Model",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-transaction-model.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 InnoDB Redo Log",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-redo-log.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 InnoDB Undo Logs",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-undo-logs.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-binlog-formats-038",
+      "domain": "mysql",
+      "topic": "log",
+      "subtopic": "binlog_formats",
+      "question": "MySQL binlog 的 statement、row 和 mixed 格式有什么差异？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "log"
+      ],
+      "reference_points": [
+        "statement 记录 SQL，日志可能较小但非确定性语句和环境差异会影响复制一致性",
+        "row 记录行级变化，语义更确定但批量更新可能产生更多日志",
+        "mixed 会按规则选择格式；选择还影响审计、恢复、复制和工具兼容"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "statement 记录 SQL，日志可能较小但非确定性语句和环境差异会影响复制一致性",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "row 记录行级变化，语义更确定但批量更新可能产生更多日志",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "mixed 会按规则选择格式；选择还影响审计、恢复、复制和工具兼容",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：statement 记录 SQL，日志可能较小但非确定性语句和环境差异会影响复制一致性；row 记录行级变化，语义更确定但批量更新可能产生更多日志；mixed 会按规则选择格式；选择还影响审计、恢复、复制和工具兼容。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Replication Formats",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/replication-formats.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-bplus-tree-016",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "bplus_tree",
+      "question": "MySQL 索引为什么常用 B+ 树，而不是普通二叉树、B 树或跳表？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "B+ 树分支多、高度低，能用较少页访问定位大量记录，适合块设备和页缓存",
+        "数据主要位于叶子且叶子有序相连，范围扫描和顺序访问高效",
+        "哈希和跳表各有适用场景，但不同时满足持久页布局、范围查询和成熟恢复机制等需求"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "B+ 树分支多、高度低，能用较少页访问定位大量记录，适合块设备和页缓存",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "数据主要位于叶子且叶子有序相连，范围扫描和顺序访问高效",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "哈希和跳表各有适用场景，但不同时满足持久页布局、范围查询和成熟恢复机制等需求",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：B+ 树分支多、高度低，能用较少页访问定位大量记录，适合块设备和页缓存；数据主要位于叶子且叶子有序相连，范围扫描和顺序访问高效；哈希和跳表各有适用场景，但不同时满足持久页布局、范围查询和成熟恢复机制等需求。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Clustered and Secondary Indexes",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-index-types.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-buffer-pool-042",
+      "domain": "mysql",
+      "topic": "performance",
+      "subtopic": "buffer_pool",
+      "question": "InnoDB Buffer Pool 缓存什么，命中率高就代表配置一定合理吗？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "performance"
+      ],
+      "reference_points": [
+        "Buffer Pool 缓存数据页和索引页，并管理脏页、空闲页及冷热访问",
+        "高命中率可能掩盖工作集变化、扫描污染、脏页堆积或查询本身读取过多页面",
+        "应结合内存压力、I/O、页淘汰、脏页比例、响应分位数和实际工作负载判断"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "Buffer Pool 缓存数据页和索引页，并管理脏页、空闲页及冷热访问",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "高命中率可能掩盖工作集变化、扫描污染、脏页堆积或查询本身读取过多页面",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "应结合内存压力、I/O、页淘汰、脏页比例、响应分位数和实际工作负载判断",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：Buffer Pool 缓存数据页和索引页，并管理脏页、空闲页及冷热访问；高命中率可能掩盖工作集变化、扫描污染、脏页堆积或查询本身读取过多页面；应结合内存压力、I/O、页淘汰、脏页比例、响应分位数和实际工作负载判断。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 InnoDB Buffer Pool",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-buffer-pool.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-clustered-secondary-014",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "clustered_secondary",
+      "question": "InnoDB 聚簇索引与二级索引如何组织数据，什么是回表？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "聚簇索引叶子保存完整行，并按主键组织；每张 InnoDB 表只有一个聚簇索引",
+        "二级索引叶子保存二级键和主键值，通过主键再次访问聚簇索引就是回表",
+        "二级索引若已包含查询所需列可形成覆盖索引，避免额外回表"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "聚簇索引叶子保存完整行，并按主键组织；每张 InnoDB 表只有一个聚簇索引",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "二级索引叶子保存二级键和主键值，通过主键再次访问聚簇索引就是回表",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "二级索引若已包含查询所需列可形成覆盖索引，避免额外回表",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：聚簇索引叶子保存完整行，并按主键组织；每张 InnoDB 表只有一个聚簇索引；二级索引叶子保存二级键和主键值，通过主键再次访问聚簇索引就是回表；二级索引若已包含查询所需列可形成覆盖索引，避免额外回表。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Clustered and Secondary Indexes",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-index-types.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-composite-leftmost-018",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "composite_leftmost",
+      "question": "联合索引的最左前缀原则是什么，条件书写顺序会决定能否使用索引吗？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "联合索引按各列依次排序，可有效利用从最左列开始的连续前缀",
+        "优化器通常能重排 AND 等值条件，所以 WHERE 中的文本顺序不是决定因素",
+        "跳过最左列、对列做不受支持的表达式或遇到某些范围边界，会限制后续列用于缩小扫描范围"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "联合索引按各列依次排序，可有效利用从最左列开始的连续前缀",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "优化器通常能重排 AND 等值条件，所以 WHERE 中的文本顺序不是决定因素",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "跳过最左列、对列做不受支持的表达式或遇到某些范围边界，会限制后续列用于缩小扫描范围",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：联合索引按各列依次排序，可有效利用从最左列开始的连续前缀；优化器通常能重排 AND 等值条件，所以 WHERE 中的文本顺序不是决定因素；跳过最左列、对列做不受支持的表达式或遇到某些范围边界，会限制后续列用于缩小扫描范围。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Multiple-Column Indexes",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/multiple-column-indexes.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-concurrency-anomalies-026",
+      "domain": "mysql",
+      "topic": "transaction",
+      "subtopic": "concurrency_anomalies",
+      "question": "脏读、不可重复读和幻读分别是什么？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "transaction"
+      ],
+      "reference_points": [
+        "脏读读取了其他事务尚未提交且可能回滚的数据",
+        "不可重复读指同一行在同一事务两次读取结果不同，幻读强调按同一谓词查询时结果集合发生变化",
+        "隔离级别定义允许的现象，但 MySQL 的实现细节还取决于一致性读与锁定读"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "脏读读取了其他事务尚未提交且可能回滚的数据",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "不可重复读指同一行在同一事务两次读取结果不同，幻读强调按同一谓词查询时结果集合发生变化",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "隔离级别定义允许的现象，但 MySQL 的实现细节还取决于一致性读与锁定读",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：脏读读取了其他事务尚未提交且可能回滚的数据；不可重复读指同一行在同一事务两次读取结果不同，幻读强调按同一谓词查询时结果集合发生变化；隔离级别定义允许的现象，但 MySQL 的实现细节还取决于一致性读与锁定读。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Transaction Isolation Levels",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-transaction-isolation-levels.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-count-pagination-045",
+      "domain": "mysql",
+      "topic": "performance",
+      "subtopic": "count_pagination",
+      "question": "COUNT(*)、COUNT(1)、COUNT(列) 有什么区别？深分页为什么慢，怎样优化？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "performance"
+      ],
+      "reference_points": [
+        "COUNT(*) 与 COUNT(1) 都统计行，优化器通常会选择合适路径；COUNT(列) 不统计 NULL",
+        "大 OFFSET 仍需扫描并丢弃前面的记录，排序或回表会进一步放大成本",
+        "可用基于稳定唯一排序键的游标翻页，必要时先在覆盖索引中取主键再回表"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "COUNT(*) 与 COUNT(1) 都统计行，优化器通常会选择合适路径；COUNT(列) 不统计 NULL",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "大 OFFSET 仍需扫描并丢弃前面的记录，排序或回表会进一步放大成本",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "可用基于稳定唯一排序键的游标翻页，必要时先在覆盖索引中取主键再回表",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：COUNT(*) 与 COUNT(1) 都统计行，优化器通常会选择合适路径；COUNT(列) 不统计 NULL；大 OFFSET 仍需扫描并丢弃前面的记录，排序或回表会进一步放大成本；可用基于稳定唯一排序键的游标翻页，必要时先在覆盖索引中取主键再回表。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Aggregate Function Descriptions",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/aggregate-functions.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 LIMIT Query Optimization",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/limit-optimization.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-covering-index-020",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "covering_index",
+      "question": "什么是覆盖索引，它为什么可能明显减少查询成本？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "当索引已包含查询要返回和过滤所需的列时，执行器无需再访问聚簇索引完整行",
+        "减少随机 I/O 和页访问通常能降低延迟，EXPLAIN Extra 可能出现 Using index",
+        "为覆盖而塞入大量列会扩大索引并拖慢写入，应围绕高频关键查询权衡"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "当索引已包含查询要返回和过滤所需的列时，执行器无需再访问聚簇索引完整行",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "减少随机 I/O 和页访问通常能降低延迟，EXPLAIN Extra 可能出现 Using index",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "为覆盖而塞入大量列会扩大索引并拖慢写入，应围绕高频关键查询权衡",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：当索引已包含查询要返回和过滤所需的列时，执行器无需再访问聚簇索引完整行；减少随机 I/O 和页访问通常能降低延迟，EXPLAIN Extra 可能出现 Using index；为覆盖而塞入大量列会扩大索引并拖慢写入，应围绕高频关键查询权衡。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 How MySQL Uses Indexes",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/mysql-indexes.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 EXPLAIN Statement",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/explain.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-deadlock-035",
+      "domain": "mysql",
+      "topic": "lock",
+      "subtopic": "deadlock",
+      "question": "MySQL 死锁为什么会发生，应用和数据库应如何处理？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "lock"
+      ],
+      "reference_points": [
+        "两个或多个事务以不同顺序持有资源并等待对方，就可能形成等待环",
+        "InnoDB 检测死锁后回滚其中一个事务，应用必须识别错误并以有界退避重试整个事务",
+        "固定访问顺序、缩短事务和建立合适索引能减少冲突，SHOW ENGINE INNODB STATUS 可用于分析"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "两个或多个事务以不同顺序持有资源并等待对方，就可能形成等待环",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "InnoDB 检测死锁后回滚其中一个事务，应用必须识别错误并以有界退避重试整个事务",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "固定访问顺序、缩短事务和建立合适索引能减少冲突，SHOW ENGINE INNODB STATUS 可用于分析",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：两个或多个事务以不同顺序持有资源并等待对方，就可能形成等待环；InnoDB 检测死锁后回滚其中一个事务，应用必须识别错误并以有界退避重试整个事务；固定访问顺序、缩短事务和建立合适索引能减少冲突，SHOW ENGINE INNODB STATUS 可用于分析。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 How to Minimize and Handle Deadlocks",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-deadlocks-handling.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-doublewrite-041",
+      "domain": "mysql",
+      "topic": "log",
+      "subtopic": "doublewrite",
+      "question": "InnoDB Doublewrite Buffer 解决什么问题，它和 redo log 是否重复？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "log"
+      ],
+      "reference_points": [
+        "数据库页通常大于底层原子写单位，掉电时可能只写入一部分而形成 torn page",
+        "Doublewrite 先保存页的完整副本，恢复时可用完整页修复后再应用 redo",
+        "redo 记录页变更但恢复依赖可解析的基础页，二者解决的问题不同"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "数据库页通常大于底层原子写单位，掉电时可能只写入一部分而形成 torn page",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "Doublewrite 先保存页的完整副本，恢复时可用完整页修复后再应用 redo",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "redo 记录页变更但恢复依赖可解析的基础页，二者解决的问题不同",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：数据库页通常大于底层原子写单位，掉电时可能只写入一部分而形成 torn page；Doublewrite 先保存页的完整副本，恢复时可用完整页修复后再应用 redo；redo 记录页变更但恢复依赖可解析的基础页，二者解决的问题不同。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Doublewrite Buffer",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-doublewrite-buffer.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-explain-slow-query-043",
+      "domain": "mysql",
+      "topic": "performance",
+      "subtopic": "explain_slow_query",
+      "question": "遇到慢 SQL 时如何使用 EXPLAIN 和运行指标定位问题？",
+      "difficulty": "hard",
+      "question_type": "scenario_analysis",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "performance"
+      ],
+      "reference_points": [
+        "先从慢日志或追踪确认 SQL、参数、频率和真实延迟，再查看 EXPLAIN 的访问类型、键、估算行数与附加信息",
+        "检查是否扫描过多行、回表、临时表、排序、错误连接顺序或统计信息失真",
+        "优化后用真实数据与 EXPLAIN ANALYZE 验证，不应只追求出现某个索引名"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "先从慢日志或追踪确认 SQL、参数、频率和真实延迟，再查看 EXPLAIN 的访问类型、键、估算行数与附加信息",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "检查是否扫描过多行、回表、临时表、排序、错误连接顺序或统计信息失真",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "优化后用真实数据与 EXPLAIN ANALYZE 验证，不应只追求出现某个索引名",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：先从慢日志或追踪确认 SQL、参数、频率和真实延迟，再查看 EXPLAIN 的访问类型、键、估算行数与附加信息；检查是否扫描过多行、回表、临时表、排序、错误连接顺序或统计信息失真；优化后用真实数据与 EXPLAIN ANALYZE 验证，不应只追求出现某个索引名。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 EXPLAIN Statement",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/explain.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-foreign-keys-007",
+      "domain": "mysql",
+      "topic": "sql",
+      "subtopic": "foreign_keys",
+      "question": "外键约束有什么价值和代价，什么时候应使用？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "sql"
+      ],
+      "reference_points": [
+        "外键由数据库保证引用完整性，并可定义删除或更新时的级联行为",
+        "它增加写入检查和迁移顺序约束，大规模拆分或跨库后通常无法直接使用",
+        "是否采用取决于一致性要求和架构边界；不用外键时应用必须有补偿与巡检机制"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "外键由数据库保证引用完整性，并可定义删除或更新时的级联行为",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "它增加写入检查和迁移顺序约束，大规模拆分或跨库后通常无法直接使用",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "是否采用取决于一致性要求和架构边界；不用外键时应用必须有补偿与巡检机制",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：外键由数据库保证引用完整性，并可定义删除或更新时的级联行为；它增加写入检查和迁移顺序约束，大规模拆分或跨库后通常无法直接使用；是否采用取决于一致性要求和架构边界；不用外键时应用必须有补偿与巡检机制。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 InnoDB Foreign Key Constraints",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-foreign-key-constraints.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-hash-index-017",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "hash_index",
+      "question": "哈希索引与 B+ 树索引各适合什么查询？InnoDB 自适应哈希索引是什么？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "哈希适合等值定位，不天然支持范围、前缀排序和有序扫描",
+        "B+ 树同时支持等值、范围、排序和最左前缀查询",
+        "InnoDB 自适应哈希索引是根据热点页自动建立的内存结构，不等同于用户创建的独立哈希索引"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "哈希适合等值定位，不天然支持范围、前缀排序和有序扫描",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "B+ 树同时支持等值、范围、排序和最左前缀查询",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "InnoDB 自适应哈希索引是根据热点页自动建立的内存结构，不等同于用户创建的独立哈希索引",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：哈希适合等值定位，不天然支持范围、前缀排序和有序扫描；B+ 树同时支持等值、范围、排序和最左前缀查询；InnoDB 自适应哈希索引是根据热点页自动建立的内存结构，不等同于用户创建的独立哈希索引。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Adaptive Hash Index",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-adaptive-hash.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-in-vs-exists-008",
+      "domain": "mysql",
+      "topic": "sql",
+      "subtopic": "in_vs_exists",
+      "question": "IN 和 EXISTS 的语义有什么区别，如何判断谁更快？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "sql"
+      ],
+      "reference_points": [
+        "IN 比较表达式与结果集合，EXISTS 只判断相关子查询是否至少返回一行",
+        "优化器可能把二者改写为半连接等等价计划，因此不能仅靠口诀判断性能",
+        "应关注 NULL 语义、相关条件、索引和 EXPLAIN 的实际执行计划"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "IN 比较表达式与结果集合，EXISTS 只判断相关子查询是否至少返回一行",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "优化器可能把二者改写为半连接等等价计划，因此不能仅靠口诀判断性能",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "应关注 NULL 语义、相关条件、索引和 EXPLAIN 的实际执行计划",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：IN 比较表达式与结果集合，EXISTS 只判断相关子查询是否至少返回一行；优化器可能把二者改写为半连接等等价计划，因此不能仅靠口诀判断性能；应关注 NULL 语义、相关条件、索引和 EXPLAIN 的实际执行计划。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Optimizing Subqueries",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/subquery-optimization.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-index-lock-scope-034",
+      "domain": "mysql",
+      "topic": "lock",
+      "subtopic": "index_lock_scope",
+      "question": "为什么 UPDATE 是否命中索引会显著影响锁范围？无索引条件一定锁全表吗？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "lock"
+      ],
+      "reference_points": [
+        "InnoDB 行锁本质上加在扫描到的索引记录或范围上，访问路径决定扫描与加锁对象",
+        "无法有效用索引时可能扫描并锁住大量记录，表现得接近全表阻塞，但术语上仍需区分表锁",
+        "优化前应查看执行计划、隔离级别和实际锁信息，而不是只看 WHERE 条件"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "InnoDB 行锁本质上加在扫描到的索引记录或范围上，访问路径决定扫描与加锁对象",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "无法有效用索引时可能扫描并锁住大量记录，表现得接近全表阻塞，但术语上仍需区分表锁",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "优化前应查看执行计划、隔离级别和实际锁信息，而不是只看 WHERE 条件",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：InnoDB 行锁本质上加在扫描到的索引记录或范围上，访问路径决定扫描与加锁对象；无法有效用索引时可能扫描并锁住大量记录，表现得接近全表阻塞，但术语上仍需区分表锁；优化前应查看执行计划、隔离级别和实际锁信息，而不是只看 WHERE 条件。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 InnoDB Locking",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-locking.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 EXPLAIN Statement",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/explain.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-index-not-used-021",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "index_not_used",
+      "question": "哪些常见写法会让查询无法有效利用索引？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "未满足联合索引前缀、对索引列进行不利于范围推导的函数或隐式类型转换，都可能扩大扫描",
+        "前导通配符、低选择性条件、返回大量行时，优化器可能认为全表扫描更便宜",
+        "所谓失效应以执行计划和实际统计为准，不能只凭 SQL 外观判断"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "未满足联合索引前缀、对索引列进行不利于范围推导的函数或隐式类型转换，都可能扩大扫描",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "前导通配符、低选择性条件、返回大量行时，优化器可能认为全表扫描更便宜",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "所谓失效应以执行计划和实际统计为准，不能只凭 SQL 外观判断",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：未满足联合索引前缀、对索引列进行不利于范围推导的函数或隐式类型转换，都可能扩大扫描；前导通配符、低选择性条件、返回大量行时，优化器可能认为全表扫描更便宜；所谓失效应以执行计划和实际统计为准，不能只凭 SQL 外观判断。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Range Optimization",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/range-optimization.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 EXPLAIN Statement",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/explain.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-index-purpose-013",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "index_purpose",
+      "question": "索引是什么，它提高查询速度的同时会带来哪些成本？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "索引是按键组织的辅助数据结构，用较少扫描定位记录并支持排序或连接",
+        "每个额外索引都占空间，并增加 INSERT、UPDATE、DELETE 的维护和日志成本",
+        "索引是否有效取决于查询形态、选择性、覆盖能力和维护代价，不是越多越好"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "索引是按键组织的辅助数据结构，用较少扫描定位记录并支持排序或连接",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "每个额外索引都占空间，并增加 INSERT、UPDATE、DELETE 的维护和日志成本",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "索引是否有效取决于查询形态、选择性、覆盖能力和维护代价，不是越多越好",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：索引是按键组织的辅助数据结构，用较少扫描定位记录并支持排序或连接；每个额外索引都占空间，并增加 INSERT、UPDATE、DELETE 的维护和日志成本；索引是否有效取决于查询形态、选择性、覆盖能力和维护代价，不是越多越好。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [],
+      "sources": [
+        {
+          "title": "MySQL 8.4 How MySQL Uses Indexes",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/mysql-indexes.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-index-selectivity-022",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "index_selectivity",
+      "question": "布尔状态、性别等低基数字段适合单独建索引吗？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "低基数意味着单个值命中大量行，单列索引往往不能显著减少访问页数",
+        "若查询只取极少列形成覆盖，或与高选择性列组成联合索引，仍可能有价值",
+        "应依据数据分布、查询比例和执行计划决定，而不是按字段名字套规则"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "低基数意味着单个值命中大量行，单列索引往往不能显著减少访问页数",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "若查询只取极少列形成覆盖，或与高选择性列组成联合索引，仍可能有价值",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "应依据数据分布、查询比例和执行计划决定，而不是按字段名字套规则",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：低基数意味着单个值命中大量行，单列索引往往不能显著减少访问页数；若查询只取极少列形成覆盖，或与高选择性列组成联合索引，仍可能有价值；应依据数据分布、查询比例和执行计划决定，而不是按字段名字套规则。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 How MySQL Uses Indexes",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/mysql-indexes.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 EXPLAIN Statement",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/explain.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-index-write-cost-024",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "index_write_cost",
+      "question": "插入一行数据时，InnoDB 的各个索引会发生什么变化？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "聚簇索引插入完整记录，每个二级索引都要插入二级键和主键",
+        "目标页空间不足时可能发生页分裂，非顺序键更容易造成随机写和碎片",
+        "变更还会进入事务日志并产生脏页，因此多余索引直接增加写放大"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "聚簇索引插入完整记录，每个二级索引都要插入二级键和主键",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "目标页空间不足时可能发生页分裂，非顺序键更容易造成随机写和碎片",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "变更还会进入事务日志并产生脏页，因此多余索引直接增加写放大",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：聚簇索引插入完整记录，每个二级索引都要插入二级键和主键；目标页空间不足时可能发生页分裂，非顺序键更容易造成随机写和碎片；变更还会进入事务日志并产生脏页，因此多余索引直接增加写放大。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Clustered and Secondary Indexes",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-index-types.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 InnoDB Redo Log",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-redo-log.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-innodb-files-012",
+      "domain": "mysql",
+      "topic": "storage_engine",
+      "subtopic": "innodb_files",
+      "question": "InnoDB 的表空间、页和行记录之间是什么关系？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "storage_engine"
+      ],
+      "reference_points": [
+        "表空间由数据文件组成，是 InnoDB 管理持久数据的逻辑容器",
+        "页是磁盘与 Buffer Pool 之间读取和写入的基本单位，索引由页组织",
+        "行格式决定变长列、NULL 位图和溢出页等存储方式，大字段不一定完整放在聚簇索引页内"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "表空间由数据文件组成，是 InnoDB 管理持久数据的逻辑容器",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "页是磁盘与 Buffer Pool 之间读取和写入的基本单位，索引由页组织",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "行格式决定变长列、NULL 位图和溢出页等存储方式，大字段不一定完整放在聚簇索引页内",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：表空间由数据文件组成，是 InnoDB 管理持久数据的逻辑容器；页是磁盘与 Buffer Pool 之间读取和写入的基本单位，索引由页组织；行格式决定变长列、NULL 位图和溢出页等存储方式，大字段不一定完整放在聚簇索引页内。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 InnoDB Storage Architecture",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-architecture.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-innodb-vs-myisam-011",
+      "domain": "mysql",
+      "topic": "storage_engine",
+      "subtopic": "innodb_vs_myisam",
+      "question": "InnoDB 为什么成为默认存储引擎，它与 MyISAM 的关键差异是什么？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "storage_engine"
+      ],
+      "reference_points": [
+        "InnoDB 支持事务、崩溃恢复、行级锁和外键，并提供聚簇索引与 MVCC",
+        "MyISAM 不支持事务和崩溃安全，主要使用表级锁，其适用范围已经很窄",
+        "选择引擎要看一致性和并发语义，不能只比较简单读操作的单次速度"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "InnoDB 支持事务、崩溃恢复、行级锁和外键，并提供聚簇索引与 MVCC",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "MyISAM 不支持事务和崩溃安全，主要使用表级锁，其适用范围已经很窄",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "选择引擎要看一致性和并发语义，不能只比较简单读操作的单次速度",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：InnoDB 支持事务、崩溃恢复、行级锁和外键，并提供聚簇索引与 MVCC；MyISAM 不支持事务和崩溃安全，主要使用表级锁，其适用范围已经很窄；选择引擎要看一致性和并发语义，不能只比较简单读操作的单次速度。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Introduction to InnoDB",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-introduction.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-ip-storage-006",
+      "domain": "mysql",
+      "topic": "sql",
+      "subtopic": "ip_storage",
+      "question": "在 MySQL 中应如何存储 IPv4 和 IPv6 地址？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "sql"
+      ],
+      "reference_points": [
+        "可用 VARBINARY(16) 统一保存 IPv4 与 IPv6 的二进制表示，空间与比较效率优于长字符串",
+        "INET6_ATON 和 INET6_NTOA 可在文本与二进制形式间转换",
+        "展示格式与存储值应分离，并明确是否需要网段查询、匿名化和原始代理链信息"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "可用 VARBINARY(16) 统一保存 IPv4 与 IPv6 的二进制表示，空间与比较效率优于长字符串",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "INET6_ATON 和 INET6_NTOA 可在文本与二进制形式间转换",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "展示格式与存储值应分离，并明确是否需要网段查询、匿名化和原始代理链信息",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：可用 VARBINARY(16) 统一保存 IPv4 与 IPv6 的二进制表示，空间与比较效率优于长字符串；INET6_ATON 和 INET6_NTOA 可在文本与二进制形式间转换；展示格式与存储值应分离，并明确是否需要网段查询、匿名化和原始代理链信息。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Miscellaneous Functions",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/miscellaneous-functions.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-isolation-levels-027",
+      "domain": "mysql",
+      "topic": "transaction",
+      "subtopic": "isolation_levels",
+      "question": "MySQL 四种事务隔离级别有什么差异，InnoDB 默认是哪一种？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "transaction"
+      ],
+      "reference_points": [
+        "READ UNCOMMITTED、READ COMMITTED、REPEATABLE READ、SERIALIZABLE 逐步增强隔离",
+        "InnoDB 默认 REPEATABLE READ；其中普通一致性读与锁定读的快照和加锁行为不同",
+        "隔离越强通常并发限制越多，应按业务一致性和冲突模式选择"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "READ UNCOMMITTED、READ COMMITTED、REPEATABLE READ、SERIALIZABLE 逐步增强隔离",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "InnoDB 默认 REPEATABLE READ；其中普通一致性读与锁定读的快照和加锁行为不同",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "隔离越强通常并发限制越多，应按业务一致性和冲突模式选择",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：READ UNCOMMITTED、READ COMMITTED、REPEATABLE READ、SERIALIZABLE 逐步增强隔离；InnoDB 默认 REPEATABLE READ；其中普通一致性读与锁定读的快照和加锁行为不同；隔离越强通常并发限制越多，应按业务一致性和冲突模式选择。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Transaction Isolation Levels",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-transaction-isolation-levels.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-join-types-003",
+      "domain": "mysql",
+      "topic": "sql",
+      "subtopic": "join_types",
+      "question": "INNER JOIN、LEFT JOIN、RIGHT JOIN 有什么区别，MySQL 如何表达全外连接？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "sql"
+      ],
+      "reference_points": [
+        "INNER JOIN 只返回匹配行，LEFT 或 RIGHT JOIN 保留指定一侧的未匹配行并补 NULL",
+        "连接条件放在 ON 与过滤条件放在 WHERE 可能改变外连接结果",
+        "MySQL 没有直接的 FULL OUTER JOIN 语法，常按业务键用左右连接和 UNION 组合"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "INNER JOIN 只返回匹配行，LEFT 或 RIGHT JOIN 保留指定一侧的未匹配行并补 NULL",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "连接条件放在 ON 与过滤条件放在 WHERE 可能改变外连接结果",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "MySQL 没有直接的 FULL OUTER JOIN 语法，常按业务键用左右连接和 UNION 组合",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：INNER JOIN 只返回匹配行，LEFT 或 RIGHT JOIN 保留指定一侧的未匹配行并补 NULL；连接条件放在 ON 与过滤条件放在 WHERE 可能改变外连接结果；MySQL 没有直接的 FULL OUTER JOIN 语法，常按业务键用左右连接和 UNION 组合。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 JOIN Clause",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/join.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-lock-types-033",
+      "domain": "mysql",
+      "topic": "lock",
+      "subtopic": "lock_types",
+      "question": "InnoDB 常见的共享锁、排他锁、意向锁、记录锁、间隙锁和临键锁分别是什么？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "lock"
+      ],
+      "reference_points": [
+        "共享锁允许并发读，排他锁保护修改；意向锁在表级声明事务准备对行加何种锁",
+        "记录锁锁定索引记录，间隙锁保护索引值之间的范围，临键锁是记录与前一间隙的组合",
+        "实际锁范围由索引访问路径、隔离级别、唯一性和查询条件共同决定"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "共享锁允许并发读，排他锁保护修改；意向锁在表级声明事务准备对行加何种锁",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "记录锁锁定索引记录，间隙锁保护索引值之间的范围，临键锁是记录与前一间隙的组合",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "实际锁范围由索引访问路径、隔离级别、唯一性和查询条件共同决定",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：共享锁允许并发读，排他锁保护修改；意向锁在表级声明事务准备对行加何种锁；记录锁锁定索引记录，间隙锁保护索引值之间的范围，临键锁是记录与前一间隙的组合；实际锁范围由索引访问路径、隔离级别、唯一性和查询条件共同决定。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 InnoDB Locking",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-locking.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-logical-query-order-009",
+      "domain": "mysql",
+      "topic": "sql",
+      "subtopic": "logical_query_order",
+      "question": "SELECT 查询的逻辑处理顺序是什么，它为什么会影响别名和聚合的使用？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "sql"
+      ],
+      "reference_points": [
+        "逻辑上先形成 FROM 与 JOIN，再经过 WHERE、GROUP BY、HAVING、SELECT、DISTINCT、ORDER BY 和 LIMIT",
+        "WHERE 发生在聚合前，HAVING 过滤分组结果，窗口函数与投影也有自己的求值阶段",
+        "优化器可改变物理执行顺序，但必须保持查询语义"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "逻辑上先形成 FROM 与 JOIN，再经过 WHERE、GROUP BY、HAVING、SELECT、DISTINCT、ORDER BY 和 LIMIT",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "WHERE 发生在聚合前，HAVING 过滤分组结果，窗口函数与投影也有自己的求值阶段",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "优化器可改变物理执行顺序，但必须保持查询语义",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：逻辑上先形成 FROM 与 JOIN，再经过 WHERE、GROUP BY、HAVING、SELECT、DISTINCT、ORDER BY 和 LIMIT；WHERE 发生在聚合前，HAVING 过滤分组结果，窗口函数与投影也有自己的求值阶段；优化器可改变物理执行顺序，但必须保持查询语义。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 SELECT Statement",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/select.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-long-transaction-032",
+      "domain": "mysql",
+      "topic": "transaction",
+      "subtopic": "long_transaction",
+      "question": "长事务会给 InnoDB 带来哪些问题？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "transaction"
+      ],
+      "reference_points": [
+        "长事务持有锁和一致性视图更久，增加阻塞、死锁概率和历史版本保留",
+        "purge 无法及时回收旧版本，undo 空间和 MVCC 读取成本可能持续增长",
+        "应缩短交互和批处理事务，分批提交并监控活跃事务、锁等待与历史链长度"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "长事务持有锁和一致性视图更久，增加阻塞、死锁概率和历史版本保留",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "purge 无法及时回收旧版本，undo 空间和 MVCC 读取成本可能持续增长",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "应缩短交互和批处理事务，分批提交并监控活跃事务、锁等待与历史链长度",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：长事务持有锁和一致性视图更久，增加阻塞、死锁概率和历史版本保留；purge 无法及时回收旧版本，undo 空间和 MVCC 读取成本可能持续增长；应缩短交互和批处理事务，分批提交并监控活跃事务、锁等待与历史链长度。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Optimizing InnoDB Transaction Management",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/optimizing-innodb-transaction-management.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-mvcc-029",
+      "domain": "mysql",
+      "topic": "transaction",
+      "subtopic": "mvcc",
+      "question": "InnoDB 的 MVCC 如何利用隐藏列、undo log 和 Read View 实现一致性读？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "transaction"
+      ],
+      "reference_points": [
+        "聚簇记录包含事务相关隐藏信息，更新产生的旧版本通过 undo 记录串联",
+        "Read View 根据活跃事务集合和事务 ID 边界判断某版本是否可见",
+        "不可见时沿版本链寻找可见记录；长事务会阻碍旧版本清理并增加读取成本"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "聚簇记录包含事务相关隐藏信息，更新产生的旧版本通过 undo 记录串联",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "Read View 根据活跃事务集合和事务 ID 边界判断某版本是否可见",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "不可见时沿版本链寻找可见记录；长事务会阻碍旧版本清理并增加读取成本",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：聚簇记录包含事务相关隐藏信息，更新产生的旧版本通过 undo 记录串联；Read View 根据活跃事务集合和事务 ID 边界判断某版本是否可见；不可见时沿版本链寻找可见记录；长事务会阻碍旧版本清理并增加读取成本。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 InnoDB Multi-Versioning",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-multi-versioning.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 InnoDB Undo Logs",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-undo-logs.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-mysql-logs-036",
+      "domain": "mysql",
+      "topic": "log",
+      "subtopic": "mysql_logs",
+      "question": "redo log、undo log 和 binlog 的职责分别是什么？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "log"
+      ],
+      "reference_points": [
+        "redo 是 InnoDB 的物理相关重做信息，用于崩溃恢复尚未落入数据页的已提交变更",
+        "undo 保存回滚和一致性读需要的旧版本信息",
+        "binlog 位于服务层，记录逻辑或行变更事件，用于复制与时间点恢复"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "redo 是 InnoDB 的物理相关重做信息，用于崩溃恢复尚未落入数据页的已提交变更",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "undo 保存回滚和一致性读需要的旧版本信息",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "binlog 位于服务层，记录逻辑或行变更事件，用于复制与时间点恢复",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：redo 是 InnoDB 的物理相关重做信息，用于崩溃恢复尚未落入数据页的已提交变更；undo 保存回滚和一致性读需要的旧版本信息；binlog 位于服务层，记录逻辑或行变更事件，用于复制与时间点恢复。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 InnoDB Redo Log",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-redo-log.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 InnoDB Undo Logs",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-undo-logs.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 The Binary Log",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/binary-log.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-normal-forms-002",
+      "domain": "mysql",
+      "topic": "sql",
+      "subtopic": "normal_forms",
+      "question": "数据库第一、第二、第三范式分别解决什么问题，为什么项目中有时会反范式？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "sql"
+      ],
+      "reference_points": [
+        "第一范式要求属性保持原子，第二范式消除非主属性对复合候选键的部分依赖",
+        "第三范式进一步消除非主属性间的传递依赖，以减少冗余和更新异常",
+        "读性能、历史快照或报表场景可能有控制地冗余，但要明确一致性维护方式"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "第一范式要求属性保持原子，第二范式消除非主属性对复合候选键的部分依赖",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "第三范式进一步消除非主属性间的传递依赖，以减少冗余和更新异常",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "读性能、历史快照或报表场景可能有控制地冗余，但要明确一致性维护方式",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：第一范式要求属性保持原子，第二范式消除非主属性对复合候选键的部分依赖；第三范式进一步消除非主属性间的传递依赖，以减少冗余和更新异常；读性能、历史快照或报表场景可能有控制地冗余，但要明确一致性维护方式。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Reference Manual",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-optimizer-index-choice-044",
+      "domain": "mysql",
+      "topic": "performance",
+      "subtopic": "optimizer_index_choice",
+      "question": "优化器选择了看似错误的索引时，应如何处理？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "performance"
+      ],
+      "reference_points": [
+        "优化器按统计信息和成本估算访问路径，数据分布变化或相关性可能让估算偏差",
+        "先更新统计、重写查询或调整更合适的联合索引，并核对真实执行时间",
+        "索引提示可用于临时验证或少数稳定场景，但会固化计划，升级和数据变化后需重新评估"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "优化器按统计信息和成本估算访问路径，数据分布变化或相关性可能让估算偏差",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "先更新统计、重写查询或调整更合适的联合索引，并核对真实执行时间",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "索引提示可用于临时验证或少数稳定场景，但会固化计划，升级和数据变化后需重新评估",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：优化器按统计信息和成本估算访问路径，数据分布变化或相关性可能让估算偏差；先更新统计、重写查询或调整更合适的联合索引，并核对真实执行时间；索引提示可用于临时验证或少数稳定场景，但会固化计划，升级和数据变化后需重新评估。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Optimizer Hints",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/optimizer-hints.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 EXPLAIN Statement",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/explain.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-phantom-read-030",
+      "domain": "mysql",
+      "topic": "transaction",
+      "subtopic": "phantom_read",
+      "question": "InnoDB 的 REPEATABLE READ 是否完全解决幻读？快照读与当前读有什么区别？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "transaction"
+      ],
+      "reference_points": [
+        "一致性快照读依靠 MVCC 保持谓词结果稳定，通常不会看到之后提交的新行",
+        "SELECT ... FOR UPDATE、UPDATE 等当前读读取最新可用版本，并通过记录锁、间隙锁或临键锁保护范围",
+        "混用快照读与当前读或当前事务自己插入后仍可能观察到类似幻象的结果，因此要说明具体操作"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "一致性快照读依靠 MVCC 保持谓词结果稳定，通常不会看到之后提交的新行",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "SELECT ... FOR UPDATE、UPDATE 等当前读读取最新可用版本，并通过记录锁、间隙锁或临键锁保护范围",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "混用快照读与当前读或当前事务自己插入后仍可能观察到类似幻象的结果，因此要说明具体操作",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：一致性快照读依靠 MVCC 保持谓词结果稳定，通常不会看到之后提交的新行；SELECT ... FOR UPDATE、UPDATE 等当前读读取最新可用版本，并通过记录锁、间隙锁或临键锁保护范围；混用快照读与当前读或当前事务自己插入后仍可能观察到类似幻象的结果，因此要说明具体操作。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Transaction Isolation Levels",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-transaction-isolation-levels.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 InnoDB Locking",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-locking.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-prefix-index-023",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "prefix_index",
+      "question": "什么是前缀索引，怎样选择合适的前缀长度？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "前缀索引只保存字符串开头的一部分，可减小索引尺寸和比较成本",
+        "长度要在选择性与空间之间权衡，可统计不同前缀长度的去重比例",
+        "前缀索引可能无法覆盖原完整列，也会限制某些排序与分组优化"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "前缀索引只保存字符串开头的一部分，可减小索引尺寸和比较成本",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "长度要在选择性与空间之间权衡，可统计不同前缀长度的去重比例",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "前缀索引可能无法覆盖原完整列，也会限制某些排序与分组优化",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：前缀索引只保存字符串开头的一部分，可减小索引尺寸和比较成本；长度要在选择性与空间之间权衡，可统计不同前缀长度的去重比例；前缀索引可能无法覆盖原完整列，也会限制某些排序与分组优化。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Column Indexes",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/column-indexes.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-primary-key-choice-015",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "primary_key_choice",
+      "question": "InnoDB 主键为什么通常选择短小、稳定、递增的值？UUID 一定不合适吗？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "主键存在于所有二级索引叶子中，过长会放大索引空间和缓存压力",
+        "大致递增的键减少随机页分裂和写放大，频繁更新主键还会移动聚簇记录",
+        "UUID 可满足分布式唯一性，但应评估二进制存储和有序 UUID 等方案，而非绝对禁用"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "主键存在于所有二级索引叶子中，过长会放大索引空间和缓存压力",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "大致递增的键减少随机页分裂和写放大，频繁更新主键还会移动聚簇记录",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "UUID 可满足分布式唯一性，但应评估二进制存储和有序 UUID 等方案，而非绝对禁用",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：主键存在于所有二级索引叶子中，过长会放大索引空间和缓存压力；大致递增的键减少随机页分裂和写放大，频繁更新主键还会移动聚簇记录；UUID 可满足分布式唯一性，但应评估二进制存储和有序 UUID 等方案，而非绝对禁用。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Clustered and Secondary Indexes",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-index-types.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-query-execution-010",
+      "domain": "mysql",
+      "topic": "storage_engine",
+      "subtopic": "query_execution",
+      "question": "一条 SELECT 从客户端到返回结果，MySQL 内部通常经过哪些阶段？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "storage_engine"
+      ],
+      "reference_points": [
+        "连接层完成认证、会话管理和权限相关检查，服务层解析 SQL 并完成语义分析",
+        "优化器选择访问路径和连接顺序，执行器调用存储引擎接口读取记录",
+        "Buffer Pool、索引、锁与一致性读共同影响真正的 I/O 和并发行为"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "连接层完成认证、会话管理和权限相关检查，服务层解析 SQL 并完成语义分析",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "优化器选择访问路径和连接顺序，执行器调用存储引擎接口读取记录",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "Buffer Pool、索引、锁与一致性读共同影响真正的 I/O 和并发行为",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：连接层完成认证、会话管理和权限相关检查，服务层解析 SQL 并完成语义分析；优化器选择访问路径和连接顺序，执行器调用存储引擎接口读取记录；Buffer Pool、索引、锁与一致性读共同影响真正的 I/O 和并发行为。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Optimization Overview",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/optimize-overview.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-range-composite-index-019",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "range_composite_index",
+      "question": "联合索引遇到范围条件后，后续列是否一定完全失效？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "范围条件可能使后续列无法继续构成更窄的 B+ 树扫描区间，但并非所有范围写法和版本行为都相同",
+        "后续列仍可能用于索引条件下推、覆盖或过滤，不能笼统说索引完全失效",
+        "应结合 key_len、used_key_parts、rows 和实际执行计划判断各列作用"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "范围条件可能使后续列无法继续构成更窄的 B+ 树扫描区间，但并非所有范围写法和版本行为都相同",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "后续列仍可能用于索引条件下推、覆盖或过滤，不能笼统说索引完全失效",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "应结合 key_len、used_key_parts、rows 和实际执行计划判断各列作用",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：范围条件可能使后续列无法继续构成更窄的 B+ 树扫描区间，但并非所有范围写法和版本行为都相同；后续列仍可能用于索引条件下推、覆盖或过滤，不能笼统说索引完全失效；应结合 key_len、used_key_parts、rows 和实际执行计划判断各列作用。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Range Optimization",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/range-optimization.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 EXPLAIN Statement",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/explain.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-repeatable-read-028",
+      "domain": "mysql",
+      "topic": "transaction",
+      "subtopic": "repeatable_read",
+      "question": "在 REPEATABLE READ 下，其他事务提交的数据当前事务何时可见？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "transaction"
+      ],
+      "reference_points": [
+        "普通一致性读通常复用事务首次一致性读建立的快照，因此之后提交的版本通常不可见",
+        "当前事务自己修改的数据可见，锁定读和写操作读取的是较新的当前版本并加锁",
+        "提交并开启新事务后会建立新的可见性范围，不能把所有 SELECT 都按同一规则解释"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "普通一致性读通常复用事务首次一致性读建立的快照，因此之后提交的版本通常不可见",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "当前事务自己修改的数据可见，锁定读和写操作读取的是较新的当前版本并加锁",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "提交并开启新事务后会建立新的可见性范围，不能把所有 SELECT 都按同一规则解释",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：普通一致性读通常复用事务首次一致性读建立的快照，因此之后提交的版本通常不可见；当前事务自己修改的数据可见，锁定读和写操作读取的是较新的当前版本并加锁；提交并开启新事务后会建立新的可见性范围，不能把所有 SELECT 都按同一规则解释。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Transaction Isolation Levels",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-transaction-isolation-levels.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 Consistent Nonlocking Reads",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-consistent-read.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-replication-lag-047",
+      "domain": "mysql",
+      "topic": "replication",
+      "subtopic": "replication_lag",
+      "question": "MySQL 主从延迟常见原因有哪些，业务怎样处理读到旧数据？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "replication"
+      ],
+      "reference_points": [
+        "大事务、单线程或冲突应用、慢查询、网络与磁盘瓶颈都会让副本追赶速度低于源库写入速度",
+        "先查看复制线程、relay log、延迟指标和错误，优化大事务、索引与并行复制能力",
+        "需要读己之写时可短暂读主库、等待位点或 GTID、携带一致性令牌，不能假设延迟固定"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "大事务、单线程或冲突应用、慢查询、网络与磁盘瓶颈都会让副本追赶速度低于源库写入速度",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "先查看复制线程、relay log、延迟指标和错误，优化大事务、索引与并行复制能力",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "需要读己之写时可短暂读主库、等待位点或 GTID、携带一致性令牌，不能假设延迟固定",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：大事务、单线程或冲突应用、慢查询、网络与磁盘瓶颈都会让副本追赶速度低于源库写入速度；先查看复制线程、relay log、延迟指标和错误，优化大事务、索引与并行复制能力；需要读己之写时可短暂读主库、等待位点或 GTID、携带一致性令牌，不能假设延迟固定。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Replication",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/replication.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 Troubleshooting Replication",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/replication-problems.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-sharding-048",
+      "domain": "mysql",
+      "topic": "architecture",
+      "subtopic": "sharding",
+      "question": "分库和分表分别解决什么问题，会引入哪些新复杂度？",
+      "difficulty": "hard",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "architecture"
+      ],
+      "reference_points": [
+        "分表把单表数据拆开以控制索引和扫描规模，分库进一步分散连接、CPU、I/O 和存储压力",
+        "拆分键决定数据路由与热点，跨分片查询、事务、唯一约束和分页会变复杂",
+        "应先用索引、归档、读副本和垂直拆分解决已测瓶颈，再在容量证据充分时水平拆分"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "分表把单表数据拆开以控制索引和扫描规模，分库进一步分散连接、CPU、I/O 和存储压力",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "拆分键决定数据路由与热点，跨分片查询、事务、唯一约束和分页会变复杂",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "应先用索引、归档、读副本和垂直拆分解决已测瓶颈，再在容量证据充分时水平拆分",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：分表把单表数据拆开以控制索引和扫描规模，分库进一步分散连接、CPU、I/O 和存储压力；拆分键决定数据路由与热点，跨分片查询、事务、唯一约束和分页会变复杂；应先用索引、归档、读副本和垂直拆分解决已测瓶颈，再在容量证据充分时水平拆分。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Partitioning",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/partitioning.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 Replication",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/replication.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-source-replica-046",
+      "domain": "mysql",
+      "topic": "replication",
+      "subtopic": "source_replica",
+      "question": "MySQL 主从复制的基本链路是什么，statement 与 row 复制各有什么取舍？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "replication"
+      ],
+      "reference_points": [
+        "源库把事务写入 binlog，副本接收后写入 relay log，再由应用线程重放",
+        "statement 传输语句而 row 传输变更行，后者通常确定性更好但日志可能更大",
+        "复制默认异步，副本应用完成不属于源库普通提交成功的前置条件"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "源库把事务写入 binlog，副本接收后写入 relay log，再由应用线程重放",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "statement 传输语句而 row 传输变更行，后者通常确定性更好但日志可能更大",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "复制默认异步，副本应用完成不属于源库普通提交成功的前置条件",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：源库把事务写入 binlog，副本接收后写入 relay log，再由应用线程重放；statement 传输语句而 row 传输变更行，后者通常确定性更好但日志可能更大；复制默认异步，副本应用完成不属于源库普通提交成功的前置条件。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Replication",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/replication.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 Replication Formats",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/replication-formats.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-sql-vs-nosql-001",
+      "domain": "mysql",
+      "topic": "sql",
+      "subtopic": "sql_vs_nosql",
+      "question": "关系型数据库和 NoSQL 的核心差异是什么，选型时应看哪些约束？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "sql"
+      ],
+      "reference_points": [
+        "关系型数据库强调模式、关系、事务和声明式查询；NoSQL 是文档、键值、列族等多类模型的统称",
+        "选型应看一致性、查询方式、数据关系、扩展方式、运维能力和团队经验",
+        "不能把 SQL 等同于不能扩展，也不能把 NoSQL 等同于没有事务或一定更快"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "关系型数据库强调模式、关系、事务和声明式查询；NoSQL 是文档、键值、列族等多类模型的统称",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "选型应看一致性、查询方式、数据关系、扩展方式、运维能力和团队经验",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "不能把 SQL 等同于不能扩展，也不能把 NoSQL 等同于没有事务或一定更快",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：关系型数据库强调模式、关系、事务和声明式查询；NoSQL 是文档、键值、列族等多类模型的统称；选型应看一致性、查询方式、数据关系、扩展方式、运维能力和团队经验；不能把 SQL 等同于不能扩展，也不能把 NoSQL 等同于没有事务或一定更快。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Reference Manual",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-string-types-005",
+      "domain": "mysql",
+      "topic": "sql",
+      "subtopic": "string_types",
+      "question": "CHAR、VARCHAR 和 TEXT 如何选择？VARCHAR(n) 中的 n 表示什么？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "sql"
+      ],
+      "reference_points": [
+        "CHAR 适合固定长度值，VARCHAR 保存可变长度字符串，TEXT 面向更大的文本并有不同索引与默认值限制",
+        "VARCHAR 的 n 表示字符数上限，实际字节受字符集以及行大小限制",
+        "选择应依据真实长度、比较语义、字符集和访问模式，不应为省事全部使用 TEXT"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "CHAR 适合固定长度值，VARCHAR 保存可变长度字符串，TEXT 面向更大的文本并有不同索引与默认值限制",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "VARCHAR 的 n 表示字符数上限，实际字节受字符集以及行大小限制",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "选择应依据真实长度、比较语义、字符集和访问模式，不应为省事全部使用 TEXT",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：CHAR 适合固定长度值，VARCHAR 保存可变长度字符串，TEXT 面向更大的文本并有不同索引与默认值限制；VARCHAR 的 n 表示字符数上限，实际字节受字符集以及行大小限制；选择应依据真实长度、比较语义、字符集和访问模式，不应为省事全部使用 TEXT。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 String Data Types",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/string-types.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-two-phase-commit-039",
+      "domain": "mysql",
+      "topic": "log",
+      "subtopic": "two_phase_commit",
+      "question": "InnoDB redo log 与 binlog 为什么需要两阶段提交？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "log"
+      ],
+      "reference_points": [
+        "redo 负责存储引擎恢复，binlog 负责复制和归档，两套日志若提交状态不一致会导致主库与恢复或副本结果分叉",
+        "事务先把 redo 写到 prepare，再写并持久化 binlog，最后把 redo 标记 commit",
+        "崩溃恢复会结合 redo 状态和 binlog 中是否存在完整事务决定提交或回滚"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "redo 负责存储引擎恢复，binlog 负责复制和归档，两套日志若提交状态不一致会导致主库与恢复或副本结果分叉",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "事务先把 redo 写到 prepare，再写并持久化 binlog，最后把 redo 标记 commit",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "崩溃恢复会结合 redo 状态和 binlog 中是否存在完整事务决定提交或回滚",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：redo 负责存储引擎恢复，binlog 负责复制和归档，两套日志若提交状态不一致会导致主库与恢复或副本结果分叉；事务先把 redo 写到 prepare，再写并持久化 binlog，最后把 redo 标记 commit；崩溃恢复会结合 redo 状态和 binlog 中是否存在完整事务决定提交或回滚。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 Optimizing InnoDB Redo Logging",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/optimizing-innodb-logging.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 The Binary Log",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/binary-log.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 InnoDB Redo Log",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-redo-log.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-unique-upsert-004",
+      "domain": "mysql",
+      "topic": "sql",
+      "subtopic": "unique_upsert",
+      "question": "MySQL 如何从数据库层防止重复插入，并实现幂等写入？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "sql"
+      ],
+      "reference_points": [
+        "用 PRIMARY KEY 或 UNIQUE 约束定义真正的不变量，避免只在应用层先查后写的竞态",
+        "冲突时可按语义选择报错、INSERT IGNORE 或 INSERT ... ON DUPLICATE KEY UPDATE",
+        "幂等键需与请求内容或业务主键绑定，不能把所有约束错误都静默忽略"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "用 PRIMARY KEY 或 UNIQUE 约束定义真正的不变量，避免只在应用层先查后写的竞态",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "冲突时可按语义选择报错、INSERT IGNORE 或 INSERT ... ON DUPLICATE KEY UPDATE",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "幂等键需与请求内容或业务主键绑定，不能把所有约束错误都静默忽略",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：用 PRIMARY KEY 或 UNIQUE 约束定义真正的不变量，避免只在应用层先查后写的竞态；冲突时可按语义选择报错、INSERT IGNORE 或 INSERT ... ON DUPLICATE KEY UPDATE；幂等键需与请求内容或业务主键绑定，不能把所有约束错误都静默忽略。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 INSERT ... ON DUPLICATE KEY UPDATE",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/insert-on-duplicate.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-update-atomicity-031",
+      "domain": "mysql",
+      "topic": "transaction",
+      "subtopic": "update_atomicity",
+      "question": "单条 UPDATE 是原子的吗？业务上的读改写为什么仍可能丢失更新？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "transaction"
+      ],
+      "reference_points": [
+        "单条 UPDATE 作为一个语句会整体成功或失败，并在事务提交或回滚时遵守原子性",
+        "若应用先 SELECT 值、在内存计算再 UPDATE，多个事务可能基于同一旧值覆盖结果",
+        "可用原子表达式、条件更新、版本号乐观锁或 SELECT FOR UPDATE 保护业务读改写"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "单条 UPDATE 作为一个语句会整体成功或失败，并在事务提交或回滚时遵守原子性",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "若应用先 SELECT 值、在内存计算再 UPDATE，多个事务可能基于同一旧值覆盖结果",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "可用原子表达式、条件更新、版本号乐观锁或 SELECT FOR UPDATE 保护业务读改写",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：单条 UPDATE 作为一个语句会整体成功或失败，并在事务提交或回滚时遵守原子性；若应用先 SELECT 值、在内存计算再 UPDATE，多个事务可能基于同一旧值覆盖结果；可用原子表达式、条件更新、版本号乐观锁或 SELECT FOR UPDATE 保护业务读改写。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 InnoDB Transaction Model",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-transaction-model.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 InnoDB Locking",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-locking.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-update-flow-040",
+      "domain": "mysql",
+      "topic": "log",
+      "subtopic": "update_flow",
+      "question": "一条 UPDATE 在 InnoDB 中从执行到提交大致经历什么？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "log"
+      ],
+      "reference_points": [
+        "优化器选择索引定位记录，执行器读取当前版本并取得必要的排他锁",
+        "修改会生成 undo 旧版本、更新 Buffer Pool 中的页并写入 redo，同时服务层形成 binlog 事件",
+        "提交阶段协调 redo 与 binlog 持久化，脏页之后由后台线程写回数据文件"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "优化器选择索引定位记录，执行器读取当前版本并取得必要的排他锁",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "修改会生成 undo 旧版本、更新 Buffer Pool 中的页并写入 redo，同时服务层形成 binlog 事件",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "提交阶段协调 redo 与 binlog 持久化，脏页之后由后台线程写回数据文件",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：优化器选择索引定位记录，执行器读取当前版本并取得必要的排他锁；修改会生成 undo 旧版本、更新 Buffer Pool 中的页并写入 redo，同时服务层形成 binlog 事件；提交阶段协调 redo 与 binlog 持久化，脏页之后由后台线程写回数据文件。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 InnoDB Transaction Model",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-transaction-model.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 InnoDB Redo Log",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-redo-log.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MySQL 8.4 The Binary Log",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/binary-log.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mysql-wal-redo-037",
+      "domain": "mysql",
+      "topic": "log",
+      "subtopic": "wal_redo",
+      "question": "为什么 InnoDB 先写 redo log，而不是提交时直接把所有 B+ 树脏页随机写回磁盘？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "log"
+      ],
+      "reference_points": [
+        "顺序追加日志通常比把多个离散数据页同步刷盘成本低，提交路径因此更短",
+        "事务提交所需 redo 持久化后，脏页可稍后批量写回，崩溃时按日志重放",
+        "WAL 要求相关日志先于数据页落盘，并配合 LSN、检查点和刷盘策略保证恢复正确性"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "顺序追加日志通常比把多个离散数据页同步刷盘成本低，提交路径因此更短",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "事务提交所需 redo 持久化后，脏页可稍后批量写回，崩溃时按日志重放",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "WAL 要求相关日志先于数据页落盘，并配合 LSN、检查点和刷盘策略保证恢复正确性",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：顺序追加日志通常比把多个离散数据页同步刷盘成本低，提交路径因此更短；事务提交所需 redo 持久化后，脏页可稍后批量写回，崩溃时按日志重放；WAL 要求相关日志先于数据页落盘，并配合 LSN、检查点和刷盘策略保证恢复正确性。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "MySQL 8.4 InnoDB Redo Log",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-redo-log.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-browser-token-storage-019",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "browser_token_storage",
+      "question": "Cookie 与 localStorage 存储登录凭证各有什么风险，移动 Web 应怎样选择？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "HttpOnly Cookie 可阻止脚本直接读取并自动随请求发送，但要配置 SameSite 并防范 CSRF",
+        "localStorage 不会自动随请求发送，却能被同源脚本读取，XSS 会直接威胁其中的令牌",
+        "选择应结合威胁模型；常见 Web 会话优先使用 Secure、HttpOnly、SameSite Cookie"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "HttpOnly Cookie 可阻止脚本直接读取并自动随请求发送，但要配置 SameSite 并防范 CSRF",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "localStorage 不会自动随请求发送，却能被同源脚本读取，XSS 会直接威胁其中的令牌",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "选择应结合威胁模型；常见 Web 会话优先使用 Secure、HttpOnly、SameSite Cookie",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：HttpOnly Cookie 可阻止脚本直接读取并自动随请求发送，但要配置 SameSite 并防范 CSRF；localStorage 不会自动随请求发送，却能被同源脚本读取，XSS 会直接威胁其中的令牌；选择应结合威胁模型；常见 Web 会话优先使用 Secure、HttpOnly、SameSite Cookie。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 6265: HTTP State Management Mechanism",
+          "url": "https://www.rfc-editor.org/rfc/rfc6265",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "OWASP Session Management Cheat Sheet",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-certificate-validation-011",
+      "domain": "network",
+      "topic": "https",
+      "subtopic": "certificate_validation",
+      "question": "浏览器如何用数字证书降低中间人攻击风险？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "https"
+      ],
+      "reference_points": [
+        "证书把域名和公钥绑定，并由客户端信任链中的 CA 签名",
+        "客户端校验证书链、有效期、域名、用途和吊销相关信息，再验证握手签名",
+        "若用户忽略证书警告、信任恶意根证书或私钥泄漏，身份保证仍可能失效"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "证书把域名和公钥绑定，并由客户端信任链中的 CA 签名",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "客户端校验证书链、有效期、域名、用途和吊销相关信息，再验证握手签名",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "若用户忽略证书警告、信任恶意根证书或私钥泄漏，身份保证仍可能失效",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：证书把域名和公钥绑定，并由客户端信任链中的 CA 签名；客户端校验证书链、有效期、域名、用途和吊销相关信息，再验证握手签名；若用户忽略证书警告、信任恶意根证书或私钥泄漏，身份保证仍可能失效。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 8446: The Transport Layer Security Protocol Version 1.3",
+          "url": "https://www.rfc-editor.org/rfc/rfc8446",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-congestion-control-033",
+      "domain": "network",
+      "topic": "tcp",
+      "subtopic": "congestion_control",
+      "question": "TCP 的慢启动、拥塞避免、快速重传和快速恢复分别做什么？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "tcp"
+      ],
+      "reference_points": [
+        "慢启动按确认快速扩大拥塞窗口，达到阈值后拥塞避免更平缓地增长",
+        "重复确认可触发快速重传，在重传超时之前补发疑似丢失的数据",
+        "快速恢复根据拥塞信号降低发送速率并继续探测容量，具体行为依拥塞控制算法而异"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "慢启动按确认快速扩大拥塞窗口，达到阈值后拥塞避免更平缓地增长",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "重复确认可触发快速重传，在重传超时之前补发疑似丢失的数据",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "快速恢复根据拥塞信号降低发送速率并继续探测容量，具体行为依拥塞控制算法而异",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：慢启动按确认快速扩大拥塞窗口，达到阈值后拥塞避免更平缓地增长；重复确认可触发快速重传，在重传超时之前补发疑似丢失的数据；快速恢复根据拥塞信号降低发送速率并继续探测容量，具体行为依拥塞控制算法而异。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 5681: TCP Congestion Control",
+          "url": "https://www.rfc-editor.org/rfc/rfc5681",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-connectivity-036",
+      "domain": "network",
+      "topic": "troubleshooting",
+      "subtopic": "connectivity",
+      "question": "服务已启动但客户端访问不到，或 ping 不通但 HTTP 能访问，可能是什么原因？",
+      "difficulty": "hard",
+      "question_type": "scenario_analysis",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "troubleshooting"
+      ],
+      "reference_points": [
+        "检查域名解析、路由、端口监听地址、安全组、防火墙、代理和证书等逐层条件",
+        "ping 使用 ICMP，HTTP 使用 TCP 或 QUIC；网络可过滤 ICMP 而继续允许应用端口",
+        "用 dig、traceroute、ss、curl、抓包和服务日志逐跳验证，区分无响应、拒绝和超时"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "检查域名解析、路由、端口监听地址、安全组、防火墙、代理和证书等逐层条件",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "ping 使用 ICMP，HTTP 使用 TCP 或 QUIC；网络可过滤 ICMP 而继续允许应用端口",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "用 dig、traceroute、ss、curl、抓包和服务日志逐跳验证，区分无响应、拒绝和超时",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：检查域名解析、路由、端口监听地址、安全组、防火墙、代理和证书等逐层条件；ping 使用 ICMP，HTTP 使用 TCP 或 QUIC；网络可过滤 ICMP 而继续允许应用端口；用 dig、traceroute、ss、curl、抓包和服务日志逐跳验证，区分无响应、拒绝和超时。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 1122: Requirements for Internet Hosts",
+          "url": "https://www.rfc-editor.org/rfc/rfc1122",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "RFC 9110: HTTP Semantics",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110",
+          "source_type": "specification",
+          "license": "IETF Trust Legal Provisions; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-dns-hijacking-038",
+      "domain": "network",
+      "topic": "security",
+      "subtopic": "dns_hijacking",
+      "question": "DNS 劫持和 DNS 缓存投毒有什么表现，应用可以怎样降低风险？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "security"
+      ],
+      "reference_points": [
+        "攻击者让解析结果指向错误地址，可能发生在本机、递归解析器、网络链路或权威配置环节",
+        "DNSSEC 可验证 DNS 数据来源与完整性，但不负责加密查询内容",
+        "HTTPS 证书校验可阻止许多错误站点冒充，DoH 或 DoT 可保护查询链路但不能替代权威安全"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "攻击者让解析结果指向错误地址，可能发生在本机、递归解析器、网络链路或权威配置环节",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "DNSSEC 可验证 DNS 数据来源与完整性，但不负责加密查询内容",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "HTTPS 证书校验可阻止许多错误站点冒充，DoH 或 DoT 可保护查询链路但不能替代权威安全",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：攻击者让解析结果指向错误地址，可能发生在本机、递归解析器、网络链路或权威配置环节；DNSSEC 可验证 DNS 数据来源与完整性，但不负责加密查询内容；HTTPS 证书校验可阻止许多错误站点冒充，DoH 或 DoT 可保护查询链路但不能替代权威安全。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 4033: DNS Security Introduction and Requirements",
+          "url": "https://www.rfc-editor.org/rfc/rfc4033",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "RFC 8446: The Transport Layer Security Protocol Version 1.3",
+          "url": "https://www.rfc-editor.org/rfc/rfc8446",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-dns-resolution-015",
+      "domain": "network",
+      "topic": "dns",
+      "subtopic": "dns_resolution",
+      "question": "递归 DNS 查询从域名到 IP 地址通常经历哪些环节？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "dns"
+      ],
+      "reference_points": [
+        "客户端先查询浏览器、系统和本地解析器缓存，再把请求交给递归解析器",
+        "递归解析器必要时依次查询根、顶级域和权威服务器",
+        "TTL 控制缓存复用时间，CNAME、负载调度和负缓存都会影响最终结果"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "客户端先查询浏览器、系统和本地解析器缓存，再把请求交给递归解析器",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "递归解析器必要时依次查询根、顶级域和权威服务器",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "TTL 控制缓存复用时间，CNAME、负载调度和负缓存都会影响最终结果",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：客户端先查询浏览器、系统和本地解析器缓存，再把请求交给递归解析器；递归解析器必要时依次查询根、顶级域和权威服务器；TTL 控制缓存复用时间，CNAME、负载调度和负缓存都会影响最终结果。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 1034: Domain Names - Concepts and Facilities",
+          "url": "https://www.rfc-editor.org/rfc/rfc1034",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "RFC 1035: Domain Names - Implementation and Specification",
+          "url": "https://www.rfc-editor.org/rfc/rfc1035",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-dns-transport-016",
+      "domain": "network",
+      "topic": "dns",
+      "subtopic": "dns_transport",
+      "question": "DNS 使用 UDP 还是 TCP？修改 hosts 文件与 DNS 缓存分别会影响哪一段？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "dns"
+      ],
+      "reference_points": [
+        "传统 DNS 查询常优先使用 UDP 53，但响应过大、截断或区域传送等场景会使用 TCP",
+        "hosts 文件通常由本机解析器优先检查，只影响本机的名称解析",
+        "多层缓存受 TTL 和本地策略影响，修改权威记录后不会瞬间传播到所有客户端"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "传统 DNS 查询常优先使用 UDP 53，但响应过大、截断或区域传送等场景会使用 TCP",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "hosts 文件通常由本机解析器优先检查，只影响本机的名称解析",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "多层缓存受 TTL 和本地策略影响，修改权威记录后不会瞬间传播到所有客户端",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：传统 DNS 查询常优先使用 UDP 53，但响应过大、截断或区域传送等场景会使用 TCP；hosts 文件通常由本机解析器优先检查，只影响本机的名称解析；多层缓存受 TTL 和本地策略影响，修改权威记录后不会瞬间传播到所有客户端。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 1034: Domain Names - Concepts and Facilities",
+          "url": "https://www.rfc-editor.org/rfc/rfc1034",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "RFC 1035: Domain Names - Implementation and Specification",
+          "url": "https://www.rfc-editor.org/rfc/rfc1035",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
       "id": "network-http-idempotency-001",
       "domain": "network",
       "topic": "http",
@@ -5216,6 +8706,852 @@
       "verified_by_human": false
     },
     {
+      "id": "network-http-keep-alive-006",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "http_keep_alive",
+      "question": "HTTP Keep-Alive 解决了什么问题？它与 TCP Keepalive 是一回事吗？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "HTTP 持久连接允许多个请求复用同一传输连接，减少握手和慢启动成本",
+        "TCP Keepalive 是操作系统探测空闲 TCP 连接是否仍存活的机制",
+        "两者所属层级、触发时机和目的不同，应用还需配置连接池、空闲超时和最大复用次数"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "HTTP 持久连接允许多个请求复用同一传输连接，减少握手和慢启动成本",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "TCP Keepalive 是操作系统探测空闲 TCP 连接是否仍存活的机制",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "两者所属层级、触发时机和目的不同，应用还需配置连接池、空闲超时和最大复用次数",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：HTTP 持久连接允许多个请求复用同一传输连接，减少握手和慢启动成本；TCP Keepalive 是操作系统探测空闲 TCP 连接是否仍存活的机制；两者所属层级、触发时机和目的不同，应用还需配置连接池、空闲超时和最大复用次数。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 9110: HTTP Semantics",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110",
+          "source_type": "specification",
+          "license": "IETF Trust Legal Provisions; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        },
+        {
+          "title": "RFC 9293: Transmission Control Protocol",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-http-message-003",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "http_message",
+      "question": "HTTP 请求报文和响应报文由哪些部分组成？服务器如何知道消息边界？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "请求含方法、目标和版本，响应含版本、状态码，二者都可带字段和内容",
+        "HTTP/1.1 可用 Content-Length、Transfer-Encoding 或连接关闭表达消息边界",
+        "HTTP/2 和 HTTP/3 使用二进制帧，不再依赖文本报文的行分隔来划界"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "请求含方法、目标和版本，响应含版本、状态码，二者都可带字段和内容",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "HTTP/1.1 可用 Content-Length、Transfer-Encoding 或连接关闭表达消息边界",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "HTTP/2 和 HTTP/3 使用二进制帧，不再依赖文本报文的行分隔来划界",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：请求含方法、目标和版本，响应含版本、状态码，二者都可带字段和内容；HTTP/1.1 可用 Content-Length、Transfer-Encoding 或连接关闭表达消息边界；HTTP/2 和 HTTP/3 使用二进制帧，不再依赖文本报文的行分隔来划界。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 9110: HTTP Semantics",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110",
+          "source_type": "specification",
+          "license": "IETF Trust Legal Provisions; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        },
+        {
+          "title": "RFC 9112: HTTP/1.1",
+          "url": "https://www.rfc-editor.org/rfc/rfc9112",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "RFC 9113: HTTP/2",
+          "url": "https://www.rfc-editor.org/rfc/rfc9113",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-http-method-semantics-005",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "http_method_semantics",
+      "question": "GET、POST、PUT、PATCH、DELETE 的语义、安全性和幂等性应如何理解？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "安全方法强调不请求改变服务端状态；幂等表示重复相同请求的预期效果与一次相同",
+        "GET 通常安全且幂等，PUT 和 DELETE 通常幂等，POST 和 PATCH 是否幂等取决于接口设计",
+        "方法语义影响缓存、重试和中间代理行为，不能只按参数放在 URL 还是 body 来区分"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "安全方法强调不请求改变服务端状态；幂等表示重复相同请求的预期效果与一次相同",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "GET 通常安全且幂等，PUT 和 DELETE 通常幂等，POST 和 PATCH 是否幂等取决于接口设计",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "方法语义影响缓存、重试和中间代理行为，不能只按参数放在 URL 还是 body 来区分",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：安全方法强调不请求改变服务端状态；幂等表示重复相同请求的预期效果与一次相同；GET 通常安全且幂等，PUT 和 DELETE 通常幂等，POST 和 PATCH 是否幂等取决于接口设计；方法语义影响缓存、重试和中间代理行为，不能只按参数放在 URL 还是 body 来区分。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 9110: HTTP Semantics",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110",
+          "source_type": "specification",
+          "license": "IETF Trust Legal Provisions; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-http-state-session-017",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "http_state_session",
+      "question": "为什么说 HTTP 是无状态的？Cookie 和 Session 又怎样保存登录状态？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "HTTP 每个请求本身不要求服务器记住前一次请求的会话上下文",
+        "Cookie 是客户端随匹配请求发送的小型状态，Session 通常把状态保存在服务端并用标识关联",
+        "在 HTTP 上叠加状态机制不会改变协议本身的无状态语义，还需处理过期、轮换和跨站限制"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "HTTP 每个请求本身不要求服务器记住前一次请求的会话上下文",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "Cookie 是客户端随匹配请求发送的小型状态，Session 通常把状态保存在服务端并用标识关联",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "在 HTTP 上叠加状态机制不会改变协议本身的无状态语义，还需处理过期、轮换和跨站限制",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：HTTP 每个请求本身不要求服务器记住前一次请求的会话上下文；Cookie 是客户端随匹配请求发送的小型状态，Session 通常把状态保存在服务端并用标识关联；在 HTTP 上叠加状态机制不会改变协议本身的无状态语义，还需处理过期、轮换和跨站限制。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 9110: HTTP Semantics",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110",
+          "source_type": "specification",
+          "license": "IETF Trust Legal Provisions; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        },
+        {
+          "title": "RFC 6265: HTTP State Management Mechanism",
+          "url": "https://www.rfc-editor.org/rfc/rfc6265",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-http-status-004",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "http_status",
+      "question": "HTTP 状态码应如何分类？301、302、502 和 504 分别表达什么？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "1xx 到 5xx 分别表示信息、成功、重定向、客户端错误和服务端错误",
+        "301 表示永久重定向，302 表示临时重定向，客户端通常依据 Location 继续请求",
+        "502 表示网关收到无效上游响应，504 表示网关等待上游超时"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "1xx 到 5xx 分别表示信息、成功、重定向、客户端错误和服务端错误",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "301 表示永久重定向，302 表示临时重定向，客户端通常依据 Location 继续请求",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "502 表示网关收到无效上游响应，504 表示网关等待上游超时",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：1xx 到 5xx 分别表示信息、成功、重定向、客户端错误和服务端错误；301 表示永久重定向，302 表示临时重定向，客户端通常依据 Location 继续请求；502 表示网关收到无效上游响应，504 表示网关等待上游超时。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [],
+      "sources": [
+        {
+          "title": "RFC 9110: HTTP Semantics",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110",
+          "source_type": "specification",
+          "license": "IETF Trust Legal Provisions; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-http-versions-012",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "http_versions",
+      "question": "HTTP/1.1、HTTP/2 和 HTTP/3 的主要差异是什么？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "HTTP/1.1 使用文本消息且常需多个连接缓解队头阻塞，流水线实践受限",
+        "HTTP/2 在一个 TCP 连接上用二进制帧多路复用并支持头部压缩，但丢包仍影响整条 TCP 连接",
+        "HTTP/3 将 HTTP 映射到 QUIC，多条流独立传输并把 TLS 1.3 集成进连接建立"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "HTTP/1.1 使用文本消息且常需多个连接缓解队头阻塞，流水线实践受限",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "HTTP/2 在一个 TCP 连接上用二进制帧多路复用并支持头部压缩，但丢包仍影响整条 TCP 连接",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "HTTP/3 将 HTTP 映射到 QUIC，多条流独立传输并把 TLS 1.3 集成进连接建立",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：HTTP/1.1 使用文本消息且常需多个连接缓解队头阻塞，流水线实践受限；HTTP/2 在一个 TCP 连接上用二进制帧多路复用并支持头部压缩，但丢包仍影响整条 TCP 连接；HTTP/3 将 HTTP 映射到 QUIC，多条流独立传输并把 TLS 1.3 集成进连接建立。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 9112: HTTP/1.1",
+          "url": "https://www.rfc-editor.org/rfc/rfc9112",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "RFC 9113: HTTP/2",
+          "url": "https://www.rfc-editor.org/rfc/rfc9113",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "RFC 9114: HTTP/3",
+          "url": "https://www.rfc-editor.org/rfc/rfc9114",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-http1-framing-007",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "http1_framing",
+      "question": "HTTP/1.1 如何区分连续请求或响应，为什么错误的 Content-Length 会带来风险？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "消息体长度可由 Content-Length、分块传输编码、特定方法语义或连接关闭确定",
+        "同一消息的边界解释必须一致，否则前后端可能把剩余字节解释成另一条请求",
+        "代理与源站解析差异会引发请求走私，因此应拒绝冲突或非法的长度信息"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "消息体长度可由 Content-Length、分块传输编码、特定方法语义或连接关闭确定",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "同一消息的边界解释必须一致，否则前后端可能把剩余字节解释成另一条请求",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "代理与源站解析差异会引发请求走私，因此应拒绝冲突或非法的长度信息",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：消息体长度可由 Content-Length、分块传输编码、特定方法语义或连接关闭确定；同一消息的边界解释必须一致，否则前后端可能把剩余字节解释成另一条请求；代理与源站解析差异会引发请求走私，因此应拒绝冲突或非法的长度信息。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 9112: HTTP/1.1",
+          "url": "https://www.rfc-editor.org/rfc/rfc9112",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-http3-quic-013",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "http3_quic",
+      "question": "HTTP/3 为什么基于 QUIC，而不是继续直接使用 TCP？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "QUIC 基于 UDP 在用户态实现可靠传输，并原生集成 TLS 1.3",
+        "不同 QUIC 流的丢包恢复相互独立，避免 TCP 连接级队头阻塞",
+        "QUIC 支持连接迁移和更快恢复，但会增加用户态实现、观测和中间设备兼容成本"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "QUIC 基于 UDP 在用户态实现可靠传输，并原生集成 TLS 1.3",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "不同 QUIC 流的丢包恢复相互独立，避免 TCP 连接级队头阻塞",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "QUIC 支持连接迁移和更快恢复，但会增加用户态实现、观测和中间设备兼容成本",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：QUIC 基于 UDP 在用户态实现可靠传输，并原生集成 TLS 1.3；不同 QUIC 流的丢包恢复相互独立，避免 TCP 连接级队头阻塞；QUIC 支持连接迁移和更快恢复，但会增加用户态实现、观测和中间设备兼容成本。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 9000: QUIC",
+          "url": "https://www.rfc-editor.org/rfc/rfc9000",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "RFC 9114: HTTP/3",
+          "url": "https://www.rfc-editor.org/rfc/rfc9114",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-https-properties-009",
+      "domain": "network",
+      "topic": "https",
+      "subtopic": "https_properties",
+      "question": "HTTPS 相比 HTTP 增加了哪些安全属性，它仍不能解决什么问题？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "https"
+      ],
+      "reference_points": [
+        "TLS 为传输提供机密性、完整性，并通过证书认证通信端身份",
+        "HTTPS 不能保证服务端业务可信，也不能阻止终端中毒、凭证泄漏或应用层越权",
+        "安全性取决于证书校验、协议版本、密码套件和私钥保护等完整配置"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "TLS 为传输提供机密性、完整性，并通过证书认证通信端身份",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "HTTPS 不能保证服务端业务可信，也不能阻止终端中毒、凭证泄漏或应用层越权",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "安全性取决于证书校验、协议版本、密码套件和私钥保护等完整配置",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：TLS 为传输提供机密性、完整性，并通过证书认证通信端身份；HTTPS 不能保证服务端业务可信，也不能阻止终端中毒、凭证泄漏或应用层越权；安全性取决于证书校验、协议版本、密码套件和私钥保护等完整配置。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 8446: The Transport Layer Security Protocol Version 1.3",
+          "url": "https://www.rfc-editor.org/rfc/rfc8446",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "RFC 9110: HTTP Semantics",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110",
+          "source_type": "specification",
+          "license": "IETF Trust Legal Provisions; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-icmp-ping-040",
+      "domain": "network",
+      "topic": "ip",
+      "subtopic": "icmp_ping",
+      "question": "ping 的工作原理是什么，为什么 ping 成功不代表业务服务正常？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "ip"
+      ],
+      "reference_points": [
+        "ping 通常发送 ICMP Echo Request 并等待 Echo Reply，用往返时间与丢包率观察基本可达性",
+        "它不验证 DNS、TCP 端口、TLS、HTTP、应用逻辑或数据库依赖",
+        "网络设备可能单独过滤或限速 ICMP，所以 ping 失败也不能直接证明业务端口不可达"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "ping 通常发送 ICMP Echo Request 并等待 Echo Reply，用往返时间与丢包率观察基本可达性",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "它不验证 DNS、TCP 端口、TLS、HTTP、应用逻辑或数据库依赖",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "网络设备可能单独过滤或限速 ICMP，所以 ping 失败也不能直接证明业务端口不可达",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：ping 通常发送 ICMP Echo Request 并等待 Echo Reply，用往返时间与丢包率观察基本可达性；它不验证 DNS、TCP 端口、TLS、HTTP、应用逻辑或数据库依赖；网络设备可能单独过滤或限速 ICMP，所以 ping 失败也不能直接证明业务端口不可达。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 792: Internet Control Message Protocol",
+          "url": "https://www.rfc-editor.org/rfc/rfc792",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "RFC 4443: ICMPv6",
+          "url": "https://www.rfc-editor.org/rfc/rfc4443",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-ip-routing-039",
+      "domain": "network",
+      "topic": "ip",
+      "subtopic": "ip_routing",
+      "question": "IP 地址、子网掩码、默认网关和路由表如何共同决定数据包下一跳？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "ip"
+      ],
+      "reference_points": [
+        "源主机用前缀长度判断目标是否在本地链路，本地目标直接解析链路层地址",
+        "非本地目标依据最长前缀匹配选择路由，通常发送给默认网关",
+        "NAT 会改写地址或端口，但它不承担路由协议本身的职责"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "源主机用前缀长度判断目标是否在本地链路，本地目标直接解析链路层地址",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "非本地目标依据最长前缀匹配选择路由，通常发送给默认网关",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "NAT 会改写地址或端口，但它不承担路由协议本身的职责",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：源主机用前缀长度判断目标是否在本地链路，本地目标直接解析链路层地址；非本地目标依据最长前缀匹配选择路由，通常发送给默认网关；NAT 会改写地址或端口，但它不承担路由协议本身的职责。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 1122: Requirements for Internet Hosts",
+          "url": "https://www.rfc-editor.org/rfc/rfc1122",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "RFC 8200: Internet Protocol, Version 6",
+          "url": "https://www.rfc-editor.org/rfc/rfc8200",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-load-balancing-022",
+      "domain": "network",
+      "topic": "load_balancing",
+      "subtopic": "load_balancing",
+      "question": "反向代理常见的负载均衡策略有哪些，如何选择？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "load_balancing"
+      ],
+      "reference_points": [
+        "轮询和加权轮询适合能力相近或权重已知的实例，最少连接更关注当前连接负载",
+        "哈希类策略可提高会话或缓存亲和性，但扩缩容时要考虑重新映射",
+        "健康检查、熔断、慢启动与连接排空比单纯的分配算法更影响故障体验"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "轮询和加权轮询适合能力相近或权重已知的实例，最少连接更关注当前连接负载",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "哈希类策略可提高会话或缓存亲和性，但扩缩容时要考虑重新映射",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "健康检查、熔断、慢启动与连接排空比单纯的分配算法更影响故障体验",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：轮询和加权轮询适合能力相近或权重已知的实例，最少连接更关注当前连接负载；哈希类策略可提高会话或缓存亲和性，但扩缩容时要考虑重新映射；健康检查、熔断、慢启动与连接排空比单纯的分配算法更影响故障体验。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "NGINX HTTP Load Balancing",
+          "url": "https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-osi-tcp-ip-001",
+      "domain": "network",
+      "topic": "network_model",
+      "subtopic": "osi_tcp_ip",
+      "question": "OSI 七层模型与 TCP/IP 模型如何对应？实际排障为什么仍需要分层思考？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "network_model"
+      ],
+      "reference_points": [
+        "OSI 是概念上的七层模型，TCP/IP 常按应用、传输、网际和网络接口四层描述",
+        "HTTP、TCP、IP、以太网分别位于不同层，每层只依赖下层提供的能力",
+        "分层能缩小故障范围，但真实协议可能跨层优化，不能机械套层"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "OSI 是概念上的七层模型，TCP/IP 常按应用、传输、网际和网络接口四层描述",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "HTTP、TCP、IP、以太网分别位于不同层，每层只依赖下层提供的能力",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "分层能缩小故障范围，但真实协议可能跨层优化，不能机械套层",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：OSI 是概念上的七层模型，TCP/IP 常按应用、传输、网际和网络接口四层描述；HTTP、TCP、IP、以太网分别位于不同层，每层只依赖下层提供的能力；分层能缩小故障范围，但真实协议可能跨层优化，不能机械套层。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [],
+      "sources": [
+        {
+          "title": "RFC 1122: Requirements for Internet Hosts",
+          "url": "https://www.rfc-editor.org/rfc/rfc1122",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
       "id": "network-proxy-timeout-001",
       "domain": "network",
       "topic": "proxy",
@@ -5268,6 +9604,325 @@
         "如何为异步长任务设计轮询和回调接口？"
       ],
       "sources": [
+        {
+          "title": "RFC 9110: HTTP Semantics",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110",
+          "source_type": "specification",
+          "license": "IETF Trust Legal Provisions; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-quic-reliability-034",
+      "domain": "network",
+      "topic": "udp",
+      "subtopic": "quic_reliability",
+      "question": "QUIC 如何在 UDP 之上实现可靠传输，它与直接使用 UDP 有什么不同？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "udp"
+      ],
+      "reference_points": [
+        "QUIC 自己实现确认、重传、拥塞控制、流量控制和多路复用",
+        "TLS 1.3 握手与传输状态集成，连接 ID 支持地址变化后的连接迁移",
+        "应用直接使用 UDP 并不会自动得到这些能力，错误地自制可靠协议通常代价很高"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "QUIC 自己实现确认、重传、拥塞控制、流量控制和多路复用",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "TLS 1.3 握手与传输状态集成，连接 ID 支持地址变化后的连接迁移",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "应用直接使用 UDP 并不会自动得到这些能力，错误地自制可靠协议通常代价很高",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：QUIC 自己实现确认、重传、拥塞控制、流量控制和多路复用；TLS 1.3 握手与传输状态集成，连接 ID 支持地址变化后的连接迁移；应用直接使用 UDP 并不会自动得到这些能力，错误地自制可靠协议通常代价很高。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 9000: QUIC",
+          "url": "https://www.rfc-editor.org/rfc/rfc9000",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-range-request-008",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "range_request",
+      "question": "HTTP 断点续传怎样利用 Range、Content-Range 和 206 状态码？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "客户端用 Range 请求资源的指定字节范围，服务端支持时返回 206 Partial Content",
+        "响应通过 Content-Range 描述本段位置和完整资源长度，不满足范围可返回 416",
+        "续传还需用校验条件确认资源未变化，避免拼接不同版本的数据"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "客户端用 Range 请求资源的指定字节范围，服务端支持时返回 206 Partial Content",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "响应通过 Content-Range 描述本段位置和完整资源长度，不满足范围可返回 416",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "续传还需用校验条件确认资源未变化，避免拼接不同版本的数据",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：客户端用 Range 请求资源的指定字节范围，服务端支持时返回 206 Partial Content；响应通过 Content-Range 描述本段位置和完整资源长度，不满足范围可返回 416；续传还需用校验条件确认资源未变化，避免拼接不同版本的数据。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 9110: HTTP Semantics",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110",
+          "source_type": "specification",
+          "license": "IETF Trust Legal Provisions; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-rpc-vs-http-020",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "rpc_vs_http",
+      "question": "已经有 HTTP API，为什么内部服务还会选择 RPC？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "HTTP 是传输和消息语义，RPC 是把远程调用抽象成方法调用的通信风格，两者并不互斥",
+        "RPC 框架常提供 IDL、代码生成、类型约束、流式调用和治理能力",
+        "公网兼容性、可调试性、浏览器支持与内部性能需求决定选择，不应只比较序列化速度"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "HTTP 是传输和消息语义，RPC 是把远程调用抽象成方法调用的通信风格，两者并不互斥",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "RPC 框架常提供 IDL、代码生成、类型约束、流式调用和治理能力",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "公网兼容性、可调试性、浏览器支持与内部性能需求决定选择，不应只比较序列化速度",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：HTTP 是传输和消息语义，RPC 是把远程调用抽象成方法调用的通信风格，两者并不互斥；RPC 框架常提供 IDL、代码生成、类型约束、流式调用和治理能力；公网兼容性、可调试性、浏览器支持与内部性能需求决定选择，不应只比较序列化速度。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 9110: HTTP Semantics",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110",
+          "source_type": "specification",
+          "license": "IETF Trust Legal Provisions; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-slow-page-035",
+      "domain": "network",
+      "topic": "troubleshooting",
+      "subtopic": "slow_page",
+      "question": "网页一直转圈或首屏很慢时，你会如何分层排查？",
+      "difficulty": "hard",
+      "question_type": "scenario_analysis",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "troubleshooting"
+      ],
+      "reference_points": [
+        "先用浏览器网络面板拆分 DNS、建连、TLS、TTFB、下载和前端执行时间",
+        "再沿 CDN、代理、应用、数据库与下游依赖检查指标、日志和追踪",
+        "通过对照请求、分位延迟、缓存命中和资源瀑布定位瓶颈，避免仅凭平均耗时猜测"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "先用浏览器网络面板拆分 DNS、建连、TLS、TTFB、下载和前端执行时间",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "再沿 CDN、代理、应用、数据库与下游依赖检查指标、日志和追踪",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "通过对照请求、分位延迟、缓存命中和资源瀑布定位瓶颈，避免仅凭平均耗时猜测",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：先用浏览器网络面板拆分 DNS、建连、TLS、TTFB、下载和前端执行时间；再沿 CDN、代理、应用、数据库与下游依赖检查指标、日志和追踪；通过对照请求、分位延迟、缓存命中和资源瀑布定位瓶颈，避免仅凭平均耗时猜测。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 9110: HTTP Semantics",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110",
+          "source_type": "specification",
+          "license": "IETF Trust Legal Provisions; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        },
+        {
+          "title": "OpenTelemetry Documentation",
+          "url": "https://opentelemetry.io/docs/",
+          "source_type": "official_documentation",
+          "license": "Apache-2.0",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-socket-http-tcp-014",
+      "domain": "network",
+      "topic": "network_model",
+      "subtopic": "socket_http_tcp",
+      "question": "Socket、TCP 和 HTTP 分别是什么，它们之间是什么关系？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "network_model"
+      ],
+      "reference_points": [
+        "TCP 是传输层协议，提供有序可靠字节流；HTTP 是应用层消息语义",
+        "Socket 是操作系统暴露的通信编程接口，不等同于某个网络协议",
+        "应用可通过 socket 使用 TCP 承载 HTTP，也可使用 UDP 或其他传输协议"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "TCP 是传输层协议，提供有序可靠字节流；HTTP 是应用层消息语义",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "Socket 是操作系统暴露的通信编程接口，不等同于某个网络协议",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "应用可通过 socket 使用 TCP 承载 HTTP，也可使用 UDP 或其他传输协议",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：TCP 是传输层协议，提供有序可靠字节流；HTTP 是应用层消息语义；Socket 是操作系统暴露的通信编程接口，不等同于某个网络协议；应用可通过 socket 使用 TCP 承载 HTTP，也可使用 UDP 或其他传输协议。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [],
+      "sources": [
+        {
+          "title": "RFC 1122: Requirements for Internet Hosts",
+          "url": "https://www.rfc-editor.org/rfc/rfc1122",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "RFC 9293: Transmission Control Protocol",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
         {
           "title": "RFC 9110: HTTP Semantics",
           "url": "https://www.rfc-editor.org/rfc/rfc9110",
@@ -5351,6 +10006,879 @@
       "verified_by_human": false
     },
     {
+      "id": "network-syn-flood-027",
+      "domain": "network",
+      "topic": "tcp",
+      "subtopic": "syn_flood",
+      "question": "SYN Flood 如何耗尽服务端资源，SYN Cookies 能缓解什么？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "tcp"
+      ],
+      "reference_points": [
+        "攻击者发送大量 SYN 或伪造源地址，使服务端维持大量未完成连接状态",
+        "SYN Cookies 把必要状态编码进服务端序列号，收到有效 ACK 后再分配连接状态",
+        "它只能缓解部分握手状态耗尽，仍需限速、容量、防护服务和异常流量治理"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "攻击者发送大量 SYN 或伪造源地址，使服务端维持大量未完成连接状态",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "SYN Cookies 把必要状态编码进服务端序列号，收到有效 ACK 后再分配连接状态",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "它只能缓解部分握手状态耗尽，仍需限速、容量、防护服务和异常流量治理",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：攻击者发送大量 SYN 或伪造源地址，使服务端维持大量未完成连接状态；SYN Cookies 把必要状态编码进服务端序列号，收到有效 ACK 后再分配连接状态；它只能缓解部分握手状态耗尽，仍需限速、容量、防护服务和异常流量治理。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 4987: TCP SYN Flooding Attacks and Common Mitigations",
+          "url": "https://www.rfc-editor.org/rfc/rfc4987",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-tcp-backlog-accept-026",
+      "domain": "network",
+      "topic": "tcp",
+      "subtopic": "tcp_backlog_accept",
+      "question": "TCP 半连接队列、全连接队列和 accept 调用是什么关系？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "tcp"
+      ],
+      "reference_points": [
+        "收到 SYN 后，内核为尚未完成握手的连接维护相应状态；握手完成后连接进入等待应用接收的队列",
+        "accept 从已完成连接队列取出连接并返回新的 socket，不负责完成网络上的三次握手",
+        "队列溢出、应用 accept 过慢或监听参数不足都会表现为连接建立异常"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "收到 SYN 后，内核为尚未完成握手的连接维护相应状态；握手完成后连接进入等待应用接收的队列",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "accept 从已完成连接队列取出连接并返回新的 socket，不负责完成网络上的三次握手",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "队列溢出、应用 accept 过慢或监听参数不足都会表现为连接建立异常",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：收到 SYN 后，内核为尚未完成握手的连接维护相应状态；握手完成后连接进入等待应用接收的队列；accept 从已完成连接队列取出连接并返回新的 socket，不负责完成网络上的三次握手；队列溢出、应用 accept 过慢或监听参数不足都会表现为连接建立异常。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 9293: Transmission Control Protocol",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-tcp-close-028",
+      "domain": "network",
+      "topic": "tcp",
+      "subtopic": "tcp_close",
+      "question": "TCP 四次挥手为什么通常是四段，什么时候中间两段可能合并？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "tcp"
+      ],
+      "reference_points": [
+        "TCP 是全双工连接，每个方向都要独立发送 FIN 并被确认",
+        "收到对方 FIN 只代表对方不再发送，本端仍可能继续发送剩余数据",
+        "若应用收到 FIN 时已准备关闭，ACK 与本端 FIN 可以在同一报文中发送"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "TCP 是全双工连接，每个方向都要独立发送 FIN 并被确认",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "收到对方 FIN 只代表对方不再发送，本端仍可能继续发送剩余数据",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "若应用收到 FIN 时已准备关闭，ACK 与本端 FIN 可以在同一报文中发送",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：TCP 是全双工连接，每个方向都要独立发送 FIN 并被确认；收到对方 FIN 只代表对方不再发送，本端仍可能继续发送剩余数据；若应用收到 FIN 时已准备关闭，ACK 与本端 FIN 可以在同一报文中发送。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 9293: Transmission Control Protocol",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-tcp-handshake-024",
+      "domain": "network",
+      "topic": "tcp",
+      "subtopic": "tcp_handshake",
+      "question": "TCP 为什么需要三次握手，建立连接时双方确认了什么？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "tcp"
+      ],
+      "reference_points": [
+        "双方需要确认彼此的发送与接收路径可用，并同步各自的初始序列号",
+        "第三次 ACK 让服务端确认客户端收到了服务端的序列号，避免仅凭旧 SYN 建立错误连接",
+        "握手还可协商 MSS、窗口扩大、SACK 等 TCP 选项"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "双方需要确认彼此的发送与接收路径可用，并同步各自的初始序列号",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "第三次 ACK 让服务端确认客户端收到了服务端的序列号，避免仅凭旧 SYN 建立错误连接",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "握手还可协商 MSS、窗口扩大、SACK 等 TCP 选项",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：双方需要确认彼此的发送与接收路径可用，并同步各自的初始序列号；第三次 ACK 让服务端确认客户端收到了服务端的序列号，避免仅凭旧 SYN 建立错误连接；握手还可协商 MSS、窗口扩大、SACK 等 TCP 选项。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 9293: Transmission Control Protocol",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-tcp-handshake-loss-025",
+      "domain": "network",
+      "topic": "tcp",
+      "subtopic": "tcp_handshake_loss",
+      "question": "TCP 三次握手中 SYN、SYN-ACK 或最后 ACK 丢失时分别会怎样？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "tcp"
+      ],
+      "reference_points": [
+        "SYN 丢失时客户端按重传策略再次发送，直到成功或超时",
+        "SYN-ACK 丢失时服务端重传，客户端收到后仍可继续确认",
+        "最后 ACK 丢失时服务端仍处于等待确认状态并重传 SYN-ACK，客户端可再次发送 ACK"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "SYN 丢失时客户端按重传策略再次发送，直到成功或超时",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "SYN-ACK 丢失时服务端重传，客户端收到后仍可继续确认",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "最后 ACK 丢失时服务端仍处于等待确认状态并重传 SYN-ACK，客户端可再次发送 ACK",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：SYN 丢失时客户端按重传策略再次发送，直到成功或超时；SYN-ACK 丢失时服务端重传，客户端收到后仍可继续确认；最后 ACK 丢失时服务端仍处于等待确认状态并重传 SYN-ACK，客户端可再次发送 ACK。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 9293: Transmission Control Protocol",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-tcp-header-023",
+      "domain": "network",
+      "topic": "tcp",
+      "subtopic": "tcp_header",
+      "question": "TCP 首部中的序列号、确认号、窗口和标志位分别解决什么问题？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "tcp"
+      ],
+      "reference_points": [
+        "序列号标识字节流位置，确认号表示下一段期望收到的字节",
+        "接收窗口用于流量控制，SYN、ACK、FIN、RST 等标志表达连接控制状态",
+        "校验和、选项与时间戳等字段参与差错检测、能力协商和性能优化"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "序列号标识字节流位置，确认号表示下一段期望收到的字节",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "接收窗口用于流量控制，SYN、ACK、FIN、RST 等标志表达连接控制状态",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "校验和、选项与时间戳等字段参与差错检测、能力协商和性能优化",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：序列号标识字节流位置，确认号表示下一段期望收到的字节；接收窗口用于流量控制，SYN、ACK、FIN、RST 等标志表达连接控制状态；校验和、选项与时间戳等字段参与差错检测、能力协商和性能优化。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 9293: Transmission Control Protocol",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-tcp-reliability-030",
+      "domain": "network",
+      "topic": "tcp",
+      "subtopic": "tcp_reliability",
+      "question": "TCP 通过哪些机制提供可靠、有序的字节流？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "tcp"
+      ],
+      "reference_points": [
+        "序列号、累计确认、超时重传与快速重传负责发现并补偿丢失",
+        "接收端重排并去重，校验和检测传输错误，滑动窗口提供流量控制",
+        "可靠仅指两个 TCP 端点间交付语义，应用崩溃、磁盘失败或对端未处理仍可能造成业务数据丢失"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "序列号、累计确认、超时重传与快速重传负责发现并补偿丢失",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "接收端重排并去重，校验和检测传输错误，滑动窗口提供流量控制",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "可靠仅指两个 TCP 端点间交付语义，应用崩溃、磁盘失败或对端未处理仍可能造成业务数据丢失",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：序列号、累计确认、超时重传与快速重传负责发现并补偿丢失；接收端重排并去重，校验和检测传输错误，滑动窗口提供流量控制；可靠仅指两个 TCP 端点间交付语义，应用崩溃、磁盘失败或对端未处理仍可能造成业务数据丢失。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 9293: Transmission Control Protocol",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-tcp-stream-framing-032",
+      "domain": "network",
+      "topic": "tcp",
+      "subtopic": "tcp_stream_framing",
+      "question": "所谓 TCP 粘包是什么，应用层应如何正确处理消息边界？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "tcp"
+      ],
+      "reference_points": [
+        "TCP 只提供连续字节流，不保留发送方每次 write 的消息边界，因此粘包不是协议故障",
+        "应用协议可使用固定长度、长度前缀、分隔符或自描述帧来划分消息",
+        "读取逻辑必须支持半包、多个消息同时到达、长度校验与恶意超长输入"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "TCP 只提供连续字节流，不保留发送方每次 write 的消息边界，因此粘包不是协议故障",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "应用协议可使用固定长度、长度前缀、分隔符或自描述帧来划分消息",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "读取逻辑必须支持半包、多个消息同时到达、长度校验与恶意超长输入",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：TCP 只提供连续字节流，不保留发送方每次 write 的消息边界，因此粘包不是协议故障；应用协议可使用固定长度、长度前缀、分隔符或自描述帧来划分消息；读取逻辑必须支持半包、多个消息同时到达、长度校验与恶意超长输入。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 9293: Transmission Control Protocol",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-tcp-vs-udp-031",
+      "domain": "network",
+      "topic": "udp",
+      "subtopic": "tcp_vs_udp",
+      "question": "TCP 和 UDP 的核心差异是什么，各自适合哪些场景？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "udp"
+      ],
+      "reference_points": [
+        "TCP 面向连接并提供可靠有序字节流，UDP 以独立数据报发送且不保证到达、顺序或去重",
+        "TCP 自带流量与拥塞控制；UDP 应用若需要可靠性必须自行设计或采用 QUIC 等上层协议",
+        "选择取决于延迟、消息边界、可靠性与网络友好性，不能简单认为 UDP 一定更快"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "TCP 面向连接并提供可靠有序字节流，UDP 以独立数据报发送且不保证到达、顺序或去重",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "TCP 自带流量与拥塞控制；UDP 应用若需要可靠性必须自行设计或采用 QUIC 等上层协议",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "选择取决于延迟、消息边界、可靠性与网络友好性，不能简单认为 UDP 一定更快",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：TCP 面向连接并提供可靠有序字节流，UDP 以独立数据报发送且不保证到达、顺序或去重；TCP 自带流量与拥塞控制；UDP 应用若需要可靠性必须自行设计或采用 QUIC 等上层协议；选择取决于延迟、消息边界、可靠性与网络友好性，不能简单认为 UDP 一定更快。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [],
+      "sources": [
+        {
+          "title": "RFC 9293: Transmission Control Protocol",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "RFC 768: User Datagram Protocol",
+          "url": "https://www.rfc-editor.org/rfc/rfc768",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-time-wait-029",
+      "domain": "network",
+      "topic": "tcp",
+      "subtopic": "time_wait",
+      "question": "主动关闭方为什么进入 TIME_WAIT 并等待约 2MSL？大量 TIME_WAIT 应怎样分析？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "tcp"
+      ],
+      "reference_points": [
+        "等待能让最后 ACK 丢失时重新确认对端 FIN，并让旧连接报文从网络中消失",
+        "大量 TIME_WAIT 常说明该端频繁主动关闭短连接，不等于系统一定故障",
+        "应优先检查连接复用、关闭方向和端口容量，再谨慎调整内核参数"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "等待能让最后 ACK 丢失时重新确认对端 FIN，并让旧连接报文从网络中消失",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "大量 TIME_WAIT 常说明该端频繁主动关闭短连接，不等于系统一定故障",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "应优先检查连接复用、关闭方向和端口容量，再谨慎调整内核参数",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：等待能让最后 ACK 丢失时重新确认对端 FIN，并让旧连接报文从网络中消失；大量 TIME_WAIT 常说明该端频繁主动关闭短连接，不等于系统一定故障；应优先检查连接复用、关闭方向和端口容量，再谨慎调整内核参数。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 9293: Transmission Control Protocol",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-tls13-handshake-010",
+      "domain": "network",
+      "topic": "https",
+      "subtopic": "tls13_handshake",
+      "question": "TLS 1.3 握手的关键步骤是什么，为什么通常只需 1-RTT？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "https"
+      ],
+      "reference_points": [
+        "客户端在 ClientHello 中携带版本、算法与密钥共享，服务端选择参数并返回自己的密钥共享",
+        "双方基于临时密钥协商出握手密钥，服务端用证书和签名证明身份",
+        "客户端验证 Finished 后即可发送受保护的应用数据；0-RTT 仅用于恢复且有重放风险"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "客户端在 ClientHello 中携带版本、算法与密钥共享，服务端选择参数并返回自己的密钥共享",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "双方基于临时密钥协商出握手密钥，服务端用证书和签名证明身份",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "客户端验证 Finished 后即可发送受保护的应用数据；0-RTT 仅用于恢复且有重放风险",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：客户端在 ClientHello 中携带版本、算法与密钥共享，服务端选择参数并返回自己的密钥共享；双方基于临时密钥协商出握手密钥，服务端用证书和签名证明身份；客户端验证 Finished 后即可发送受保护的应用数据；0-RTT 仅用于恢复且有重放风险。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 8446: The Transport Layer Security Protocol Version 1.3",
+          "url": "https://www.rfc-editor.org/rfc/rfc8446",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-token-session-jwt-018",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "token_session_jwt",
+      "question": "Session、普通 Token 和 JWT 有什么区别，JWT 为什么方便集群部署？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "Session 常由服务端保存状态，客户端只持有随机标识；Token 是更宽泛的凭证概念",
+        "JWT 是带声明并可签名的令牌格式，服务端可本地验证，减少共享会话存储依赖",
+        "JWT 难以即时撤销且载荷默认不加密，仍需短有效期、密钥轮换和服务端授权检查"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "Session 常由服务端保存状态，客户端只持有随机标识；Token 是更宽泛的凭证概念",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "JWT 是带声明并可签名的令牌格式，服务端可本地验证，减少共享会话存储依赖",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "JWT 难以即时撤销且载荷默认不加密，仍需短有效期、密钥轮换和服务端授权检查",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：Session 常由服务端保存状态，客户端只持有随机标识；Token 是更宽泛的凭证概念；JWT 是带声明并可签名的令牌格式，服务端可本地验证，减少共享会话存储依赖；JWT 难以即时撤销且载荷默认不加密，仍需短有效期、密钥轮换和服务端授权检查。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 7519: JSON Web Token",
+          "url": "https://www.rfc-editor.org/rfc/rfc7519",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "RFC 6265: HTTP State Management Mechanism",
+          "url": "https://www.rfc-editor.org/rfc/rfc6265",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-url-request-journey-002",
+      "domain": "network",
+      "topic": "network_model",
+      "subtopic": "url_request_journey",
+      "question": "从手机输入一个 HTTPS 地址到页面出现，网络链路上依次发生了什么？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "network_model"
+      ],
+      "reference_points": [
+        "浏览器先解析 URL、查询 DNS，并根据缓存与网络环境确定目标地址",
+        "随后建立传输连接与 TLS 安全会话，再发送 HTTP 请求并接收响应",
+        "页面还会解析资源、复用连接、执行缓存策略，任一阶段都可能造成首屏延迟"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "浏览器先解析 URL、查询 DNS，并根据缓存与网络环境确定目标地址",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "随后建立传输连接与 TLS 安全会话，再发送 HTTP 请求并接收响应",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "页面还会解析资源、复用连接、执行缓存策略，任一阶段都可能造成首屏延迟",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：浏览器先解析 URL、查询 DNS，并根据缓存与网络环境确定目标地址；随后建立传输连接与 TLS 安全会话，再发送 HTTP 请求并接收响应；页面还会解析资源、复用连接、执行缓存策略，任一阶段都可能造成首屏延迟。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 1034: Domain Names - Concepts and Facilities",
+          "url": "https://www.rfc-editor.org/rfc/rfc1034",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "RFC 9293: Transmission Control Protocol",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "RFC 8446: The Transport Layer Security Protocol Version 1.3",
+          "url": "https://www.rfc-editor.org/rfc/rfc8446",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "RFC 9110: HTTP Semantics",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110",
+          "source_type": "specification",
+          "license": "IETF Trust Legal Provisions; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-web-attacks-037",
+      "domain": "network",
+      "topic": "security",
+      "subtopic": "web_attacks",
+      "question": "DDoS、CSRF、XSS 和 SQL 注入分别攻击什么边界，基本防护思路是什么？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "security"
+      ],
+      "reference_points": [
+        "DDoS 消耗带宽或服务容量；CSRF 借用用户凭证发起非预期请求；XSS 在页面上下文执行恶意脚本；SQL 注入改变查询结构",
+        "防护分别依赖流量清洗与限速、SameSite 或 CSRF Token、上下文输出编码与 CSP、参数化查询",
+        "这些攻击位于不同层，HTTPS 只保护链路，不能替代应用层输入输出和授权控制"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "DDoS 消耗带宽或服务容量；CSRF 借用用户凭证发起非预期请求；XSS 在页面上下文执行恶意脚本；SQL 注入改变查询结构",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "防护分别依赖流量清洗与限速、SameSite 或 CSRF Token、上下文输出编码与 CSP、参数化查询",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "这些攻击位于不同层，HTTPS 只保护链路，不能替代应用层输入输出和授权控制",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：DDoS 消耗带宽或服务容量；CSRF 借用用户凭证发起非预期请求；XSS 在页面上下文执行恶意脚本；SQL 注入改变查询结构；防护分别依赖流量清洗与限速、SameSite 或 CSRF Token、上下文输出编码与 CSP、参数化查询；这些攻击位于不同层，HTTPS 只保护链路，不能替代应用层输入输出和授权控制。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/",
+          "source_type": "official_documentation",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
       "id": "network-webrtc-websocket-001",
       "domain": "network",
       "topic": "websocket",
@@ -5412,6 +10940,73 @@
         {
           "title": "MDN: The WebSocket API",
           "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API",
+          "source_type": "official_documentation",
+          "license": "CC-BY-SA 2.5; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "network-websocket-handshake-021",
+      "domain": "network",
+      "topic": "websocket",
+      "subtopic": "websocket_handshake",
+      "question": "HTTP 长连接、WebSocket 与 SSE 有什么区别？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "websocket"
+      ],
+      "reference_points": [
+        "HTTP 持久连接复用底层连接，但交互仍以请求响应为主",
+        "WebSocket 通过 HTTP 握手升级为全双工消息通道，适合频繁双向实时通信",
+        "SSE 是服务端到客户端的文本事件流，接口简单且有浏览器重连语义，适合单向推送"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "HTTP 持久连接复用底层连接，但交互仍以请求响应为主",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "WebSocket 通过 HTTP 握手升级为全双工消息通道，适合频繁双向实时通信",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "SSE 是服务端到客户端的文本事件流，接口简单且有浏览器重连语义，适合单向推送",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：HTTP 持久连接复用底层连接，但交互仍以请求响应为主；WebSocket 通过 HTTP 握手升级为全双工消息通道，适合频繁双向实时通信；SSE 是服务端到客户端的文本事件流，接口简单且有浏览器重连语义，适合单向推送。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "title": "RFC 6455: The WebSocket Protocol",
+          "url": "https://www.rfc-editor.org/rfc/rfc6455",
+          "source_type": "specification",
+          "license": "Documentation/specification terms apply; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MDN: Using server-sent events",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
           "source_type": "official_documentation",
           "license": "CC-BY-SA 2.5; no verbatim text imported",
           "accessed_at": "2026-08-02"

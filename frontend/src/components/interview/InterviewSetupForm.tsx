@@ -9,6 +9,7 @@ export const domainOptions: Array<{ value: QuestionDomain; label: string }> = [
   { value: "llm_application", label: "LLM 应用" },
   { value: "python", label: "Python" },
   { value: "network", label: "网络" },
+  { value: "mysql", label: "MySQL" },
   { value: "ai_engineering", label: "AI 工程" },
 ];
 
@@ -41,9 +42,30 @@ const topicOptions: Record<QuestionDomain, Array<{ value: string; label: string 
     { value: "pydantic", label: "Pydantic" },
   ],
   network: [
+    { value: "network_model", label: "网络模型" },
     { value: "http", label: "HTTP" },
+    { value: "https", label: "HTTPS / TLS" },
+    { value: "tcp", label: "TCP" },
+    { value: "udp", label: "UDP / QUIC" },
+    { value: "ip", label: "IP / ICMP" },
+    { value: "dns", label: "DNS" },
+    { value: "websocket", label: "WebSocket" },
     { value: "sse", label: "SSE" },
     { value: "proxy", label: "代理与超时" },
+    { value: "load_balancing", label: "负载均衡" },
+    { value: "troubleshooting", label: "网络排障" },
+    { value: "security", label: "网络安全" },
+  ],
+  mysql: [
+    { value: "sql", label: "SQL 基础" },
+    { value: "storage_engine", label: "存储引擎" },
+    { value: "index", label: "索引" },
+    { value: "transaction", label: "事务 / MVCC" },
+    { value: "lock", label: "锁" },
+    { value: "log", label: "日志" },
+    { value: "performance", label: "性能调优" },
+    { value: "replication", label: "主从复制" },
+    { value: "architecture", label: "架构" },
   ],
   ai_engineering: [
     { value: "llm_fundamentals", label: "LLM 基础" },

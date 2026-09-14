@@ -192,7 +192,7 @@ class DiaryRead(BaseModel):
 Difficulty = Literal["easy", "medium", "hard"]
 ReviewStatus = Literal["pending", "verified", "rejected"]
 ReviewMethod = Literal["human", "ai_auto", "manual_override"]
-QuestionDomain = Literal["agent", "rag", "llm_application", "python", "network", "ai_engineering"]
+QuestionDomain = Literal["agent", "rag", "llm_application", "python", "network", "mysql", "ai_engineering"]
 
 
 class CatalogSource(BaseModel):

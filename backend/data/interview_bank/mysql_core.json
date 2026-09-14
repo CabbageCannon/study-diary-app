@@ -1,0 +1,2803 @@
+{
+  "questions": [
+    {
+      "id": "mysql-sql-vs-nosql-001",
+      "domain": "mysql",
+      "topic": "sql",
+      "subtopic": "sql-vs-nosql",
+      "question": "关系型数据库和 NoSQL 的核心差异是什么，选型时应看哪些约束？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "sql"
+      ],
+      "reference_points": [
+        "关系型数据库强调模式、关系、事务和声明式查询；NoSQL 是文档、键值、列族等多类模型的统称",
+        "选型应看一致性、查询方式、数据关系、扩展方式、运维能力和团队经验",
+        "不能把 SQL 等同于不能扩展，也不能把 NoSQL 等同于没有事务或一定更快"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "关系型数据库强调模式、关系、事务和声明式查询；NoSQL 是文档、键值、列族等多类模型的统称",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "选型应看一致性、查询方式、数据关系、扩展方式、运维能力和团队经验",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "不能把 SQL 等同于不能扩展，也不能把 NoSQL 等同于没有事务或一定更快",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：关系型数据库强调模式、关系、事务和声明式查询；NoSQL 是文档、键值、列族等多类模型的统称；选型应看一致性、查询方式、数据关系、扩展方式、运维能力和团队经验；不能把 SQL 等同于不能扩展，也不能把 NoSQL 等同于没有事务或一定更快。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [],
+      "sources": [
+        {
+          "source_id": "mysql-manual"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-normal-forms-002",
+      "domain": "mysql",
+      "topic": "sql",
+      "subtopic": "normal-forms",
+      "question": "数据库第一、第二、第三范式分别解决什么问题，为什么项目中有时会反范式？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "sql"
+      ],
+      "reference_points": [
+        "第一范式要求属性保持原子，第二范式消除非主属性对复合候选键的部分依赖",
+        "第三范式进一步消除非主属性间的传递依赖，以减少冗余和更新异常",
+        "读性能、历史快照或报表场景可能有控制地冗余，但要明确一致性维护方式"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "第一范式要求属性保持原子，第二范式消除非主属性对复合候选键的部分依赖",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "第三范式进一步消除非主属性间的传递依赖，以减少冗余和更新异常",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "读性能、历史快照或报表场景可能有控制地冗余，但要明确一致性维护方式",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：第一范式要求属性保持原子，第二范式消除非主属性对复合候选键的部分依赖；第三范式进一步消除非主属性间的传递依赖，以减少冗余和更新异常；读性能、历史快照或报表场景可能有控制地冗余，但要明确一致性维护方式。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-manual"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-join-types-003",
+      "domain": "mysql",
+      "topic": "sql",
+      "subtopic": "join-types",
+      "question": "INNER JOIN、LEFT JOIN、RIGHT JOIN 有什么区别，MySQL 如何表达全外连接？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "sql"
+      ],
+      "reference_points": [
+        "INNER JOIN 只返回匹配行，LEFT 或 RIGHT JOIN 保留指定一侧的未匹配行并补 NULL",
+        "连接条件放在 ON 与过滤条件放在 WHERE 可能改变外连接结果",
+        "MySQL 没有直接的 FULL OUTER JOIN 语法，常按业务键用左右连接和 UNION 组合"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "INNER JOIN 只返回匹配行，LEFT 或 RIGHT JOIN 保留指定一侧的未匹配行并补 NULL",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "连接条件放在 ON 与过滤条件放在 WHERE 可能改变外连接结果",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "MySQL 没有直接的 FULL OUTER JOIN 语法，常按业务键用左右连接和 UNION 组合",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：INNER JOIN 只返回匹配行，LEFT 或 RIGHT JOIN 保留指定一侧的未匹配行并补 NULL；连接条件放在 ON 与过滤条件放在 WHERE 可能改变外连接结果；MySQL 没有直接的 FULL OUTER JOIN 语法，常按业务键用左右连接和 UNION 组合。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-join"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-unique-upsert-004",
+      "domain": "mysql",
+      "topic": "sql",
+      "subtopic": "unique-upsert",
+      "question": "MySQL 如何从数据库层防止重复插入，并实现幂等写入？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "sql"
+      ],
+      "reference_points": [
+        "用 PRIMARY KEY 或 UNIQUE 约束定义真正的不变量，避免只在应用层先查后写的竞态",
+        "冲突时可按语义选择报错、INSERT IGNORE 或 INSERT ... ON DUPLICATE KEY UPDATE",
+        "幂等键需与请求内容或业务主键绑定，不能把所有约束错误都静默忽略"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "用 PRIMARY KEY 或 UNIQUE 约束定义真正的不变量，避免只在应用层先查后写的竞态",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "冲突时可按语义选择报错、INSERT IGNORE 或 INSERT ... ON DUPLICATE KEY UPDATE",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "幂等键需与请求内容或业务主键绑定，不能把所有约束错误都静默忽略",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：用 PRIMARY KEY 或 UNIQUE 约束定义真正的不变量，避免只在应用层先查后写的竞态；冲突时可按语义选择报错、INSERT IGNORE 或 INSERT ... ON DUPLICATE KEY UPDATE；幂等键需与请求内容或业务主键绑定，不能把所有约束错误都静默忽略。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-insert-on-duplicate"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-string-types-005",
+      "domain": "mysql",
+      "topic": "sql",
+      "subtopic": "string-types",
+      "question": "CHAR、VARCHAR 和 TEXT 如何选择？VARCHAR(n) 中的 n 表示什么？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "sql"
+      ],
+      "reference_points": [
+        "CHAR 适合固定长度值，VARCHAR 保存可变长度字符串，TEXT 面向更大的文本并有不同索引与默认值限制",
+        "VARCHAR 的 n 表示字符数上限，实际字节受字符集以及行大小限制",
+        "选择应依据真实长度、比较语义、字符集和访问模式，不应为省事全部使用 TEXT"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "CHAR 适合固定长度值，VARCHAR 保存可变长度字符串，TEXT 面向更大的文本并有不同索引与默认值限制",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "VARCHAR 的 n 表示字符数上限，实际字节受字符集以及行大小限制",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "选择应依据真实长度、比较语义、字符集和访问模式，不应为省事全部使用 TEXT",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：CHAR 适合固定长度值，VARCHAR 保存可变长度字符串，TEXT 面向更大的文本并有不同索引与默认值限制；VARCHAR 的 n 表示字符数上限，实际字节受字符集以及行大小限制；选择应依据真实长度、比较语义、字符集和访问模式，不应为省事全部使用 TEXT。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-string-types"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-ip-storage-006",
+      "domain": "mysql",
+      "topic": "sql",
+      "subtopic": "ip-storage",
+      "question": "在 MySQL 中应如何存储 IPv4 和 IPv6 地址？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "sql"
+      ],
+      "reference_points": [
+        "可用 VARBINARY(16) 统一保存 IPv4 与 IPv6 的二进制表示，空间与比较效率优于长字符串",
+        "INET6_ATON 和 INET6_NTOA 可在文本与二进制形式间转换",
+        "展示格式与存储值应分离，并明确是否需要网段查询、匿名化和原始代理链信息"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "可用 VARBINARY(16) 统一保存 IPv4 与 IPv6 的二进制表示，空间与比较效率优于长字符串",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "INET6_ATON 和 INET6_NTOA 可在文本与二进制形式间转换",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "展示格式与存储值应分离，并明确是否需要网段查询、匿名化和原始代理链信息",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：可用 VARBINARY(16) 统一保存 IPv4 与 IPv6 的二进制表示，空间与比较效率优于长字符串；INET6_ATON 和 INET6_NTOA 可在文本与二进制形式间转换；展示格式与存储值应分离，并明确是否需要网段查询、匿名化和原始代理链信息。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-misc-functions"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-foreign-keys-007",
+      "domain": "mysql",
+      "topic": "sql",
+      "subtopic": "foreign-keys",
+      "question": "外键约束有什么价值和代价，什么时候应使用？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "sql"
+      ],
+      "reference_points": [
+        "外键由数据库保证引用完整性，并可定义删除或更新时的级联行为",
+        "它增加写入检查和迁移顺序约束，大规模拆分或跨库后通常无法直接使用",
+        "是否采用取决于一致性要求和架构边界；不用外键时应用必须有补偿与巡检机制"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "外键由数据库保证引用完整性，并可定义删除或更新时的级联行为",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "它增加写入检查和迁移顺序约束，大规模拆分或跨库后通常无法直接使用",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "是否采用取决于一致性要求和架构边界；不用外键时应用必须有补偿与巡检机制",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：外键由数据库保证引用完整性，并可定义删除或更新时的级联行为；它增加写入检查和迁移顺序约束，大规模拆分或跨库后通常无法直接使用；是否采用取决于一致性要求和架构边界；不用外键时应用必须有补偿与巡检机制。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-foreign-keys"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-in-vs-exists-008",
+      "domain": "mysql",
+      "topic": "sql",
+      "subtopic": "in-vs-exists",
+      "question": "IN 和 EXISTS 的语义有什么区别，如何判断谁更快？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "sql"
+      ],
+      "reference_points": [
+        "IN 比较表达式与结果集合，EXISTS 只判断相关子查询是否至少返回一行",
+        "优化器可能把二者改写为半连接等等价计划，因此不能仅靠口诀判断性能",
+        "应关注 NULL 语义、相关条件、索引和 EXPLAIN 的实际执行计划"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "IN 比较表达式与结果集合，EXISTS 只判断相关子查询是否至少返回一行",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "优化器可能把二者改写为半连接等等价计划，因此不能仅靠口诀判断性能",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "应关注 NULL 语义、相关条件、索引和 EXPLAIN 的实际执行计划",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：IN 比较表达式与结果集合，EXISTS 只判断相关子查询是否至少返回一行；优化器可能把二者改写为半连接等等价计划，因此不能仅靠口诀判断性能；应关注 NULL 语义、相关条件、索引和 EXPLAIN 的实际执行计划。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-subquery-optimization"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-logical-query-order-009",
+      "domain": "mysql",
+      "topic": "sql",
+      "subtopic": "logical-query-order",
+      "question": "SELECT 查询的逻辑处理顺序是什么，它为什么会影响别名和聚合的使用？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "sql"
+      ],
+      "reference_points": [
+        "逻辑上先形成 FROM 与 JOIN，再经过 WHERE、GROUP BY、HAVING、SELECT、DISTINCT、ORDER BY 和 LIMIT",
+        "WHERE 发生在聚合前，HAVING 过滤分组结果，窗口函数与投影也有自己的求值阶段",
+        "优化器可改变物理执行顺序，但必须保持查询语义"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "逻辑上先形成 FROM 与 JOIN，再经过 WHERE、GROUP BY、HAVING、SELECT、DISTINCT、ORDER BY 和 LIMIT",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "WHERE 发生在聚合前，HAVING 过滤分组结果，窗口函数与投影也有自己的求值阶段",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "优化器可改变物理执行顺序，但必须保持查询语义",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：逻辑上先形成 FROM 与 JOIN，再经过 WHERE、GROUP BY、HAVING、SELECT、DISTINCT、ORDER BY 和 LIMIT；WHERE 发生在聚合前，HAVING 过滤分组结果，窗口函数与投影也有自己的求值阶段；优化器可改变物理执行顺序，但必须保持查询语义。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-select"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-query-execution-010",
+      "domain": "mysql",
+      "topic": "storage_engine",
+      "subtopic": "query-execution",
+      "question": "一条 SELECT 从客户端到返回结果，MySQL 内部通常经过哪些阶段？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "storage_engine"
+      ],
+      "reference_points": [
+        "连接层完成认证、会话管理和权限相关检查，服务层解析 SQL 并完成语义分析",
+        "优化器选择访问路径和连接顺序，执行器调用存储引擎接口读取记录",
+        "Buffer Pool、索引、锁与一致性读共同影响真正的 I/O 和并发行为"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "连接层完成认证、会话管理和权限相关检查，服务层解析 SQL 并完成语义分析",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "优化器选择访问路径和连接顺序，执行器调用存储引擎接口读取记录",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "Buffer Pool、索引、锁与一致性读共同影响真正的 I/O 和并发行为",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：连接层完成认证、会话管理和权限相关检查，服务层解析 SQL 并完成语义分析；优化器选择访问路径和连接顺序，执行器调用存储引擎接口读取记录；Buffer Pool、索引、锁与一致性读共同影响真正的 I/O 和并发行为。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-architecture"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-innodb-vs-myisam-011",
+      "domain": "mysql",
+      "topic": "storage_engine",
+      "subtopic": "innodb-vs-myisam",
+      "question": "InnoDB 为什么成为默认存储引擎，它与 MyISAM 的关键差异是什么？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "storage_engine"
+      ],
+      "reference_points": [
+        "InnoDB 支持事务、崩溃恢复、行级锁和外键，并提供聚簇索引与 MVCC",
+        "MyISAM 不支持事务和崩溃安全，主要使用表级锁，其适用范围已经很窄",
+        "选择引擎要看一致性和并发语义，不能只比较简单读操作的单次速度"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "InnoDB 支持事务、崩溃恢复、行级锁和外键，并提供聚簇索引与 MVCC",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "MyISAM 不支持事务和崩溃安全，主要使用表级锁，其适用范围已经很窄",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "选择引擎要看一致性和并发语义，不能只比较简单读操作的单次速度",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：InnoDB 支持事务、崩溃恢复、行级锁和外键，并提供聚簇索引与 MVCC；MyISAM 不支持事务和崩溃安全，主要使用表级锁，其适用范围已经很窄；选择引擎要看一致性和并发语义，不能只比较简单读操作的单次速度。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-innodb-intro"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-innodb-files-012",
+      "domain": "mysql",
+      "topic": "storage_engine",
+      "subtopic": "innodb-files",
+      "question": "InnoDB 的表空间、页和行记录之间是什么关系？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "storage_engine"
+      ],
+      "reference_points": [
+        "表空间由数据文件组成，是 InnoDB 管理持久数据的逻辑容器",
+        "页是磁盘与 Buffer Pool 之间读取和写入的基本单位，索引由页组织",
+        "行格式决定变长列、NULL 位图和溢出页等存储方式，大字段不一定完整放在聚簇索引页内"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "表空间由数据文件组成，是 InnoDB 管理持久数据的逻辑容器",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "页是磁盘与 Buffer Pool 之间读取和写入的基本单位，索引由页组织",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "行格式决定变长列、NULL 位图和溢出页等存储方式，大字段不一定完整放在聚簇索引页内",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：表空间由数据文件组成，是 InnoDB 管理持久数据的逻辑容器；页是磁盘与 Buffer Pool 之间读取和写入的基本单位，索引由页组织；行格式决定变长列、NULL 位图和溢出页等存储方式，大字段不一定完整放在聚簇索引页内。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-innodb-storage"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-index-purpose-013",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "index-purpose",
+      "question": "索引是什么，它提高查询速度的同时会带来哪些成本？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "索引是按键组织的辅助数据结构，用较少扫描定位记录并支持排序或连接",
+        "每个额外索引都占空间，并增加 INSERT、UPDATE、DELETE 的维护和日志成本",
+        "索引是否有效取决于查询形态、选择性、覆盖能力和维护代价，不是越多越好"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "索引是按键组织的辅助数据结构，用较少扫描定位记录并支持排序或连接",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "每个额外索引都占空间，并增加 INSERT、UPDATE、DELETE 的维护和日志成本",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "索引是否有效取决于查询形态、选择性、覆盖能力和维护代价，不是越多越好",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：索引是按键组织的辅助数据结构，用较少扫描定位记录并支持排序或连接；每个额外索引都占空间，并增加 INSERT、UPDATE、DELETE 的维护和日志成本；索引是否有效取决于查询形态、选择性、覆盖能力和维护代价，不是越多越好。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [],
+      "sources": [
+        {
+          "source_id": "mysql-indexes"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-clustered-secondary-014",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "clustered-secondary",
+      "question": "InnoDB 聚簇索引与二级索引如何组织数据，什么是回表？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "聚簇索引叶子保存完整行，并按主键组织；每张 InnoDB 表只有一个聚簇索引",
+        "二级索引叶子保存二级键和主键值，通过主键再次访问聚簇索引就是回表",
+        "二级索引若已包含查询所需列可形成覆盖索引，避免额外回表"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "聚簇索引叶子保存完整行，并按主键组织；每张 InnoDB 表只有一个聚簇索引",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "二级索引叶子保存二级键和主键值，通过主键再次访问聚簇索引就是回表",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "二级索引若已包含查询所需列可形成覆盖索引，避免额外回表",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：聚簇索引叶子保存完整行，并按主键组织；每张 InnoDB 表只有一个聚簇索引；二级索引叶子保存二级键和主键值，通过主键再次访问聚簇索引就是回表；二级索引若已包含查询所需列可形成覆盖索引，避免额外回表。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-innodb-index-types"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-primary-key-choice-015",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "primary-key-choice",
+      "question": "InnoDB 主键为什么通常选择短小、稳定、递增的值？UUID 一定不合适吗？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "主键存在于所有二级索引叶子中，过长会放大索引空间和缓存压力",
+        "大致递增的键减少随机页分裂和写放大，频繁更新主键还会移动聚簇记录",
+        "UUID 可满足分布式唯一性，但应评估二进制存储和有序 UUID 等方案，而非绝对禁用"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "主键存在于所有二级索引叶子中，过长会放大索引空间和缓存压力",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "大致递增的键减少随机页分裂和写放大，频繁更新主键还会移动聚簇记录",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "UUID 可满足分布式唯一性，但应评估二进制存储和有序 UUID 等方案，而非绝对禁用",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：主键存在于所有二级索引叶子中，过长会放大索引空间和缓存压力；大致递增的键减少随机页分裂和写放大，频繁更新主键还会移动聚簇记录；UUID 可满足分布式唯一性，但应评估二进制存储和有序 UUID 等方案，而非绝对禁用。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-innodb-index-types"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-bplus-tree-016",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "bplus-tree",
+      "question": "MySQL 索引为什么常用 B+ 树，而不是普通二叉树、B 树或跳表？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "B+ 树分支多、高度低，能用较少页访问定位大量记录，适合块设备和页缓存",
+        "数据主要位于叶子且叶子有序相连，范围扫描和顺序访问高效",
+        "哈希和跳表各有适用场景，但不同时满足持久页布局、范围查询和成熟恢复机制等需求"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "B+ 树分支多、高度低，能用较少页访问定位大量记录，适合块设备和页缓存",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "数据主要位于叶子且叶子有序相连，范围扫描和顺序访问高效",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "哈希和跳表各有适用场景，但不同时满足持久页布局、范围查询和成熟恢复机制等需求",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：B+ 树分支多、高度低，能用较少页访问定位大量记录，适合块设备和页缓存；数据主要位于叶子且叶子有序相连，范围扫描和顺序访问高效；哈希和跳表各有适用场景，但不同时满足持久页布局、范围查询和成熟恢复机制等需求。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-innodb-index-types"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-hash-index-017",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "hash-index",
+      "question": "哈希索引与 B+ 树索引各适合什么查询？InnoDB 自适应哈希索引是什么？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "哈希适合等值定位，不天然支持范围、前缀排序和有序扫描",
+        "B+ 树同时支持等值、范围、排序和最左前缀查询",
+        "InnoDB 自适应哈希索引是根据热点页自动建立的内存结构，不等同于用户创建的独立哈希索引"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "哈希适合等值定位，不天然支持范围、前缀排序和有序扫描",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "B+ 树同时支持等值、范围、排序和最左前缀查询",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "InnoDB 自适应哈希索引是根据热点页自动建立的内存结构，不等同于用户创建的独立哈希索引",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：哈希适合等值定位，不天然支持范围、前缀排序和有序扫描；B+ 树同时支持等值、范围、排序和最左前缀查询；InnoDB 自适应哈希索引是根据热点页自动建立的内存结构，不等同于用户创建的独立哈希索引。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-adaptive-hash"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-composite-leftmost-018",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "composite-leftmost",
+      "question": "联合索引的最左前缀原则是什么，条件书写顺序会决定能否使用索引吗？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "联合索引按各列依次排序，可有效利用从最左列开始的连续前缀",
+        "优化器通常能重排 AND 等值条件，所以 WHERE 中的文本顺序不是决定因素",
+        "跳过最左列、对列做不受支持的表达式或遇到某些范围边界，会限制后续列用于缩小扫描范围"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "联合索引按各列依次排序，可有效利用从最左列开始的连续前缀",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "优化器通常能重排 AND 等值条件，所以 WHERE 中的文本顺序不是决定因素",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "跳过最左列、对列做不受支持的表达式或遇到某些范围边界，会限制后续列用于缩小扫描范围",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：联合索引按各列依次排序，可有效利用从最左列开始的连续前缀；优化器通常能重排 AND 等值条件，所以 WHERE 中的文本顺序不是决定因素；跳过最左列、对列做不受支持的表达式或遇到某些范围边界，会限制后续列用于缩小扫描范围。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-multiple-column"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-range-composite-index-019",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "range-composite-index",
+      "question": "联合索引遇到范围条件后，后续列是否一定完全失效？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "范围条件可能使后续列无法继续构成更窄的 B+ 树扫描区间，但并非所有范围写法和版本行为都相同",
+        "后续列仍可能用于索引条件下推、覆盖或过滤，不能笼统说索引完全失效",
+        "应结合 key_len、used_key_parts、rows 和实际执行计划判断各列作用"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "范围条件可能使后续列无法继续构成更窄的 B+ 树扫描区间，但并非所有范围写法和版本行为都相同",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "后续列仍可能用于索引条件下推、覆盖或过滤，不能笼统说索引完全失效",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "应结合 key_len、used_key_parts、rows 和实际执行计划判断各列作用",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：范围条件可能使后续列无法继续构成更窄的 B+ 树扫描区间，但并非所有范围写法和版本行为都相同；后续列仍可能用于索引条件下推、覆盖或过滤，不能笼统说索引完全失效；应结合 key_len、used_key_parts、rows 和实际执行计划判断各列作用。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-range-optimization"
+        },
+        {
+          "source_id": "mysql-explain"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-covering-index-020",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "covering-index",
+      "question": "什么是覆盖索引，它为什么可能明显减少查询成本？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "当索引已包含查询要返回和过滤所需的列时，执行器无需再访问聚簇索引完整行",
+        "减少随机 I/O 和页访问通常能降低延迟，EXPLAIN Extra 可能出现 Using index",
+        "为覆盖而塞入大量列会扩大索引并拖慢写入，应围绕高频关键查询权衡"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "当索引已包含查询要返回和过滤所需的列时，执行器无需再访问聚簇索引完整行",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "减少随机 I/O 和页访问通常能降低延迟，EXPLAIN Extra 可能出现 Using index",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "为覆盖而塞入大量列会扩大索引并拖慢写入，应围绕高频关键查询权衡",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：当索引已包含查询要返回和过滤所需的列时，执行器无需再访问聚簇索引完整行；减少随机 I/O 和页访问通常能降低延迟，EXPLAIN Extra 可能出现 Using index；为覆盖而塞入大量列会扩大索引并拖慢写入，应围绕高频关键查询权衡。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-indexes"
+        },
+        {
+          "source_id": "mysql-explain"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-index-not-used-021",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "index-not-used",
+      "question": "哪些常见写法会让查询无法有效利用索引？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "未满足联合索引前缀、对索引列进行不利于范围推导的函数或隐式类型转换，都可能扩大扫描",
+        "前导通配符、低选择性条件、返回大量行时，优化器可能认为全表扫描更便宜",
+        "所谓失效应以执行计划和实际统计为准，不能只凭 SQL 外观判断"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "未满足联合索引前缀、对索引列进行不利于范围推导的函数或隐式类型转换，都可能扩大扫描",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "前导通配符、低选择性条件、返回大量行时，优化器可能认为全表扫描更便宜",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "所谓失效应以执行计划和实际统计为准，不能只凭 SQL 外观判断",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：未满足联合索引前缀、对索引列进行不利于范围推导的函数或隐式类型转换，都可能扩大扫描；前导通配符、低选择性条件、返回大量行时，优化器可能认为全表扫描更便宜；所谓失效应以执行计划和实际统计为准，不能只凭 SQL 外观判断。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-range-optimization"
+        },
+        {
+          "source_id": "mysql-explain"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-index-selectivity-022",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "index-selectivity",
+      "question": "布尔状态、性别等低基数字段适合单独建索引吗？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "低基数意味着单个值命中大量行，单列索引往往不能显著减少访问页数",
+        "若查询只取极少列形成覆盖，或与高选择性列组成联合索引，仍可能有价值",
+        "应依据数据分布、查询比例和执行计划决定，而不是按字段名字套规则"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "低基数意味着单个值命中大量行，单列索引往往不能显著减少访问页数",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "若查询只取极少列形成覆盖，或与高选择性列组成联合索引，仍可能有价值",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "应依据数据分布、查询比例和执行计划决定，而不是按字段名字套规则",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：低基数意味着单个值命中大量行，单列索引往往不能显著减少访问页数；若查询只取极少列形成覆盖，或与高选择性列组成联合索引，仍可能有价值；应依据数据分布、查询比例和执行计划决定，而不是按字段名字套规则。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-indexes"
+        },
+        {
+          "source_id": "mysql-explain"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-prefix-index-023",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "prefix-index",
+      "question": "什么是前缀索引，怎样选择合适的前缀长度？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "前缀索引只保存字符串开头的一部分，可减小索引尺寸和比较成本",
+        "长度要在选择性与空间之间权衡，可统计不同前缀长度的去重比例",
+        "前缀索引可能无法覆盖原完整列，也会限制某些排序与分组优化"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "前缀索引只保存字符串开头的一部分，可减小索引尺寸和比较成本",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "长度要在选择性与空间之间权衡，可统计不同前缀长度的去重比例",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "前缀索引可能无法覆盖原完整列，也会限制某些排序与分组优化",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：前缀索引只保存字符串开头的一部分，可减小索引尺寸和比较成本；长度要在选择性与空间之间权衡，可统计不同前缀长度的去重比例；前缀索引可能无法覆盖原完整列，也会限制某些排序与分组优化。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-column-indexes"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-index-write-cost-024",
+      "domain": "mysql",
+      "topic": "index",
+      "subtopic": "index-write-cost",
+      "question": "插入一行数据时，InnoDB 的各个索引会发生什么变化？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "index"
+      ],
+      "reference_points": [
+        "聚簇索引插入完整记录，每个二级索引都要插入二级键和主键",
+        "目标页空间不足时可能发生页分裂，非顺序键更容易造成随机写和碎片",
+        "变更还会进入事务日志并产生脏页，因此多余索引直接增加写放大"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "聚簇索引插入完整记录，每个二级索引都要插入二级键和主键",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "目标页空间不足时可能发生页分裂，非顺序键更容易造成随机写和碎片",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "变更还会进入事务日志并产生脏页，因此多余索引直接增加写放大",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：聚簇索引插入完整记录，每个二级索引都要插入二级键和主键；目标页空间不足时可能发生页分裂，非顺序键更容易造成随机写和碎片；变更还会进入事务日志并产生脏页，因此多余索引直接增加写放大。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-innodb-index-types"
+        },
+        {
+          "source_id": "mysql-redo"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-acid-025",
+      "domain": "mysql",
+      "topic": "transaction",
+      "subtopic": "acid",
+      "question": "事务 ACID 四个特性是什么，InnoDB 分别依靠哪些机制实现？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "transaction"
+      ],
+      "reference_points": [
+        "原子性保证事务整体提交或回滚，一致性要求约束和业务不变量在事务前后成立",
+        "隔离性通过锁与 MVCC 控制并发可见性，持久性依靠 redo、刷盘和恢复机制",
+        "undo 支持回滚与旧版本读取，但不能简单把每个特性只对应到单一日志"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "原子性保证事务整体提交或回滚，一致性要求约束和业务不变量在事务前后成立",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "隔离性通过锁与 MVCC 控制并发可见性，持久性依靠 redo、刷盘和恢复机制",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "undo 支持回滚与旧版本读取，但不能简单把每个特性只对应到单一日志",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：原子性保证事务整体提交或回滚，一致性要求约束和业务不变量在事务前后成立；隔离性通过锁与 MVCC 控制并发可见性，持久性依靠 redo、刷盘和恢复机制；undo 支持回滚与旧版本读取，但不能简单把每个特性只对应到单一日志。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-innodb-transaction"
+        },
+        {
+          "source_id": "mysql-redo"
+        },
+        {
+          "source_id": "mysql-undo"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-concurrency-anomalies-026",
+      "domain": "mysql",
+      "topic": "transaction",
+      "subtopic": "concurrency-anomalies",
+      "question": "脏读、不可重复读和幻读分别是什么？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "transaction"
+      ],
+      "reference_points": [
+        "脏读读取了其他事务尚未提交且可能回滚的数据",
+        "不可重复读指同一行在同一事务两次读取结果不同，幻读强调按同一谓词查询时结果集合发生变化",
+        "隔离级别定义允许的现象，但 MySQL 的实现细节还取决于一致性读与锁定读"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "脏读读取了其他事务尚未提交且可能回滚的数据",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "不可重复读指同一行在同一事务两次读取结果不同，幻读强调按同一谓词查询时结果集合发生变化",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "隔离级别定义允许的现象，但 MySQL 的实现细节还取决于一致性读与锁定读",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：脏读读取了其他事务尚未提交且可能回滚的数据；不可重复读指同一行在同一事务两次读取结果不同，幻读强调按同一谓词查询时结果集合发生变化；隔离级别定义允许的现象，但 MySQL 的实现细节还取决于一致性读与锁定读。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [],
+      "sources": [
+        {
+          "source_id": "mysql-isolation"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-isolation-levels-027",
+      "domain": "mysql",
+      "topic": "transaction",
+      "subtopic": "isolation-levels",
+      "question": "MySQL 四种事务隔离级别有什么差异，InnoDB 默认是哪一种？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "transaction"
+      ],
+      "reference_points": [
+        "READ UNCOMMITTED、READ COMMITTED、REPEATABLE READ、SERIALIZABLE 逐步增强隔离",
+        "InnoDB 默认 REPEATABLE READ；其中普通一致性读与锁定读的快照和加锁行为不同",
+        "隔离越强通常并发限制越多，应按业务一致性和冲突模式选择"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "READ UNCOMMITTED、READ COMMITTED、REPEATABLE READ、SERIALIZABLE 逐步增强隔离",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "InnoDB 默认 REPEATABLE READ；其中普通一致性读与锁定读的快照和加锁行为不同",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "隔离越强通常并发限制越多，应按业务一致性和冲突模式选择",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：READ UNCOMMITTED、READ COMMITTED、REPEATABLE READ、SERIALIZABLE 逐步增强隔离；InnoDB 默认 REPEATABLE READ；其中普通一致性读与锁定读的快照和加锁行为不同；隔离越强通常并发限制越多，应按业务一致性和冲突模式选择。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-isolation"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-repeatable-read-028",
+      "domain": "mysql",
+      "topic": "transaction",
+      "subtopic": "repeatable-read",
+      "question": "在 REPEATABLE READ 下，其他事务提交的数据当前事务何时可见？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "transaction"
+      ],
+      "reference_points": [
+        "普通一致性读通常复用事务首次一致性读建立的快照，因此之后提交的版本通常不可见",
+        "当前事务自己修改的数据可见，锁定读和写操作读取的是较新的当前版本并加锁",
+        "提交并开启新事务后会建立新的可见性范围，不能把所有 SELECT 都按同一规则解释"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "普通一致性读通常复用事务首次一致性读建立的快照，因此之后提交的版本通常不可见",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "当前事务自己修改的数据可见，锁定读和写操作读取的是较新的当前版本并加锁",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "提交并开启新事务后会建立新的可见性范围，不能把所有 SELECT 都按同一规则解释",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：普通一致性读通常复用事务首次一致性读建立的快照，因此之后提交的版本通常不可见；当前事务自己修改的数据可见，锁定读和写操作读取的是较新的当前版本并加锁；提交并开启新事务后会建立新的可见性范围，不能把所有 SELECT 都按同一规则解释。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-isolation"
+        },
+        {
+          "source_id": "mysql-consistent-read"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-mvcc-029",
+      "domain": "mysql",
+      "topic": "transaction",
+      "subtopic": "mvcc",
+      "question": "InnoDB 的 MVCC 如何利用隐藏列、undo log 和 Read View 实现一致性读？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "transaction"
+      ],
+      "reference_points": [
+        "聚簇记录包含事务相关隐藏信息，更新产生的旧版本通过 undo 记录串联",
+        "Read View 根据活跃事务集合和事务 ID 边界判断某版本是否可见",
+        "不可见时沿版本链寻找可见记录；长事务会阻碍旧版本清理并增加读取成本"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "聚簇记录包含事务相关隐藏信息，更新产生的旧版本通过 undo 记录串联",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "Read View 根据活跃事务集合和事务 ID 边界判断某版本是否可见",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "不可见时沿版本链寻找可见记录；长事务会阻碍旧版本清理并增加读取成本",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：聚簇记录包含事务相关隐藏信息，更新产生的旧版本通过 undo 记录串联；Read View 根据活跃事务集合和事务 ID 边界判断某版本是否可见；不可见时沿版本链寻找可见记录；长事务会阻碍旧版本清理并增加读取成本。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-mvcc"
+        },
+        {
+          "source_id": "mysql-undo"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-phantom-read-030",
+      "domain": "mysql",
+      "topic": "transaction",
+      "subtopic": "phantom-read",
+      "question": "InnoDB 的 REPEATABLE READ 是否完全解决幻读？快照读与当前读有什么区别？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "transaction"
+      ],
+      "reference_points": [
+        "一致性快照读依靠 MVCC 保持谓词结果稳定，通常不会看到之后提交的新行",
+        "SELECT ... FOR UPDATE、UPDATE 等当前读读取最新可用版本，并通过记录锁、间隙锁或临键锁保护范围",
+        "混用快照读与当前读或当前事务自己插入后仍可能观察到类似幻象的结果，因此要说明具体操作"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "一致性快照读依靠 MVCC 保持谓词结果稳定，通常不会看到之后提交的新行",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "SELECT ... FOR UPDATE、UPDATE 等当前读读取最新可用版本，并通过记录锁、间隙锁或临键锁保护范围",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "混用快照读与当前读或当前事务自己插入后仍可能观察到类似幻象的结果，因此要说明具体操作",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：一致性快照读依靠 MVCC 保持谓词结果稳定，通常不会看到之后提交的新行；SELECT ... FOR UPDATE、UPDATE 等当前读读取最新可用版本，并通过记录锁、间隙锁或临键锁保护范围；混用快照读与当前读或当前事务自己插入后仍可能观察到类似幻象的结果，因此要说明具体操作。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-isolation"
+        },
+        {
+          "source_id": "mysql-locking"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-update-atomicity-031",
+      "domain": "mysql",
+      "topic": "transaction",
+      "subtopic": "update-atomicity",
+      "question": "单条 UPDATE 是原子的吗？业务上的读改写为什么仍可能丢失更新？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "transaction"
+      ],
+      "reference_points": [
+        "单条 UPDATE 作为一个语句会整体成功或失败，并在事务提交或回滚时遵守原子性",
+        "若应用先 SELECT 值、在内存计算再 UPDATE，多个事务可能基于同一旧值覆盖结果",
+        "可用原子表达式、条件更新、版本号乐观锁或 SELECT FOR UPDATE 保护业务读改写"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "单条 UPDATE 作为一个语句会整体成功或失败，并在事务提交或回滚时遵守原子性",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "若应用先 SELECT 值、在内存计算再 UPDATE，多个事务可能基于同一旧值覆盖结果",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "可用原子表达式、条件更新、版本号乐观锁或 SELECT FOR UPDATE 保护业务读改写",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：单条 UPDATE 作为一个语句会整体成功或失败，并在事务提交或回滚时遵守原子性；若应用先 SELECT 值、在内存计算再 UPDATE，多个事务可能基于同一旧值覆盖结果；可用原子表达式、条件更新、版本号乐观锁或 SELECT FOR UPDATE 保护业务读改写。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-innodb-transaction"
+        },
+        {
+          "source_id": "mysql-locking"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-long-transaction-032",
+      "domain": "mysql",
+      "topic": "transaction",
+      "subtopic": "long-transaction",
+      "question": "长事务会给 InnoDB 带来哪些问题？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "transaction"
+      ],
+      "reference_points": [
+        "长事务持有锁和一致性视图更久，增加阻塞、死锁概率和历史版本保留",
+        "purge 无法及时回收旧版本，undo 空间和 MVCC 读取成本可能持续增长",
+        "应缩短交互和批处理事务，分批提交并监控活跃事务、锁等待与历史链长度"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "长事务持有锁和一致性视图更久，增加阻塞、死锁概率和历史版本保留",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "purge 无法及时回收旧版本，undo 空间和 MVCC 读取成本可能持续增长",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "应缩短交互和批处理事务，分批提交并监控活跃事务、锁等待与历史链长度",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：长事务持有锁和一致性视图更久，增加阻塞、死锁概率和历史版本保留；purge 无法及时回收旧版本，undo 空间和 MVCC 读取成本可能持续增长；应缩短交互和批处理事务，分批提交并监控活跃事务、锁等待与历史链长度。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-transaction-optimization"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-lock-types-033",
+      "domain": "mysql",
+      "topic": "lock",
+      "subtopic": "lock-types",
+      "question": "InnoDB 常见的共享锁、排他锁、意向锁、记录锁、间隙锁和临键锁分别是什么？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "lock"
+      ],
+      "reference_points": [
+        "共享锁允许并发读，排他锁保护修改；意向锁在表级声明事务准备对行加何种锁",
+        "记录锁锁定索引记录，间隙锁保护索引值之间的范围，临键锁是记录与前一间隙的组合",
+        "实际锁范围由索引访问路径、隔离级别、唯一性和查询条件共同决定"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "共享锁允许并发读，排他锁保护修改；意向锁在表级声明事务准备对行加何种锁",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "记录锁锁定索引记录，间隙锁保护索引值之间的范围，临键锁是记录与前一间隙的组合",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "实际锁范围由索引访问路径、隔离级别、唯一性和查询条件共同决定",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：共享锁允许并发读，排他锁保护修改；意向锁在表级声明事务准备对行加何种锁；记录锁锁定索引记录，间隙锁保护索引值之间的范围，临键锁是记录与前一间隙的组合；实际锁范围由索引访问路径、隔离级别、唯一性和查询条件共同决定。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-locking"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-index-lock-scope-034",
+      "domain": "mysql",
+      "topic": "lock",
+      "subtopic": "index-lock-scope",
+      "question": "为什么 UPDATE 是否命中索引会显著影响锁范围？无索引条件一定锁全表吗？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "lock"
+      ],
+      "reference_points": [
+        "InnoDB 行锁本质上加在扫描到的索引记录或范围上，访问路径决定扫描与加锁对象",
+        "无法有效用索引时可能扫描并锁住大量记录，表现得接近全表阻塞，但术语上仍需区分表锁",
+        "优化前应查看执行计划、隔离级别和实际锁信息，而不是只看 WHERE 条件"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "InnoDB 行锁本质上加在扫描到的索引记录或范围上，访问路径决定扫描与加锁对象",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "无法有效用索引时可能扫描并锁住大量记录，表现得接近全表阻塞，但术语上仍需区分表锁",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "优化前应查看执行计划、隔离级别和实际锁信息，而不是只看 WHERE 条件",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：InnoDB 行锁本质上加在扫描到的索引记录或范围上，访问路径决定扫描与加锁对象；无法有效用索引时可能扫描并锁住大量记录，表现得接近全表阻塞，但术语上仍需区分表锁；优化前应查看执行计划、隔离级别和实际锁信息，而不是只看 WHERE 条件。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-locking"
+        },
+        {
+          "source_id": "mysql-explain"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-deadlock-035",
+      "domain": "mysql",
+      "topic": "lock",
+      "subtopic": "deadlock",
+      "question": "MySQL 死锁为什么会发生，应用和数据库应如何处理？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "lock"
+      ],
+      "reference_points": [
+        "两个或多个事务以不同顺序持有资源并等待对方，就可能形成等待环",
+        "InnoDB 检测死锁后回滚其中一个事务，应用必须识别错误并以有界退避重试整个事务",
+        "固定访问顺序、缩短事务和建立合适索引能减少冲突，SHOW ENGINE INNODB STATUS 可用于分析"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "两个或多个事务以不同顺序持有资源并等待对方，就可能形成等待环",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "InnoDB 检测死锁后回滚其中一个事务，应用必须识别错误并以有界退避重试整个事务",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "固定访问顺序、缩短事务和建立合适索引能减少冲突，SHOW ENGINE INNODB STATUS 可用于分析",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：两个或多个事务以不同顺序持有资源并等待对方，就可能形成等待环；InnoDB 检测死锁后回滚其中一个事务，应用必须识别错误并以有界退避重试整个事务；固定访问顺序、缩短事务和建立合适索引能减少冲突，SHOW ENGINE INNODB STATUS 可用于分析。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-deadlocks"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-mysql-logs-036",
+      "domain": "mysql",
+      "topic": "log",
+      "subtopic": "mysql-logs",
+      "question": "redo log、undo log 和 binlog 的职责分别是什么？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "log"
+      ],
+      "reference_points": [
+        "redo 是 InnoDB 的物理相关重做信息，用于崩溃恢复尚未落入数据页的已提交变更",
+        "undo 保存回滚和一致性读需要的旧版本信息",
+        "binlog 位于服务层，记录逻辑或行变更事件，用于复制与时间点恢复"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "redo 是 InnoDB 的物理相关重做信息，用于崩溃恢复尚未落入数据页的已提交变更",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "undo 保存回滚和一致性读需要的旧版本信息",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "binlog 位于服务层，记录逻辑或行变更事件，用于复制与时间点恢复",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：redo 是 InnoDB 的物理相关重做信息，用于崩溃恢复尚未落入数据页的已提交变更；undo 保存回滚和一致性读需要的旧版本信息；binlog 位于服务层，记录逻辑或行变更事件，用于复制与时间点恢复。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-redo"
+        },
+        {
+          "source_id": "mysql-undo"
+        },
+        {
+          "source_id": "mysql-binlog"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-wal-redo-037",
+      "domain": "mysql",
+      "topic": "log",
+      "subtopic": "wal-redo",
+      "question": "为什么 InnoDB 先写 redo log，而不是提交时直接把所有 B+ 树脏页随机写回磁盘？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "log"
+      ],
+      "reference_points": [
+        "顺序追加日志通常比把多个离散数据页同步刷盘成本低，提交路径因此更短",
+        "事务提交所需 redo 持久化后，脏页可稍后批量写回，崩溃时按日志重放",
+        "WAL 要求相关日志先于数据页落盘，并配合 LSN、检查点和刷盘策略保证恢复正确性"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "顺序追加日志通常比把多个离散数据页同步刷盘成本低，提交路径因此更短",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "事务提交所需 redo 持久化后，脏页可稍后批量写回，崩溃时按日志重放",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "WAL 要求相关日志先于数据页落盘，并配合 LSN、检查点和刷盘策略保证恢复正确性",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：顺序追加日志通常比把多个离散数据页同步刷盘成本低，提交路径因此更短；事务提交所需 redo 持久化后，脏页可稍后批量写回，崩溃时按日志重放；WAL 要求相关日志先于数据页落盘，并配合 LSN、检查点和刷盘策略保证恢复正确性。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-redo"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-binlog-formats-038",
+      "domain": "mysql",
+      "topic": "log",
+      "subtopic": "binlog-formats",
+      "question": "MySQL binlog 的 statement、row 和 mixed 格式有什么差异？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "log"
+      ],
+      "reference_points": [
+        "statement 记录 SQL，日志可能较小但非确定性语句和环境差异会影响复制一致性",
+        "row 记录行级变化，语义更确定但批量更新可能产生更多日志",
+        "mixed 会按规则选择格式；选择还影响审计、恢复、复制和工具兼容"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "statement 记录 SQL，日志可能较小但非确定性语句和环境差异会影响复制一致性",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "row 记录行级变化，语义更确定但批量更新可能产生更多日志",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "mixed 会按规则选择格式；选择还影响审计、恢复、复制和工具兼容",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：statement 记录 SQL，日志可能较小但非确定性语句和环境差异会影响复制一致性；row 记录行级变化，语义更确定但批量更新可能产生更多日志；mixed 会按规则选择格式；选择还影响审计、恢复、复制和工具兼容。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-binlog-formats"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-two-phase-commit-039",
+      "domain": "mysql",
+      "topic": "log",
+      "subtopic": "two-phase-commit",
+      "question": "InnoDB redo log 与 binlog 为什么需要两阶段提交？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "log"
+      ],
+      "reference_points": [
+        "redo 负责存储引擎恢复，binlog 负责复制和归档，两套日志若提交状态不一致会导致主库与恢复或副本结果分叉",
+        "事务先把 redo 写到 prepare，再写并持久化 binlog，最后把 redo 标记 commit",
+        "崩溃恢复会结合 redo 状态和 binlog 中是否存在完整事务决定提交或回滚"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "redo 负责存储引擎恢复，binlog 负责复制和归档，两套日志若提交状态不一致会导致主库与恢复或副本结果分叉",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "事务先把 redo 写到 prepare，再写并持久化 binlog，最后把 redo 标记 commit",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "崩溃恢复会结合 redo 状态和 binlog 中是否存在完整事务决定提交或回滚",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：redo 负责存储引擎恢复，binlog 负责复制和归档，两套日志若提交状态不一致会导致主库与恢复或副本结果分叉；事务先把 redo 写到 prepare，再写并持久化 binlog，最后把 redo 标记 commit；崩溃恢复会结合 redo 状态和 binlog 中是否存在完整事务决定提交或回滚。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-two-phase-commit"
+        },
+        {
+          "source_id": "mysql-binlog"
+        },
+        {
+          "source_id": "mysql-redo"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-update-flow-040",
+      "domain": "mysql",
+      "topic": "log",
+      "subtopic": "update-flow",
+      "question": "一条 UPDATE 在 InnoDB 中从执行到提交大致经历什么？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "log"
+      ],
+      "reference_points": [
+        "优化器选择索引定位记录，执行器读取当前版本并取得必要的排他锁",
+        "修改会生成 undo 旧版本、更新 Buffer Pool 中的页并写入 redo，同时服务层形成 binlog 事件",
+        "提交阶段协调 redo 与 binlog 持久化，脏页之后由后台线程写回数据文件"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "优化器选择索引定位记录，执行器读取当前版本并取得必要的排他锁",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "修改会生成 undo 旧版本、更新 Buffer Pool 中的页并写入 redo，同时服务层形成 binlog 事件",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "提交阶段协调 redo 与 binlog 持久化，脏页之后由后台线程写回数据文件",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：优化器选择索引定位记录，执行器读取当前版本并取得必要的排他锁；修改会生成 undo 旧版本、更新 Buffer Pool 中的页并写入 redo，同时服务层形成 binlog 事件；提交阶段协调 redo 与 binlog 持久化，脏页之后由后台线程写回数据文件。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-innodb-transaction"
+        },
+        {
+          "source_id": "mysql-redo"
+        },
+        {
+          "source_id": "mysql-binlog"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-doublewrite-041",
+      "domain": "mysql",
+      "topic": "log",
+      "subtopic": "doublewrite",
+      "question": "InnoDB Doublewrite Buffer 解决什么问题，它和 redo log 是否重复？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "log"
+      ],
+      "reference_points": [
+        "数据库页通常大于底层原子写单位，掉电时可能只写入一部分而形成 torn page",
+        "Doublewrite 先保存页的完整副本，恢复时可用完整页修复后再应用 redo",
+        "redo 记录页变更但恢复依赖可解析的基础页，二者解决的问题不同"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "数据库页通常大于底层原子写单位，掉电时可能只写入一部分而形成 torn page",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "Doublewrite 先保存页的完整副本，恢复时可用完整页修复后再应用 redo",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "redo 记录页变更但恢复依赖可解析的基础页，二者解决的问题不同",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：数据库页通常大于底层原子写单位，掉电时可能只写入一部分而形成 torn page；Doublewrite 先保存页的完整副本，恢复时可用完整页修复后再应用 redo；redo 记录页变更但恢复依赖可解析的基础页，二者解决的问题不同。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-doublewrite"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-buffer-pool-042",
+      "domain": "mysql",
+      "topic": "performance",
+      "subtopic": "buffer-pool",
+      "question": "InnoDB Buffer Pool 缓存什么，命中率高就代表配置一定合理吗？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "MYSQL",
+        "performance"
+      ],
+      "reference_points": [
+        "Buffer Pool 缓存数据页和索引页，并管理脏页、空闲页及冷热访问",
+        "高命中率可能掩盖工作集变化、扫描污染、脏页堆积或查询本身读取过多页面",
+        "应结合内存压力、I/O、页淘汰、脏页比例、响应分位数和实际工作负载判断"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "Buffer Pool 缓存数据页和索引页，并管理脏页、空闲页及冷热访问",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "高命中率可能掩盖工作集变化、扫描污染、脏页堆积或查询本身读取过多页面",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "应结合内存压力、I/O、页淘汰、脏页比例、响应分位数和实际工作负载判断",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：Buffer Pool 缓存数据页和索引页，并管理脏页、空闲页及冷热访问；高命中率可能掩盖工作集变化、扫描污染、脏页堆积或查询本身读取过多页面；应结合内存压力、I/O、页淘汰、脏页比例、响应分位数和实际工作负载判断。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-buffer-pool"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-explain-slow-query-043",
+      "domain": "mysql",
+      "topic": "performance",
+      "subtopic": "explain-slow-query",
+      "question": "遇到慢 SQL 时如何使用 EXPLAIN 和运行指标定位问题？",
+      "difficulty": "hard",
+      "question_type": "scenario_analysis",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "performance"
+      ],
+      "reference_points": [
+        "先从慢日志或追踪确认 SQL、参数、频率和真实延迟，再查看 EXPLAIN 的访问类型、键、估算行数与附加信息",
+        "检查是否扫描过多行、回表、临时表、排序、错误连接顺序或统计信息失真",
+        "优化后用真实数据与 EXPLAIN ANALYZE 验证，不应只追求出现某个索引名"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "先从慢日志或追踪确认 SQL、参数、频率和真实延迟，再查看 EXPLAIN 的访问类型、键、估算行数与附加信息",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "检查是否扫描过多行、回表、临时表、排序、错误连接顺序或统计信息失真",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "优化后用真实数据与 EXPLAIN ANALYZE 验证，不应只追求出现某个索引名",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：先从慢日志或追踪确认 SQL、参数、频率和真实延迟，再查看 EXPLAIN 的访问类型、键、估算行数与附加信息；检查是否扫描过多行、回表、临时表、排序、错误连接顺序或统计信息失真；优化后用真实数据与 EXPLAIN ANALYZE 验证，不应只追求出现某个索引名。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-explain"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-optimizer-index-choice-044",
+      "domain": "mysql",
+      "topic": "performance",
+      "subtopic": "optimizer-index-choice",
+      "question": "优化器选择了看似错误的索引时，应如何处理？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "performance"
+      ],
+      "reference_points": [
+        "优化器按统计信息和成本估算访问路径，数据分布变化或相关性可能让估算偏差",
+        "先更新统计、重写查询或调整更合适的联合索引，并核对真实执行时间",
+        "索引提示可用于临时验证或少数稳定场景，但会固化计划，升级和数据变化后需重新评估"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "优化器按统计信息和成本估算访问路径，数据分布变化或相关性可能让估算偏差",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "先更新统计、重写查询或调整更合适的联合索引，并核对真实执行时间",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "索引提示可用于临时验证或少数稳定场景，但会固化计划，升级和数据变化后需重新评估",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：优化器按统计信息和成本估算访问路径，数据分布变化或相关性可能让估算偏差；先更新统计、重写查询或调整更合适的联合索引，并核对真实执行时间；索引提示可用于临时验证或少数稳定场景，但会固化计划，升级和数据变化后需重新评估。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-optimizer-hints"
+        },
+        {
+          "source_id": "mysql-explain"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-count-pagination-045",
+      "domain": "mysql",
+      "topic": "performance",
+      "subtopic": "count-pagination",
+      "question": "COUNT(*)、COUNT(1)、COUNT(列) 有什么区别？深分页为什么慢，怎样优化？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "performance"
+      ],
+      "reference_points": [
+        "COUNT(*) 与 COUNT(1) 都统计行，优化器通常会选择合适路径；COUNT(列) 不统计 NULL",
+        "大 OFFSET 仍需扫描并丢弃前面的记录，排序或回表会进一步放大成本",
+        "可用基于稳定唯一排序键的游标翻页，必要时先在覆盖索引中取主键再回表"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "COUNT(*) 与 COUNT(1) 都统计行，优化器通常会选择合适路径；COUNT(列) 不统计 NULL",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "大 OFFSET 仍需扫描并丢弃前面的记录，排序或回表会进一步放大成本",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "可用基于稳定唯一排序键的游标翻页，必要时先在覆盖索引中取主键再回表",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：COUNT(*) 与 COUNT(1) 都统计行，优化器通常会选择合适路径；COUNT(列) 不统计 NULL；大 OFFSET 仍需扫描并丢弃前面的记录，排序或回表会进一步放大成本；可用基于稳定唯一排序键的游标翻页，必要时先在覆盖索引中取主键再回表。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-aggregate-functions"
+        },
+        {
+          "source_id": "mysql-limit-optimization"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-source-replica-046",
+      "domain": "mysql",
+      "topic": "replication",
+      "subtopic": "source-replica",
+      "question": "MySQL 主从复制的基本链路是什么，statement 与 row 复制各有什么取舍？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "replication"
+      ],
+      "reference_points": [
+        "源库把事务写入 binlog，副本接收后写入 relay log，再由应用线程重放",
+        "statement 传输语句而 row 传输变更行，后者通常确定性更好但日志可能更大",
+        "复制默认异步，副本应用完成不属于源库普通提交成功的前置条件"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "源库把事务写入 binlog，副本接收后写入 relay log，再由应用线程重放",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "statement 传输语句而 row 传输变更行，后者通常确定性更好但日志可能更大",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "复制默认异步，副本应用完成不属于源库普通提交成功的前置条件",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：源库把事务写入 binlog，副本接收后写入 relay log，再由应用线程重放；statement 传输语句而 row 传输变更行，后者通常确定性更好但日志可能更大；复制默认异步，副本应用完成不属于源库普通提交成功的前置条件。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-replication"
+        },
+        {
+          "source_id": "mysql-binlog-formats"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-replication-lag-047",
+      "domain": "mysql",
+      "topic": "replication",
+      "subtopic": "replication-lag",
+      "question": "MySQL 主从延迟常见原因有哪些，业务怎样处理读到旧数据？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "replication"
+      ],
+      "reference_points": [
+        "大事务、单线程或冲突应用、慢查询、网络与磁盘瓶颈都会让副本追赶速度低于源库写入速度",
+        "先查看复制线程、relay log、延迟指标和错误，优化大事务、索引与并行复制能力",
+        "需要读己之写时可短暂读主库、等待位点或 GTID、携带一致性令牌，不能假设延迟固定"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "大事务、单线程或冲突应用、慢查询、网络与磁盘瓶颈都会让副本追赶速度低于源库写入速度",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "先查看复制线程、relay log、延迟指标和错误，优化大事务、索引与并行复制能力",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "需要读己之写时可短暂读主库、等待位点或 GTID、携带一致性令牌，不能假设延迟固定",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：大事务、单线程或冲突应用、慢查询、网络与磁盘瓶颈都会让副本追赶速度低于源库写入速度；先查看复制线程、relay log、延迟指标和错误，优化大事务、索引与并行复制能力；需要读己之写时可短暂读主库、等待位点或 GTID、携带一致性令牌，不能假设延迟固定。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-replication"
+        },
+        {
+          "source_id": "mysql-replication-troubleshooting"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mysql-sharding-048",
+      "domain": "mysql",
+      "topic": "architecture",
+      "subtopic": "sharding",
+      "question": "分库和分表分别解决什么问题，会引入哪些新复杂度？",
+      "difficulty": "hard",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MYSQL",
+        "architecture"
+      ],
+      "reference_points": [
+        "分表把单表数据拆开以控制索引和扫描规模，分库进一步分散连接、CPU、I/O 和存储压力",
+        "拆分键决定数据路由与热点，跨分片查询、事务、唯一约束和分页会变复杂",
+        "应先用索引、归档、读副本和垂直拆分解决已测瓶颈，再在容量证据充分时水平拆分"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "分表把单表数据拆开以控制索引和扫描规模，分库进一步分散连接、CPU、I/O 和存储压力",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "拆分键决定数据路由与热点，跨分片查询、事务、唯一约束和分页会变复杂",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "应先用索引、归档、读副本和垂直拆分解决已测瓶颈，再在容量证据充分时水平拆分",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：分表把单表数据拆开以控制索引和扫描规模，分库进一步分散连接、CPU、I/O 和存储压力；拆分键决定数据路由与热点，跨分片查询、事务、唯一约束和分页会变复杂；应先用索引、归档、读副本和垂直拆分解决已测瓶颈，再在容量证据充分时水平拆分。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "mysql-partitioning"
+        },
+        {
+          "source_id": "mysql-replication"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    }
+  ]
+}

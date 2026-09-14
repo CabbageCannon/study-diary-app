@@ -88,7 +88,7 @@ def require_batch_job_feature_enabled(job_type: str) -> None:
 
 @router.get("/questions", response_model=list[InterviewQuestionRead])
 def list_interview_questions(
-    domain: Literal["agent", "rag", "llm_application", "python", "network", "ai_engineering"] | None = None,
+    domain: Literal["agent", "rag", "llm_application", "python", "network", "mysql", "ai_engineering"] | None = None,
     topic: str | None = None,
     difficulty: Literal["easy", "medium", "hard"] | None = None,
     count: int = Query(default=10, ge=1, le=100),
@@ -403,7 +403,7 @@ async def evaluate_saved_interview_answer(
 @router.get("/reviews/due", response_model=list[InterviewReviewScheduleRead])
 def get_due_interview_reviews(
     date: str | None = None,
-    domain: Literal["agent", "rag", "llm_application", "python", "network", "ai_engineering"] | None = None,
+    domain: Literal["agent", "rag", "llm_application", "python", "network", "mysql", "ai_engineering"] | None = None,
     limit: int = Query(default=20, ge=1, le=100),
     db: Session = Depends(get_db),
 ) -> list[InterviewReviewScheduleRead]:

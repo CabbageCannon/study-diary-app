@@ -23,5 +23,8 @@
 | OpenAI Agents SDK Documentation | https://openai.github.io/openai-agents-python/ | MIT（项目）；未导入原文 | Agent 编排、追踪与护栏题目的事实来源 | 同上 |
 | MCP / Agent Skills / A2A Specifications | https://modelcontextprotocol.io/specification/2026-07-28、https://agentskills.io/specification、https://a2a-protocol.org/latest/specification/ | 各项目规范条款；未导入原文 | 工具调用、Skill 与 Agent 协作题目的事实来源 | 同上 |
 | RAG、Transformer 与大模型工程论文 | https://arxiv.org/ | arXiv terms；未导入原文 | RAG、Embedding、注意力、训练、对齐、量化、推理与评测题目的事实来源 | 仅整理技术结论并重新编写口述题；每题具体论文见题库 sources |
+| 小林 Coding 网络与 MySQL 面试题目录 | https://www.xiaolincoding.com/interview/network.html、https://www.xiaolincoding.com/interview/mysql.html | Copyright © 2026；仅用于确定高频专题覆盖范围 | 网络模型、HTTP/TLS、DNS、TCP/UDP、排障、SQL、InnoDB、索引、事务、锁、日志、调优与复制选题 | 未复制题面或答案；合并相近追问并重新编写，技术事实以 RFC 和 MySQL 8.4 官方文档核验 |
+| IETF RFC | https://www.rfc-editor.org/ | IETF Trust Legal Provisions；未导入原文 | TCP/IP、HTTP、TLS、DNS、QUIC、WebSocket 与相关安全机制的事实来源 | 按协议语义整理为原创口述题、要点与评分标准 |
+| MySQL 8.4 Reference Manual | https://dev.mysql.com/doc/refman/8.4/en/ | Oracle 文档条款；未导入原文 | SQL、InnoDB、索引、事务、锁、日志、性能和复制题目的事实来源 | 同上 |
 
 最近导入日期：2026-09-14。每道八股题的具体来源见 `interview_question_bank.json`，原始来源登记见 `interview_sources.json`。新增题目先以 `pending` 导入，审核通过后才进入正式训练池。
