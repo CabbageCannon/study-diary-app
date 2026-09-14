@@ -2,6 +2,76 @@
   "catalog_version": 1,
   "questions": [
     {
+      "id": "a2a-vs-mcp-001",
+      "domain": "agent",
+      "topic": "multi_agent",
+      "subtopic": "a2a_vs_mcp",
+      "question": "A2A 与 MCP 的用途有什么区别，什么时候需要同时使用？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "A2A",
+        "MCP",
+        "Multi-Agent"
+      ],
+      "reference_points": [
+        "MCP 侧重 Agent 应用访问工具、资源和提示能力",
+        "A2A 侧重独立 Agent 之间的发现、任务状态和产物交换",
+        "A2A 允许对方内部实现保持不透明并支持长时任务",
+        "一个 Agent 可用 MCP 操作工具，同时用 A2A 委派给远程 Agent"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "MCP 侧重 Agent 应用访问工具、资源和提示能力",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "A2A 侧重独立 Agent 之间的发现、任务状态和产物交换",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "A2A 允许对方内部实现保持不透明并支持长时任务",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "MCP 主要连接 Agent 应用与工具或数据服务，调用方通常知道要使用哪项能力；A2A 面向独立 Agent 之间的协作，通过 Agent Card、任务状态、消息和产物交换描述长时工作。远程 Agent 的内部工具可以保持不透明。复杂系统中，一个 Agent 可以通过 A2A 委派任务，而被委派的 Agent 再通过 MCP 使用自己的工具。",
+      "follow_up_questions": [
+        "A2A 长时任务如何通知调用方进度？",
+        "为什么不能简单用 MCP Tool 模拟所有 Agent 协作？"
+      ],
+      "sources": [
+        {
+          "title": "Agent2Agent Protocol Specification",
+          "url": "https://a2a-protocol.org/latest/specification/",
+          "source_type": "specification",
+          "license": "Apache-2.0 (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "Model Context Protocol Specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28",
+          "source_type": "specification",
+          "license": "Specification terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
       "id": "agent-architecture-components-001",
       "domain": "agent",
       "topic": "agent_architecture",
@@ -654,10 +724,10 @@
       "sources": [
         {
           "title": "Model Context Protocol Specification",
-          "url": "https://modelcontextprotocol.io/specification/2025-06-18",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28",
           "source_type": "specification",
           "license": "Specification terms; no verbatim text imported",
-          "accessed_at": "2026-08-02"
+          "accessed_at": "2026-09-14"
         }
       ],
       "review_status": "pending",
@@ -1258,6 +1328,69 @@
       "verified_by_human": false
     },
     {
+      "id": "agent-skill-concept-001",
+      "domain": "agent",
+      "topic": "tool_calling",
+      "subtopic": "agent_skill",
+      "question": "Agent Skill 是什么，它为什么不仅是一段提示词？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Agent Skill",
+        "SKILL.md",
+        "可复用流程"
+      ],
+      "reference_points": [
+        "Skill 封装某类任务的操作知识、步骤、边界与资源",
+        "通过元数据帮助 Agent 按需发现和加载",
+        "可引用脚本、模板或资料，但实际能力仍受工具权限约束",
+        "需要版本化、测试触发条件并避免把秘密写入内容"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "Skill 封装某类任务的操作知识、步骤、边界与资源",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "通过元数据帮助 Agent 按需发现和加载",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "可引用脚本、模板或资料，但实际能力仍受工具权限约束",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "Agent Skill 把完成一类任务所需的说明、步骤、边界和配套资源封装成可发现模块。Agent 先读取精简元数据，在任务匹配时再加载详细说明，因此它比散落在系统提示中的长文本更易复用和维护。Skill 可以指导如何使用脚本和工具，但不会自动获得权限；权限、参数校验和秘密管理仍由运行环境负责。",
+      "follow_up_questions": [
+        "怎样避免 Skill 元数据过宽导致频繁误触发？",
+        "Skill 更新后如何回归旧任务？"
+      ],
+      "sources": [
+        {
+          "title": "Agent Skills Specification",
+          "url": "https://agentskills.io/specification",
+          "source_type": "specification",
+          "license": "Specification terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
       "id": "agent-task-decomposition-001",
       "domain": "agent",
       "topic": "planning",
@@ -1456,6 +1589,69 @@
           "source_type": "official_documentation",
           "license": "Documentation terms apply; no verbatim text imported",
           "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "agent-tool-routing-001",
+      "domain": "agent",
+      "topic": "tool_calling",
+      "subtopic": "tool_routing",
+      "question": "工具数量很多时，Agent 如何减少工具描述占用并降低选错工具的概率？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Agent",
+        "Tool Routing",
+        "上下文"
+      ],
+      "reference_points": [
+        "先按用户权限和任务阶段做确定性过滤",
+        "再用分类、语义检索或分层目录选出小候选集",
+        "只向模型暴露候选工具的精确契约",
+        "记录路由召回率、误选率、token、延迟并保留回退"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "先按用户权限和任务阶段做确定性过滤",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "再用分类、语义检索或分层目录选出小候选集",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "只向模型暴露候选工具的精确契约",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "先在应用层按身份、权限和当前流程排除不可能使用的工具，再用规则、分类器或语义检索从目录中召回少量候选。模型只看到这些候选的名称、使用条件和 schema，必要时先选工具组再选具体工具。路由器也可能漏掉正确能力，因此要有回退通道，并持续评估工具召回率、误选率、token 和延迟。",
+      "follow_up_questions": [
+        "工具描述本身如何建立可检索索引？",
+        "路由器漏召回时怎样降级？"
+      ],
+      "sources": [
+        {
+          "title": "LangChain tools",
+          "url": "https://docs.langchain.com/oss/python/langchain/tools",
+          "source_type": "official_documentation",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
         }
       ],
       "review_status": "pending",
@@ -2894,6 +3090,406 @@
       "verified_by_human": false
     },
     {
+      "id": "llm-attention-optimization-001",
+      "domain": "ai_engineering",
+      "topic": "attention",
+      "subtopic": "mha_mqa_gqa_flash",
+      "question": "MHA 的主要开销是什么，MQA、GQA 与 FlashAttention 分别优化了哪一部分？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "MHA",
+        "MQA",
+        "GQA",
+        "FlashAttention"
+      ],
+      "reference_points": [
+        "MHA 为每个查询头保存独立 K/V，解码时 KV Cache 体积和带宽较大",
+        "MQA 让多个查询头共享一组 K/V，显著降低缓存但可能损失质量",
+        "GQA 让一组查询头共享 K/V，在质量与效率间折中",
+        "FlashAttention 通过分块和 IO 感知精确计算注意力，主要减少显存读写"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "MHA 为每个查询头保存独立 K/V，解码时 KV Cache 体积和带宽较大",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "MQA 让多个查询头共享一组 K/V，显著降低缓存但可能损失质量",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "GQA 让一组查询头共享 K/V，在质量与效率间折中",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "MHA 的多个头各自拥有 Q、K、V，在自回归解码中每层都要缓存历史 K/V，内存容量和带宽容易成为瓶颈。MQA 让所有查询头共享 K/V，最省缓存；GQA 让若干查询头共享一组 K/V，通常取得更平衡的质量。FlashAttention 不改变注意力数学结果，而是通过分块计算减少 HBM 往返和中间矩阵存储。",
+      "follow_up_questions": [
+        "FlashAttention 为什么仍是精确注意力？",
+        "GQA 的组数变化如何影响质量和吞吐？"
+      ],
+      "sources": [
+        {
+          "title": "GQA: Training Generalized Multi-Query Transformer Models",
+          "url": "https://arxiv.org/abs/2305.13245",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "FlashAttention",
+          "url": "https://arxiv.org/abs/2205.14135",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-chain-of-thought-001",
+      "domain": "ai_engineering",
+      "topic": "prompt_management",
+      "subtopic": "chain_of_thought",
+      "question": "Chain-of-Thought 为什么可能改善复杂推理，它有哪些局限？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "CoT",
+        "Reasoning",
+        "推理"
+      ],
+      "reference_points": [
+        "中间步骤把复杂问题分解并为后续 token 提供计算轨迹",
+        "效果依赖模型规模、任务和示例质量",
+        "长推理会增加延迟、成本，也可能产生看似合理的错误链",
+        "生产评估应看最终可验证结果，不把自然语言推理当忠实解释"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "中间步骤把复杂问题分解并为后续 token 提供计算轨迹",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "效果依赖模型规模、任务和示例质量",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "长推理会增加延迟、成本，也可能产生看似合理的错误链",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "CoT 通过生成中间步骤把复杂任务拆成较小决策，并让后续生成利用这些中间状态，因此在数学或多步问题上可能提高表现。但它不是模型内部计算的可靠解释，也可能自信地展开错误路径。更长推理还增加 token、延迟和泄露风险。生产系统应依靠答案验证、工具或测试，而不是相信推理文本的流畅度。",
+      "follow_up_questions": [
+        "Self-consistency 如何利用多条推理路径？",
+        "为什么不应向所有用户暴露内部推理文本？"
+      ],
+      "sources": [
+        {
+          "title": "Chain-of-Thought Prompting Elicits Reasoning",
+          "url": "https://arxiv.org/abs/2201.11903",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-decoding-strategies-001",
+      "domain": "ai_engineering",
+      "topic": "inference",
+      "subtopic": "decoding_strategies",
+      "question": "贪心、Beam Search 与随机采样分别适合哪些生成任务？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Decoding",
+        "Beam Search",
+        "Sampling"
+      ],
+      "reference_points": [
+        "贪心每步选最高概率 token，稳定快速但容易局部最优和重复",
+        "Beam Search 保留多个高概率序列，适合目标较确定的序列任务",
+        "随机采样从分布抽取，适合开放创作与多样候选",
+        "解码策略要与任务指标、重复控制和延迟预算匹配"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "贪心每步选最高概率 token，稳定快速但容易局部最优和重复",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "Beam Search 保留多个高概率序列，适合目标较确定的序列任务",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "随机采样从分布抽取，适合开放创作与多样候选",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "贪心解码每一步选概率最高 token，速度快、可复现但可能陷入重复。Beam Search 保留若干累计得分较高的序列，适合翻译等输出较确定的任务，在开放对话里容易生成安全但单调的文本。随机采样保留分布多样性，适合创作和多候选推理。生产系统应按正确性、多样性、延迟和可重复性选择。",
+      "follow_up_questions": [
+        "Beam 宽度增大为什么不一定提升质量？",
+        "需要稳定 JSON 时应怎样设置解码？"
+      ],
+      "sources": [
+        {
+          "title": "The Curious Case of Neural Text Degeneration",
+          "url": "https://arxiv.org/abs/1904.09751",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-dpo-vs-ppo-001",
+      "domain": "ai_engineering",
+      "topic": "alignment",
+      "subtopic": "dpo_vs_ppo",
+      "question": "DPO 与 PPO 用于大模型对齐时有什么核心区别？",
+      "difficulty": "hard",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "DPO",
+        "PPO",
+        "偏好对齐"
+      ],
+      "reference_points": [
+        "PPO 通常需要奖励模型并在线从当前策略采样优化",
+        "DPO 把偏好学习转成监督式目标，直接比较优选与拒选响应",
+        "DPO 实现稳定简单但依赖离线偏好分布与参考策略",
+        "PPO 更灵活地使用复杂奖励，但训练成本和不稳定性更高"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "PPO 通常需要奖励模型并在线从当前策略采样优化",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "DPO 把偏好学习转成监督式目标，直接比较优选与拒选响应",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "DPO 实现稳定简单但依赖离线偏好分布与参考策略",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "PPO 型 RLHF 通过奖励模型给生成结果打分，并在 KL 等约束下在线优化策略，流程灵活但要维护采样、奖励和价值估计。DPO 从偏好对推导出直接分类式目标，不需要显式奖励模型和在线强化学习，训练更简单稳定。DPO 仍依赖偏好数据覆盖和参考模型，遇到分布外目标并不会自动优于 PPO。",
+      "follow_up_questions": [
+        "DPO 的 beta 控制什么取舍？",
+        "为什么奖励模型过拟合会伤害 PPO？"
+      ],
+      "sources": [
+        {
+          "title": "Direct Preference Optimization",
+          "url": "https://arxiv.org/abs/2305.18290",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "Training language models to follow instructions with human feedback",
+          "url": "https://arxiv.org/abs/2203.02155",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-evaluation-metrics-001",
+      "domain": "ai_engineering",
+      "topic": "evaluation",
+      "subtopic": "evaluation_metrics",
+      "question": "大模型能力评测应包含哪些指标，公开 Benchmark 有什么局限？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "LLM Evaluation",
+        "Benchmark",
+        "业务评测"
+      ],
+      "reference_points": [
+        "按知识、推理、代码、指令遵循、安全与事实性拆分能力",
+        "自动指标、模型裁判和人工评审各有偏差，需要校准",
+        "公开榜单可能存在数据污染、饱和和与业务分布不一致",
+        "业务评测应固定版本、保存失败样本并同时看延迟与成本"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "按知识、推理、代码、指令遵循、安全与事实性拆分能力",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "自动指标、模型裁判和人工评审各有偏差，需要校准",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "公开榜单可能存在数据污染、饱和和与业务分布不一致",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "评测要先定义业务能力，再组合可验证准确率、结构合规、事实支持、安全拒答和人工偏好等指标。模型裁判便于扩展，但会受位置、风格和同源模型偏差影响，需要人工校准。公开 Benchmark 可能被训练数据污染或与真实任务差异很大，只适合初筛。最终选型应在业务数据上同时比较质量、稳定性、延迟和费用。",
+      "follow_up_questions": [
+        "怎样校准 LLM-as-a-Judge？",
+        "评测集如何避免被 Prompt 过拟合？"
+      ],
+      "sources": [
+        {
+          "title": "Holistic Evaluation of Language Models",
+          "url": "https://arxiv.org/abs/2211.09110",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-finetuning-options-001",
+      "domain": "ai_engineering",
+      "topic": "fine_tuning",
+      "subtopic": "method_selection",
+      "question": "大模型微调有哪些主要方案，实际项目应如何选？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Fine-tuning",
+        "PEFT",
+        "LoRA"
+      ],
+      "reference_points": [
+        "全参数微调更新全部权重，能力上限高但资源与维护成本大",
+        "PEFT 只训练少量新增或选定参数，成本更低",
+        "还可选择提示微调、Adapter、LoRA 或量化结合方案",
+        "依据数据量、目标变化、硬件、延迟和部署方式评估"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "全参数微调更新全部权重，能力上限高但资源与维护成本大",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "PEFT 只训练少量新增或选定参数，成本更低",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "还可选择提示微调、Adapter、LoRA 或量化结合方案",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "全参数微调更新整个模型，资源需求大且每个版本都要维护完整权重；PEFT 通过 Adapter、LoRA 或提示参数等方式只训练少量参数，更适合资源有限和多任务版本。QLoRA 进一步在量化基座上训练适配器。选型要看目标是格式、领域术语还是复杂能力，以及数据质量、硬件、推理部署和是否需要频繁切换适配器。",
+      "follow_up_questions": [
+        "什么情况下 PEFT 的能力上限可能不够？",
+        "多个 LoRA 适配器如何部署与管理？"
+      ],
+      "sources": [
+        {
+          "title": "LoRA: Low-Rank Adaptation of Large Language Models",
+          "url": "https://arxiv.org/abs/2106.09685",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "QLoRA",
+          "url": "https://arxiv.org/abs/2305.14314",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
       "id": "llm-function-calling-contract-001",
       "domain": "llm_application",
       "topic": "function_calling",
@@ -2955,6 +3551,961 @@
       "verified_by_human": false
     },
     {
+      "id": "llm-gateway-001",
+      "domain": "ai_engineering",
+      "topic": "model_routing",
+      "subtopic": "llm_gateway",
+      "question": "LLM 网关层通常解决哪些问题，哪些业务逻辑不应该塞进网关？",
+      "difficulty": "medium",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "LLM Gateway",
+        "路由",
+        "限流"
+      ],
+      "reference_points": [
+        "统一不同模型提供商的认证、协议适配和路由",
+        "集中处理限流、重试、预算、观测和故障切换",
+        "网关需保留流式语义并避免记录敏感原文",
+        "业务提示、领域权限和任务状态应留在应用服务"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "统一不同模型提供商的认证、协议适配和路由",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "集中处理限流、重试、预算、观测和故障切换",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "网关需保留流式语义并避免记录敏感原文",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "LLM 网关适合统一提供商协议、密钥、模型路由、限流、重试、用量统计和故障切换，让应用减少重复集成。它还应正确透传流式输出和请求标识。具体业务提示、用户资源权限和任务状态不应塞入通用网关，否则边界混乱且难以独立演进。网关日志也要默认脱敏。",
+      "follow_up_questions": [
+        "网关自动重试怎样避免重复工具副作用？",
+        "多模型路由应依据哪些实时信号？"
+      ],
+      "sources": [
+        {
+          "title": "LiteLLM Documentation",
+          "url": "https://docs.litellm.ai/docs/",
+          "source_type": "open_source",
+          "license": "MIT (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-hallucination-001",
+      "domain": "ai_engineering",
+      "topic": "hallucination",
+      "subtopic": "causes_and_mitigation",
+      "question": "大模型为什么会产生幻觉，应用层可以怎样系统缓解？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "LLM",
+        "幻觉",
+        "Grounding"
+      ],
+      "reference_points": [
+        "训练目标优化下一个 token 概率，不直接保证事实真实性",
+        "知识缺失、提示歧义、分布外输入和错误上下文都会诱发幻觉",
+        "可用检索、工具、结构化约束、验证器和拒答降低风险",
+        "通过带证据评测、校准和人工升级衡量而非宣称消除"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "训练目标优化下一个 token 概率，不直接保证事实真实性",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "知识缺失、提示歧义、分布外输入和错误上下文都会诱发幻觉",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "可用检索、工具、结构化约束、验证器和拒答降低风险",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "语言模型学习的是条件文本分布，并没有内置事实数据库或真实性保证。知识过时、问题歧义、错误检索和强制回答都会提高幻觉。应用层可提供可靠证据、调用权威工具、约束输出结构、执行后置验证，并允许在证据不足时拒答。缓解效果要用事实性和证据支持度评测，不能承诺完全消除。",
+      "follow_up_questions": [
+        "为什么 RAG 也会产生幻觉？",
+        "如何区分知识缺失与模型忽略证据？"
+      ],
+      "sources": [
+        {
+          "title": "Survey of Hallucination in Natural Language Generation",
+          "url": "https://arxiv.org/abs/2202.03629",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+          "url": "https://arxiv.org/abs/2005.11401",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-kv-prompt-cache-001",
+      "domain": "ai_engineering",
+      "topic": "inference",
+      "subtopic": "kv_and_prompt_cache",
+      "question": "KV Cache 与 Prompt Caching 分别缓存什么，它们如何影响推理性能和费用？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "KV Cache",
+        "Prompt Caching",
+        "推理优化"
+      ],
+      "reference_points": [
+        "KV Cache 保存当前序列各层历史 token 的 K/V，避免解码时重复计算",
+        "缓存体积随层数、序列和并发增长并消耗显存带宽",
+        "Prompt Caching 复用相同前缀的预填充结果，通常跨请求命中",
+        "两者都要求前缀稳定，并需考虑隔离、过期和命中率"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "KV Cache 保存当前序列各层历史 token 的 K/V，避免解码时重复计算",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "缓存体积随层数、序列和并发增长并消耗显存带宽",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "Prompt Caching 复用相同前缀的预填充结果，通常跨请求命中",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "KV Cache 是单次或持续会话推理中的中间张量，保存各层历史 token 的键和值，使每个新 token 不必重算完整前缀；代价是显存随上下文和并发增长。Prompt Caching 则尝试在多个请求间复用相同前缀的预填充计算，可降低首 token 时间或输入费用。稳定的系统提示与工具前缀更容易命中，但必须做好租户隔离和失效。",
+      "follow_up_questions": [
+        "GQA 为什么能减少 KV Cache？",
+        "动态时间戳放在提示开头会怎样影响缓存？"
+      ],
+      "sources": [
+        {
+          "title": "Efficient Memory Management for Large Language Model Serving with PagedAttention",
+          "url": "https://arxiv.org/abs/2309.06180",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "OpenAI API Documentation",
+          "url": "https://platform.openai.com/docs/",
+          "source_type": "official_documentation",
+          "license": "Documentation terms apply; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-long-context-001",
+      "domain": "ai_engineering",
+      "topic": "long_context",
+      "subtopic": "lost_in_the_middle",
+      "question": "为什么上下文窗口越大不代表模型能有效使用全部内容，Lost in the Middle 是什么？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Long Context",
+        "Lost in the Middle",
+        "评测"
+      ],
+      "reference_points": [
+        "上下文窗口只表示可接受 token 上限，不保证各位置利用均匀",
+        "关键信息位于长上下文中部时性能可能明显下降",
+        "长输入增加预填充延迟、内存、费用和无关信息干扰",
+        "应按证据位置、长度和多跳依赖评测，并结合检索与摘要"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "上下文窗口只表示可接受 token 上限，不保证各位置利用均匀",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "关键信息位于长上下文中部时性能可能明显下降",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "长输入增加预填充延迟、内存、费用和无关信息干扰",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "上下文窗口是输入容量指标，不等于有效记忆。研究发现，关键信息放在长上下文中间时，模型表现可能低于放在开头或结尾，这被称为 Lost in the Middle。更长输入还会提高预填充延迟、缓存占用和费用，并引入噪声。系统应按不同位置和长度测试真实任务，必要时用检索、结构化摘要和证据排序。",
+      "follow_up_questions": [
+        "怎样设计 needle-in-a-haystack 之外的长上下文评测？",
+        "RAG 与长上下文应该如何组合？"
+      ],
+      "sources": [
+        {
+          "title": "Lost in the Middle",
+          "url": "https://arxiv.org/abs/2307.03172",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-lora-001",
+      "domain": "ai_engineering",
+      "topic": "fine_tuning",
+      "subtopic": "lora",
+      "question": "LoRA 的核心原理是什么，除了减少训练参数还有哪些工程优势？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "LoRA",
+        "低秩",
+        "PEFT"
+      ],
+      "reference_points": [
+        "冻结原权重，用两个低秩矩阵表示权重增量",
+        "利用任务适配更新可能位于低内在维度的假设",
+        "适配器体积小，便于保存、切换和版本管理",
+        "合并权重可减少额外推理开销，但秩和目标层仍需实验"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "冻结原权重，用两个低秩矩阵表示权重增量",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "利用任务适配更新可能位于低内在维度的假设",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "适配器体积小，便于保存、切换和版本管理",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "LoRA 冻结预训练权重，把某些线性层的更新表示为两个低秩矩阵的乘积，只训练这部分增量。这样显著减少优化器状态和显存，适配器文件也便于按任务保存、共享和切换。部署时可把增量合并到基座，避免额外算子。低秩维度、目标层和数据质量决定效果，并非秩越大越好。",
+      "follow_up_questions": [
+        "LoRA 的 alpha 与 rank 如何共同影响缩放？",
+        "合并 LoRA 权重后怎样保留可回滚性？"
+      ],
+      "sources": [
+        {
+          "title": "LoRA: Low-Rank Adaptation of Large Language Models",
+          "url": "https://arxiv.org/abs/2106.09685",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-model-selection-001",
+      "domain": "ai_engineering",
+      "topic": "evaluation",
+      "subtopic": "model_selection",
+      "question": "实际项目如何比较并选择主流大模型，而不是只看排行榜？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "LLM",
+        "模型选型",
+        "A/B 测试"
+      ],
+      "reference_points": [
+        "从真实任务、语言、上下文、工具和结构化输出需求建立候选集",
+        "用相同 Prompt、数据和失败规则进行盲测",
+        "比较质量、延迟、价格、限额、可用区与数据政策",
+        "设计路由与回退，但避免无依据维护过多模型"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "从真实任务、语言、上下文、工具和结构化输出需求建立候选集",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "用相同 Prompt、数据和失败规则进行盲测",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "比较质量、延迟、价格、限额、可用区与数据政策",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "先依据中文能力、上下文长度、工具调用、结构化输出和部署约束筛选少量模型，再用脱敏的真实任务做相同条件下的盲测。除了正确率和用户偏好，还要记录 TTFT、总延迟、费用、限流、稳定性和数据政策。若任务差异明显可按类别路由，并保留失败回退；没有实测收益时不必维护复杂多模型体系。",
+      "follow_up_questions": [
+        "模型版本静默更新时如何发现回归？",
+        "怎样设计既公平又贴近生产的成本比较？"
+      ],
+      "sources": [
+        {
+          "title": "Holistic Evaluation of Language Models",
+          "url": "https://arxiv.org/abs/2211.09110",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-moe-001",
+      "domain": "ai_engineering",
+      "topic": "llm_fundamentals",
+      "subtopic": "mixture_of_experts",
+      "question": "MoE 模型的工作原理是什么，为什么它能增加参数规模却控制单次计算量？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "MoE",
+        "Router",
+        "Expert"
+      ],
+      "reference_points": [
+        "MoE 层包含多个专家网络并由路由器为 token 选择少数专家",
+        "总参数可很大，但每个 token 只激活 Top-K 专家",
+        "需要负载均衡损失、防止专家拥塞和容量溢出",
+        "分布式部署会增加 all-to-all 通信与路由稳定性成本"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "MoE 层包含多个专家网络并由路由器为 token 选择少数专家",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "总参数可很大，但每个 token 只激活 Top-K 专家",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "需要负载均衡损失、防止专家拥塞和容量溢出",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "MoE 将部分前馈层替换为多个专家，路由器根据 token 选择少量专家执行，因此模型总参数量可以增长，而单 token 的激活计算量相对受控。训练要防止路由坍缩到少数专家，并处理专家容量。部署时专家跨设备会产生 all-to-all 通信，实际速度还取决于批量、网络和负载均衡，不能只看激活参数量。",
+      "follow_up_questions": [
+        "为什么 MoE 推理可能受网络带宽限制？",
+        "专家负载不均衡会带来什么后果？"
+      ],
+      "sources": [
+        {
+          "title": "Switch Transformers",
+          "url": "https://arxiv.org/abs/2101.03961",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-position-encoding-001",
+      "domain": "ai_engineering",
+      "topic": "transformer",
+      "subtopic": "position_encoding",
+      "question": "大模型为什么需要位置编码，sin/cos、RoPE 与 ALiBi 的思路有何不同？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "位置编码",
+        "RoPE",
+        "ALiBi"
+      ],
+      "reference_points": [
+        "自注意力本身对 token 顺序没有天然区分",
+        "绝对 sin/cos 编码把位置信号加到表示中",
+        "RoPE 通过旋转 Q/K 表达相对位置信息",
+        "ALiBi 在注意力分数上加入随距离变化的线性偏置，并比较外推特性"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "自注意力本身对 token 顺序没有天然区分",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "绝对 sin/cos 编码把位置信号加到表示中",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "RoPE 通过旋转 Q/K 表达相对位置信息",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "注意力若没有位置信息，对输入排列近似不敏感。经典 sin/cos 编码把固定绝对位置向量加到 token 表示；RoPE 对查询和键做与位置有关的旋转，使点积自然携带相对距离；ALiBi 直接给注意力分数加入按头设置的距离惩罚。它们在训练长度外推、计算方式和模型兼容性上有不同取舍。",
+      "follow_up_questions": [
+        "RoPE 长上下文外推为什么常需要缩放策略？",
+        "相对位置表示相比绝对表示有什么优势？"
+      ],
+      "sources": [
+        {
+          "title": "Attention Is All You Need",
+          "url": "https://arxiv.org/abs/1706.03762",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "RoFormer: Enhanced Transformer with Rotary Position Embedding",
+          "url": "https://arxiv.org/abs/2104.09864",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "Train Short, Test Long: Attention with Linear Biases",
+          "url": "https://arxiv.org/abs/2108.12409",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-post-training-map-001",
+      "domain": "ai_engineering",
+      "topic": "alignment",
+      "subtopic": "post_training",
+      "question": "SFT 之后常见的 RLHF、DPO、GRPO 与拒绝采样分别解决什么问题？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "RLHF",
+        "DPO",
+        "GRPO",
+        "拒绝采样"
+      ],
+      "reference_points": [
+        "RLHF 通常训练奖励模型并用强化学习优化策略",
+        "DPO 直接利用偏好对简化相对奖励优化",
+        "GRPO 以同组样本相对回报形成优势，减少独立价值模型需求",
+        "拒绝采样生成多个候选后筛选再用于训练或输出"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "RLHF 通常训练奖励模型并用强化学习优化策略",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "DPO 直接利用偏好对简化相对奖励优化",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "GRPO 以同组样本相对回报形成优势，减少独立价值模型需求",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "SFT 让模型模仿高质量示例，之后可用偏好信号进一步对齐。经典 RLHF 先训练奖励模型，再通过 PPO 等优化策略；DPO 直接从偏好对优化，流程更简单；GRPO 用一组候选的相对回报估计优势，常用于可验证推理训练；拒绝采样则先生成多候选，筛选优质样本用于输出或继续训练。选择取决于反馈质量、算力和稳定性。",
+      "follow_up_questions": [
+        "偏好数据存在系统性偏差会怎样影响对齐？",
+        "可验证奖励为什么适合推理任务？"
+      ],
+      "sources": [
+        {
+          "title": "Training language models to follow instructions with human feedback",
+          "url": "https://arxiv.org/abs/2203.02155",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "Direct Preference Optimization",
+          "url": "https://arxiv.org/abs/2305.18290",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "DeepSeekMath",
+          "url": "https://arxiv.org/abs/2402.03300",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-prompt-engineering-001",
+      "domain": "ai_engineering",
+      "topic": "prompt_management",
+      "subtopic": "prompt_engineering",
+      "question": "如何为生产大模型应用编写和维护高质量 Prompt？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Prompt Engineering",
+        "版本管理",
+        "评测"
+      ],
+      "reference_points": [
+        "明确角色、任务、输入上下文、约束和输出格式",
+        "用分隔与结构化字段区分指令和不可信数据",
+        "只加入完成任务所需示例，并覆盖边界与拒答条件",
+        "Prompt 必须版本化并用固定评测集回归"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "明确角色、任务、输入上下文、约束和输出格式",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "用分隔与结构化字段区分指令和不可信数据",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "只加入完成任务所需示例，并覆盖边界与拒答条件",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "生产 Prompt 应清楚写明目标、输入、边界、可用信息和输出契约，并通过结构或分隔符把指令与用户、检索内容区分。示例要少而有代表性，覆盖容易出错的边界。更长并不必然更好，冗余会增加成本和冲突。每次修改都应带版本，在同一评测集上比较正确率、格式、延迟与费用。",
+      "follow_up_questions": [
+        "怎样发现 Prompt 中互相冲突的约束？",
+        "Few-shot 示例为什么可能造成分布偏移？"
+      ],
+      "sources": [
+        {
+          "title": "OpenAI API Documentation",
+          "url": "https://platform.openai.com/docs/",
+          "source_type": "official_documentation",
+          "license": "Documentation terms apply; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-quantization-001",
+      "domain": "ai_engineering",
+      "topic": "inference",
+      "subtopic": "quantization",
+      "question": "大模型量化解决什么问题，INT8、INT4、GPTQ 与 AWQ 应如何理解和选择？",
+      "difficulty": "hard",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Quantization",
+        "INT4",
+        "GPTQ",
+        "AWQ"
+      ],
+      "reference_points": [
+        "量化用较低精度表示权重或激活以减少显存、带宽和计算",
+        "位宽越低通常压缩越大但质量和硬件内核敏感性更高",
+        "GPTQ 与 AWQ 都属于常见训练后权重量化思路，但校准目标不同",
+        "必须在目标硬件与业务集上测质量、吞吐、首 token 和并发"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "量化用较低精度表示权重或激活以减少显存、带宽和计算",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "位宽越低通常压缩越大但质量和硬件内核敏感性更高",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "GPTQ 与 AWQ 都属于常见训练后权重量化思路，但校准目标不同",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "量化把 FP16/BF16 权重或激活转换为 INT8、INT4 等低精度表示，主要降低显存占用和内存带宽，并可能提高吞吐。位宽更低不一定更快，取决于硬件内核和反量化开销。GPTQ 通过近似二阶信息降低逐层量化误差，AWQ 关注保护对激活重要的权重。选型必须在目标模型、硬件和业务任务上实测。",
+      "follow_up_questions": [
+        "权重量化与权重加激活量化有什么区别？",
+        "为什么困惑度变化小仍可能伤害特定业务？"
+      ],
+      "sources": [
+        {
+          "title": "GPTQ",
+          "url": "https://arxiv.org/abs/2210.17323",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "AWQ",
+          "url": "https://arxiv.org/abs/2306.00978",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-sampling-parameters-001",
+      "domain": "ai_engineering",
+      "topic": "inference",
+      "subtopic": "sampling_parameters",
+      "question": "Temperature、Top-P 与 Top-K 分别怎样改变采样分布，为什么不宜机械套用固定最佳值？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Temperature",
+        "Top-P",
+        "Top-K"
+      ],
+      "reference_points": [
+        "Temperature 缩放 logits，低值使分布更尖锐，高值增加随机性",
+        "Top-K 只保留概率最高的固定数量候选",
+        "Top-P 保留累计概率达到阈值的动态候选集合",
+        "参数会相互作用，应按任务和模型评测并记录版本"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "Temperature 缩放 logits，低值使分布更尖锐，高值增加随机性",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "Top-K 只保留概率最高的固定数量候选",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "Top-P 保留累计概率达到阈值的动态候选集合",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "Temperature 在 softmax 前缩放 logits，越低越偏向高概率 token；Top-K 把候选限制为固定 K 个；Top-P 则保留累计概率达到阈值的最小集合，会随上下文动态变化。它们组合后相互影响，不存在跨模型、跨任务通用的最佳值。事实问答通常更保守，创作任务可增加多样性，但都应通过业务评测校准。",
+      "follow_up_questions": [
+        "Temperature 为 0 是否保证绝对确定性？",
+        "同时设置 Top-P 与 Top-K 有什么风险？"
+      ],
+      "sources": [
+        {
+          "title": "The Curious Case of Neural Text Degeneration",
+          "url": "https://arxiv.org/abs/1904.09751",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-scaling-law-emergence-001",
+      "domain": "ai_engineering",
+      "topic": "training",
+      "subtopic": "scaling_law",
+      "question": "什么是 Scaling Law，所谓大模型“涌现能力”应怎样理解和验证？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Scaling Law",
+        "Emergence",
+        "LLM"
+      ],
+      "reference_points": [
+        "经验缩放规律描述损失与模型、数据、算力规模之间的可预测关系",
+        "算力最优训练要求在参数量和训练 token 之间平衡",
+        "能力曲线的突然跃迁可能受离散指标或评测阈值影响",
+        "不能据缩放规律保证具体业务能力，仍需连续指标和任务评测"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "经验缩放规律描述损失与模型、数据、算力规模之间的可预测关系",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "算力最优训练要求在参数量和训练 token 之间平衡",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "能力曲线的突然跃迁可能受离散指标或评测阈值影响",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "Scaling Law 是经验规律，描述训练损失随参数、数据和计算规模扩展的变化，并帮助分配有限算力。所谓涌现常指某项能力在规模达到阈值后明显出现，但部分跳变可能来自准确率等离散指标或评测设计。它不能保证任意业务随规模自动改善，应该使用连续指标、多模型尺寸和任务外推实验验证。",
+      "follow_up_questions": [
+        "数据不足时继续增大参数会发生什么？",
+        "怎样区分真实能力跃迁与指标阈值效应？"
+      ],
+      "sources": [
+        {
+          "title": "Scaling Laws for Neural Language Models",
+          "url": "https://arxiv.org/abs/2001.08361",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-serving-frameworks-001",
+      "domain": "ai_engineering",
+      "topic": "deployment",
+      "subtopic": "serving_frameworks",
+      "question": "vLLM、SGLang、TGI 与 llama.cpp 在部署大模型时应如何选型？",
+      "difficulty": "hard",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "vLLM",
+        "SGLang",
+        "TGI",
+        "llama.cpp"
+      ],
+      "reference_points": [
+        "比较目标硬件、模型格式、量化与提供商特性支持",
+        "在线服务关注连续批处理、KV Cache 管理、吞吐和尾延迟",
+        "结构化或 Agent 工作负载还需关注前缀复用、调度与约束解码",
+        "边缘 CPU 或消费级设备与 GPU 集群的选型不同，必须实测"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "比较目标硬件、模型格式、量化与提供商特性支持",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "在线服务关注连续批处理、KV Cache 管理、吞吐和尾延迟",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "结构化或 Agent 工作负载还需关注前缀复用、调度与约束解码",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "vLLM 和 SGLang 面向高吞吐 GPU 服务，强调 KV Cache 与请求调度；TGI 提供 Hugging Face 生态中的生产服务能力；llama.cpp 更偏本地、CPU 和多种消费级硬件及量化模型。功能和性能变化很快，不能仅按宣传选。应在目标模型与硬件上测并发、TTFT、每 token 时间、显存、量化质量和运维复杂度。",
+      "follow_up_questions": [
+        "连续批处理为什么能提高吞吐？",
+        "Agent 短输出工作负载为何与长文本生成的调度重点不同？"
+      ],
+      "sources": [
+        {
+          "title": "Efficient Memory Management for Large Language Model Serving with PagedAttention",
+          "url": "https://arxiv.org/abs/2309.06180",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "SGLang",
+          "url": "https://arxiv.org/abs/2312.07104",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "llama.cpp",
+          "url": "https://github.com/ggml-org/llama.cpp",
+          "source_type": "open_source",
+          "license": "MIT; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "Text Generation Inference Documentation",
+          "url": "https://huggingface.co/docs/text-generation-inference/",
+          "source_type": "official_documentation",
+          "license": "Apache-2.0 (project); no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
       "id": "llm-structured-output-001",
       "domain": "llm_application",
       "topic": "structured_output",
@@ -3007,6 +4558,588 @@
         "验证失败时直接重试与要求模型修正有什么区别？"
       ],
       "sources": [
+        {
+          "title": "OpenAI API Documentation",
+          "url": "https://platform.openai.com/docs/",
+          "source_type": "official_documentation",
+          "license": "Documentation terms apply; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-tokenizer-001",
+      "domain": "ai_engineering",
+      "topic": "llm_fundamentals",
+      "subtopic": "tokenizer",
+      "question": "大模型 Tokenizer 的作用是什么，词表和切分方式会怎样影响训练与推理？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Tokenizer",
+        "BPE",
+        "SentencePiece"
+      ],
+      "reference_points": [
+        "Tokenizer 在文本与离散 token id 之间转换",
+        "子词算法在字符与整词之间平衡词表规模和序列长度",
+        "语言、代码和特殊符号覆盖会影响 token 效率与未知表达",
+        "词表变化会改变 embedding 和模型接口，不能随意替换"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "Tokenizer 在文本与离散 token id 之间转换",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "子词算法在字符与整词之间平衡词表规模和序列长度",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "语言、代码和特殊符号覆盖会影响 token 效率与未知表达",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "Tokenizer 把原始文本切成离散 token 并映射到词表 ID，模型只处理这些 ID。BPE、Unigram 等子词方法用有限词表组合开放词汇：词表过小会让序列变长，过大则增加参数与稀疏性。中文、代码、数字和特殊符号的覆盖会直接影响成本和效果。模型训练后不能随意换词表，否则 embedding 对应关系会失效。",
+      "follow_up_questions": [
+        "为什么同一句中文在不同模型上 token 数差异很大？",
+        "新增特殊 token 后模型还需要怎样处理？"
+      ],
+      "sources": [
+        {
+          "title": "SentencePiece",
+          "url": "https://arxiv.org/abs/1808.06226",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-training-pipeline-001",
+      "domain": "ai_engineering",
+      "topic": "training",
+      "subtopic": "training_pipeline",
+      "question": "一个大模型从数据到可对话产品通常经历哪些训练阶段？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "LLM",
+        "Pretraining",
+        "Post-training"
+      ],
+      "reference_points": [
+        "数据收集、清洗、去重和分词后进行自监督预训练",
+        "监督指令微调让模型学习任务格式与跟随指令",
+        "偏好对齐通过 RLHF、DPO 等改善有用性和安全性",
+        "各阶段都需要独立评测、数据治理和防止污染"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "数据收集、清洗、去重和分词后进行自监督预训练",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "监督指令微调让模型学习任务格式与跟随指令",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "偏好对齐通过 RLHF、DPO 等改善有用性和安全性",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "首先对大规模语料做许可、清洗、去重和分词，再用自监督目标预训练基础模型。随后用高质量指令和回答做 SFT，使模型学会对话与任务格式；再通过人工或模型偏好数据进行 RLHF、DPO 等对齐。训练之外还要做能力、安全、污染和过拟合评测。上线后的反馈可进入下一轮数据闭环，但不能直接无审核回流。",
+      "follow_up_questions": [
+        "预训练数据去重为什么重要？",
+        "SFT 与偏好对齐各自改变什么？"
+      ],
+      "sources": [
+        {
+          "title": "Training language models to follow instructions with human feedback",
+          "url": "https://arxiv.org/abs/2203.02155",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-transformer-architecture-001",
+      "domain": "ai_engineering",
+      "topic": "transformer",
+      "subtopic": "architecture",
+      "question": "Transformer 的基本结构和信息流是什么，Encoder 与 Decoder 有什么区别？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Transformer",
+        "Encoder",
+        "Decoder"
+      ],
+      "reference_points": [
+        "输入经过 token embedding 与位置信息进入多层注意力和前馈网络",
+        "自注意力让每个位置按相关性聚合其他位置的信息",
+        "Encoder 通常双向编码输入，Decoder 使用因果掩码自回归生成",
+        "残差连接与归一化帮助深层训练稳定"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "输入经过 token embedding 与位置信息进入多层注意力和前馈网络",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "自注意力让每个位置按相关性聚合其他位置的信息",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "Encoder 通常双向编码输入，Decoder 使用因果掩码自回归生成",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "Transformer 把 token 表示与位置信息送入重复堆叠的注意力和前馈层，并通过残差与归一化稳定训练。Encoder 自注意力通常可看到完整输入，适合理解和表示；Decoder 用因果掩码只能关注当前位置之前的 token，从而逐步生成。Encoder-Decoder 模型还在 Decoder 中加入交叉注意力读取编码结果，而很多 LLM 采用 Decoder-only 架构。",
+      "follow_up_questions": [
+        "因果掩码为什么能保证自回归生成？",
+        "Decoder-only 模型如何处理输入理解任务？"
+      ],
+      "sources": [
+        {
+          "title": "Attention Is All You Need",
+          "url": "https://arxiv.org/abs/1706.03762",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "llm-vs-traditional-nlp-001",
+      "domain": "ai_engineering",
+      "topic": "llm_fundamentals",
+      "subtopic": "llm_vs_nlp",
+      "question": "什么是大语言模型，它与传统 NLP 模型的主要区别是什么？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "LLM",
+        "NLP",
+        "预训练"
+      ],
+      "reference_points": [
+        "LLM 通常以大规模自监督预训练学习通用语言表示和生成能力",
+        "传统 NLP 往往针对分类、序列标注等单任务训练或组合专用模块",
+        "LLM 可通过提示和少样本适配多任务，但成本、可控性和幻觉问题更突出",
+        "说明两者并非按参数量简单二分"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "LLM 通常以大规模自监督预训练学习通用语言表示和生成能力",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "传统 NLP 往往针对分类、序列标注等单任务训练或组合专用模块",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "LLM 可通过提示和少样本适配多任务，但成本、可控性和幻觉问题更突出",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "大语言模型通常在大规模语料上通过下一 token 等自监督目标预训练，再通过指令或偏好对齐获得通用交互能力，可以用提示完成多种任务。传统 NLP 系统更常针对特定任务训练分类器、序列标注或检索模块，成本低且边界清楚。两者不是绝对替代关系：稳定、可解释的小任务仍可能更适合专用模型。",
+      "follow_up_questions": [
+        "参数更多为什么不必然意味着业务效果更好？",
+        "什么场景应保留传统 NLP 模型？"
+      ],
+      "sources": [
+        {
+          "title": "Attention Is All You Need",
+          "url": "https://arxiv.org/abs/1706.03762",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mcp-core-primitives-001",
+      "domain": "agent",
+      "topic": "mcp",
+      "subtopic": "core_primitives",
+      "question": "MCP 解决了什么问题，Tools、Resources 和 Prompts 三类能力分别由谁控制？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MCP",
+        "Tools",
+        "Resources",
+        "Prompts"
+      ],
+      "reference_points": [
+        "MCP 标准化 AI 应用与外部能力之间的发现和调用",
+        "Tools 通常由模型选择调用，Resources 由应用选择读取",
+        "Prompts 是用户或应用可选择的模板能力",
+        "协议统一交换方式但不替代认证、授权和业务校验"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "MCP 标准化 AI 应用与外部能力之间的发现和调用",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "Tools 通常由模型选择调用，Resources 由应用选择读取",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "Prompts 是用户或应用可选择的模板能力",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "MCP 把 Host 与外部 Server 的能力发现、调用和结果交换标准化。Tools 表示可执行动作，通常由模型决定是否调用；Resources 表示可读取的上下文，通常由应用选择；Prompts 提供可复用模板，通常由用户或应用触发。MCP 只解决互操作协议，真实资源的认证、授权、参数校验和审计仍由各端实现。",
+      "follow_up_questions": [
+        "为什么 Resource 不应默认全部塞给模型？",
+        "Server 如何声明能力变化？"
+      ],
+      "sources": [
+        {
+          "title": "Model Context Protocol Specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28",
+          "source_type": "specification",
+          "license": "Specification terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mcp-function-calling-selection-001",
+      "domain": "agent",
+      "topic": "mcp",
+      "subtopic": "integration_selection",
+      "question": "什么场景直接使用 Function Calling 就够了，什么场景值得接入 MCP？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MCP",
+        "Function Calling",
+        "选型"
+      ],
+      "reference_points": [
+        "少量进程内、仅供单应用使用的工具可直接注册 Function Calling",
+        "跨应用复用、独立部署或动态发现的能力更适合 MCP",
+        "比较协议开销、权限边界、连接生命周期和生态兼容",
+        "可以从本地函数开始，在复用需求出现后封装 MCP Server"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "少量进程内、仅供单应用使用的工具可直接注册 Function Calling",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "跨应用复用、独立部署或动态发现的能力更适合 MCP",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "比较协议开销、权限边界、连接生命周期和生态兼容",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "若工具数量少、与业务代码同进程且只服务一个应用，直接 Function Calling 最简单。能力需要被多个 Host 复用、独立部署、动态发现或跨语言时，MCP 能减少定制适配。引入 MCP 也会增加连接、协议、版本和授权管理，因此应按真实复用边界决定。模型侧仍可能使用 Function Calling 来选择 MCP 暴露的工具。",
+      "follow_up_questions": [
+        "本地工具迁移为 MCP Server 时契约应怎样兼容？",
+        "远程 MCP 的超时和断线如何处理？"
+      ],
+      "sources": [
+        {
+          "title": "Model Context Protocol Specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28",
+          "source_type": "specification",
+          "license": "Specification terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "OpenAI API Documentation",
+          "url": "https://platform.openai.com/docs/",
+          "source_type": "official_documentation",
+          "license": "Documentation terms apply; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mcp-model-support-boundary-001",
+      "domain": "agent",
+      "topic": "mcp",
+      "subtopic": "model_support",
+      "question": "为什么说“某个模型是否支持 MCP”这个问题容易混淆层级？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MCP",
+        "推理模型",
+        "协议分层"
+      ],
+      "reference_points": [
+        "MCP 连接通常由 Host 与 Server 实现，不是模型直接建立",
+        "模型真正需要的是稳定生成工具调用或结构化决策的能力",
+        "Host 可以适配不同模型 API 与 MCP 能力",
+        "缺少工具调用能力的模型也可由应用用受限文本协议桥接，但可靠性较低"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "MCP 连接通常由 Host 与 Server 实现，不是模型直接建立",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "模型真正需要的是稳定生成工具调用或结构化决策的能力",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "Host 可以适配不同模型 API 与 MCP 能力",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "MCP 是 Host、Client 与 Server 之间的应用协议，模型通常不会直接发起 MCP 网络请求。所谓模型支持 MCP，往往实际指 Host 能否把 MCP 能力转换成该模型理解的工具描述，以及模型能否稳定输出结构化调用。不同模型可以由 Host 适配；若模型没有可靠工具调用能力，文本解析也能桥接，但错误率和安全成本更高。",
+      "follow_up_questions": [
+        "Host 适配层需要统一哪些差异？",
+        "文本解析桥接为什么不宜执行高风险工具？"
+      ],
+      "sources": [
+        {
+          "title": "Model Context Protocol Specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28",
+          "source_type": "specification",
+          "license": "Specification terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mcp-transport-001",
+      "domain": "agent",
+      "topic": "mcp",
+      "subtopic": "transport",
+      "question": "MCP 常见传输方式如何工作，本地 stdio 与远程 HTTP 应如何选择？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MCP",
+        "stdio",
+        "HTTP"
+      ],
+      "reference_points": [
+        "stdio 适合同机子进程，消息走标准输入输出并由 Host 管理生命周期",
+        "远程 Streamable HTTP 适合独立服务并需要认证、请求元数据与网络治理",
+        "传输只承载协议消息，不改变 Tools、Resources、Prompts 语义",
+        "选择时比较部署边界、延迟、权限、扩缩容和断线恢复"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "stdio 适合同机子进程，消息走标准输入输出并由 Host 管理生命周期",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "远程 HTTP 适合独立服务并需要认证、会话与网络治理",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "传输只承载协议消息，不改变 Tools、Resources、Prompts 语义",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "stdio 由 Host 启动本地 Server 子进程，通过换行分隔的消息交换，适合同机工具。远程 Streamable HTTP 让每个消息通过 HTTP POST 发送，并可用请求范围的 SSE 返回增量结果，适合共享或独立扩缩容的服务。两种传输承载相同的 MCP 消息语义，选择主要取决于进程边界、复用、认证和运维需求。",
+      "follow_up_questions": [
+        "为什么 Server 不应把日志写到 stdio 协议流？",
+        "远程传输怎样限制跨租户会话？"
+      ],
+      "sources": [
+        {
+          "title": "Model Context Protocol Transports",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports",
+          "source_type": "specification",
+          "license": "Specification terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "mcp-vs-function-calling-001",
+      "domain": "agent",
+      "topic": "mcp",
+      "subtopic": "mcp_vs_function_calling",
+      "question": "MCP 与 Function Calling 的核心区别是什么，它们在一次工具调用中如何协作？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MCP",
+        "Function Calling",
+        "工具生态"
+      ],
+      "reference_points": [
+        "Function Calling 是模型表达工具选择和参数的机制",
+        "MCP 是应用与工具服务之间发现和调用能力的协议",
+        "Host 可把 MCP Server 的工具转换为模型可见 schema",
+        "模型输出调用后仍由 Host 经 MCP Client 执行并回填结果"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "Function Calling 是模型表达工具选择和参数的机制",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "MCP 是应用与工具服务之间发现和调用能力的协议",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "Host 可把 MCP Server 的工具转换为模型可见 schema",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "Function Calling 位于模型交互层，让模型输出工具名和结构化参数；MCP 位于应用集成层，让 Host 以统一协议发现并调用外部 Server。实际流程可以是 Host 获取 MCP 工具清单并转成模型 schema，模型选择工具后，Host 通过 MCP Client 发起调用，再把结果返回模型。两者互补，不是彼此替代。",
+      "follow_up_questions": [
+        "没有 MCP 时 Function Calling 还能工作吗？",
+        "MCP Server 是否必须理解具体模型协议？"
+      ],
+      "sources": [
+        {
+          "title": "Model Context Protocol Specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28",
+          "source_type": "specification",
+          "license": "Specification terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
         {
           "title": "OpenAI API Documentation",
           "url": "https://platform.openai.com/docs/",
@@ -3218,6 +5351,76 @@
       "verified_by_human": false
     },
     {
+      "id": "network-webrtc-websocket-001",
+      "domain": "network",
+      "topic": "websocket",
+      "subtopic": "webrtc_vs_websocket",
+      "question": "实时 AI 语音对话中，WebRTC 与 WebSocket 的核心差异是什么？",
+      "difficulty": "hard",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "WebRTC",
+        "WebSocket",
+        "实时语音"
+      ],
+      "reference_points": [
+        "WebSocket 提供基于 TCP 的可靠双向字节流",
+        "WebRTC 面向实时音视频，包含媒体协商、抖动处理和拥塞控制",
+        "实时媒体更重视低延迟并可容忍部分丢包，控制消息更重视可靠有序",
+        "WebRTC 需处理 ICE、STUN/TURN 和更复杂的连接建立"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "WebSocket 提供基于 TCP 的可靠双向字节流",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "WebRTC 面向实时音视频，包含媒体协商、抖动处理和拥塞控制",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "实时媒体更重视低延迟并可容忍部分丢包，控制消息更重视可靠有序",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "WebSocket 是基于 TCP 的可靠有序双向通道，适合事件、文本和控制消息；WebRTC 为实时音视频设计，提供媒体协商、抖动缓冲、拥塞控制以及 NAT 穿透，并能在实时性与少量丢包之间取舍。实时语音通常优先 WebRTC，简单的录音上传或文本流可用 WebSocket。代价是 WebRTC 的信令和 ICE/STUN/TURN 运维更复杂。",
+      "follow_up_questions": [
+        "TURN 为什么会显著增加带宽成本？",
+        "WebRTC 数据通道能否完全替代 WebSocket？"
+      ],
+      "sources": [
+        {
+          "title": "MDN WebRTC API",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API",
+          "source_type": "official_documentation",
+          "license": "CC-BY-SA 2.5; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MDN: The WebSocket API",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API",
+          "source_type": "official_documentation",
+          "license": "CC-BY-SA 2.5; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
       "id": "python-asyncio-001",
       "domain": "python",
       "topic": "asyncio",
@@ -3410,6 +5613,83 @@
       "verified_by_human": false
     },
     {
+      "id": "rag-advanced-patterns-001",
+      "domain": "rag",
+      "topic": "retrieval",
+      "subtopic": "advanced_patterns",
+      "question": "Self-RAG、Corrective RAG 和分层检索分别解决什么问题？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Self-RAG",
+        "CRAG",
+        "RAPTOR"
+      ],
+      "reference_points": [
+        "Self-RAG 让模型判断是否检索并反思证据与回答",
+        "Corrective RAG 评估召回质量并在不足时纠正或扩大检索",
+        "分层检索为长文档构建多粒度摘要或树结构",
+        "说明复杂范式会增加调用、延迟和评测难度"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "Self-RAG 让模型判断是否检索并反思证据与回答",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "Corrective RAG 评估召回质量并在不足时纠正或扩大检索",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "分层检索为长文档构建多粒度摘要或树结构",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "Self-RAG 把是否需要检索、证据相关性和回答支持度纳入生成过程；Corrective RAG 在检索质量不足时触发纠正、外部搜索或重写；分层检索通过多粒度摘要或树结构处理跨段和全局问题。它们针对不同失败模式，不能只因名字先进就叠加。采用前应先确认基础 RAG 的具体瓶颈，并衡量额外模型调用、延迟与可测试性。",
+      "follow_up_questions": [
+        "怎样为复杂 RAG 设置停止条件？",
+        "基础 RAG 哪些失败不需要引入新范式？"
+      ],
+      "sources": [
+        {
+          "title": "Self-RAG: Learning to Retrieve, Generate, and Critique",
+          "url": "https://arxiv.org/abs/2310.11511",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "Corrective Retrieval Augmented Generation",
+          "url": "https://arxiv.org/abs/2401.15884",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "RAPTOR: Recursive Abstractive Processing for Tree-Organized Retrieval",
+          "url": "https://arxiv.org/abs/2401.18059",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
       "id": "rag-chunking-001",
       "domain": "rag",
       "topic": "chunking",
@@ -3468,6 +5748,265 @@
           "source_type": "research_paper",
           "license": "arXiv terms; no verbatim text imported",
           "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "rag-dense-vs-sparse-001",
+      "domain": "rag",
+      "topic": "hybrid_search",
+      "subtopic": "dense_sparse",
+      "question": "向量检索和关键词检索各自擅长什么，为什么常组合成混合检索？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "RAG",
+        "Dense Retrieval",
+        "BM25"
+      ],
+      "reference_points": [
+        "稀疏检索擅长精确词、编号、专名和低频关键词",
+        "稠密检索擅长语义近似和不同表达",
+        "混合检索需要分别召回后归一化或用 RRF 融合",
+        "最终用重排和业务评测确定权重"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "稀疏检索擅长精确词、编号、专名和低频关键词",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "稠密检索擅长语义近似和不同表达",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "混合检索需要分别召回后归一化或用 RRF 融合",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "关键词检索直接匹配词项，对产品编号、专名和精确约束很强，但容易漏掉同义表达。向量检索能找到语义相近内容，却可能忽略关键字面条件。混合检索让两路独立召回，再用分数归一化、加权或 Reciprocal Rank Fusion 合并，随后可用重排器排序。权重应由真实查询评测决定。",
+      "follow_up_questions": [
+        "两路结果分数为什么不能直接相加？",
+        "哪些查询适合动态提高关键词权重？"
+      ],
+      "sources": [
+        {
+          "title": "Dense Passage Retrieval for Open-Domain Question Answering",
+          "url": "https://arxiv.org/abs/2004.04906",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "rag-embedding-algorithms-001",
+      "domain": "rag",
+      "topic": "embedding",
+      "subtopic": "embedding_families",
+      "question": "常见文本 Embedding 方法经历了哪些演进，双塔模型为什么适合大规模检索？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Embedding",
+        "双塔",
+        "向量检索"
+      ],
+      "reference_points": [
+        "区分稀疏词项表示、静态词向量与上下文化句向量",
+        "双塔可离线编码文档并在线计算查询向量",
+        "交叉编码器联合计算相关性更准但难以全库扫描",
+        "说明训练目标、负样本和领域数据会影响检索效果"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "区分稀疏词项表示、静态词向量与上下文化句向量",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "双塔可离线编码文档并在线计算查询向量",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "交叉编码器联合计算相关性更准但难以全库扫描",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "文本表示从 TF-IDF、BM25 等稀疏词项方法发展到静态词向量，再到基于 Transformer 的上下文化句向量。双塔分别编码查询和文档，文档向量可以预计算并建立近似最近邻索引，因此适合大规模召回；交叉编码器让查询与文档共同参与注意力，通常更精确但成本高，常放在重排阶段。",
+      "follow_up_questions": [
+        "困难负样本为什么重要？",
+        "双塔和交叉编码器如何组成两阶段检索？"
+      ],
+      "sources": [
+        {
+          "title": "Dense Passage Retrieval for Open-Domain Question Answering",
+          "url": "https://arxiv.org/abs/2004.04906",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "MTEB: Massive Text Embedding Benchmark",
+          "url": "https://arxiv.org/abs/2210.07316",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "rag-embedding-model-evaluation-001",
+      "domain": "rag",
+      "topic": "embedding",
+      "subtopic": "model_selection",
+      "question": "RAG 项目如何选择和评估 Embedding 模型？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "RAG",
+        "Embedding",
+        "评测"
+      ],
+      "reference_points": [
+        "按语言、领域、查询长度和向量维度筛选候选模型",
+        "用业务标注集计算 Recall@k、MRR 或 nDCG",
+        "同时测索引体积、编码吞吐、查询延迟和费用",
+        "保持归一化与相似度一致，并验证模型升级后的全量重建影响"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "按语言、领域、查询长度和向量维度筛选候选模型",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "用业务标注集计算 Recall@k、MRR 或 nDCG",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "同时测索引体积、编码吞吐、查询延迟和费用",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "Embedding 选型要从业务查询和文档出发，先筛选支持语言、领域与输入长度的模型，再用带相关文档标注的真实查询测 Recall@k、MRR 或 nDCG。还要比较维度造成的存储、索引速度、吞吐、延迟和费用。部署前确认模型要求的归一化与距离函数，升级模型时通常不能混用旧向量，需要规划重算和灰度。",
+      "follow_up_questions": [
+        "没有人工标注集时如何构造初始评测集？",
+        "为什么公开榜单高分不保证业务检索更好？"
+      ],
+      "sources": [
+        {
+          "title": "MTEB: Massive Text Embedding Benchmark",
+          "url": "https://arxiv.org/abs/2210.07316",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "rag-graph-enhancement-001",
+      "domain": "rag",
+      "topic": "hybrid_search",
+      "subtopic": "graph_retrieval",
+      "question": "什么场景适合用图数据库或 GraphRAG 增强向量检索？",
+      "difficulty": "hard",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "RAG",
+        "GraphRAG",
+        "知识图谱"
+      ],
+      "reference_points": [
+        "关系、多跳、路径和全局主题问题更能利用图结构",
+        "需要实体识别、消歧、关系抽取和持续更新图索引",
+        "图检索可与向量检索互补而非全面替代",
+        "应比较构图成本、查询质量、延迟和可解释性"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "关系、多跳、路径和全局主题问题更能利用图结构",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "需要实体识别、消歧、关系抽取和持续更新图索引",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "图检索可与向量检索互补而非全面替代",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "当问题依赖实体关系、多跳路径、影响传播或全局主题时，纯相似度检索容易漏掉结构信息，图检索更合适。代价是要维护实体消歧、关系抽取、图更新和权限映射。实际常让向量召回处理局部语义，让图查询补充关系或社区摘要，再统一重排。是否采用应由多跳评测的增益证明。",
+      "follow_up_questions": [
+        "图中的错误关系会怎样影响回答？",
+        "多租户 GraphRAG 如何实施权限过滤？"
+      ],
+      "sources": [
+        {
+          "title": "Graph Retrieval-Augmented Generation: A Survey",
+          "url": "https://arxiv.org/abs/2408.08921",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
         }
       ],
       "review_status": "pending",
@@ -3538,6 +6077,461 @@
       "verified_by_human": false
     },
     {
+      "id": "rag-knowledge-conflict-001",
+      "domain": "rag",
+      "topic": "hallucination",
+      "subtopic": "source_conflict",
+      "question": "不同来源的知识互相冲突时，RAG 应依据什么决定采用哪条证据？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "RAG",
+        "知识冲突",
+        "来源治理"
+      ],
+      "reference_points": [
+        "为来源记录权威级别、时间、版本、适用范围和所有者",
+        "先按业务规则过滤失效或越权证据，再比较时效和权威性",
+        "无法确定时并列呈现冲突并避免强行生成唯一结论",
+        "保留引用和决策轨迹以支持人工修订"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "为来源记录权威级别、时间、版本、适用范围和所有者",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "先按业务规则过滤失效或越权证据，再比较时效和权威性",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "无法确定时并列呈现冲突并避免强行生成唯一结论",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "冲突治理应由显式来源策略完成，而不是让模型凭语气判断。每条文档要带权威级别、发布时间、版本、适用地区或产品线和负责人；检索后先剔除过期或无权限内容，再按领域规则排序。若两个有效来源仍冲突，回答应指出差异并引用双方，必要时请求用户选择或转人工。",
+      "follow_up_questions": [
+        "同一官方来源的新旧版本如何处理？",
+        "如何避免高相似度的过时文档压过最新规则？"
+      ],
+      "sources": [
+        {
+          "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+          "url": "https://arxiv.org/abs/2005.11401",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "rag-knowledge-update-001",
+      "domain": "rag",
+      "topic": "vector_database",
+      "subtopic": "continuous_update",
+      "question": "RAG 知识库如何做持续更新，同时避免旧向量、重复文档和索引不一致？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "RAG",
+        "增量更新",
+        "索引"
+      ],
+      "reference_points": [
+        "为文档、版本和 chunk 设计稳定标识与内容哈希",
+        "变更时执行幂等 upsert，并删除或失效旧版本片段",
+        "Embedding 模型或切分策略升级使用新索引并灰度切换",
+        "记录摄取状态、失败重试、数据新鲜度和可回滚版本"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "为文档、版本和 chunk 设计稳定标识与内容哈希",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "变更时执行幂等 upsert，并删除或失效旧版本片段",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "Embedding 模型或切分策略升级使用新索引并灰度切换",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "摄取管线应给文档和 chunk 稳定 ID，并以内容哈希判断新增、修改和删除。更新通过幂等 upsert 写入，成功后再让旧版本失效，失败可重试。Embedding 模型或切分策略变化时不要把不同向量混进同一索引，应构建新版本并灰度切换。监控需覆盖队列积压、失败率、重复率和数据新鲜度。",
+      "follow_up_questions": [
+        "删除源文档后怎样保证所有派生片段被清理？",
+        "双索引切换期间如何处理持续写入？"
+      ],
+      "sources": [
+        {
+          "title": "pgvector Documentation",
+          "url": "https://github.com/pgvector/pgvector",
+          "source_type": "open_source",
+          "license": "PostgreSQL License; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "rag-multi-retrieval-001",
+      "domain": "rag",
+      "topic": "hybrid_search",
+      "subtopic": "multi_retrieval",
+      "question": "RAG 的多路召回应如何设计、融合和去重？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "RAG",
+        "多路召回",
+        "融合"
+      ],
+      "reference_points": [
+        "按查询特征选择关键词、向量、结构化过滤或图检索等通道",
+        "每路独立控制候选数量并记录来源",
+        "使用 RRF、学习排序或重排器融合并按文档与片段去重",
+        "以覆盖度、冗余率、延迟和最终答案共同评估"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "按查询特征选择关键词、向量、结构化过滤或图检索等通道",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "每路独立控制候选数量并记录来源",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "使用 RRF、学习排序或重排器融合并按文档与片段去重",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "多路召回不是把每种检索都跑一遍，而是按查询类型选择通道。关键词、向量、结构化过滤和图检索分别返回带来源的候选，再用 RRF 或重排模型统一排序。相同文档的相邻片段应合并或限制占比，避免上下文被一个来源占满。评估同时看 Recall@k、冗余、尾延迟和最终回答质量。",
+      "follow_up_questions": [
+        "如何给不同召回通道设置动态预算？",
+        "去重时怎样避免删掉互补片段？"
+      ],
+      "sources": [
+        {
+          "title": "Dense Passage Retrieval for Open-Domain Question Answering",
+          "url": "https://arxiv.org/abs/2004.04906",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "Graph Retrieval-Augmented Generation: A Survey",
+          "url": "https://arxiv.org/abs/2408.08921",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "rag-problem-scope-001",
+      "domain": "rag",
+      "topic": "retrieval",
+      "subtopic": "problem_scope",
+      "question": "RAG 主要解决大模型应用中的哪些问题，又有哪些问题不能靠 RAG 解决？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "RAG",
+        "知识更新",
+        "边界"
+      ],
+      "reference_points": [
+        "说明 RAG 可接入私有、时效性强或可追溯的外部知识",
+        "说明检索证据可降低但不能消除幻觉",
+        "指出推理能力、工具执行和模型固有能力不足并不会被 RAG 自动修复",
+        "能根据知识是否可检索判断适用性"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "说明 RAG 可接入私有、时效性强或可追溯的外部知识",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "说明检索证据可降低但不能消除幻觉",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "指出推理能力、工具执行和模型固有能力不足并不会被 RAG 自动修复",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "RAG 通过检索把模型训练后新增、企业私有或需要引用的知识放进当前上下文，因而便于更新和追溯。它只能提高可用证据的质量，检索失败、资料冲突或模型错误理解时仍会幻觉。数学推理不足、复杂工具执行和行为风格等问题也不一定适合靠 RAG 解决，需要模型选择、工作流或微调配合。",
+      "follow_up_questions": [
+        "知识库没有答案时系统应怎样处理？",
+        "哪些需求更适合微调而不是 RAG？"
+      ],
+      "sources": [
+        {
+          "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+          "url": "https://arxiv.org/abs/2005.11401",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "rag-production-challenges-001",
+      "domain": "rag",
+      "topic": "evaluation",
+      "subtopic": "production_challenges",
+      "question": "RAG 从 Demo 到生产最难的环节通常有哪些，应该如何建立闭环？",
+      "difficulty": "hard",
+      "question_type": "engineering_practice",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "RAG",
+        "生产化",
+        "评估"
+      ],
+      "reference_points": [
+        "主要难点是数据质量、权限、召回、证据冲突和持续更新",
+        "把失败拆成摄取、检索、上下文与生成阶段",
+        "建立真实查询评测集、在线反馈和可回放 trace",
+        "同时治理延迟、成本、隐私和无答案场景"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "主要难点是数据质量、权限、召回、证据冲突和持续更新",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "把失败拆成摄取、检索、上下文与生成阶段",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "建立真实查询评测集、在线反馈和可回放 trace",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "生产难点通常不在接入向量库，而在知识是否准确可用、权限是否前置、检索是否稳定以及更新能否追踪。系统应把失败分层记录，让每个回答能回溯查询改写、候选文档、重排与最终引用。用线上失败沉淀评测集，再在版本发布前回放。质量指标还必须与延迟、费用、隐私和拒答体验一起看。",
+      "follow_up_questions": [
+        "怎样把用户差评转成可复现的评测样本？",
+        "RAG 事故应优先回滚模型还是索引？"
+      ],
+      "sources": [
+        {
+          "title": "RAGAS: Automated Evaluation of Retrieval Augmented Generation",
+          "url": "https://arxiv.org/abs/2309.15217",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "rag-query-rewrite-001",
+      "domain": "rag",
+      "topic": "query_rewrite",
+      "subtopic": "rewrite_strategy",
+      "question": "RAG 为什么需要 Query Rewrite，如何避免改写后偏离用户原意？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "RAG",
+        "Query Rewrite",
+        "检索"
+      ],
+      "reference_points": [
+        "改写可补全指代、提取关键词、拆解多跳问题或生成多个检索表达",
+        "保留原查询并将改写结果作为候选而非唯一真相",
+        "利用对话状态和领域词典约束改写",
+        "通过查询级召回增益与语义偏移率评估"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "改写可补全指代、提取关键词、拆解多跳问题或生成多个检索表达",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "保留原查询并将改写结果作为候选而非唯一真相",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "利用对话状态和领域词典约束改写",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "Query Rewrite 用于消解多轮指代、提炼可检索实体、拆分多跳问题或生成不同表达。为防止偏题，系统应保留原查询，与一个或多个改写结果并行召回，并让改写输出结构化记录保留词和新增假设。最后比较改写前后的召回增益、错误实体和答案正确率，而不是只看改写文本是否顺畅。",
+      "follow_up_questions": [
+        "HyDE 与普通关键词改写有什么差异？",
+        "什么时候不应该对查询做改写？"
+      ],
+      "sources": [
+        {
+          "title": "Precise Zero-Shot Dense Retrieval without Relevance Labels",
+          "url": "https://arxiv.org/abs/2212.10496",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "rag-retrieval-optimization-001",
+      "domain": "rag",
+      "topic": "reranking",
+      "subtopic": "optimization",
+      "question": "RAG 检索链路有哪些常见优化手段，应该按什么顺序实施？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "RAG",
+        "Reranking",
+        "检索优化"
+      ],
+      "reference_points": [
+        "先用失败样本判断问题来自切分、查询、过滤、召回还是排序",
+        "分别尝试混合检索、查询改写、元数据过滤与重排",
+        "控制 top-k、上下文去重和证据覆盖避免噪声",
+        "每次只改变少量变量并用固定评测集验证"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "先用失败样本判断问题来自切分、查询、过滤、召回还是排序",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "分别尝试混合检索、查询改写、元数据过滤与重排",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "控制 top-k、上下文去重和证据覆盖避免噪声",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "优化应从错误分析开始：正确文档未入候选是召回问题，已召回却排后是排序问题，证据进入上下文仍答错则是生成问题。对应地调整切分、Embedding、混合检索、Query Rewrite、过滤、top-k 或重排。候选越多不一定越好，重复和冲突会稀释证据。每轮实验要固定数据集并同时记录质量、延迟和成本。",
+      "follow_up_questions": [
+        "什么时候值得引入 Cross-Encoder 重排？",
+        "如何建立可解释的检索失败分类？"
+      ],
+      "sources": [
+        {
+          "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+          "url": "https://arxiv.org/abs/2005.11401",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        },
+        {
+          "title": "RAGAS: Automated Evaluation of Retrieval Augmented Generation",
+          "url": "https://arxiv.org/abs/2309.15217",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
       "id": "rag-retrieval-pipeline-001",
       "domain": "rag",
       "topic": "retrieval",
@@ -3595,6 +6589,545 @@
           "url": "https://arxiv.org/abs/2005.11401",
           "source_type": "research_paper",
           "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "rag-semantic-boundary-001",
+      "domain": "rag",
+      "topic": "chunking",
+      "subtopic": "semantic_boundary",
+      "question": "文档切分破坏了跨段语义时，可以用哪些方法修复？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "RAG",
+        "Chunking",
+        "语义边界"
+      ],
+      "reference_points": [
+        "优先按标题、段落、句子、代码块和表格等结构切分",
+        "使用有限 overlap、父子块或邻接块扩展补足上下文",
+        "检索小块后回取父块可兼顾定位与完整语义",
+        "用真实查询评估召回而不是无限增大 chunk"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "优先按标题、段落、句子、代码块和表格等结构切分",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "使用有限 overlap、父子块或邻接块扩展补足上下文",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "检索小块后回取父块可兼顾定位与完整语义",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "先利用文档结构和语义边界切分，避免在标题、表格或代码块中间截断。跨边界信息可以用受控 overlap、相邻块扩展或父子索引解决：小块负责精确召回，命中后回取较完整的父块。若仍缺上下文，应根据失败样本调整切分器，而不是一味放大 chunk 或 overlap。",
+      "follow_up_questions": [
+        "父子检索会增加哪些存储和实现成本？",
+        "表格与代码文档怎样采用不同切分策略？"
+      ],
+      "sources": [
+        {
+          "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+          "url": "https://arxiv.org/abs/2005.11401",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "rag-vector-database-performance-001",
+      "domain": "rag",
+      "topic": "vector_database",
+      "subtopic": "performance",
+      "question": "向量数据库出现召回下降或延迟升高时，应如何定位和优化？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "RAG",
+        "向量数据库",
+        "性能"
+      ],
+      "reference_points": [
+        "区分向量编码、过滤、ANN 搜索、回表和网络阶段",
+        "检查索引参数、数据分布、删除膨胀和冷热缓存",
+        "用 recall-latency 曲线选择 ef_search、probes 等参数",
+        "通过分区、批量写入、量化或扩容优化并回归质量"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "区分向量编码、过滤、ANN 搜索、回表和网络阶段",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "检查索引参数、数据分布、删除膨胀和冷热缓存",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "用 recall-latency 曲线选择 ef_search、probes 等参数",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "先把链路拆成编码、过滤、近似检索、回表和传输，分别记录耗时。召回下降要检查模型或归一化变化、索引参数和过滤后候选量；延迟升高则关注数据规模、缓存、删除膨胀与并发。ANN 参数只能在召回率与延迟曲线上调，必要时再采用分区、批量写入、量化或扩容，并用固定评测集确认质量没有倒退。",
+      "follow_up_questions": [
+        "为什么只压测空过滤查询会误判线上能力？",
+        "索引重建期间如何保持服务可用？"
+      ],
+      "sources": [
+        {
+          "title": "pgvector Documentation",
+          "url": "https://github.com/pgvector/pgvector",
+          "source_type": "open_source",
+          "license": "PostgreSQL License; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "rag-vector-database-selection-001",
+      "domain": "rag",
+      "topic": "vector_database",
+      "subtopic": "selection",
+      "question": "选择向量数据库时应比较哪些维度，而不是只看检索速度？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "RAG",
+        "向量数据库",
+        "选型"
+      ],
+      "reference_points": [
+        "比较索引算法、规模、召回率、延迟和写入更新能力",
+        "检查元数据过滤、租户隔离、备份恢复和一致性",
+        "考虑现有数据库集成、运维复杂度与总成本",
+        "用业务数据同时测试召回率和尾延迟"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "比较索引算法、规模、召回率、延迟和写入更新能力",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "检查元数据过滤、租户隔离、备份恢复和一致性",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "考虑现有数据库集成、运维复杂度与总成本",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "选型要同时看向量规模、索引算法、召回率、p95/p99 延迟和持续写入表现。生产场景还依赖元数据过滤、多租户隔离、备份恢复、权限与监控。若现有 PostgreSQL 的规模和延迟足够，pgvector 往往能减少系统数量；只有专用能力确有收益时才引入独立向量库。最终应以业务数据和查询分布压测。",
+      "follow_up_questions": [
+        "HNSW 与 IVF 的主要取舍是什么？",
+        "为什么过滤条件会显著影响向量检索性能？"
+      ],
+      "sources": [
+        {
+          "title": "pgvector Documentation",
+          "url": "https://github.com/pgvector/pgvector",
+          "source_type": "open_source",
+          "license": "PostgreSQL License; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "rag-vs-finetuning-001",
+      "domain": "rag",
+      "topic": "retrieval",
+      "subtopic": "rag_vs_finetuning",
+      "question": "RAG 与微调分别适合解决什么问题，实际项目如何选择或组合？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "RAG",
+        "Fine-tuning",
+        "选型"
+      ],
+      "reference_points": [
+        "RAG 适合频繁变化、私有且需要引用的事实知识",
+        "微调适合稳定行为、格式、风格或领域任务能力",
+        "比较数据准备、更新成本、延迟、可追溯性和遗忘风险",
+        "说明可用微调塑造行为并用 RAG 提供实时知识"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "RAG 适合频繁变化、私有且需要引用的事实知识",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "微调适合稳定行为、格式、风格或领域任务能力",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "比较数据准备、更新成本、延迟、可追溯性和遗忘风险",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "RAG 把知识留在外部索引中，更新快、可引用，但增加检索链路与延迟；微调改变模型参数，更适合稳定的行为模式、输出格式或专业任务能力，却不适合频繁写入新事实。项目应先看问题是知识缺失还是行为能力不足。两者可以组合：微调让模型更会使用证据，RAG 提供最新且可审计的内容。",
+      "follow_up_questions": [
+        "如何用实验判断问题来自检索还是模型能力？",
+        "什么情况下微调数据会造成灾难性遗忘？"
+      ],
+      "sources": [
+        {
+          "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+          "url": "https://arxiv.org/abs/2005.11401",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        },
+        {
+          "title": "LoRA: Low-Rank Adaptation of Large Language Models",
+          "url": "https://arxiv.org/abs/2106.09685",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "tool-call-fault-tolerance-001",
+      "domain": "llm_application",
+      "topic": "tool_calling",
+      "subtopic": "fault_tolerance",
+      "question": "工具调用出现格式非法、参数错误、超时或服务失败时，Agent 应如何分类处理？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Tool Calling",
+        "错误处理",
+        "重试"
+      ],
+      "reference_points": [
+        "解析或 schema 错误可返回结构化反馈让模型限次修正",
+        "业务校验与权限错误不可盲目重试",
+        "瞬时网络或服务错误采用受预算约束的退避重试",
+        "超时和未知结果要结合幂等键查询执行状态，避免重复副作用"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "解析或 schema 错误可返回结构化反馈让模型限次修正",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "业务校验与权限错误不可盲目重试",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "瞬时网络或服务错误采用受预算约束的退避重试",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "先把错误分为生成格式、参数或业务校验、权限、瞬时基础设施故障和结果未知。格式问题可把精简错误返回模型并限制修正次数；权限和不可满足的业务条件直接终止；限流或短暂故障按 deadline 退避重试。对写操作超时，不能假定失败后重放，应借助幂等键或状态查询确认是否已经执行。",
+      "follow_up_questions": [
+        "工具返回部分结果时怎样表示？",
+        "如何防止模型反复用同一错误参数重试？"
+      ],
+      "sources": [
+        {
+          "title": "OpenAI API Documentation",
+          "url": "https://platform.openai.com/docs/",
+          "source_type": "official_documentation",
+          "license": "Documentation terms apply; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        },
+        {
+          "title": "Model Context Protocol Specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28",
+          "source_type": "specification",
+          "license": "Specification terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "tool-call-learning-001",
+      "domain": "llm_application",
+      "topic": "function_calling",
+      "subtopic": "inference_mechanism",
+      "question": "LLM 是怎样决定调用哪个外部工具的，模型本身真的执行了函数吗？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "Function Calling",
+        "Tool Calling",
+        "LLM"
+      ],
+      "reference_points": [
+        "模型根据提示、工具名称、描述和参数 schema 预测结构化调用",
+        "应用而不是模型负责校验参数并执行真实函数",
+        "工具结果作为新消息返回模型以继续生成",
+        "模型可能误选或漏调，因此需要限制和评测"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "模型根据提示、工具名称、描述和参数 schema 预测结构化调用",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "应用而不是模型负责校验参数并执行真实函数",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "工具结果作为新消息返回模型以继续生成",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "模型在上下文中读取可用工具的描述和参数结构，然后像生成文本一样生成某个工具名及参数。它并不直接执行本地函数，真正的调用由应用校验权限和参数后完成。应用再把结果作为工具消息送回模型，模型据此继续或给出最终回答。整个选择是概率性的，所以仍需服务端控制和失败处理。",
+      "follow_up_questions": [
+        "怎样减少名称相似工具之间的误选？",
+        "为什么工具返回值也应视为不可信输入？"
+      ],
+      "sources": [
+        {
+          "title": "OpenAI API Documentation",
+          "url": "https://platform.openai.com/docs/",
+          "source_type": "official_documentation",
+          "license": "Documentation terms apply; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "tool-call-training-001",
+      "domain": "llm_application",
+      "topic": "function_calling",
+      "subtopic": "capability_training",
+      "question": "大模型的 Function Calling 能力通常是怎样训练和对齐出来的？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Function Calling",
+        "SFT",
+        "对齐"
+      ],
+      "reference_points": [
+        "预训练先提供通用语言与代码模式能力",
+        "监督微调使用工具定义、调用参数和工具结果组成的轨迹",
+        "偏好或强化学习可改善何时调用、参数质量和拒绝行为",
+        "训练能力仍依赖推理时 schema、工具描述与服务端校验"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "预训练先提供通用语言与代码模式能力",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "监督微调使用工具定义、调用参数和工具结果组成的轨迹",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "偏好或强化学习可改善何时调用、参数质量和拒绝行为",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "模型先从预训练获得语言、代码和结构化表达能力，再通过带工具定义、调用参数、工具返回和最终答案的监督轨迹学习调用格式与时机。后续偏好优化或强化学习可以奖励正确选择、参数和停止行为。即使模型训练过 Function Calling，推理时仍需清晰的工具契约，并由应用校验与执行，不能把对齐结果当安全边界。",
+      "follow_up_questions": [
+        "训练集里应包含哪些失败工具轨迹？",
+        "为什么仅训练合法 JSON 还不够？"
+      ],
+      "sources": [
+        {
+          "title": "OpenAI API Documentation",
+          "url": "https://platform.openai.com/docs/",
+          "source_type": "official_documentation",
+          "license": "Documentation terms apply; no verbatim text imported",
+          "accessed_at": "2026-08-02"
+        },
+        {
+          "title": "Training language models to follow instructions with human feedback",
+          "url": "https://arxiv.org/abs/2203.02155",
+          "source_type": "research_paper",
+          "license": "arXiv terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false
+    },
+    {
+      "id": "tool-ecosystem-layers-001",
+      "domain": "agent",
+      "topic": "tool_calling",
+      "subtopic": "function_skill_mcp_layers",
+      "question": "Function Calling、Agent Skill 与 MCP 分别处在哪一层，三者如何配合？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Function Calling",
+        "Agent Skill",
+        "MCP"
+      ],
+      "reference_points": [
+        "Function Calling 表达模型对某个动作的结构化选择",
+        "MCP 连接应用与可复用工具或数据服务",
+        "Skill 提供完成任务的方法、流程和工具使用知识",
+        "说明同一任务可由 Skill 指导、Function Calling 决策、MCP 执行"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "Function Calling 表达模型对某个动作的结构化选择",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "MCP 连接应用与可复用工具或数据服务",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "Skill 提供完成任务的方法、流程和工具使用知识",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "Function Calling 是模型输出动作名和参数的交互机制；MCP 是 Host 发现并访问外部能力的协议；Skill 则告诉 Agent 在某类任务中怎样组合能力、遵守什么流程。一个完整例子是：Agent 加载部署 Skill，根据步骤生成 Function Calling，Host 再通过 MCP 调用部署服务。三者解决不同层次的问题，可以同时存在。",
+      "follow_up_questions": [
+        "Skill 与普通工具描述的边界在哪里？",
+        "MCP Server 是否应该内置业务工作流？"
+      ],
+      "sources": [
+        {
+          "title": "Agent Skills Specification",
+          "url": "https://agentskills.io/specification",
+          "source_type": "specification",
+          "license": "Specification terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "Model Context Protocol Specification",
+          "url": "https://modelcontextprotocol.io/specification/2026-07-28",
+          "source_type": "specification",
+          "license": "Specification terms; no verbatim text imported",
+          "accessed_at": "2026-09-14"
+        },
+        {
+          "title": "OpenAI API Documentation",
+          "url": "https://platform.openai.com/docs/",
+          "source_type": "official_documentation",
+          "license": "Documentation terms apply; no verbatim text imported",
           "accessed_at": "2026-08-02"
         }
       ],

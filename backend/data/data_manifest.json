@@ -1,14 +1,31 @@
 {
-  "generated_at": "2026-09-14T14:00:19.224888+00:00",
+  "generated_at": "2026-09-14T14:27:12.366589+00:00",
   "algorithm_count": 18,
-  "interview_question_count": 54,
+  "interview_question_count": 107,
   "algorithm_sources": [
     "neetcode-gh/leetcode"
   ],
   "interview_sources": [
+    "a2a-spec",
+    "agent-skills-spec",
+    "alibi-paper",
     "anthropic-effective-agents",
+    "awq-paper",
+    "cot-paper",
+    "crag-paper",
+    "deepseekmath-paper",
     "docker-docs",
+    "dpo-paper",
+    "dpr-paper",
     "fastapi-docs",
+    "flash-attention-paper",
+    "gptq-paper",
+    "gqa-paper",
+    "graphrag-paper",
+    "hallucination-survey",
+    "helm-paper",
+    "hyde-paper",
+    "instructgpt-paper",
     "langchain-agents-docs",
     "langchain-context-docs",
     "langchain-deep-research-docs",
@@ -21,21 +38,42 @@
     "langchain4j-docs",
     "langgraph-docs",
     "langgraph-persistence-docs",
+    "litellm-docs",
+    "llamacpp-repo",
     "llamaindex-docs",
+    "lora-paper",
+    "lost-middle-paper",
     "mcp-spec",
+    "mcp-transport-docs",
     "mdn-sse",
+    "mdn-webrtc",
     "mdn-websocket",
+    "mteb-paper",
+    "nucleus-sampling-paper",
     "openai-agents-guardrails",
     "openai-agents-orchestration",
     "openai-agents-sdk",
     "openai-agents-tracing",
     "openai-api-docs",
     "opentelemetry-docs",
+    "pgvector-docs",
     "pydantic-docs",
     "python-asyncio-docs",
+    "qlora-paper",
     "rag-paper",
+    "ragas-paper",
+    "raptor-paper",
     "react-paper",
-    "rfc9110"
+    "rfc9110",
+    "rope-paper",
+    "scaling-laws-paper",
+    "self-rag-paper",
+    "sentencepiece-paper",
+    "sglang-paper",
+    "switch-transformer-paper",
+    "tgi-docs",
+    "transformer-paper",
+    "vllm-paper"
   ],
   "files": [
     {
@@ -45,8 +83,8 @@
     },
     {
       "path": "data/interview_question_bank.json",
-      "sha256": "6468fbf100fcb319e432ee08da7d8b6e0e4c2e5a6cb1e0e0d6e83fb84f885c8d",
-      "record_count": 54
+      "sha256": "b6f3eb70a60595535dee3dc668504b1a18a39f22464c7277e1c28d98ac74ba74",
+      "record_count": 107
     }
   ]
 }

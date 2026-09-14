@@ -8,10 +8,10 @@
   },
   "mcp-spec": {
     "name": "Model Context Protocol Specification",
-    "url": "https://modelcontextprotocol.io/specification/2025-06-18",
+    "url": "https://modelcontextprotocol.io/specification/2026-07-28",
     "source_type": "specification",
     "license": "Specification terms; no verbatim text imported",
-    "accessed_at": "2026-08-02"
+    "accessed_at": "2026-09-14"
   },
   "openai-api-docs": {
     "name": "OpenAI API Documentation",
@@ -207,6 +207,272 @@
     "url": "https://developers.llamaindex.ai/python/framework/",
     "source_type": "official_documentation",
     "license": "MIT (project); no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "dpr-paper": {
+    "name": "Dense Passage Retrieval for Open-Domain Question Answering",
+    "url": "https://arxiv.org/abs/2004.04906",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mteb-paper": {
+    "name": "MTEB: Massive Text Embedding Benchmark",
+    "url": "https://arxiv.org/abs/2210.07316",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "hyde-paper": {
+    "name": "Precise Zero-Shot Dense Retrieval without Relevance Labels",
+    "url": "https://arxiv.org/abs/2212.10496",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "self-rag-paper": {
+    "name": "Self-RAG: Learning to Retrieve, Generate, and Critique",
+    "url": "https://arxiv.org/abs/2310.11511",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "crag-paper": {
+    "name": "Corrective Retrieval Augmented Generation",
+    "url": "https://arxiv.org/abs/2401.15884",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "raptor-paper": {
+    "name": "RAPTOR: Recursive Abstractive Processing for Tree-Organized Retrieval",
+    "url": "https://arxiv.org/abs/2401.18059",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "graphrag-paper": {
+    "name": "Graph Retrieval-Augmented Generation: A Survey",
+    "url": "https://arxiv.org/abs/2408.08921",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "ragas-paper": {
+    "name": "RAGAS: Automated Evaluation of Retrieval Augmented Generation",
+    "url": "https://arxiv.org/abs/2309.15217",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "pgvector-docs": {
+    "name": "pgvector Documentation",
+    "url": "https://github.com/pgvector/pgvector",
+    "source_type": "open_source",
+    "license": "PostgreSQL License; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "agent-skills-spec": {
+    "name": "Agent Skills Specification",
+    "url": "https://agentskills.io/specification",
+    "source_type": "specification",
+    "license": "Specification terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "a2a-spec": {
+    "name": "Agent2Agent Protocol Specification",
+    "url": "https://a2a-protocol.org/latest/specification/",
+    "source_type": "specification",
+    "license": "Apache-2.0 (project); no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mcp-transport-docs": {
+    "name": "Model Context Protocol Transports",
+    "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports",
+    "source_type": "specification",
+    "license": "Specification terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "mdn-webrtc": {
+    "name": "MDN WebRTC API",
+    "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API",
+    "source_type": "official_documentation",
+    "license": "CC-BY-SA 2.5; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "litellm-docs": {
+    "name": "LiteLLM Documentation",
+    "url": "https://docs.litellm.ai/docs/",
+    "source_type": "open_source",
+    "license": "MIT (project); no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "transformer-paper": {
+    "name": "Attention Is All You Need",
+    "url": "https://arxiv.org/abs/1706.03762",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "gqa-paper": {
+    "name": "GQA: Training Generalized Multi-Query Transformer Models",
+    "url": "https://arxiv.org/abs/2305.13245",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "flash-attention-paper": {
+    "name": "FlashAttention",
+    "url": "https://arxiv.org/abs/2205.14135",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "rope-paper": {
+    "name": "RoFormer: Enhanced Transformer with Rotary Position Embedding",
+    "url": "https://arxiv.org/abs/2104.09864",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "alibi-paper": {
+    "name": "Train Short, Test Long: Attention with Linear Biases",
+    "url": "https://arxiv.org/abs/2108.12409",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "sentencepiece-paper": {
+    "name": "SentencePiece",
+    "url": "https://arxiv.org/abs/1808.06226",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "scaling-laws-paper": {
+    "name": "Scaling Laws for Neural Language Models",
+    "url": "https://arxiv.org/abs/2001.08361",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "lora-paper": {
+    "name": "LoRA: Low-Rank Adaptation of Large Language Models",
+    "url": "https://arxiv.org/abs/2106.09685",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "qlora-paper": {
+    "name": "QLoRA",
+    "url": "https://arxiv.org/abs/2305.14314",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "instructgpt-paper": {
+    "name": "Training language models to follow instructions with human feedback",
+    "url": "https://arxiv.org/abs/2203.02155",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "dpo-paper": {
+    "name": "Direct Preference Optimization",
+    "url": "https://arxiv.org/abs/2305.18290",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "deepseekmath-paper": {
+    "name": "DeepSeekMath",
+    "url": "https://arxiv.org/abs/2402.03300",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "nucleus-sampling-paper": {
+    "name": "The Curious Case of Neural Text Degeneration",
+    "url": "https://arxiv.org/abs/1904.09751",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "vllm-paper": {
+    "name": "Efficient Memory Management for Large Language Model Serving with PagedAttention",
+    "url": "https://arxiv.org/abs/2309.06180",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "gptq-paper": {
+    "name": "GPTQ",
+    "url": "https://arxiv.org/abs/2210.17323",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "awq-paper": {
+    "name": "AWQ",
+    "url": "https://arxiv.org/abs/2306.00978",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "cot-paper": {
+    "name": "Chain-of-Thought Prompting Elicits Reasoning",
+    "url": "https://arxiv.org/abs/2201.11903",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "hallucination-survey": {
+    "name": "Survey of Hallucination in Natural Language Generation",
+    "url": "https://arxiv.org/abs/2202.03629",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "switch-transformer-paper": {
+    "name": "Switch Transformers",
+    "url": "https://arxiv.org/abs/2101.03961",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "sglang-paper": {
+    "name": "SGLang",
+    "url": "https://arxiv.org/abs/2312.07104",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "llamacpp-repo": {
+    "name": "llama.cpp",
+    "url": "https://github.com/ggml-org/llama.cpp",
+    "source_type": "open_source",
+    "license": "MIT; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "tgi-docs": {
+    "name": "Text Generation Inference Documentation",
+    "url": "https://huggingface.co/docs/text-generation-inference/",
+    "source_type": "official_documentation",
+    "license": "Apache-2.0 (project); no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "helm-paper": {
+    "name": "Holistic Evaluation of Language Models",
+    "url": "https://arxiv.org/abs/2211.09110",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
+    "accessed_at": "2026-09-14"
+  },
+  "lost-middle-paper": {
+    "name": "Lost in the Middle",
+    "url": "https://arxiv.org/abs/2307.03172",
+    "source_type": "research_paper",
+    "license": "arXiv terms; no verbatim text imported",
     "accessed_at": "2026-09-14"
   }
 }

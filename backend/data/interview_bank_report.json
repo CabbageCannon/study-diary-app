@@ -1,19 +1,19 @@
 {
-  "total": 54,
+  "total": 107,
   "by_domain": {
-    "agent": 36,
-    "ai_engineering": 6,
-    "llm_application": 3,
-    "network": 3,
+    "agent": 45,
+    "ai_engineering": 30,
+    "llm_application": 6,
+    "network": 4,
     "python": 3,
-    "rag": 3
+    "rag": 19
   },
   "by_difficulty": {
-    "easy": 3,
-    "medium": 33,
-    "hard": 18
+    "easy": 6,
+    "medium": 55,
+    "hard": 46
   },
-  "pending_count": 54,
+  "pending_count": 107,
   "verified_count": 0,
   "rejected_count": 0,
   "duplicate_candidates": [],
