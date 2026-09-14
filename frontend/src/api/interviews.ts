@@ -1,4 +1,4 @@
-import { cachedRequest, invalidateCachedRequests, peekCachedRequest, primeCachedRequest, request } from "./client";
+import { cachedRequest, expireCachedRequests, invalidateCachedRequests, peekCachedRequest, primeCachedRequest, request } from "./client";
 import type {
   CreateQuestionSetPayload,
   InterviewAnswerSubmission,
@@ -106,7 +106,7 @@ export function createInterviewQuestionSet(payload: CreateQuestionSetPayload): P
     body: JSON.stringify(payload),
   }).then((questionSet) => {
     primeInterviewQuestionSet(questionSet);
-    invalidateCachedRequests("/api/interviews/question-sets?", "/api/interviews/stats");
+    expireCachedRequests("/api/interviews/question-sets?", "/api/interviews/stats");
     return questionSet;
   });
 }
@@ -127,6 +127,10 @@ export function peekInterviewQuestionSets(options: { status?: QuestionSetStatus;
   return peekCachedRequest<InterviewQuestionSetSummary[]>(questionSetListPath(options));
 }
 
+export function peekAnyInterviewQuestionSets(options: { status?: QuestionSetStatus; limit?: number } = {}) {
+  return peekCachedRequest<InterviewQuestionSetSummary[]>(questionSetListPath(options), Number.POSITIVE_INFINITY);
+}
+
 export function peekInterviewQuestionSet(setId: number) {
   return peekCachedRequest<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}`);
 }
@@ -143,6 +147,10 @@ export function peekInterviewTrainingStats() {
   return peekCachedRequest<InterviewTrainingStats>("/api/interviews/stats");
 }
 
+export function peekAnyInterviewTrainingStats() {
+  return peekCachedRequest<InterviewTrainingStats>("/api/interviews/stats", Number.POSITIVE_INFINITY);
+}
+
 export function updateInterviewQuestionSetProgress(
   setId: number,
   payload: UpdateInterviewQuestionSetProgressPayload,
@@ -152,6 +160,7 @@ export function updateInterviewQuestionSetProgress(
     body: JSON.stringify(payload),
   }).then((questionSet) => {
     primeInterviewQuestionSet(questionSet);
+    expireCachedRequests("/api/interviews/question-sets?");
     return questionSet;
   });
 }
@@ -159,7 +168,7 @@ export function updateInterviewQuestionSetProgress(
 export function completeInterviewQuestionSet(setId: number): Promise<InterviewQuestionSet> {
   return request<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}/complete`, { method: "POST" }).then((questionSet) => {
     primeInterviewQuestionSet(questionSet);
-    invalidateCachedRequests("/api/interviews/question-sets?", "/api/interviews/stats");
+    expireCachedRequests("/api/interviews/question-sets?", "/api/interviews/stats");
     return questionSet;
   });
 }
@@ -167,7 +176,7 @@ export function completeInterviewQuestionSet(setId: number): Promise<InterviewQu
 export function abandonInterviewQuestionSet(setId: number): Promise<InterviewQuestionSet> {
   return request<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}/abandon`, { method: "POST" }).then((questionSet) => {
     primeInterviewQuestionSet(questionSet);
-    invalidateCachedRequests("/api/interviews/question-sets?", "/api/interviews/stats");
+    expireCachedRequests("/api/interviews/question-sets?", "/api/interviews/stats");
     return questionSet;
   });
 }
@@ -175,20 +184,22 @@ export function abandonInterviewQuestionSet(setId: number): Promise<InterviewQue
 export function restartInterviewQuestionSet(setId: number): Promise<InterviewQuestionSet> {
   return request<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}/restart`, { method: "POST" }).then((questionSet) => {
     primeInterviewQuestionSet(questionSet);
-    invalidateCachedRequests("/api/interviews/question-sets?", "/api/interviews/stats");
+    expireCachedRequests("/api/interviews/question-sets?", "/api/interviews/stats");
     return questionSet;
   });
 }
 
 export function deleteInterviewQuestionSet(setId: number): Promise<void> {
   return request<void>(`/api/interviews/question-sets/${setId}`, { method: "DELETE" }).then(() => {
-    invalidateCachedRequests(`/api/interviews/question-sets/${setId}`, "/api/interviews/question-sets?", "/api/interviews/stats");
+    invalidateCachedRequests(`/api/interviews/question-sets/${setId}`);
+    expireCachedRequests("/api/interviews/question-sets?", "/api/interviews/stats");
   });
 }
 
 export function skipInterviewQuestion(setId: number): Promise<InterviewQuestionSet> {
   return request<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}/skip`, { method: "POST" }).then((questionSet) => {
     primeInterviewQuestionSet(questionSet);
+    expireCachedRequests("/api/interviews/question-sets?");
     return questionSet;
   });
 }
@@ -201,7 +212,7 @@ export function submitInterviewAnswer(
     method: "POST",
     body: JSON.stringify(payload),
   }).then((submission) => {
-    invalidateCachedRequests("/api/interviews/question-sets?", "/api/interviews/stats");
+    expireCachedRequests("/api/interviews/question-sets?", "/api/interviews/stats");
     return submission;
   });
 }

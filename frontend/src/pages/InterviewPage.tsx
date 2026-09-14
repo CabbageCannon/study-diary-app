@@ -11,6 +11,8 @@ import {
   createInterviewQuestionSet,
   getInterviewTrainingStats,
   listInterviewQuestionSets,
+  peekAnyInterviewQuestionSets,
+  peekAnyInterviewTrainingStats,
   peekInterviewTrainingStats,
   peekInterviewQuestionSets,
 } from "../api/interviews";
@@ -57,9 +59,15 @@ export function InterviewPage() {
   const isSetup = pathname === "/interview/setup";
   const [preferences] = useUserPreferences();
   const [payload, setPayload] = useState<CreateQuestionSetPayload>(loadSavedPayload);
-  const [pendingSets, setPendingSets] = useState<InterviewQuestionSetSummary[]>(() => peekInterviewQuestionSets({ status: "in_progress", limit: 12 }) ?? []);
-  const [stats, setStats] = useState<InterviewTrainingStats | null>(() => peekInterviewTrainingStats() ?? null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [initialCache] = useState(() => ({
+    pendingSets: peekAnyInterviewQuestionSets({ status: "in_progress", limit: 12 }),
+    pendingSetsFresh: Boolean(peekInterviewQuestionSets({ status: "in_progress", limit: 12 })),
+    stats: peekAnyInterviewTrainingStats(),
+    statsFresh: Boolean(peekInterviewTrainingStats()),
+  }));
+  const [pendingSets, setPendingSets] = useState<InterviewQuestionSetSummary[]>(() => initialCache.pendingSets ?? []);
+  const [stats, setStats] = useState<InterviewTrainingStats | null>(() => initialCache.stats);
+  const [isLoading, setIsLoading] = useState(() => !initialCache.stats);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [pendingAction, setPendingAction] = useState<"restart" | "abandon" | null>(null);
@@ -97,22 +105,25 @@ export function InterviewPage() {
   }), [payload.domain, payload.topic, recommendedPayload, strongestDomain]);
 
   useEffect(() => {
+    if (initialCache.pendingSetsFresh && initialCache.statsFresh) return;
     const controller = new AbortController();
     async function load() {
-      const [nextPending, nextStats] = await Promise.all([
-        listInterviewQuestionSets({ status: "in_progress", limit: 12, signal: controller.signal, force: true }).catch(() => []),
-        getInterviewTrainingStats(controller.signal, true).catch(() => null),
-      ]);
-      if (controller.signal.aborted) {
-        return;
+      try {
+        const [nextPending, nextStats] = await Promise.all([
+          listInterviewQuestionSets({ status: "in_progress", limit: 12, signal: controller.signal, force: true }),
+          getInterviewTrainingStats(controller.signal, true),
+        ]);
+        if (!controller.signal.aborted) {
+          setPendingSets(nextPending);
+          setStats(nextStats);
+        }
+      } finally {
+        if (!controller.signal.aborted) setIsLoading(false);
       }
-      setPendingSets(nextPending);
-      setStats(nextStats);
-      setIsLoading(false);
     }
-    void load();
+    void load().catch(() => undefined);
     return () => controller.abort();
-  }, []);
+  }, [initialCache]);
 
   async function startTraining(skipPendingConfirmation = false, nextPayload = payload) {
     if (resumableSet && !skipPendingConfirmation) {
