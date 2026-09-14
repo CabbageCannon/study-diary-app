@@ -1,4 +1,5 @@
 import { ArrowRightIcon } from "@phosphor-icons/react/ArrowRight";
+import { useLayoutEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 
 import { useTodayWorkspace } from "../hooks/useTodayWorkspace";
@@ -57,9 +58,7 @@ export function TodayPage() {
           </div>
 
           <div className="today-progress-panel">
-            <div className="today-progress-track" role="progressbar" aria-label="今日学习进度" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progressPercent}>
-              <span style={{ inlineSize: `${progressPercent}%` }} />
-            </div>
+            <TodayProgressBar isLoading={isLoading} progressPercent={progressPercent} />
             <div className="today-progress-details">
               {progressItems.map((item) => <ProgressLine item={item} isLoading={isLoading} key={item.key} />)}
             </div>
@@ -71,6 +70,58 @@ export function TodayPage() {
 
         </section>
       </main>
+    </div>
+  );
+}
+
+function TodayProgressBar({ isLoading, progressPercent }: { isLoading: boolean; progressPercent: number }) {
+  const fillRef = useRef<HTMLSpanElement>(null);
+  const animationRef = useRef<Animation | null>(null);
+  const target = Math.min(100, Math.max(0, progressPercent)) / 100;
+
+  useLayoutEffect(() => {
+    const fill = fillRef.current;
+    if (!fill || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      animationRef.current?.cancel();
+      animationRef.current = null;
+      return;
+    }
+
+    const currentTransform = getComputedStyle(fill).transform;
+    animationRef.current?.cancel();
+
+    if (isLoading) {
+      animationRef.current = fill.animate([
+        { opacity: 0.72, transform: "scaleX(0.08)" },
+        { opacity: 1, transform: "scaleX(0.46)" },
+        { opacity: 0.8, transform: "scaleX(0.14)" },
+      ], { duration: 1_300, easing: "ease-in-out", iterations: Infinity });
+      return;
+    }
+
+    const current = currentTransform === "none" ? 0 : Number(currentTransform.split("(")[1]?.split(",")[0]) || 0;
+    const distance = target - current;
+    animationRef.current = fill.animate([
+      { opacity: 1, transform: `scaleX(${current})` },
+      { opacity: 1, transform: `scaleX(${current + distance * 0.72})`, offset: 0.56 },
+      { opacity: 1, transform: `scaleX(${current + distance * 0.62})`, offset: 0.7 },
+      { opacity: 1, transform: `scaleX(${target})` },
+    ], { duration: 820, easing: "ease-out", fill: "forwards" });
+  }, [isLoading, target]);
+
+  useLayoutEffect(() => () => animationRef.current?.cancel(), []);
+
+  return (
+    <div
+      aria-busy={isLoading}
+      aria-label={isLoading ? "正在同步今日学习进度" : "今日学习进度"}
+      aria-valuemax={100}
+      aria-valuemin={0}
+      aria-valuenow={isLoading ? undefined : progressPercent}
+      className="today-progress-track"
+      role="progressbar"
+    >
+      <span ref={fillRef} style={{ transform: `scaleX(${isLoading ? 0.14 : target})` }} />
     </div>
   );
 }

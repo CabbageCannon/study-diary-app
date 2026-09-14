@@ -143,7 +143,7 @@
   display: block;
   block-size: 100%;
   background: var(--accent);
-  transition: inline-size 240ms ease-out;
+  transform-origin: left center;
 }
 
 .today-progress-details {
