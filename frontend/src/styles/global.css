@@ -93,7 +93,7 @@ html[data-theme="clay"] {
 
 html {
   background: var(--canvas);
-  overscroll-behavior-x: none;
+  overscroll-behavior: none;
 }
 
 body {
@@ -101,7 +101,7 @@ body {
   min-width: 320px;
   min-height: 100dvh;
   overflow-x: hidden;
-  overscroll-behavior-x: none;
+  overscroll-behavior: none;
 }
 
 @media (max-width: 760px), (pointer: coarse) {
@@ -3334,7 +3334,6 @@ textarea:focus-visible {
   .app-frame {
     min-height: 100vh;
     min-height: 100dvh;
-    padding-bottom: calc(68px + var(--safe-bottom));
   }
 
   .page-stack {
@@ -4098,8 +4097,8 @@ html[data-theme="frost"] .theme-toggle svg {
 }
 
 @keyframes editorial-page-enter {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes editorial-panel-enter {

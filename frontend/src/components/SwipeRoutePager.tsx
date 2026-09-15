@@ -1,4 +1,4 @@
-import { type PointerEvent as ReactPointerEvent, type ReactNode, useLayoutEffect, useRef, useState } from "react";
+import { type PointerEvent as ReactPointerEvent, type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 interface SwipeRoutePagerProps {
@@ -17,6 +17,7 @@ interface SwipeGesture {
   lastClientX: number;
   lastTime: number;
   pointerId: number;
+  scrollY: number;
   startX: number;
   startY: number;
   targetIndex: number;
@@ -37,6 +38,7 @@ export function SwipeRoutePager({ ariaLabel, children, className, contentClassNa
   const navigate = useNavigate();
   const activeIndex = Math.max(0, routes.indexOf(pathname));
   const [targetIndex, setTargetIndex] = useState<number | null>(null);
+  const workspaceRef = useRef<HTMLDivElement | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const currentRef = useRef<HTMLDivElement | null>(null);
   const targetRef = useRef<HTMLDivElement | null>(null);
@@ -74,6 +76,16 @@ export function SwipeRoutePager({ ariaLabel, children, className, contentClassNa
     positionPanels(gesture);
   }, [targetIndex]);
 
+  useEffect(() => {
+    const workspace = workspaceRef.current;
+    if (!workspace) return;
+    const holdVerticalPosition = (event: TouchEvent) => {
+      if (gestureRef.current?.axis === "horizontal" && event.cancelable) event.preventDefault();
+    };
+    workspace.addEventListener("touchmove", holdVerticalPosition, { passive: false });
+    return () => workspace.removeEventListener("touchmove", holdVerticalPosition);
+  }, []);
+
   function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
     if (!event.isPrimary || event.pointerType === "mouse" || settlingRef.current || isInteractive(event.target)) return;
     gestureRef.current = {
@@ -83,6 +95,7 @@ export function SwipeRoutePager({ ariaLabel, children, className, contentClassNa
       lastClientX: event.clientX,
       lastTime: event.timeStamp,
       pointerId: event.pointerId,
+      scrollY: window.scrollY,
       startX: event.clientX,
       startY: event.clientY,
       targetIndex: -1,
@@ -115,6 +128,9 @@ export function SwipeRoutePager({ ariaLabel, children, className, contentClassNa
     }
 
     event.preventDefault();
+    if (document.scrollingElement && document.scrollingElement.scrollTop !== gesture.scrollY) {
+      document.scrollingElement.scrollTop = gesture.scrollY;
+    }
     if (gesture.targetIndex < 0 || gesture.targetIndex >= routes.length) return;
 
     const nextDistance = gesture.direction < 0
@@ -177,7 +193,7 @@ export function SwipeRoutePager({ ariaLabel, children, className, contentClassNa
       return;
     }
     const sameDirection = Math.sign(gesture.velocity) === gesture.direction;
-    const complete = !cancelled && (Math.abs(gesture.distance) >= gesture.width * 0.28 || sameDirection && Math.abs(gesture.velocity) >= 0.45);
+    const complete = Math.abs(gesture.distance) >= gesture.width * 0.28 || !cancelled && sameDirection && Math.abs(gesture.velocity) >= 0.45;
     void settle(complete);
   }
 
@@ -188,6 +204,7 @@ export function SwipeRoutePager({ ariaLabel, children, className, contentClassNa
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerEnd}
+      ref={workspaceRef}
     >
       {children}
       <div aria-label={ariaLabel} className="swipe-route-viewport" ref={viewportRef} role="group">
