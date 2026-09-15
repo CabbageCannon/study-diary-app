@@ -1,4 +1,5 @@
 import { type PointerEvent as ReactPointerEvent, type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 
 interface SwipeRoutePagerProps {
@@ -37,6 +38,7 @@ export function SwipeRoutePager({ ariaLabel, children, className, contentClassNa
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const activeIndex = Math.max(0, routes.indexOf(pathname));
+  const [displayedIndex, setDisplayedIndex] = useState(activeIndex);
   const [targetIndex, setTargetIndex] = useState<number | null>(null);
   const workspaceRef = useRef<HTMLDivElement | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -75,6 +77,10 @@ export function SwipeRoutePager({ ariaLabel, children, className, contentClassNa
     if (targetIndex === null || !gesture) return;
     positionPanels(gesture);
   }, [targetIndex]);
+
+  useLayoutEffect(() => {
+    if (!settlingRef.current && displayedIndex !== activeIndex) setDisplayedIndex(activeIndex);
+  }, [activeIndex, displayedIndex]);
 
   useEffect(() => {
     const workspace = workspaceRef.current;
@@ -175,7 +181,8 @@ export function SwipeRoutePager({ ariaLabel, children, className, contentClassNa
 
     await Promise.all(animations.map((animation) => animation.finished.catch(() => undefined)));
     if (complete) {
-      navigate(routes[gesture.targetIndex], { replace: true });
+      flushSync(() => setDisplayedIndex(gesture.targetIndex));
+      flushSync(() => navigate(routes[gesture.targetIndex], { replace: true }));
       await nextFrame();
     }
     clearPanels();
@@ -208,7 +215,7 @@ export function SwipeRoutePager({ ariaLabel, children, className, contentClassNa
     >
       {children}
       <div aria-label={ariaLabel} className="swipe-route-viewport" ref={viewportRef} role="group">
-        <div className={`${contentClassName} swipe-route-current`} ref={currentRef}>{pages[activeIndex]}</div>
+        <div className={`${contentClassName} swipe-route-current`} ref={currentRef}>{pages[displayedIndex]}</div>
         {targetIndex !== null ? (
           <div aria-hidden="true" className={`${contentClassName} swipe-route-target`} inert ref={targetRef}>{pages[targetIndex]}</div>
         ) : null}

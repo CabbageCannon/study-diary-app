@@ -205,15 +205,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
 .swipe-route-current,
 .swipe-route-target { will-change: transform, opacity; }
 
+.swipe-route-viewport .page-stack { animation: none; }
+
 .swipe-route-target {
   position: absolute !important;
   inset: 0 auto auto 0;
   width: 100%;
   pointer-events: none;
 }
-.interview-workspace-panel,
-.algorithm-workspace-panel { animation: apple-content-enter 180ms var(--apple-spring) backwards; }
-
 .interview-resume-panel,
 .interview-quick-start,
 .interview-setup-surface {
@@ -344,11 +343,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
 .algorithm-catalog-details[open] > summary b { transform: rotate(90deg); }
 .algorithm-catalog-details .algorithm-settings-sidebar { border-top: 1px solid var(--rule); padding: 18px; }
 
-@keyframes apple-content-enter {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 @keyframes liquid-tab-body {
   0% { transform: scaleX(1); }
   38% { transform: scaleX(1.12); }
@@ -445,8 +439,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .interview-workspace-panel,
-  .algorithm-workspace-panel { animation: none; }
   .button,
   .workspace-segment,
   .algorithm-subnav-link,
