@@ -196,6 +196,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
 
 .swipe-route-viewport {
   position: relative;
+  display: grid;
   min-width: 0;
   overflow: hidden;
   overscroll-behavior-x: contain;
@@ -207,13 +208,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
 }
 
 .swipe-route-current,
-.swipe-route-target { will-change: transform, opacity; }
+.swipe-route-target {
+  grid-area: 1 / 1;
+  will-change: transform, opacity;
+}
 
 .swipe-route-viewport .page-stack { animation: none; }
 
 .swipe-route-target {
-  position: absolute !important;
-  inset: 0 auto auto 0;
+  position: relative !important;
   width: 100%;
   pointer-events: none;
 }
