@@ -3339,7 +3339,6 @@ textarea:focus-visible {
   .page-stack {
     min-height: 100vh;
     min-height: 100dvh;
-    padding-bottom: 8px;
   }
 
   .mobile-bottom-navigation {
