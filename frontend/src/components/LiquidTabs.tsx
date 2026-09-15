@@ -45,7 +45,7 @@ export function LiquidTabs({ ariaLabel, className, itemClassName, activeItemClas
         x,
         width: activeRect.width,
         ready: true,
-        moving: current.moving || current.ready && (Math.abs(current.x - x) > 1 || Math.abs(current.width - activeRect.width) > 1),
+        moving: nav.dataset.swipeTracking !== "true" && (current.moving || current.ready && (Math.abs(current.x - x) > 1 || Math.abs(current.width - activeRect.width) > 1)),
       }));
     };
 

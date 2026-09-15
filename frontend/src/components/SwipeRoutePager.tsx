@@ -44,8 +44,27 @@ export function SwipeRoutePager({ ariaLabel, children, className, contentClassNa
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const currentRef = useRef<HTMLDivElement | null>(null);
   const targetRef = useRef<HTMLDivElement | null>(null);
+  const tabAnimationRef = useRef<Animation | null>(null);
   const gestureRef = useRef<SwipeGesture | null>(null);
   const settlingRef = useRef(false);
+
+  function tabPosition(index: number) {
+    const nav = workspaceRef.current?.querySelector<HTMLElement>(".liquid-tabs");
+    const tab = nav?.querySelectorAll<HTMLElement>(":scope > a")[index];
+    if (!nav || !tab) return null;
+    const navRect = nav.getBoundingClientRect();
+    const tabRect = tab.getBoundingClientRect();
+    return { nav, x: tabRect.left - navRect.left + nav.scrollLeft, width: tabRect.width };
+  }
+
+  function positionTab(gesture: SwipeGesture, progress: number) {
+    const from = tabPosition(activeIndex);
+    const to = tabPosition(gesture.targetIndex);
+    if (!from || !to || from.nav !== to.nav) return;
+    from.nav.dataset.swipeTracking = "true";
+    from.nav.style.setProperty("--liquid-x", `${from.x + (to.x - from.x) * progress}px`);
+    from.nav.style.setProperty("--liquid-width", `${from.width + (to.width - from.width) * progress}px`);
+  }
 
   function positionPanels(gesture: SwipeGesture) {
     const current = currentRef.current;
@@ -60,6 +79,7 @@ export function SwipeRoutePager({ ariaLabel, children, className, contentClassNa
       target.style.transform = `translate3d(${targetStart + gesture.distance}px, 0, 0)`;
       target.style.opacity = String(0.88 + progress * 0.12);
     }
+    positionTab(gesture, progress);
   }
 
   function clearPanels() {
@@ -69,6 +89,9 @@ export function SwipeRoutePager({ ariaLabel, children, className, contentClassNa
       panel.style.removeProperty("transform");
       panel.style.removeProperty("opacity");
     }
+    tabAnimationRef.current?.cancel();
+    tabAnimationRef.current = null;
+    workspaceRef.current?.querySelector<HTMLElement>(".liquid-tabs")?.removeAttribute("data-swipe-tracking");
     viewportRef.current?.removeAttribute("data-dragging");
   }
 
@@ -168,6 +191,19 @@ export function SwipeRoutePager({ ariaLabel, children, className, contentClassNa
       easing: "cubic-bezier(.22,.8,.25,1)",
       fill: "forwards",
     };
+    const progress = Math.min(1, Math.abs(gesture.distance) / gesture.width);
+    const fromTab = tabPosition(activeIndex);
+    const toTab = tabPosition(gesture.targetIndex);
+    const indicator = fromTab?.nav.querySelector<HTMLElement>(".liquid-tabs-indicator");
+    if (fromTab && toTab && indicator) {
+      const startX = fromTab.x + (toTab.x - fromTab.x) * progress;
+      const startWidth = fromTab.width + (toTab.width - fromTab.width) * progress;
+      const end = complete ? toTab : fromTab;
+      tabAnimationRef.current = indicator.animate([
+        { transform: `translate3d(${startX}px, 0, 0)`, width: `${startWidth}px` },
+        { transform: `translate3d(${end.x}px, 0, 0)`, width: `${end.width}px` },
+      ], options);
+    }
     const animations = [
       current?.animate([
         { opacity: current.style.opacity || "1", transform: current.style.transform || "none" },
@@ -177,12 +213,14 @@ export function SwipeRoutePager({ ariaLabel, children, className, contentClassNa
         { opacity: target.style.opacity || "0.88", transform: target.style.transform || `translate3d(${targetStart}px, 0, 0)` },
         { opacity: complete ? 1 : 0.88, transform: `translate3d(${complete ? 0 : targetStart}px, 0, 0)` },
       ], options),
+      tabAnimationRef.current,
     ].filter(Boolean) as Animation[];
 
     await Promise.all(animations.map((animation) => animation.finished.catch(() => undefined)));
+    positionTab(gesture, complete ? 1 : 0);
     if (complete) {
       flushSync(() => setDisplayedIndex(gesture.targetIndex));
-      flushSync(() => navigate(routes[gesture.targetIndex], { replace: true }));
+      navigate(routes[gesture.targetIndex], { replace: true });
       await nextFrame();
     }
     clearPanels();

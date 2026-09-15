@@ -132,6 +132,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
   opacity: 1;
 }
 
+.liquid-tabs[data-swipe-tracking="true"] .liquid-tabs-indicator {
+  transition: opacity 140ms ease-out;
+}
+
 .liquid-tabs-indicator::before,
 .liquid-tabs-indicator::after {
   position: absolute;
