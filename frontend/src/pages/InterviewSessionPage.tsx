@@ -81,6 +81,7 @@ export function InterviewSessionPage() {
     enabled: Boolean(isCurrentEditable),
   });
   const answerText = retryMode ? retryAnswerText : draft.value;
+  const backButton = <button className="back-link focus-back-button" onClick={() => navigate("/interview")} type="button"><ArrowLeftIcon aria-hidden="true" size={17} />八股训练</button>;
 
   useEffect(() => {
     if (!questionSet) {
@@ -125,15 +126,15 @@ export function InterviewSessionPage() {
   }, [currentItem?.question.id]);
 
   if (!Number.isInteger(numericSetId) || numericSetId < 1) {
-    return <p className="field-error page-error" role="alert">训练题集编号无效。</p>;
+    return <div className="page-stack interview-session-page"><header className="session-header">{backButton}</header><p className="field-error page-error" role="alert">训练题集编号无效。</p></div>;
   }
 
   if (isLoading) {
-    return <div className="interview-session-loading" aria-live="polite"><span /><span /><span /></div>;
+    return <div className="page-stack interview-session-page"><header className="session-header">{backButton}</header><div className="interview-session-loading" aria-live="polite"><span /><span /><span /></div></div>;
   }
 
   if (!questionSet) {
-    return <p className="field-error page-error" role="alert">{error || "训练题集不存在。"}</p>;
+    return <div className="page-stack interview-session-page"><header className="session-header">{backButton}</header><p className="field-error page-error" role="alert">{error || "训练题集不存在。"}</p></div>;
   }
 
   const historicalResult: InterviewAnswerSubmission | null = !result && currentItem?.latest_answer
@@ -241,7 +242,7 @@ export function InterviewSessionPage() {
   return (
     <div className="page-stack interview-session-page">
       <header className="session-header">
-        <button className="back-link focus-back-button" onClick={() => navigate("/interview")} type="button"><ArrowLeftIcon aria-hidden="true" size={17} />八股训练</button>
+        {backButton}
         <InterviewProgress questionSet={questionSet} />
       </header>
 

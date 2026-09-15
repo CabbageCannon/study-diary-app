@@ -93,6 +93,7 @@ html[data-theme="clay"] {
 
 html {
   background: var(--canvas);
+  overscroll-behavior-x: none;
 }
 
 body {
@@ -100,6 +101,7 @@ body {
   min-width: 320px;
   min-height: 100dvh;
   overflow-x: hidden;
+  overscroll-behavior-x: none;
 }
 
 @media (max-width: 760px), (pointer: coarse) {

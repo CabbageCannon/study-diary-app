@@ -17,7 +17,7 @@ export function InterviewSubNavigation() {
       className="workspace-segmented-control"
       itemClassName="workspace-segment"
       activeItemClassName="workspace-segment-active"
-      items={items.map((item) => ({ key: item.to, to: item.to, label: item.label, active: item.matches(pathname) }))}
+      items={items.map((item) => ({ key: item.to, to: item.to, label: item.label, active: item.matches(pathname), replace: true }))}
     />
   );
 }

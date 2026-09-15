@@ -508,8 +508,8 @@ export function AlgorithmSessionPage() {
     setPhase("editing");
   }
 
-  if (isLoading) return <div className="page-stack"><div className="skeleton-block skeleton-session" /></div>;
-  if (!session || !currentItem) return <div className="page-stack"><div className="empty-state"><p>{error || "没有可恢复的训练会话。"}</p><Link className="button button-primary" to="/algorithms">返回算法训练</Link></div></div>;
+  if (isLoading) return <div className="algorithm-focus-page"><header className="focus-header"><button className="focus-back-button" onClick={() => navigate("/algorithms")} type="button"><ArrowLeftIcon aria-hidden="true" size={18} weight="bold" />算法训练</button><span className="focus-save-status">正在载入</span></header><main className="algorithm-focus-stack"><div className="skeleton-block skeleton-session" /></main></div>;
+  if (!session || !currentItem) return <div className="algorithm-focus-page"><header className="focus-header"><button className="focus-back-button" onClick={() => navigate("/algorithms")} type="button"><ArrowLeftIcon aria-hidden="true" size={18} weight="bold" />算法训练</button></header><main className="algorithm-focus-stack"><div className="empty-state"><p>{error || "没有可恢复的训练会话。"}</p></div></main></div>;
   if (session.status !== "in_progress") {
     return (
       <div className="algorithm-focus-page">

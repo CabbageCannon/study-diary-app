@@ -25,6 +25,7 @@ export function AlgorithmSubNavigation() {
         to: item.to,
         label: item.label,
         active: item.matches(pathname),
+        replace: true,
         ...(item.to === "/algorithms/settings" ? { onFocus: warmSettings, onPointerEnter: warmSettings, onTouchStart: warmSettings } : {}),
       }))}
     />

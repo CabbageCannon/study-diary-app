@@ -187,6 +187,30 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
 
 .interview-workspace-content,
 .algorithm-workspace-content { display: grid; min-width: 0; padding: 20px var(--content-pad) 38px; }
+
+.swipe-workspace { touch-action: pan-y pinch-zoom; }
+
+.swipe-route-viewport {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  overscroll-behavior-x: contain;
+}
+
+.swipe-route-viewport[data-dragging="true"] {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.swipe-route-current,
+.swipe-route-target { will-change: transform, opacity; }
+
+.swipe-route-target {
+  position: absolute !important;
+  inset: 0 auto auto 0;
+  width: 100%;
+  pointer-events: none;
+}
 .interview-workspace-panel,
 .algorithm-workspace-panel { animation: apple-content-enter 180ms var(--apple-spring) backwards; }
 

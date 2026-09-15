@@ -53,10 +53,10 @@ function domainLabel(domain?: QuestionDomain | null) {
   return domainOptions.find((item) => item.value === domain)?.label ?? "综合";
 }
 
-export function InterviewPage() {
+export function InterviewPage({ mode }: { mode?: "practice" | "setup" } = {}) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const isSetup = pathname === "/interview/setup";
+  const isSetup = mode ? mode === "setup" : pathname === "/interview/setup";
   const [preferences] = useUserPreferences();
   const [payload, setPayload] = useState<CreateQuestionSetPayload>(loadSavedPayload);
   const [initialCache] = useState(() => ({

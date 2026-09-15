@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeftIcon } from "@phosphor-icons/react/ArrowLeft";
 
 import { createDiaryDraft, rewriteDiaryDraft, saveDiary } from "../api/client";
 import { DiaryDraftEditor } from "../components/DiaryDraftEditor";
@@ -179,6 +180,7 @@ export function WriteDiaryPage() {
 
   return (
     <div className="page-stack write-page">
+      <button className="back-link focus-back-button" onClick={() => navigate("/diary")} type="button"><ArrowLeftIcon aria-hidden="true" size={17} />我的日记</button>
       <header className="page-header">
         <div>
           <span className="page-kicker">写日记</span>

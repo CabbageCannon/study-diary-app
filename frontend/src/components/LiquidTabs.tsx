@@ -12,6 +12,7 @@ export interface LiquidTabItem {
   onFocus?: () => void;
   onPointerEnter?: () => void;
   onTouchStart?: () => void;
+  replace?: boolean;
 }
 
 interface LiquidTabsProps {
@@ -81,6 +82,7 @@ export function LiquidTabs({ ariaLabel, className, itemClassName, activeItemClas
           onPointerEnter={item.onPointerEnter}
           onTouchStart={item.onTouchStart}
           ref={(element) => { itemRefs.current[index] = element; }}
+          replace={item.replace}
           to={item.to}
         >
           {item.icon}
