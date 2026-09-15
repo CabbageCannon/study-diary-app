@@ -71,13 +71,17 @@ function flyDeletedDiaryCard(source: HTMLElement | null) {
   document.body.appendChild(clone);
 
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const exitX = window.innerWidth - rect.left + 90;
+  const exitY = window.innerHeight - rect.top + 72;
   const animation = reduced
     ? clone.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 140, easing: "ease-out", fill: "forwards" })
     : clone.animate([
       { opacity: 1, transform: "translate3d(0, 0, 0) rotate(0deg) scale(1)" },
-      { opacity: 0.78, transform: `translate3d(${window.innerWidth - rect.right + 18}px, -72px, 0) rotate(7deg) scale(.82)`, offset: 0.42 },
-      { opacity: 0, transform: `translate3d(${window.innerWidth - rect.left + 90}px, ${window.innerHeight - rect.top + 72}px, 0) rotate(22deg) scale(.18)` },
-    ], { duration: 620, easing: "cubic-bezier(.18,.78,.18,1)", fill: "forwards" });
+      { opacity: 1, transform: "translate3d(7px, -4px, 0) rotate(-3deg) scale(.96)", offset: 0.16 },
+      { opacity: 0.8, transform: `translate3d(${exitX * 0.32}px, -58px, 0) rotate(8deg) scale(.78)`, offset: 0.66 },
+      { opacity: 0.46, transform: `translate3d(${exitX * 0.66}px, ${exitY * 0.24}px, 0) rotate(15deg) scale(.48)`, offset: 0.82 },
+      { opacity: 0, transform: `translate3d(${exitX}px, ${exitY}px, 0) rotate(25deg) scale(.16)` },
+    ], { duration: 1_200, easing: "cubic-bezier(.42,0,.58,1)", fill: "forwards" });
 
   void animation.finished.catch(() => undefined).finally(() => clone.remove());
 }
