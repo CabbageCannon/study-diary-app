@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "problem_key": "leetcode-1",
+  "title": "Two Sum",
+  "title_zh": "两数之和",
+  "statement_zh": "给定整数数组 nums 和目标值 target。请在数组中找出两个不同下标上的数，使它们的和恰好等于 target，并返回这两个下标。每个输入保证恰好存在一组答案；同一个下标不能使用两次；返回的两个下标顺序不限。",
+  "input_output": {
+    "input": "nums：整数数组，可能包含负数、零和重复值；target：整数目标值。",
+    "output": "包含两个下标的结果，满足 nums[i] + nums[j] = target 且 i != j；顺序任意。"
+  },
+  "constraints": [
+    "2 <= nums.length <= 10^4",
+    "-10^9 <= nums[i] <= 10^9",
+    "-10^9 <= target <= 10^9",
+    "恰好存在一个有效答案",
+    "同一个数组下标不能使用两次，重复值必须来自不同下标"
+  ],
+  "examples": [
+    {
+      "input": "nums = [3, 2, 4], target = 6",
+      "output": "[1, 2]",
+      "explanation": "2 + 4 = 6；不能返回 [0, 0]，因为下标 0 上的 3 只有一个。"
+    },
+    {
+      "input": "nums = [-3, 0, 3], target = 0",
+      "output": "[0, 2]",
+      "explanation": "-3 + 3 = 0，覆盖负数与零。"
+    },
+    {
+      "input": "nums = [5, 5], target = 10",
+      "output": "[0, 1]",
+      "explanation": "值相同但位置不同，合法。"
+    }
+  ],
+  "verification_points": [
+    {
+      "id": "vp-return-indices",
+      "kind": "correctness_condition",
+      "statement": "明确返回的是原数组下标，而不是两个数值或排序后的下标。",
+      "required": true,
+      "acceptable_variants": [
+        "用户说返回位置、索引、index 均可接受。"
+      ]
+    },
+    {
+      "id": "vp-distinct-indices",
+      "kind": "correctness_condition",
+      "statement": "说明如何保证两个数来自不同下标，不能把同一个元素用两次。",
+      "required": true,
+      "acceptable_variants": [
+        "哈希方案先查补数再存当前值。",
+        "暴力方案只枚举 i < j。",
+        "先建表或排序方案明确检查两个原下标不同。"
+      ]
+    },
+    {
+      "id": "vp-hash-complement",
+      "kind": "key_insight",
+      "statement": "哈希参考方案应围绕补数 target - x 查找，并记录已见数值到原下标的映射。",
+      "required": false,
+      "acceptable_variants": [
+        "用字典、Map、集合加下标表等能快速找到补数的位置均可。"
+      ]
+    },
+    {
+      "id": "vp-unsorted-input",
+      "kind": "correctness_condition",
+      "statement": "方案不能依赖原数组已经有序；若排序必须保存并返回原下标。",
+      "required": true,
+      "acceptable_variants": [
+        "不用排序的一次遍历哈希方案天然满足。",
+        "排序后二分或双指针方案同时保存 (值, 原下标)。"
+      ]
+    },
+    {
+      "id": "vp-complexity",
+      "kind": "complexity",
+      "statement": "哈希方案时间 O(n)、额外空间 O(n)；暴力双循环时间 O(n^2)、空间 O(1)，正确但非最优。",
+      "required": false,
+      "acceptable_variants": [
+        "排序类方案 O(n log n) 时间、O(n) 空间也可接受。"
+      ]
+    }
+  ],
+  "acceptable_approaches": [
+    {
+      "name": "一次遍历哈希表",
+      "idea": "遍历 nums，对当前值 x 先查哈希表里是否已有补数 target - x；命中则返回补数下标与当前下标，否则把 x 和当前下标存入表中继续。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(n)",
+      "is_reference": true,
+      "note": null
+    },
+    {
+      "name": "暴力双重循环",
+      "idea": "枚举所有 i < j 的下标对，检查 nums[i] + nums[j] 是否等于 target。",
+      "time_complexity": "O(n^2)",
+      "space_complexity": "O(1)",
+      "is_reference": false,
+      "note": "正确但非最优；核对时应认可正确性，再引导到哈希优化。"
+    },
+    {
+      "name": "排序后二分或双指针",
+      "idea": "把值与原下标一起排序，再用二分或双指针寻找和为 target 的两个值；返回前映射回原下标。",
+      "time_complexity": "O(n log n)",
+      "space_complexity": "O(n)",
+      "is_reference": false,
+      "note": "正确但容易丢失原下标；若用户没有说明保留原下标，应追问或指出问题。"
+    }
+  ],
+  "common_mistakes": [
+    {
+      "description": "先存当前值再查补数，target 恰好等于 2*x 时可能命中自己。",
+      "counterexample": "nums = [3, 2, 4], target = 6：先存后查会在 i=0 得到 [0, 0]；正确答案是 [1, 2]。"
+    },
+    {
+      "description": "返回两个数值，或者返回排序后的下标而不是原数组下标。",
+      "counterexample": "nums = [3, 2, 4], target = 6：排序后位置不是原下标，直接返回排序位置会错。"
+    },
+    {
+      "description": "在未排序数组上直接从两端双指针夹逼。",
+      "counterexample": "nums = [4, 1, 5], target = 6：原数组两端不是有序关系，移动指针没有正确性依据。"
+    }
+  ],
+  "edge_cases": [
+    {
+      "description": "数组恰好两个元素。",
+      "expected_handling": "只要两数之和等于 target，就返回这两个不同下标。"
+    },
+    {
+      "description": "补数等于当前值。",
+      "expected_handling": "只有该值出现至少两次时才能使用两个不同下标；单个位置不能复用。"
+    },
+    {
+      "description": "负数、零、重复值混合。",
+      "expected_handling": "哈希补数查找不需要对正负号或零做特殊分支。"
+    }
+  ],
+  "source": {
+    "name": "LeetCode CN 1. 两数之和",
+    "url": "https://leetcode.cn/problems/two-sum/",
+    "license_note": "题意、示例、核对要点和反例均为原创中文转写，未复制外站题面或题解。",
+    "source_version": "2026-09-06 对照 leetcode.cn 官方题面核对"
+  },
+  "content_notes": "已核对官方题名、URL 和约束；示例与反例为本项目原创构造。该题有多种正确解法，哈希表为参考解法但不是唯一可接受答案。",
+  "content_status": "ready"
+}

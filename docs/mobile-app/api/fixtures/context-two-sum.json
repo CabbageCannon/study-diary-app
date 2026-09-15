@@ -1,0 +1,136 @@
+{
+  "fixture": "context-two-sum",
+  "description": "读取题目可信上下文。context 正文为 C 编写的原创示意内容（规则 6），结构即 D 交付格式；正式文本以 D 首批交付为准，届时仅内容与 content_version 变化。",
+  "request": {
+    "method": "GET",
+    "path": "/api/algorithms/problems/leetcode-1/reasoning-context",
+    "headers": {
+      "X-Study-Diary-Access": "<仅在配置 APP_ACCESS_TOKEN 时需要>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "problem_id": "leetcode-1",
+      "reasoning_available": true,
+      "context": {
+        "schema_version": 1,
+        "problem_key": "leetcode-1",
+        "title": "Two Sum",
+        "title_zh": "两数之和",
+        "statement_zh": "给定一个整数数组 nums 和一个整数目标值 target。请在数组中找出两个不同的元素，使它们的和恰好等于 target，并返回这两个元素的下标。题目保证每种输入恰好只有一个答案，且同一个元素不能使用两次。返回的下标顺序不作要求。",
+        "input_output": {
+          "input": "整数数组 nums（长度 n）与整数 target",
+          "output": "包含两个下标 i、j 的结果，满足 nums[i] + nums[j] = target 且 i != j；顺序任意"
+        },
+        "constraints": [
+          "2 <= nums.length <= 10^4",
+          "-10^9 <= nums[i] <= 10^9",
+          "-10^9 <= target <= 10^9",
+          "恰好存在一个有效答案",
+          "同一个元素不能使用两次"
+        ],
+        "examples": [
+          {
+            "input": "nums = [2, 7, 11, 15], target = 9",
+            "output": "[0, 1]",
+            "explanation": "nums[0] + nums[1] = 2 + 7 = 9，返回 [0, 1]（[1, 0] 同样接受）"
+          },
+          {
+            "input": "nums = [3, 2, 4], target = 6",
+            "output": "[1, 2]",
+            "explanation": "3 在数组中只有一个，不能用两个下标 0 凑成 6；正确答案是 2 + 4"
+          },
+          {
+            "input": "nums = [3, 3], target = 6",
+            "output": "[0, 1]",
+            "explanation": "重复元素各占一个下标，先查补数再存当前值的顺序天然避免把自己当成补数"
+          }
+        ],
+        "verification_points": [
+          {
+            "id": "vp-lookup-before-store",
+            "kind": "key_insight",
+            "statement": "对每个元素先在已见过的数中查补数 target - x，再把当前元素存入哈希表；或等价地保证取到的是两个不同下标",
+            "required": true,
+            "acceptable_variants": [
+              "先存后查，但明确说明需要排除同一下标（j != i）也接受"
+            ]
+          },
+          {
+            "id": "vp-hash-lookup",
+            "kind": "key_insight",
+            "statement": "用哈希表把“找补数”从逐一遍历降为 O(1) 查找，从而实现整体 O(n)",
+            "required": false,
+            "acceptable_variants": [
+              "使用字典/Map 等不同名称指代哈希表均可"
+            ]
+          },
+          {
+            "id": "vp-complexity",
+            "kind": "complexity",
+            "statement": "哈希方案时间 O(n)、额外空间 O(n)；暴力双循环 O(n^2) 时间、O(1) 空间，正确但非最优",
+            "required": false,
+            "acceptable_variants": []
+          }
+        ],
+        "acceptable_approaches": [
+          {
+            "name": "哈希表一次遍历",
+            "idea": "遍历数组，对当前元素 x 先查哈希表中是否有 target - x：命中则返回其下标与当前下标；否则把 (x, 当前下标) 存入哈希表继续",
+            "time_complexity": "O(n)",
+            "space_complexity": "O(n)",
+            "is_reference": true,
+            "note": null
+          },
+          {
+            "name": "暴力双循环",
+            "idea": "枚举所有下标对 (i, j)，i < j，检查和是否等于 target",
+            "time_complexity": "O(n^2)",
+            "space_complexity": "O(1)",
+            "is_reference": false,
+            "note": "正确但非最优：应认可其正确性，再引导到哈希方案"
+          }
+        ],
+        "common_mistakes": [
+          {
+            "description": "把同一个元素使用两次（如 target 恰为某元素的二倍时返回两个相同下标）",
+            "counterexample": "nums = [3, 2, 4], target = 6：若允许复用元素会错误得到 [0, 0]，正确答案是 [1, 2]"
+          },
+          {
+            "description": "认为可以先排序再双指针：排序会打乱下标，无法直接返回原下标",
+            "counterexample": "nums = [3, 2, 4] 排序后为 [2, 3, 4]，求和可行但下标已变，还需额外映射回原数组"
+          }
+        ],
+        "edge_cases": [
+          {
+            "description": "数组含负数或零",
+            "expected_handling": "哈希查找同样适用，无需特殊处理"
+          },
+          {
+            "description": "补数恰好等于当前元素本身（重复值）",
+            "expected_handling": "先查后存的顺序保证取到的是更早的另一个下标，如 nums = [3, 3]"
+          },
+          {
+            "description": "数组长度恰好为 2",
+            "expected_handling": "直接检查两数之和即可，是所有方案的退化情形"
+          }
+        ],
+        "source": {
+          "name": "LeetCode CN 1. 两数之和",
+          "url": "https://leetcode.cn/problems/two-sum/",
+          "license_note": "题意为原创中文转写，未复制外站题面/题解",
+          "source_version": "2026-09-06 对照本地 catalog（catalog_version 1）与 leetcode.cn 题面人工核对"
+        },
+        "content_notes": null,
+        "content_status": "ready",
+        "content_version": 3,
+        "content_updated_at": "2026-09-06T09:30:00+00:00"
+      }
+    }
+  },
+  "notes": [
+    "题目上下文未导入或未 ready 时：status 200，body 为 {\"problem_id\": \"leetcode-1\", \"reasoning_available\": false, \"context\": null}",
+    "problem_id 也接受数据库整型 id；不存在时 404 {\"detail\": \"算法题不存在\"}"
+  ]
+}

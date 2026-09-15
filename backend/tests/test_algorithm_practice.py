@@ -7,13 +7,15 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
+from starlette.requests import Request
 
 from app import database
 from app.database import Base, get_db
 from app.llm import LLMError
 from app.main import app
-from app.models import AlgorithmAttempt, AlgorithmDailyFeed, AlgorithmProblem, AlgorithmProblemProgress, AlgorithmReviewSchedule
+from app.models import AlgorithmAttempt, AlgorithmDailyFeed, AlgorithmProblem, AlgorithmProblemProgress, AlgorithmReasoningFeedback, AlgorithmReviewSchedule
 from app.schemas import AlgorithmAIReview
+from app.security import is_ai_request
 from app.services.algorithm_practice_service import get_daily_feed, utc_now
 from app.services.data_import_service import import_algorithms
 
@@ -172,6 +174,61 @@ class AlgorithmPracticeApiTests(unittest.TestCase):
         self.assertEqual(removed.status_code, 204)
         self.assertIsNotNone(self.session.get(AlgorithmProblem, attempt["problem_id"]))
 
+    def test_review_candidates_only_include_attempted_problems_and_create_selected_review_session(self) -> None:
+        done_problem = self.session.query(AlgorithmProblem).filter_by(slug="two-sum").one()
+        new_problem = self.session.query(AlgorithmProblem).filter_by(slug="group-anagrams").one()
+        training = self.create_session("custom", count=1, problem_ids=[str(done_problem.id)])
+        attempt = self.save_attempt(training, result="solved")
+
+        candidates = self.client.get("/api/algorithms/reviews/candidates")
+        self.assertEqual(candidates.status_code, 200, candidates.text)
+        self.assertEqual([item["problem"]["id"] for item in candidates.json()], [done_problem.id])
+        self.assertEqual(candidates.json()[0]["last_practiced_at"], attempt["submitted_at"])
+
+        rejected = self.client.post("/api/algorithms/reviews/session", json={"problem_ids": [done_problem.id, new_problem.id]})
+        self.assertEqual(rejected.status_code, 422)
+
+        selected = self.client.post("/api/algorithms/reviews/session", json={"problem_ids": [done_problem.id]})
+        self.assertEqual(selected.status_code, 201, selected.text)
+        self.assertEqual(selected.json()["mode"], "review")
+        self.assertEqual([item["problem_id"] for item in selected.json()["items"]], [done_problem.id])
+
+    def test_review_candidates_filter_by_practice_date_and_accuracy(self) -> None:
+        first_problem = self.session.query(AlgorithmProblem).filter_by(slug="two-sum").one()
+        second_problem = self.session.query(AlgorithmProblem).filter_by(slug="group-anagrams").one()
+        first_session = self.create_session("custom", count=1, problem_ids=[str(first_problem.id)])
+        second_session = self.create_session("custom", count=1, problem_ids=[str(second_problem.id)])
+        old_attempt = self.save_attempt(first_session, result="failed")
+        recent_attempt = self.save_attempt(second_session, result="solved")
+        self.session.get(AlgorithmAttempt, old_attempt["id"]).submitted_at = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        self.session.get(AlgorithmAttempt, recent_attempt["id"]).submitted_at = datetime(2026, 1, 5, tzinfo=timezone.utc)
+        self.session.add(
+            AlgorithmReasoningFeedback(
+                answer_id=1,
+                problem_context_id=1,
+                synced_attempt_id=recent_attempt["id"],
+                conclusion="partially_correct",
+                headline="方向正确，边界不足。",
+                context_sufficient=True,
+                feedback_json='{"accuracy_score":72}',
+                model_name="test",
+                prompt_version="test",
+                context_version=1,
+            )
+        )
+        self.session.commit()
+
+        recent = self.client.get("/api/algorithms/reviews/candidates?time_order=recent")
+        self.assertEqual([item["problem"]["id"] for item in recent.json()], [second_problem.id, first_problem.id])
+
+        older = self.client.get("/api/algorithms/reviews/candidates?time_order=older&to_date=2026-01-02")
+        self.assertEqual([item["problem"]["id"] for item in older.json()], [first_problem.id])
+        self.assertEqual(older.json()[0]["accuracy_score"], 20)
+
+        partial = self.client.get("/api/algorithms/reviews/candidates?min_accuracy=70&max_accuracy=89")
+        self.assertEqual([item["problem"]["id"] for item in partial.json()], [second_problem.id])
+        self.assertEqual(partial.json()[0]["accuracy_score"], 72)
+
     def test_ai_recommendations_are_filtered_to_local_candidates_and_failure_keeps_attempt(self) -> None:
         training = self.create_session()
         attempt = self.save_attempt(training, result="partially_solved")
@@ -201,6 +258,19 @@ class AlgorithmPracticeApiTests(unittest.TestCase):
         self.assertEqual(first.json()["primary_problem"]["id"], legacy.json()["id"])
         feed_ids = [first.json()["primary_problem"]["id"], *[item["id"] for item in first.json()["extra_problems"]]]
         self.assertEqual(len(feed_ids), len(set(feed_ids)))
+
+    def test_daily_session_uses_requested_count_after_pinned_primary_problem(self) -> None:
+        feed = self.client.get("/api/algorithms/daily-feed").json()
+        response = self.client.post(
+            "/api/algorithms/sessions",
+            json={"mode": "daily", "count": 3, "problem_ids": [str(feed["primary_problem"]["id"])]},
+        )
+        self.assertEqual(response.status_code, 201, response.text)
+        body = response.json()
+        ids = [item["problem_id"] for item in body["items"]]
+        self.assertEqual(len(ids), 3)
+        self.assertEqual(ids[0], feed["primary_problem"]["id"])
+        self.assertEqual(len(ids), len(set(ids)))
 
     def test_saving_daily_settings_does_not_replace_today_until_explicit_refresh(self) -> None:
         before = self.client.get("/api/algorithms/daily-feed").json()
@@ -294,3 +364,103 @@ class AlgorithmPracticeApiTests(unittest.TestCase):
             selected = [feed["primary_problem"], *feed["extra_problems"]]
             self.assertTrue(any(problem["difficulty"] == "medium" for problem in selected))
             self.assertIn("相邻难度", feed["warning"])
+
+
+async def hint_content(*_args: object, **_kwargs: object) -> str:
+    return "先想清楚要查找什么，再决定用什么结构保存已经见过的信息。"
+
+
+async def hint_failure(*_args: object, **_kwargs: object) -> str:
+    raise LLMError("simulated outage")
+
+
+class AlgorithmProblemHintApiTests(unittest.TestCase):
+    """渐进提示按题目取用，不依赖 AlgorithmAttempt，也不写库。"""
+
+    def setUp(self) -> None:
+        self.engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+        Base.metadata.create_all(self.engine)
+        self.session = Session(self.engine)
+        import_algorithms(self.session, CATALOG_PATH)
+        self.problem_id = self.session.query(AlgorithmProblem).order_by(AlgorithmProblem.id).first().id
+
+        def override_db():
+            yield self.session
+
+        app.dependency_overrides[get_db] = override_db
+        self.client = TestClient(app)
+
+    def tearDown(self) -> None:
+        app.dependency_overrides.clear()
+        self.client.close()
+        self.session.close()
+
+    def test_hint_works_before_any_attempt_and_returns_remaining_levels(self) -> None:
+        self.assertEqual(self.session.query(AlgorithmAttempt).count(), 0)
+
+        with patch("app.routers.algorithms.generate_algorithm_hint", hint_content):
+            response = self.client.post(
+                f"/api/algorithms/problems/{self.problem_id}/hint",
+                json={"approach": "用哈希表记已经见过的数。", "hint_level": 2},
+            )
+
+        self.assertEqual(response.status_code, 200, response.text)
+        body = response.json()
+        self.assertEqual(body["hint_level"], 2)
+        self.assertEqual(body["remaining_hint_levels"], 2)
+        self.assertIn("已经见过的信息", body["content"])
+        self.assertEqual(self.session.query(AlgorithmAttempt).count(), 0)
+
+    def test_hint_passes_draft_approach_and_level_to_the_shared_llm_helper(self) -> None:
+        captured: dict[str, object] = {}
+
+        async def capture(*, problem: object, approach: str, hint_level: int) -> str:
+            captured.update(problem=problem, approach=approach, hint_level=hint_level)
+            return "先确认查找的目标是什么。"
+
+        with patch("app.routers.algorithms.generate_algorithm_hint", capture):
+            response = self.client.post(
+                "/api/algorithms/problems/leetcode-1/hint",
+                json={"approach": "我想先排序再用双指针。", "hint_level": 4},
+            )
+
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(captured["approach"], "我想先排序再用双指针。")
+        self.assertEqual(captured["hint_level"], 4)
+        self.assertEqual(captured["problem"].stable_key, "leetcode-1")
+        self.assertEqual(response.json()["remaining_hint_levels"], 0)
+
+    def test_hint_returns_404_for_unknown_problem(self) -> None:
+        with patch("app.routers.algorithms.generate_algorithm_hint", hint_content):
+            response = self.client.post(
+                "/api/algorithms/problems/not-in-catalog/hint",
+                json={"approach": "随便写点思路。", "hint_level": 1},
+            )
+
+        self.assertEqual(response.status_code, 404, response.text)
+
+    def test_hint_returns_503_without_touching_saved_records(self) -> None:
+        with patch("app.routers.algorithms.generate_algorithm_hint", hint_failure):
+            response = self.client.post(
+                f"/api/algorithms/problems/{self.problem_id}/hint",
+                json={"approach": "用哈希表。", "hint_level": 1},
+            )
+
+        self.assertEqual(response.status_code, 503, response.text)
+        self.assertIn("AI 提示暂时不可用", response.json()["detail"])
+        self.assertEqual(self.session.query(AlgorithmAttempt).count(), 0)
+
+    def test_hint_rejects_out_of_range_level(self) -> None:
+        for level in (0, 5):
+            with self.subTest(level=level):
+                response = self.client.post(
+                    f"/api/algorithms/problems/{self.problem_id}/hint",
+                    json={"approach": "用哈希表。", "hint_level": level},
+                )
+                self.assertEqual(response.status_code, 422, response.text)
+
+    def test_problem_hint_is_rate_limited_like_other_ai_routes(self) -> None:
+        request = Request(
+            {"type": "http", "method": "POST", "path": f"/api/algorithms/problems/{self.problem_id}/hint", "headers": []}
+        )
+        self.assertTrue(is_ai_request(request))

@@ -11,13 +11,14 @@ if str(BACKEND_DIR) not in sys.path:
 
 from app.database import SessionLocal, init_db
 from app.services.algorithm_catalog_service import CatalogBuildError
-from app.services.data_import_service import import_algorithms, import_interviews
+from app.services.data_import_service import import_algorithms, import_interviews, import_mobile_problem_contexts
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="幂等导入本地题库种子数据。")
     selection = parser.add_mutually_exclusive_group(required=True)
     selection.add_argument("--algorithms", action="store_true", help="只导入算法题元数据")
+    selection.add_argument("--mobile-contexts", action="store_true", help="只导入移动端算法思路核对上下文")
     selection.add_argument("--interviews", action="store_true", help="只导入八股题")
     selection.add_argument("--all", action="store_true", help="导入全部题库")
     parser.add_argument("--dry-run", action="store_true", help="执行校验和导入流程后回滚事务")
@@ -32,9 +33,21 @@ def main() -> int:
     db = SessionLocal()
     results: dict[str, dict[str, object]] = {}
     try:
+        defer_commit = args.all and args.dry_run
         if args.algorithms or args.all:
             results["algorithms"] = import_algorithms(
-                db, BACKEND_DIR / "data" / "algorithms" / "problem_catalog.json", args.dry_run
+                db,
+                BACKEND_DIR / "data" / "algorithms" / "problem_catalog.json",
+                args.dry_run,
+                defer_commit=defer_commit,
+            ).as_dict()
+        mobile_contexts_dir = BACKEND_DIR / "data" / "mobile" / "algorithm_contexts"
+        if args.mobile_contexts or (args.all and mobile_contexts_dir.exists()):
+            results["mobile_contexts"] = import_mobile_problem_contexts(
+                db,
+                mobile_contexts_dir,
+                args.dry_run,
+                defer_commit=defer_commit,
             ).as_dict()
         if args.interviews or args.all:
             results["interviews"] = import_interviews(
@@ -42,7 +55,10 @@ def main() -> int:
                 BACKEND_DIR / "data" / "interview_question_bank.json",
                 args.dry_run,
                 overwrite_review_metadata=args.overwrite_review_metadata,
+                defer_commit=defer_commit,
             ).as_dict()
+        if defer_commit:
+            db.rollback()
     except CatalogBuildError as exc:
         print(f"导入失败:\n{exc}", file=sys.stderr)
         return 1

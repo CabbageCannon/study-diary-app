@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "problem_key": "leetcode-704",
+  "title": "Binary Search",
+  "title_zh": "二分查找",
+  "statement_zh": "给定一个按升序排列且元素互不重复的整数数组 nums，以及目标值 target。请在数组中查找 target，找到则返回它的下标，找不到则返回 -1。要求利用有序性进行对数级查找。",
+  "input_output": {
+    "input": "nums：升序且无重复元素的整数数组；target：要查找的整数。",
+    "output": "target 在 nums 中的下标；不存在时返回 -1。"
+  },
+  "constraints": [
+    "1 <= nums.length <= 10000",
+    "-9999 <= nums[i] <= 9999",
+    "nums 中的所有元素互不重复",
+    "nums 按升序排列"
+  ],
+  "examples": [
+    {
+      "input": "nums = [-4, -1, 0, 3, 9], target = 3",
+      "output": "3",
+      "explanation": "nums[3] 等于 3。"
+    },
+    {
+      "input": "nums = [-4, -1, 0, 3, 9], target = 2",
+      "output": "-1",
+      "explanation": "2 不在数组中。"
+    },
+    {
+      "input": "nums = [5], target = 5",
+      "output": "0",
+      "explanation": "单元素数组也能命中。"
+    }
+  ],
+  "verification_points": [
+    {
+      "id": "vp-search-interval",
+      "kind": "key_insight",
+      "statement": "维护一个候选搜索区间，并在每轮比较中排除不可能包含 target 的一半。",
+      "required": true,
+      "acceptable_variants": [
+        "闭区间 [left, right] 或左闭右开区间 [left, right) 都可，但边界更新必须自洽。"
+      ]
+    },
+    {
+      "id": "vp-move-direction",
+      "kind": "correctness_condition",
+      "statement": "若 nums[mid] 小于 target，则丢弃左半边；若大于 target，则丢弃右半边；相等时返回 mid。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-not-found",
+      "kind": "edge_case",
+      "statement": "搜索区间为空仍未命中时返回 -1。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-boundary-progress",
+      "kind": "correctness_condition",
+      "statement": "边界更新必须保证区间缩小，避免死循环和跳过候选下标。",
+      "required": true,
+      "acceptable_variants": [
+        "闭区间使用 left <= right，更新为 mid + 1 或 mid - 1。",
+        "左闭右开使用 left < right，更新规则与区间定义一致。"
+      ]
+    },
+    {
+      "id": "vp-complexity",
+      "kind": "complexity",
+      "statement": "每轮搜索空间约减半，时间 O(log n)，空间 O(1)；递归实现空间 O(log n)。",
+      "required": false,
+      "acceptable_variants": []
+    }
+  ],
+  "acceptable_approaches": [
+    {
+      "name": "迭代二分查找",
+      "idea": "用 left 和 right 表示当前搜索区间，取 mid 比较 nums[mid] 与 target，并据此移动边界；命中返回 mid，区间为空返回 -1。",
+      "time_complexity": "O(log n)",
+      "space_complexity": "O(1)",
+      "is_reference": true,
+      "note": null
+    },
+    {
+      "name": "递归二分查找",
+      "idea": "递归查找当前区间，比较中点后只递归进入可能包含 target 的半边。",
+      "time_complexity": "O(log n)",
+      "space_complexity": "O(log n)",
+      "is_reference": false,
+      "note": "逻辑正确；需注意递归边界和栈空间。"
+    },
+    {
+      "name": "线性扫描",
+      "idea": "从头到尾逐个比较 target。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(1)",
+      "is_reference": false,
+      "note": "能找到正确答案但没有利用有序性，不满足二分查找训练目标；应引导优化。"
+    }
+  ],
+  "common_mistakes": [
+    {
+      "description": "闭区间和左闭右开区间规则混用，导致漏掉最后一个元素。",
+      "counterexample": "nums = [5], target = 5：若使用 left < right 的闭区间循环，可能直接返回 -1。"
+    },
+    {
+      "description": "命中后继续移动边界而不是返回，最终错过答案。",
+      "counterexample": "nums = [-1,0,3], target = 0：mid 命中时应直接返回 1。"
+    },
+    {
+      "description": "边界更新为 left = mid 或 right = mid 且区间定义不支持，可能死循环。",
+      "counterexample": "nums = [1,3], target = 3：mid=0 后 left 若仍为 0，会无法推进。"
+    }
+  ],
+  "edge_cases": [
+    {
+      "description": "单元素数组。",
+      "expected_handling": "命中返回 0，不命中返回 -1。"
+    },
+    {
+      "description": "target 小于最小值或大于最大值。",
+      "expected_handling": "边界逐步收缩为空后返回 -1。"
+    },
+    {
+      "description": "target 在首位或末位。",
+      "expected_handling": "边界更新不能跳过端点。"
+    }
+  ],
+  "source": {
+    "name": "LeetCode CN 704. 二分查找",
+    "url": "https://leetcode.cn/problems/binary-search/",
+    "license_note": "题意、示例、核对要点和反例均为原创中文转写，未复制外站题面或题解。",
+    "source_version": "2026-09-06 对照 leetcode.cn 官方题面核对"
+  },
+  "content_notes": "已核对官方题名、URL 和约束；官方 GraphQL 返回 questionFrontendId 704。",
+  "content_status": "ready"
+}

@@ -1,4 +1,4 @@
-import { request } from "./client";
+import { cachedRequest, expireCachedRequests, invalidateCachedRequests, peekCachedRequest, primeCachedRequest, request } from "./client";
 import type {
   CreateQuestionSetPayload,
   InterviewAnswerSubmission,
@@ -104,22 +104,51 @@ export function createInterviewQuestionSet(payload: CreateQuestionSetPayload): P
   return request<InterviewQuestionSet>("/api/interviews/question-sets", {
     method: "POST",
     body: JSON.stringify(payload),
+  }).then((questionSet) => {
+    primeInterviewQuestionSet(questionSet);
+    expireCachedRequests("/api/interviews/question-sets?", "/api/interviews/stats");
+    return questionSet;
   });
 }
 
-export function getInterviewQuestionSet(setId: number, signal?: AbortSignal): Promise<InterviewQuestionSet> {
-  return request<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}`, { signal });
+export function getInterviewQuestionSet(setId: number, _signal?: AbortSignal, force = false): Promise<InterviewQuestionSet> {
+  return cachedRequest<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}`, undefined, force);
 }
 
-export function listInterviewQuestionSets(options: { status?: QuestionSetStatus; limit?: number; signal?: AbortSignal } = {}): Promise<InterviewQuestionSetSummary[]> {
-  return request<InterviewQuestionSetSummary[]>(
-    `/api/interviews/question-sets${toQuery({ status: options.status, limit: options.limit ?? 50 })}`,
-    { signal: options.signal },
-  );
+function questionSetListPath(options: { status?: QuestionSetStatus; limit?: number } = {}) {
+  return `/api/interviews/question-sets${toQuery({ status: options.status, limit: options.limit ?? 50 })}`;
 }
 
-export function getInterviewTrainingStats(signal?: AbortSignal): Promise<InterviewTrainingStats> {
-  return request<InterviewTrainingStats>("/api/interviews/stats", { signal });
+export function listInterviewQuestionSets(options: { status?: QuestionSetStatus; limit?: number; signal?: AbortSignal; force?: boolean } = {}): Promise<InterviewQuestionSetSummary[]> {
+  return cachedRequest<InterviewQuestionSetSummary[]>(questionSetListPath(options), undefined, options.force);
+}
+
+export function peekInterviewQuestionSets(options: { status?: QuestionSetStatus; limit?: number } = {}) {
+  return peekCachedRequest<InterviewQuestionSetSummary[]>(questionSetListPath(options));
+}
+
+export function peekAnyInterviewQuestionSets(options: { status?: QuestionSetStatus; limit?: number } = {}) {
+  return peekCachedRequest<InterviewQuestionSetSummary[]>(questionSetListPath(options), Number.POSITIVE_INFINITY);
+}
+
+export function peekInterviewQuestionSet(setId: number) {
+  return peekCachedRequest<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}`);
+}
+
+export function primeInterviewQuestionSet(questionSet: InterviewQuestionSet) {
+  primeCachedRequest(`/api/interviews/question-sets/${questionSet.id}`, questionSet);
+}
+
+export function getInterviewTrainingStats(_signal?: AbortSignal, force = false): Promise<InterviewTrainingStats> {
+  return cachedRequest<InterviewTrainingStats>("/api/interviews/stats", undefined, force);
+}
+
+export function peekInterviewTrainingStats() {
+  return peekCachedRequest<InterviewTrainingStats>("/api/interviews/stats");
+}
+
+export function peekAnyInterviewTrainingStats() {
+  return peekCachedRequest<InterviewTrainingStats>("/api/interviews/stats", Number.POSITIVE_INFINITY);
 }
 
 export function updateInterviewQuestionSetProgress(
@@ -129,27 +158,50 @@ export function updateInterviewQuestionSetProgress(
   return request<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}/progress`, {
     method: "PATCH",
     body: JSON.stringify(payload),
+  }).then((questionSet) => {
+    primeInterviewQuestionSet(questionSet);
+    expireCachedRequests("/api/interviews/question-sets?");
+    return questionSet;
   });
 }
 
 export function completeInterviewQuestionSet(setId: number): Promise<InterviewQuestionSet> {
-  return request<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}/complete`, { method: "POST" });
+  return request<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}/complete`, { method: "POST" }).then((questionSet) => {
+    primeInterviewQuestionSet(questionSet);
+    expireCachedRequests("/api/interviews/question-sets?", "/api/interviews/stats");
+    return questionSet;
+  });
 }
 
 export function abandonInterviewQuestionSet(setId: number): Promise<InterviewQuestionSet> {
-  return request<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}/abandon`, { method: "POST" });
+  return request<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}/abandon`, { method: "POST" }).then((questionSet) => {
+    primeInterviewQuestionSet(questionSet);
+    expireCachedRequests("/api/interviews/question-sets?", "/api/interviews/stats");
+    return questionSet;
+  });
 }
 
 export function restartInterviewQuestionSet(setId: number): Promise<InterviewQuestionSet> {
-  return request<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}/restart`, { method: "POST" });
+  return request<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}/restart`, { method: "POST" }).then((questionSet) => {
+    primeInterviewQuestionSet(questionSet);
+    expireCachedRequests("/api/interviews/question-sets?", "/api/interviews/stats");
+    return questionSet;
+  });
 }
 
 export function deleteInterviewQuestionSet(setId: number): Promise<void> {
-  return request<void>(`/api/interviews/question-sets/${setId}`, { method: "DELETE" });
+  return request<void>(`/api/interviews/question-sets/${setId}`, { method: "DELETE" }).then(() => {
+    invalidateCachedRequests(`/api/interviews/question-sets/${setId}`);
+    expireCachedRequests("/api/interviews/question-sets?", "/api/interviews/stats");
+  });
 }
 
 export function skipInterviewQuestion(setId: number): Promise<InterviewQuestionSet> {
-  return request<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}/skip`, { method: "POST" });
+  return request<InterviewQuestionSet>(`/api/interviews/question-sets/${setId}/skip`, { method: "POST" }).then((questionSet) => {
+    primeInterviewQuestionSet(questionSet);
+    expireCachedRequests("/api/interviews/question-sets?");
+    return questionSet;
+  });
 }
 
 export function submitInterviewAnswer(
@@ -159,6 +211,9 @@ export function submitInterviewAnswer(
   return request<InterviewAnswerSubmission>(`/api/interviews/question-sets/${setId}/answers`, {
     method: "POST",
     body: JSON.stringify(payload),
+  }).then((submission) => {
+    expireCachedRequests("/api/interviews/question-sets?", "/api/interviews/stats");
+    return submission;
   });
 }
 

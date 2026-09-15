@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { VoiceInput } from "./VoiceInput";
 import { HoverDatePicker } from "./HoverDatePicker";
 
@@ -22,6 +23,7 @@ export function DiaryForm({
   onRawTextChange,
   onGenerateDraft,
 }: DiaryFormProps) {
+  const rawTextRef = useRef<HTMLTextAreaElement | null>(null);
   return (
     <section className="input-pane" aria-labelledby="composer-title" aria-busy={isGenerating}>
       <div className="pane-header">
@@ -36,20 +38,24 @@ export function DiaryForm({
       </div>
 
       <div className="composer-toolbar">
-        <p>可以直接输入，也可以用语音补充。生成前不会写入历史记录。</p>
-        <VoiceInput text={rawText} onTextChange={onRawTextChange} />
+        <p>可以直接输入，也可以点输入框里的麦克风补充。生成前不会写入历史记录。</p>
       </div>
 
-      <label className="editor-field raw-editor-field">
-        <span className="visually-hidden">原始学习记录</span>
-        <textarea
-          className="raw-editor"
-          value={rawText}
-          onChange={(event) => onRawTextChange(event.target.value)}
-          placeholder="记录今天学到的内容、遇到的问题，以及还没有想明白的地方..."
-          rows={18}
-        />
-      </label>
+      <div className="editor-field raw-editor-field">
+        <label className="visually-hidden" htmlFor="diary-raw-text">原始学习记录</label>
+        <div className="voice-textarea-shell">
+          <textarea
+            className="raw-editor"
+            id="diary-raw-text"
+            ref={rawTextRef}
+            value={rawText}
+            onChange={(event) => onRawTextChange(event.target.value)}
+            placeholder="记录今天学到的内容、遇到的问题，以及还没有想明白的地方..."
+            rows={18}
+          />
+          <VoiceInput inputRef={rawTextRef} text={rawText} onTextChange={onRawTextChange} />
+        </div>
+      </div>
 
       <div className="composer-footer">
         <div>

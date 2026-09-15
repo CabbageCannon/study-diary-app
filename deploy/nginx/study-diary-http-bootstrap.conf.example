@@ -1,0 +1,17 @@
+# Enable this HTTP-only site only long enough to acquire the first certificate.
+# Replace app.example.com, validate with `nginx -t`, reload Nginx, then run
+# Certbot's webroot command from docs/deployment.md. Replace this file with
+# study-diary.conf.example after the certificate exists.
+server {
+    listen 80;
+    listen [::]:80;
+    server_name app.example.com;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 404;
+    }
+}

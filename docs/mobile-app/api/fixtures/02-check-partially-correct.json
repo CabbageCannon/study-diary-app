@@ -1,0 +1,117 @@
+{
+  "fixture": "02-check-partially-correct",
+  "description": "一键核对，还差一步。对应产品 README 的两数之和示例：用户说了哈希表存已见过的数，但没讲先查补数再存当前值的顺序，也未讲复杂度。反馈标为待补充而非判错。",
+  "request": {
+    "method": "POST",
+    "path": "/api/algorithms/reasoning/checks",
+    "headers": {
+      "Content-Type": "application/json",
+      "X-Study-Diary-Access": "<仅在配置 APP_ACCESS_TOKEN 时需要>"
+    },
+    "body": {
+      "problem_id": "leetcode-1",
+      "session_id": null,
+      "answer_text": "遍历一遍数组，用哈希表存已经见过的数，这样找两个数就不用两层循环了。",
+      "answer_source": "text",
+      "details": {
+        "time_complexity": null,
+        "space_complexity": null,
+        "code": null,
+        "notes": null
+      },
+      "client_answer_id": "b7d2f190-3c44-4a1e-9f0d-6a1e5c2b7d88",
+      "revision_of_answer_id": null
+    }
+  },
+  "response": {
+    "status": 201,
+    "body": {
+      "save_status": "saved",
+      "check_status": "completed",
+      "answer": {
+        "answer_id": 102,
+        "problem_id": "leetcode-1",
+        "session_id": null,
+        "version": 1,
+        "revision_of_answer_id": null,
+        "answer_text": "遍历一遍数组，用哈希表存已经见过的数，这样找两个数就不用两层循环了。",
+        "answer_source": "text",
+        "details": {
+          "time_complexity": null,
+          "space_complexity": null,
+          "code": null,
+          "notes": null
+        },
+        "client_answer_id": "b7d2f190-3c44-4a1e-9f0d-6a1e5c2b7d88",
+        "save_status": "saved",
+        "check_status": "completed",
+        "saved_at": "2026-09-06T12:10:02+00:00",
+        "checked_at": "2026-09-06T12:10:09+00:00"
+      },
+      "feedback": {
+        "feedback_id": 56,
+        "answer_id": 102,
+        "conclusion": "partially_correct",
+        "headline": "方向成立。还需要说明先查补数再存当前值，这样不会把同一个位置使用两次。",
+        "context_sufficient": true,
+        "correct_parts": [
+          {
+            "point": "用哈希表记录已见过的数，避免两层循环",
+            "quote": "用哈希表存已经见过的数，这样找两个数就不用两层循环了"
+          }
+        ],
+        "issues_or_missing": [
+          {
+            "type": "missing",
+            "detail": "没有说明查什么、何时查：应对每个元素先查补数 target - x 是否已在表中，再把当前元素存入。缺少这个顺序，遇到补数等于自身的情况可能把同一下标用两次。",
+            "quote": null,
+            "verification_point_id": "vp-lookup-before-store"
+          },
+          {
+            "type": "missing",
+            "detail": "未提到时间与空间复杂度。",
+            "quote": null,
+            "verification_point_id": "vp-complexity"
+          }
+        ],
+        "counterexample_or_followup": {
+          "kind": "followup",
+          "content": "如果数组是 [3, 3]、target = 6，先存再查和先查再存分别会得到什么下标？"
+        },
+        "complexity": {
+          "time": {
+            "user_claim": null,
+            "assessment": "not_stated",
+            "expected": "O(n)",
+            "note": "未陈述复杂度不算错误；哈希一次遍历为 O(n)"
+          },
+          "space": {
+            "user_claim": null,
+            "assessment": "not_stated",
+            "expected": "O(n)",
+            "note": "哈希表带来 O(n) 额外空间"
+          }
+        },
+        "alternative_approaches_accepted": [],
+        "reference_outline": "遍历中对 x 先查 target - x 是否已存在：命中返回两下标；否则把 (x, i) 存入哈希表继续。时间 O(n)，额外空间 O(n)。",
+        "needs_review": true,
+        "model_name": "gpt-4o-mini",
+        "prompt_version": "reasoning-check-v1",
+        "context_version": 3,
+        "created_at": "2026-09-06T12:10:09+00:00"
+      },
+      "check_error": null,
+      "retry": null,
+      "problem_context": {
+        "problem_id": "leetcode-1",
+        "content_version": 3,
+        "reasoning_available": true
+      }
+    }
+  },
+  "notes": [
+    "B 首层显示 headline + issues_or_missing 前 1-3 条 + followup；complexity 与 reference_outline 放展开区。",
+    "用户含糊未讲顺序时标为 missing（待补充），不擅自断言实现一定错误——符合 README 示例。",
+    "needs_review=true：partially_correct 同步为 AlgorithmAttempt.result=partially_solved，复习间隔缩短。"
+  ]
+}

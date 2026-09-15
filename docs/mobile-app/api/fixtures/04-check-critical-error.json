@@ -1,0 +1,111 @@
+{
+  "fixture": "04-check-critical-error",
+  "description": "存在关键错误。用户主张“先排序再双指针找两数之和，返回下标”。排序会打乱下标，直接返回原下标不成立，属关键错误。模型给出具体反例而非空洞否定。",
+  "request": {
+    "method": "POST",
+    "path": "/api/algorithms/reasoning/checks",
+    "headers": {
+      "Content-Type": "application/json",
+      "X-Study-Diary-Access": "<仅在配置 APP_ACCESS_TOKEN 时需要>"
+    },
+    "body": {
+      "problem_id": "leetcode-1",
+      "session_id": null,
+      "answer_text": "先把数组排序，然后左右双指针往中间夹，和小于 target 就左指针右移，大于就右指针左移，找到就把这两个位置的下标返回。",
+      "answer_source": "text",
+      "details": {
+        "time_complexity": "O(n log n)",
+        "space_complexity": "O(1)",
+        "code": null,
+        "notes": null
+      },
+      "client_answer_id": "d4e5f6a7-8899-4a1b-9c2d-3e4f5a6b7c8d",
+      "revision_of_answer_id": null
+    }
+  },
+  "response": {
+    "status": 201,
+    "body": {
+      "save_status": "saved",
+      "check_status": "completed",
+      "answer": {
+        "answer_id": 104,
+        "problem_id": "leetcode-1",
+        "session_id": null,
+        "version": 1,
+        "revision_of_answer_id": null,
+        "answer_text": "先把数组排序，然后左右双指针往中间夹，和小于 target 就左指针右移，大于就右指针左移，找到就把这两个位置的下标返回。",
+        "answer_source": "text",
+        "details": {
+          "time_complexity": "O(n log n)",
+          "space_complexity": "O(1)",
+          "code": null,
+          "notes": null
+        },
+        "client_answer_id": "d4e5f6a7-8899-4a1b-9c2d-3e4f5a6b7c8d",
+        "save_status": "saved",
+        "check_status": "completed",
+        "saved_at": "2026-09-06T12:20:31+00:00",
+        "checked_at": "2026-09-06T12:20:39+00:00"
+      },
+      "feedback": {
+        "feedback_id": 58,
+        "answer_id": 104,
+        "conclusion": "critical_error",
+        "headline": "存在关键错误：排序会改变元素位置，直接返回排序后的下标不是原数组要求的下标。",
+        "context_sufficient": true,
+        "correct_parts": [
+          {
+            "point": "排序后双指针夹逼求两数之和本身是有效的求和技巧",
+            "quote": "左右双指针往中间夹，和小于 target 就左指针右移"
+          }
+        ],
+        "issues_or_missing": [
+          {
+            "type": "key_error",
+            "detail": "本题要求返回原始数组中的下标。排序后数组顺序被破坏，双指针得到的是排序数组里的位置，不等于原下标；要还原还需额外记录原下标，空间不再是 O(1)。",
+            "quote": "找到就把这两个位置的下标返回",
+            "verification_point_id": "vp-lookup-before-store"
+          }
+        ],
+        "counterexample_or_followup": {
+          "kind": "counterexample",
+          "content": "nums = [3, 2, 4], target = 6：排序后为 [2, 3, 4]，双指针会指向排序数组的位置 0 和 2，但正确原下标是 [1, 2]。"
+        },
+        "complexity": {
+          "time": {
+            "user_claim": "O(n log n)",
+            "assessment": "partially_correct",
+            "expected": "O(n)",
+            "note": "排序解法时间确为 O(n log n)，但本题可用哈希做到 O(n)"
+          },
+          "space": {
+            "user_claim": "O(1)",
+            "assessment": "incorrect",
+            "expected": "O(n)",
+            "note": "若要还原原下标需额外映射，空间不是 O(1)；哈希解法为 O(n)"
+          }
+        },
+        "alternative_approaches_accepted": [],
+        "reference_outline": "一次遍历 + 哈希表：对 x 先查 target - x 是否已存在，命中返回两下标，否则存 (x, i)。这样下标天然对应原数组，时间 O(n)、空间 O(n)。",
+        "needs_review": true,
+        "model_name": "gpt-4o-mini",
+        "prompt_version": "reasoning-check-v1",
+        "context_version": 3,
+        "created_at": "2026-09-06T12:20:39+00:00"
+      },
+      "check_error": null,
+      "retry": null,
+      "problem_context": {
+        "problem_id": "leetcode-1",
+        "content_version": 3,
+        "reasoning_available": true
+      }
+    }
+  },
+  "notes": [
+    "critical_error 时 issues_or_missing 至少一条 type=key_error；本例优先给 counterexample 而非 followup。",
+    "认可其正确部分（双指针求和有效），只否定与本题“返回原下标”约束冲突之处——不做空洞否定。",
+    "needs_review=true：critical_error 同步为 AlgorithmAttempt.result=failed，复习间隔最短（次日/3 日）。"
+  ]
+}

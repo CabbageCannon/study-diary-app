@@ -1,0 +1,39 @@
+{
+  "fixture": "07-save-failure",
+  "description": "保存失败：回答为空（校验不通过），未产生任何记录。save_status=save_failed、check_status=not_attempted。客户端修正后可用同一 client_answer_id 重试，不会残留脏数据。",
+  "request": {
+    "method": "POST",
+    "path": "/api/algorithms/reasoning/checks",
+    "headers": {
+      "Content-Type": "application/json",
+      "X-Study-Diary-Access": "<仅在配置 APP_ACCESS_TOKEN 时需要>"
+    },
+    "body": {
+      "problem_id": "leetcode-1",
+      "session_id": null,
+      "answer_text": "   ",
+      "answer_source": "text",
+      "details": null,
+      "client_answer_id": "f6a7b8c9-00bb-4c3d-9e4f-5a6b7c8d9e0f",
+      "revision_of_answer_id": null
+    }
+  },
+  "response": {
+    "status": 422,
+    "body": {
+      "save_status": "save_failed",
+      "check_status": "not_attempted",
+      "answer": null,
+      "feedback": null,
+      "check_error": null,
+      "save_error": "回答不能为空，请先描述你的思路。",
+      "retry": null,
+      "problem_context": null
+    }
+  },
+  "notes": [
+    "常见 save_failed 原因：answer_text 为空/超长（>12000 字符）、problem_id 不存在、session_id 无效或题目不在该会话中、revision_of_answer_id 不属于同一题。",
+    "save_failed 时不调 LLM、不扣 AI 限流额度、无记录产生；B 保留本地草稿并提示修正。",
+    "服务端内部错误（如数据库写入失败）返回 500，信封结构相同（save_status=save_failed）。"
+  ]
+}

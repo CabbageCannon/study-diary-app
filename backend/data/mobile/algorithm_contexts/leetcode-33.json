@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "problem_key": "leetcode-33",
+  "title": "Search in Rotated Sorted Array",
+  "title_zh": "搜索旋转排序数组",
+  "statement_zh": "给定一个原本升序且元素互不重复的整数数组，它在某个未知位置被旋转后得到 nums。再给定 target，请在 nums 中查找 target，找到则返回下标，找不到则返回 -1。要求利用数组结构进行对数级查找。",
+  "input_output": {
+    "input": "nums：旋转后的升序数组，元素互不重复；target：要查找的整数。",
+    "output": "target 在 nums 中的下标；不存在时返回 -1。"
+  },
+  "constraints": [
+    "1 <= nums.length <= 5000",
+    "-10^4 <= nums[i] <= 10^4",
+    "nums 中所有元素互不相同",
+    "nums 是某个升序数组旋转后的结果",
+    "目标复杂度为 O(log n)"
+  ],
+  "examples": [
+    {
+      "input": "nums = [4, 5, 6, 7, 0, 1, 2], target = 0",
+      "output": "4",
+      "explanation": "0 位于旋转点右侧，下标为 4。"
+    },
+    {
+      "input": "nums = [4, 5, 6, 7, 0, 1, 2], target = 3",
+      "output": "-1",
+      "explanation": "3 不在数组中。"
+    },
+    {
+      "input": "nums = [1], target = 1",
+      "output": "0",
+      "explanation": "单元素数组直接命中。"
+    }
+  ],
+  "verification_points": [
+    {
+      "id": "vp-one-half-sorted",
+      "kind": "key_insight",
+      "statement": "每轮二分时，左右两半至少有一半是有序的，先判断哪一半有序。",
+      "required": true,
+      "acceptable_variants": [
+        "也可以先找旋转点，再在对应有序区间二分。"
+      ]
+    },
+    {
+      "id": "vp-target-in-sorted-half",
+      "kind": "correctness_condition",
+      "statement": "判断 target 是否落在有序半边的值域内，若落入则保留该半边，否则丢弃该半边。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-return-original-index",
+      "kind": "correctness_condition",
+      "statement": "返回的是旋转后 nums 中的下标，不能排序后返回新位置。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-complexity",
+      "kind": "complexity",
+      "statement": "每轮排除一半搜索区间，时间 O(log n)，额外空间 O(1)。",
+      "required": false,
+      "acceptable_variants": [
+        "找旋转点再二分也应整体 O(log n)。"
+      ]
+    }
+  ],
+  "acceptable_approaches": [
+    {
+      "name": "一次二分判断有序半边",
+      "idea": "维护 left/right，取 mid。若 nums[left] <= nums[mid]，左半边有序；否则右半边有序。根据 target 是否在有序半边范围内移动边界，命中 mid 则返回。",
+      "time_complexity": "O(log n)",
+      "space_complexity": "O(1)",
+      "is_reference": true,
+      "note": null
+    },
+    {
+      "name": "先找旋转点再二分",
+      "idea": "用二分找最小值所在的旋转点，再判断 target 应在旋转点左侧还是右侧，对相应有序区间做普通二分。",
+      "time_complexity": "O(log n)",
+      "space_complexity": "O(1)",
+      "is_reference": false,
+      "note": "正确但步骤略多。"
+    },
+    {
+      "name": "线性扫描",
+      "idea": "逐个元素比较 target。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(1)",
+      "is_reference": false,
+      "note": "能返回正确下标，但不满足对数级训练目标。"
+    }
+  ],
+  "common_mistakes": [
+    {
+      "description": "按普通升序数组二分，忽略旋转。",
+      "counterexample": "nums = [4,5,6,7,0,1,2], target = 0：普通二分会错误丢弃包含 0 的区间。"
+    },
+    {
+      "description": "排序数组后查找，返回排序后的下标。",
+      "counterexample": "nums = [4,5,6,7,0,1,2] 中 0 的原下标是 4，排序后下标是 0。"
+    },
+    {
+      "description": "边界判断使用严格不等导致漏掉端点。",
+      "counterexample": "target 等于 nums[left] 或 nums[mid] 时应能命中或保留对应区间。"
+    }
+  ],
+  "edge_cases": [
+    {
+      "description": "数组未发生有效旋转。",
+      "expected_handling": "算法应退化为普通二分并返回正确结果。"
+    },
+    {
+      "description": "单元素数组。",
+      "expected_handling": "命中返回 0，否则返回 -1。"
+    },
+    {
+      "description": "target 在旋转点两侧或不存在。",
+      "expected_handling": "通过有序半边值域判断移动边界。"
+    }
+  ],
+  "source": {
+    "name": "LeetCode CN 33. 搜索旋转排序数组",
+    "url": "https://leetcode.cn/problems/search-in-rotated-sorted-array/",
+    "license_note": "题意、示例、核对要点和反例均为原创中文转写，未复制外站题面或题解。",
+    "source_version": "2026-09-11 对照 leetcode.cn 官方题面核对"
+  },
+  "content_notes": "按官方题目约束补齐移动端思路核对上下文；示例与反例为本项目原创构造。",
+  "content_status": "ready"
+}

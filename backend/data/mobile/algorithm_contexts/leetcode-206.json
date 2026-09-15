@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "problem_key": "leetcode-206",
+  "title": "Reverse Linked List",
+  "title_zh": "反转链表",
+  "statement_zh": "给定单链表的头节点 head，请反转整个链表，并返回反转后链表的新头节点。反转的是节点之间的 next 指向，而不是只交换节点值。",
+  "input_output": {
+    "input": "head：单链表头节点，链表可能为空。",
+    "output": "反转后链表的头节点；空链表返回 null。"
+  },
+  "constraints": [
+    "链表节点数量范围为 0 到 5000",
+    "-5000 <= Node.val <= 5000",
+    "需要返回新的头节点",
+    "单链表节点只有向后的 next 指针"
+  ],
+  "examples": [
+    {
+      "input": "head = [1, 2, 3]",
+      "output": "[3, 2, 1]",
+      "explanation": "原来的 3 成为新头，3.next 指向 2，2.next 指向 1。"
+    },
+    {
+      "input": "head = []",
+      "output": "[]",
+      "explanation": "空链表反转后仍为空。"
+    },
+    {
+      "input": "head = [8]",
+      "output": "[8]",
+      "explanation": "单节点链表反转后不变。"
+    }
+  ],
+  "verification_points": [
+    {
+      "id": "vp-pointer-reversal",
+      "kind": "key_insight",
+      "statement": "核心操作是逐步改变每个节点的 next 指针方向，而不是只读取值或只交换值。",
+      "required": true,
+      "acceptable_variants": [
+        "递归方案在回溯时改变 next 指向也可接受。"
+      ]
+    },
+    {
+      "id": "vp-save-next",
+      "kind": "correctness_condition",
+      "statement": "迭代时在改写 curr.next 之前需要保存 next 节点，否则会丢失剩余链表。",
+      "required": true,
+      "acceptable_variants": [
+        "用户若用递归，可用递归返回关系替代保存 next 的口述。"
+      ]
+    },
+    {
+      "id": "vp-new-head",
+      "kind": "correctness_condition",
+      "statement": "返回反转后的新头节点，通常是迭代结束时的 prev 或原链表尾节点。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-empty-single",
+      "kind": "edge_case",
+      "statement": "正确处理空链表和单节点链表。",
+      "required": false,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-complexity",
+      "kind": "complexity",
+      "statement": "迭代方案时间 O(n)、额外空间 O(1)；递归方案时间 O(n)、递归栈 O(n)。",
+      "required": false,
+      "acceptable_variants": []
+    }
+  ],
+  "acceptable_approaches": [
+    {
+      "name": "三指针迭代反转",
+      "idea": "用 prev 表示已反转部分头，curr 表示当前节点。每轮先保存 next，再令 curr.next 指向 prev，随后 prev 和 curr 向前推进。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(1)",
+      "is_reference": true,
+      "note": null
+    },
+    {
+      "name": "递归反转",
+      "idea": "递归反转 head.next 后，在回溯时让 head.next.next 指向 head，再断开 head.next，最终返回尾节点作为新头。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(n)",
+      "is_reference": false,
+      "note": "正确；需要说明递归终止和断开旧指针，避免成环。"
+    },
+    {
+      "name": "创建新链表头插法",
+      "idea": "遍历原链表，将节点或值按头插法插入新链表，形成反向顺序。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(n)",
+      "is_reference": false,
+      "note": "若新建节点可得到正确值序列，但不是原地反转；应按题目和面试要求追问是否允许额外节点。"
+    }
+  ],
+  "common_mistakes": [
+    {
+      "description": "改 curr.next 前没有保存后继节点，导致后半链表丢失。",
+      "counterexample": "head = [1,2,3]：若先令 1.next = null 但没有保存 2，就无法继续处理 2 和 3。"
+    },
+    {
+      "description": "忘记返回新头，仍返回原 head。",
+      "counterexample": "head = [1,2,3]：原 head 反转后是尾节点 1，正确新头是 3。"
+    },
+    {
+      "description": "递归反转后忘记断开 head.next，形成环。",
+      "counterexample": "[1,2] 若令 2.next=1 但不把 1.next 置空，会出现 1 和 2 相互指向。"
+    }
+  ],
+  "edge_cases": [
+    {
+      "description": "空链表。",
+      "expected_handling": "直接返回 null。"
+    },
+    {
+      "description": "单节点链表。",
+      "expected_handling": "返回该节点本身，next 仍为 null。"
+    },
+    {
+      "description": "多节点链表。",
+      "expected_handling": "所有 next 指针都反向，原头成为尾节点且 next 为 null。"
+    }
+  ],
+  "source": {
+    "name": "LeetCode CN 206. 反转链表",
+    "url": "https://leetcode.cn/problems/reverse-linked-list/",
+    "license_note": "题意、示例、核对要点和反例均为原创中文转写，未复制外站题面或题解。",
+    "source_version": "2026-09-06 对照 leetcode.cn 官方题面核对"
+  },
+  "content_notes": "已核对官方题名、URL 和约束；迭代与递归都应被认可。",
+  "content_status": "ready"
+}

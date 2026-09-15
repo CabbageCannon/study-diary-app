@@ -283,4 +283,4 @@ cd backend
 
 ## PWA 与生产部署
 
-移动端 PWA、Cloudflare/Vercel SPA 回退、PostgreSQL/Alembic、SQLite 迁移和公网访问保护说明见 [docs/deployment.md](docs/deployment.md)。
+Cloudflare PWA、Render 后端、Supabase PostgreSQL 和 SQLite 数据迁移见 [docs/deployment-cloudflare-render-supabase.md](docs/deployment-cloudflare-render-supabase.md)。自建 Linux/Nginx 方案仍见 [docs/deployment.md](docs/deployment.md)。

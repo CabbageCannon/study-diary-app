@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app import crud
 from app.database import get_db
 from app.llm import LLMError, generate_learning_diary_draft, rewrite_learning_diary_draft
-from app.schemas import DiaryDraft, DiaryDraftCreate, DiaryDraftRewrite, DiaryRead, DiarySave
+from app.schemas import DiaryDraft, DiaryDraftCreate, DiaryDraftRewrite, DiaryRead, DiarySave, DiaryUpdate
 
 
 router = APIRouter(prefix="/api/diaries", tags=["diaries"])
@@ -52,6 +52,14 @@ def get_diary(diary_id: int, db: Session = Depends(get_db)) -> DiaryRead:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="学习日记不存在")
 
     return diary
+
+
+@router.patch("/{diary_id}", response_model=DiaryRead)
+def update_diary(diary_id: int, payload: DiaryUpdate, db: Session = Depends(get_db)) -> DiaryRead:
+    diary = crud.get_diary(db=db, diary_id=diary_id)
+    if diary is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="学习日记不存在")
+    return crud.update_diary(db=db, diary=diary, payload=payload)
 
 
 @router.delete("/{diary_id}", status_code=status.HTTP_204_NO_CONTENT)

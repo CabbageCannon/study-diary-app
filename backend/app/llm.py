@@ -8,18 +8,27 @@ from app.models import AlgorithmAttempt, AlgorithmProblem, InterviewQuestion
 from app.prompts import (
     ALGORITHM_AI_REVIEW_SYSTEM_PROMPT,
     ALGORITHM_HINT_SYSTEM_PROMPT,
+    ALGORITHM_REASONING_CHECK_SYSTEM_PROMPT,
     DRAFT_SYSTEM_PROMPT,
     INTERVIEW_EVALUATION_SYSTEM_PROMPT,
     INTERVIEW_QUESTION_REVIEW_SYSTEM_PROMPT,
     REWRITE_SYSTEM_PROMPT,
     build_algorithm_ai_review_prompt,
     build_algorithm_hint_prompt,
+    build_algorithm_reasoning_check_prompt,
     build_draft_user_prompt,
     build_interview_evaluation_prompt,
     build_interview_question_review_prompt,
     build_rewrite_user_prompt,
 )
-from app.schemas import AlgorithmAIReview, AlgorithmHintContent, AnswerEvaluation, DiaryDraftContent, InterviewQuestionAIReview
+from app.schemas import (
+    AlgorithmAIReview,
+    AlgorithmHintContent,
+    AlgorithmReasoningFeedbackModel,
+    AnswerEvaluation,
+    DiaryDraftContent,
+    InterviewQuestionAIReview,
+)
 
 
 class LLMError(RuntimeError):
@@ -235,3 +244,40 @@ async def generate_algorithm_ai_review(
         except (LLMFormatError, ValidationError) as exc:
             last_error = str(exc)
     raise LLMError("AI 复盘结果格式错误，已进行一次修复重试。")
+
+
+async def generate_algorithm_reasoning_feedback(
+    *,
+    context: dict[str, object],
+    answer: object,
+    previous_feedback: object | None,
+) -> AlgorithmReasoningFeedbackModel:
+    """Check one saved mobile reasoning answer against a trusted context."""
+
+    previous_payload: dict[str, object] = {}
+    if previous_feedback is not None and hasattr(previous_feedback, "feedback"):
+        previous_payload = {
+            "conclusion": getattr(previous_feedback, "conclusion", None),
+            "headline": getattr(previous_feedback, "headline", None),
+            "issues_or_missing": getattr(previous_feedback, "feedback", {}).get("issues_or_missing", []),
+        }
+    details = getattr(answer, "details", {})
+    prompt = build_algorithm_reasoning_check_prompt(
+        problem_context_json=json.dumps(context, ensure_ascii=False),
+        answer_text=str(getattr(answer, "answer_text", "")),
+        details_json=json.dumps(details if isinstance(details, dict) else {}, ensure_ascii=False),
+        answer_version=int(getattr(answer, "version", 1)),
+        previous_feedback_json=json.dumps(previous_payload, ensure_ascii=False),
+    )
+    last_error = ""
+    for repair_attempt in range(2):
+        repair_instruction = "" if repair_attempt == 0 else f"上一份输出未通过 JSON 校验：{last_error}。只返回符合 Schema 的 JSON。"
+        try:
+            parsed, _ = await _request_json_content(
+                ALGORITHM_REASONING_CHECK_SYSTEM_PROMPT,
+                f"{prompt}\n{repair_instruction}",
+            )
+            return AlgorithmReasoningFeedbackModel.model_validate(parsed)
+        except (LLMFormatError, ValidationError) as exc:
+            last_error = str(exc)
+    raise LLMError("思路核对结果格式错误，已进行一次修复重试。")

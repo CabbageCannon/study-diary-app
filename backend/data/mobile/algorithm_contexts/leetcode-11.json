@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "problem_key": "leetcode-11",
+  "title": "Container With Most Water",
+  "title_zh": "盛最多水的容器",
+  "statement_zh": "给定一个非负整数数组 height，每个位置代表一条垂直线的高度。任选两条线作为容器左右边界，容器可盛水量由较短的边和两线距离决定。请返回能盛水的最大面积。",
+  "input_output": {
+    "input": "height：非负整数数组，height[i] 表示第 i 条垂直线的高度。",
+    "output": "任选两条线形成容器时的最大面积。"
+  },
+  "constraints": [
+    "2 <= height.length <= 10^5",
+    "0 <= height[i] <= 10^4",
+    "容器宽度为两个下标之差",
+    "容器高度由两条边中较短的一条决定",
+    "不能倾斜容器"
+  ],
+  "examples": [
+    {
+      "input": "height = [1, 8, 6, 2, 5, 4, 8, 3, 7]",
+      "output": "49",
+      "explanation": "下标 1 和 8 的高度分别为 8 和 7，宽度为 7，面积为 49。"
+    },
+    {
+      "input": "height = [1, 1]",
+      "output": "1",
+      "explanation": "只有两条线，宽度 1，高度 1。"
+    },
+    {
+      "input": "height = [0, 2, 0, 4]",
+      "output": "4",
+      "explanation": "下标 1 和 3 形成面积 2 * min(2,4) = 4。"
+    }
+  ],
+  "verification_points": [
+    {
+      "id": "vp-area-formula",
+      "kind": "correctness_condition",
+      "statement": "明确面积为 (right - left) * min(height[left], height[right])。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-move-shorter-side",
+      "kind": "key_insight",
+      "statement": "双指针每次移动较短边，因为宽度变小后，只有尝试更高的短板才可能得到更大面积。",
+      "required": true,
+      "acceptable_variants": [
+        "两边等高时移动任意一边或同时移动均可，只要不漏最优解。"
+      ]
+    },
+    {
+      "id": "vp-track-maximum",
+      "kind": "correctness_condition",
+      "statement": "遍历过程中持续更新最大面积，而不是只返回最后一次指针相遇前的面积。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-complexity",
+      "kind": "complexity",
+      "statement": "双指针方案每个指针最多移动 n 次，时间 O(n)，额外空间 O(1)。",
+      "required": false,
+      "acceptable_variants": []
+    }
+  ],
+  "acceptable_approaches": [
+    {
+      "name": "左右双指针",
+      "idea": "left 从 0 开始，right 从末尾开始；计算当前面积并更新答案，然后移动高度较小的一侧，直到两指针相遇。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(1)",
+      "is_reference": true,
+      "note": null
+    },
+    {
+      "name": "暴力枚举两条边",
+      "idea": "枚举所有 i < j 的边界组合，计算面积并取最大值。",
+      "time_complexity": "O(n^2)",
+      "space_complexity": "O(1)",
+      "is_reference": false,
+      "note": "逻辑正确但在 10^5 规模下会超时，应引导到双指针。"
+    }
+  ],
+  "common_mistakes": [
+    {
+      "description": "移动较高边，可能错过更优结果。",
+      "counterexample": "height = [1,8,6,2,5,4,8,3,7]：一开始应移动左侧高度 1，而不是右侧 7。"
+    },
+    {
+      "description": "面积用较高边计算，水量被高估。",
+      "counterexample": "height = [1, 100]：实际面积是 1，不是 100。"
+    },
+    {
+      "description": "忘记宽度是下标差。",
+      "counterexample": "height = [5, 5, 5]：下标 0 和 2 的面积是 10，不是 5。"
+    }
+  ],
+  "edge_cases": [
+    {
+      "description": "数组只有两个元素。",
+      "expected_handling": "直接计算这两条边形成的面积。"
+    },
+    {
+      "description": "包含高度为 0 的边。",
+      "expected_handling": "面积可能为 0，但仍按公式计算并继续移动。"
+    },
+    {
+      "description": "两侧高度相等。",
+      "expected_handling": "移动任意一侧均可，关键是更新当前面积。"
+    }
+  ],
+  "source": {
+    "name": "LeetCode CN 11. 盛最多水的容器",
+    "url": "https://leetcode.cn/problems/container-with-most-water/",
+    "license_note": "题意、示例、核对要点和反例均为原创中文转写，未复制外站题面或题解。",
+    "source_version": "2026-09-11 对照 leetcode.cn 官方题面核对"
+  },
+  "content_notes": "按官方题目约束补齐移动端思路核对上下文；示例与反例为本项目原创构造。",
+  "content_status": "ready"
+}

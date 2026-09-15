@@ -5,6 +5,7 @@ interface ConfirmActionDialogProps {
   title: string;
   description: string;
   confirmLabel: string;
+  cancelLabel?: string;
   danger?: boolean;
   isConfirming?: boolean;
   onCancel: () => void;
@@ -16,6 +17,7 @@ export function ConfirmActionDialog({
   title,
   description,
   confirmLabel,
+  cancelLabel = "取消",
   danger = false,
   isConfirming = false,
   onCancel,
@@ -42,7 +44,7 @@ export function ConfirmActionDialog({
         <h2 id="confirm-action-title">{title}</h2>
         <p id="confirm-action-description">{description}</p>
         <div className="confirm-dialog-actions">
-          <button className="button button-secondary" disabled={isConfirming} onClick={onCancel} type="button">取消</button>
+          <button className="button button-secondary" disabled={isConfirming} onClick={onCancel} type="button">{cancelLabel}</button>
           <button className={danger ? "button button-danger" : "button button-primary"} disabled={isConfirming} onClick={onConfirm} type="button">
             {isConfirming ? "处理中..." : confirmLabel}
           </button>

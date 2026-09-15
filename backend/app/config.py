@@ -49,6 +49,10 @@ class Settings:
         ).strip()
         self.app_timezone = os.getenv("APP_TIMEZONE", "Asia/Shanghai").strip() or "Asia/Shanghai"
         self.app_access_token = os.getenv("APP_ACCESS_TOKEN", "").strip()
+        self.vapid_public_key = os.getenv("VAPID_PUBLIC_KEY", "").strip()
+        self.vapid_private_key = os.getenv("VAPID_PRIVATE_KEY", "").strip()
+        self.vapid_subject = os.getenv("VAPID_SUBJECT", "mailto:study-diary@example.com").strip()
+        self.reminder_cron_secret = os.getenv("REMINDER_CRON_SECRET", "").strip()
         self.ai_rate_limit_per_minute = max(1, _read_int("AI_RATE_LIMIT_PER_MINUTE", 12))
         self.allow_question_review = _read_bool("ALLOW_QUESTION_REVIEW")
         self.allow_unverified_question_access = _read_bool("ALLOW_UNVERIFIED_QUESTION_ACCESS")

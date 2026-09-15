@@ -1,0 +1,66 @@
+.theme-switcher {
+  position: fixed;
+  z-index: 90;
+  top: calc(10px + var(--safe-top));
+  right: max(12px, var(--safe-right));
+  display: grid;
+  overflow: hidden;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--paper-strong) 82%, transparent);
+  color: var(--accent-strong);
+  backdrop-filter: blur(12px);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 180ms cubic-bezier(.2,.8,.2,1);
+}
+
+.theme-switcher:active,
+.theme-switcher.is-holding { transform: scale(.94); }
+
+.theme-disc {
+  position: fixed;
+  z-index: 89;
+  pointer-events: none;
+  animation: theme-disc-in 160ms cubic-bezier(.2,.8,.2,1) both;
+  transform-origin: 100% 0;
+}
+
+.theme-disc-sector path { fill: var(--paper-strong); stroke: var(--rule); }
+.theme-disc-sector circle { stroke: var(--rule-strong); }
+.theme-disc-sector text { fill: var(--muted); font-size: 12px; font-weight: 650; text-anchor: middle; }
+.theme-disc-sector.is-picked path { fill: var(--accent-wash); stroke: var(--accent); }
+.theme-disc-sector.is-picked text { fill: var(--accent-strong); }
+
+@keyframes theme-disc-in { from { opacity: 0; transform: scale(.9); } }
+
+/* 主题切换：新配色从按钮中心圆形扩散覆盖全页。 */
+/* 过渡层覆盖全屏且参与命中测试，过渡期间会吃掉长按的 pointerdown。pointer-events 可继承，关掉树根即覆盖整棵树。 */
+::view-transition { pointer-events: none; }
+::view-transition-old(root),
+::view-transition-new(root) { animation: none; mix-blend-mode: normal; pointer-events: none; }
+::view-transition-new(root) { animation: theme-ripple 650ms cubic-bezier(.2,.8,.2,1); }
+
+@keyframes theme-ripple {
+  from { clip-path: circle(0% at var(--vt-x, 50%) var(--vt-y, 50%)); }
+  to { clip-path: circle(150% at var(--vt-x, 50%) var(--vt-y, 50%)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-switcher { transition: none; }
+  .theme-switcher:active,
+  .theme-switcher.is-holding { transform: none; }
+  .theme-disc { animation: none; }
+}
+
+/* 桌面宽度下侧栏已有同功能的主题按钮（.navigation 在 ≤760px 才隐藏），这个悬浮按钮就多余了。 */
+@media (min-width: 761px) {
+  .theme-switcher,
+  .theme-disc { display: none; }
+}

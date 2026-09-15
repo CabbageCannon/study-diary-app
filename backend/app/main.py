@@ -10,6 +10,7 @@ from app.routers.algorithms import router as algorithms_router
 from app.routers.desktop_pet import router as desktop_pet_router
 from app.routers.diaries import router as diaries_router
 from app.routers.interviews import router as interviews_router
+from app.routers.reminders import router as reminders_router
 from app.routers.study_sessions import router as study_sessions_router
 from app.security import is_ai_request, rate_limit_key, rate_limiter, requires_write_access
 
@@ -35,7 +36,8 @@ app.add_middleware(
 async def protect_public_mutations(request: Request, call_next):
     is_api_mutation = request.url.path.startswith("/api/") and request.method in {"POST", "PATCH", "PUT", "DELETE"}
     is_desktop_pet_data = request.url.path.startswith("/api/desktop-pet") or request.url.path.startswith("/api/study-sessions")
-    if (is_api_mutation or is_desktop_pet_data) and requires_write_access(request):
+    is_reminder_dispatch = request.url.path == "/api/reminders/dispatch"
+    if (is_api_mutation or is_desktop_pet_data) and not is_reminder_dispatch and requires_write_access(request):
         return JSONResponse(status_code=401, content={"detail": "此操作需要访问码。"})
     if is_ai_request(request) and not rate_limiter.allow(rate_limit_key(request), settings.ai_rate_limit_per_minute):
         return JSONResponse(
@@ -48,6 +50,7 @@ async def protect_public_mutations(request: Request, call_next):
 app.include_router(diaries_router)
 app.include_router(algorithms_router)
 app.include_router(interviews_router)
+app.include_router(reminders_router)
 app.include_router(study_sessions_router)
 app.include_router(desktop_pet_router)
 

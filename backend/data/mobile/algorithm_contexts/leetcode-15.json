@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "problem_key": "leetcode-15",
+  "title": "3Sum",
+  "title_zh": "三数之和",
+  "statement_zh": "给定整数数组 nums，找出所有由三个不同下标组成、且三个数之和为 0 的三元组。返回结果中不能包含重复三元组：只要三个数的值及出现次数相同，就视为同一个答案；三元组内部顺序与答案列表顺序不限。",
+  "input_output": {
+    "input": "nums：整数数组，可能无序，可能包含重复值、负数和零。",
+    "output": "所有不重复的、和为 0 的三元组列表；无解时返回空列表。"
+  },
+  "constraints": [
+    "3 <= nums.length <= 3000",
+    "-10^5 <= nums[i] <= 10^5",
+    "三个元素必须来自互不相同的下标",
+    "不同下标上的相同值可以同时出现在一个三元组中",
+    "答案中不能包含重复的三元组"
+  ],
+  "examples": [
+    {
+      "input": "nums = [-2, -2, 0, 2, 2, 4]",
+      "output": "[[-2, -2, 4], [-2, 0, 2]]",
+      "explanation": "两个 -2 来自不同下标时，[-2, -2, 4] 合法；[-2, 0, 2] 虽有多组下标组合，也只输出一次。"
+    },
+    {
+      "input": "nums = [1, 2, 3]",
+      "output": "[]",
+      "explanation": "全为正数，任意三个数之和都不可能为 0。"
+    },
+    {
+      "input": "nums = [0, 0, 0, 0]",
+      "output": "[[0, 0, 0]]",
+      "explanation": "任选三个下标都成立，但按值组成的三元组只能出现一次。"
+    }
+  ],
+  "verification_points": [
+    {
+      "id": "vp-result-dedup",
+      "kind": "correctness_condition",
+      "statement": "说明结果去重机制，避免同一个值组合被输出多次。",
+      "required": true,
+      "acceptable_variants": [
+        "排序双指针中跳过重复固定值，并在命中答案后跳过左右指针重复值。",
+        "哈希或暴力方案把三元组规范化后放入集合去重。"
+      ]
+    },
+    {
+      "id": "vp-distinct-indices-duplicates-allowed",
+      "kind": "correctness_condition",
+      "statement": "区分下标不同与值不同：三个下标必须不同，但相同值可因来自不同下标而合法。",
+      "required": true,
+      "acceptable_variants": [
+        "能解释 [-1, -1, 2] 或 [0, 0, 0] 合法即可。"
+      ]
+    },
+    {
+      "id": "vp-sort-before-two-pointers",
+      "kind": "key_insight",
+      "statement": "若使用双指针，必须先排序，并用当前和与 0 的大小关系决定移动左指针或右指针。",
+      "required": true,
+      "acceptable_variants": [
+        "若用户使用非双指针的哈希或暴力方案，本点可不要求排序，但仍需说明去重与下标不同。"
+      ]
+    },
+    {
+      "id": "vp-complexity",
+      "kind": "complexity",
+      "statement": "排序加双指针参考方案时间 O(n^2)；O(n^3) 暴力逻辑正确但在 n=3000 的规模下不可接受。",
+      "required": false,
+      "acceptable_variants": [
+        "不排序哈希方案若能正确去重，时间 O(n^2)、空间 O(n) 也可接受。"
+      ]
+    },
+    {
+      "id": "vp-empty-result",
+      "kind": "edge_case",
+      "statement": "无解、全正或全负时应返回空列表，不返回 null 或单个空三元组。",
+      "required": false,
+      "acceptable_variants": []
+    }
+  ],
+  "acceptable_approaches": [
+    {
+      "name": "排序后固定一个数加双指针",
+      "idea": "先排序；固定 nums[i]，在 i 右侧用左右指针寻找两数和等于 -nums[i]。命中后记录三元组，并跳过固定值、左指针值、右指针值的重复项。",
+      "time_complexity": "O(n^2)",
+      "space_complexity": "O(log n)",
+      "is_reference": true,
+      "note": "排序额外空间与语言实现有关，可表述为除输出外 O(log n) 到 O(n)。"
+    },
+    {
+      "name": "哈希查第三个数并规范化去重",
+      "idea": "固定一到两个位置，用哈希结构查找第三个值；找到后把三元组按值排序或编码后去重，同时保证三个下标不同。",
+      "time_complexity": "O(n^2)",
+      "space_complexity": "O(n)",
+      "is_reference": false,
+      "note": "正确但实现细节更容易出错，重点核对下标不同和结果去重。"
+    },
+    {
+      "name": "暴力三重循环加结果去重",
+      "idea": "枚举所有 i < j < k，检查和是否为 0，并将命中的三元组按值规范化后去重。",
+      "time_complexity": "O(n^3)",
+      "space_complexity": "O(n)",
+      "is_reference": false,
+      "note": "小规模逻辑正确，但官方规模上限下会超时；应引导优化。"
+    }
+  ],
+  "common_mistakes": [
+    {
+      "description": "未排序就直接使用双指针移动规则。",
+      "counterexample": "nums = [-10, 10, 1, 20, 9]：未排序夹逼会错过 [-10, 1, 9]。"
+    },
+    {
+      "description": "只跳过固定值重复，命中答案后不跳过左右指针重复。",
+      "counterexample": "nums = [-2, 0, 0, 2, 2]：可能输出两个 [-2, 0, 2]。"
+    },
+    {
+      "description": "先把输入整体去重，导致依赖重复值的合法答案丢失。",
+      "counterexample": "nums = [-1, -1, 2]：正确答案是 [[-1, -1, 2]]，整体去重后会变成无解。"
+    }
+  ],
+  "edge_cases": [
+    {
+      "description": "全零数组。",
+      "expected_handling": "[0, 0, 0, 0] 只返回一个 [[0, 0, 0]]。"
+    },
+    {
+      "description": "答案依赖重复值。",
+      "expected_handling": "不能对输入值集合化去重；应保留足够的重复次数。"
+    },
+    {
+      "description": "全正数或全负数。",
+      "expected_handling": "返回空列表；排序后固定值大于 0 时可提前结束。"
+    }
+  ],
+  "source": {
+    "name": "LeetCode CN 15. 三数之和",
+    "url": "https://leetcode.cn/problems/3sum/",
+    "license_note": "题意、示例、核对要点和反例均为原创中文转写，未复制外站题面或题解。",
+    "source_version": "2026-09-06 对照 leetcode.cn 官方题面核对"
+  },
+  "content_notes": "已按官方约束将长度下限校正为 3；示例与反例为本项目原创构造。参考方案为排序双指针，但正确哈希方案也应被认可。",
+  "content_status": "ready"
+}
