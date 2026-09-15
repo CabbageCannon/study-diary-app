@@ -4,7 +4,7 @@ import { ArrowRightIcon } from "@phosphor-icons/react/ArrowRight";
 import { PlayIcon } from "@phosphor-icons/react/Play";
 import { SpinnerGapIcon } from "@phosphor-icons/react/SpinnerGap";
 
-import { createAlgorithmReviewSession, listAlgorithmReviewCandidates } from "../api/algorithms";
+import { createAlgorithmReviewSession, listAlgorithmReviewCandidates, peekAlgorithmReviewCandidates } from "../api/algorithms";
 import type { AlgorithmReviewCandidate } from "../types/algorithm";
 
 type AccuracyFilter = "all" | "weak" | "partial" | "high";
@@ -23,22 +23,36 @@ function accuracyBounds(value: AccuracyFilter) {
   return {};
 }
 
+function reviewFilters(timeOrder: TimeOrder, fromDate: string, toDate: string, accuracy: AccuracyFilter) {
+  return { time_order: timeOrder, from_date: fromDate, to_date: toDate, ...accuracyBounds(accuracy), limit: 50 };
+}
+
 export function AlgorithmReviewPage() {
   const navigate = useNavigate();
-  const [candidates, setCandidates] = useState<AlgorithmReviewCandidate[]>([]);
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [timeOrder, setTimeOrder] = useState<TimeOrder>("recommended");
   const [accuracy, setAccuracy] = useState<AccuracyFilter>("all");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const filters = reviewFilters(timeOrder, fromDate, toDate, accuracy);
+  const cachedCandidates = peekAlgorithmReviewCandidates(filters);
+  const [candidates, setCandidates] = useState<AlgorithmReviewCandidate[]>(() => cachedCandidates ?? []);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [isLoading, setIsLoading] = useState(() => !cachedCandidates);
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState("");
 
   const load = useCallback(async () => {
+    const cached = peekAlgorithmReviewCandidates(reviewFilters(timeOrder, fromDate, toDate, accuracy));
+    if (cached) {
+      setCandidates(cached);
+      setSelectedIds((current) => current.filter((id) => cached.some((item) => item.problem.id === id)));
+      setIsLoading(false);
+      setError("");
+      return;
+    }
     setIsLoading(true);
     try {
-      const reviewData = await listAlgorithmReviewCandidates({ time_order: timeOrder, from_date: fromDate, to_date: toDate, ...accuracyBounds(accuracy), limit: 50 });
+      const reviewData = await listAlgorithmReviewCandidates(reviewFilters(timeOrder, fromDate, toDate, accuracy));
       setCandidates(reviewData);
       setSelectedIds((current) => current.filter((id) => reviewData.some((item) => item.problem.id === id)));
       setError("");

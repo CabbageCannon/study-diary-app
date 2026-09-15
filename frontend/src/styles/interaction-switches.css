@@ -1,0 +1,77 @@
+.interaction-switch-row {
+  position: relative;
+  isolation: isolate;
+  transform-origin: center;
+}
+
+.interaction-switch-row::before {
+  position: absolute;
+  inset: 6px -7px;
+  z-index: 0;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent-wash) 76%, transparent);
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  transform: scaleX(0.96);
+  transform-origin: center;
+}
+
+.interaction-switch-row > span {
+  position: relative;
+  z-index: 1;
+}
+
+.interaction-switch-row[data-active-switch="true"] {
+  animation: interaction-switch-active 180ms ease-out both;
+}
+
+.interaction-switch-row[data-active-switch="true"]::before {
+  animation: interaction-switch-flash 180ms ease-out both;
+}
+
+.interaction-switch-row[data-follow-switch="true"] {
+  animation: interaction-switch-follow 170ms ease-out var(--switch-delay, 0ms) both;
+}
+
+.interaction-switch-row[data-follow-switch="true"]::before {
+  animation: interaction-switch-follow-glow 170ms ease-out var(--switch-delay, 0ms) both;
+}
+
+@keyframes interaction-switch-active {
+  0% { transform: scale(1); }
+  46% { transform: scale(0.985); }
+  100% { transform: scale(1); }
+}
+
+@keyframes interaction-switch-flash {
+  0% { opacity: 0; transform: scaleX(0.94); }
+  42% { opacity: 0.7; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(1.02); }
+}
+
+@keyframes interaction-switch-follow {
+  0% { transform: translateX(0); opacity: 1; }
+  44% { transform: translateX(2px); opacity: 0.92; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes interaction-switch-follow-glow {
+  0% { opacity: 0; transform: scaleX(0.98); }
+  44% { opacity: 0.26; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(1.01); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .interaction-switch-row[data-active-switch="true"],
+  .interaction-switch-row[data-follow-switch="true"],
+  .interaction-switch-row[data-active-switch="true"]::before,
+  .interaction-switch-row[data-follow-switch="true"]::before {
+    animation: none;
+  }
+
+  .interaction-switch-row[data-active-switch="true"]::before {
+    opacity: 0.42;
+    transform: none;
+  }
+}

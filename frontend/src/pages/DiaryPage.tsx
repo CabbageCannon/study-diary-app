@@ -53,6 +53,35 @@ function diaryTimestamp(diary: Diary) {
   return `${month}月${day}日${time}`;
 }
 
+function flyDeletedDiaryCard(source: HTMLElement | null) {
+  if (!source) return;
+  const rect = source.getBoundingClientRect();
+  const clone = source.cloneNode(true) as HTMLElement;
+  clone.classList.add("diary-delete-flight");
+  Object.assign(clone.style, {
+    position: "fixed",
+    top: `${rect.top}px`,
+    left: `${rect.left}px`,
+    width: `${rect.width}px`,
+    height: `${rect.height}px`,
+    margin: "0",
+    pointerEvents: "none",
+    zIndex: "120",
+  });
+  document.body.appendChild(clone);
+
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const animation = reduced
+    ? clone.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 140, easing: "ease-out", fill: "forwards" })
+    : clone.animate([
+      { opacity: 1, transform: "translate3d(0, 0, 0) rotate(0deg) scale(1)" },
+      { opacity: 0.78, transform: `translate3d(${window.innerWidth - rect.right + 18}px, -72px, 0) rotate(7deg) scale(.82)`, offset: 0.42 },
+      { opacity: 0, transform: `translate3d(${window.innerWidth - rect.left + 90}px, ${window.innerHeight - rect.top + 72}px, 0) rotate(22deg) scale(.18)` },
+    ], { duration: 620, easing: "cubic-bezier(.18,.78,.18,1)", fill: "forwards" });
+
+  void animation.finished.catch(() => undefined).finally(() => clone.remove());
+}
+
 async function compressImage(file: File) {
   const source = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -98,7 +127,15 @@ export function DiaryPage() {
   const longPressTimer = useRef<number | undefined>(undefined);
   const longPressStart = useRef({ x: 0, y: 0 });
   const suppressClick = useRef(false);
+  const diaryNodeRefs = useRef(new Map<number, HTMLElement>());
   formRef.current = form;
+
+  function registerDiaryNode(id: number) {
+    return (node: HTMLElement | null) => {
+      if (node) diaryNodeRefs.current.set(id, node);
+      else diaryNodeRefs.current.delete(id);
+    };
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -272,8 +309,10 @@ export function DiaryPage() {
 
   function remove(diary: Diary) {
     const previous = diaries;
+    const node = diaryNodeRefs.current.get(diary.id) ?? null;
     setActions(null);
     setDetail(null);
+    flyDeletedDiaryCard(node);
     setDiaries((current) => current.filter((item) => item.id !== diary.id));
     void deleteDiary(diary.id).catch(() => { setDiaries(previous); setError("删除失败，日记已经恢复"); });
   }
@@ -309,9 +348,9 @@ export function DiaryPage() {
         {diaryColumns.map((column, columnIndex) => <div className="diary-column" key={columnIndex}>
           {columnIndex === 0 && drafts.length ? <article className={`diary-draft-stack depth-${Math.min(3, drafts.length)}${draftsOpen ? " is-open" : ""}`}>
             <button aria-expanded={draftsOpen} onClick={() => setDraftsOpen((value) => !value)} type="button"><span className="diary-draft-paper"><PencilSimpleIcon aria-hidden="true" size={20} /></span><span className="diary-draft-heading"><strong>草稿箱</strong><small>{drafts.length} 篇写到一半</small></span><CaretDownIcon aria-hidden="true" className="diary-draft-caret" size={16} weight="bold" /></button>
-            {draftsOpen ? <div className="diary-draft-list">{drafts.map((draft) => <button aria-label={`打开草稿《${draft.title}》，长按可管理`} className={holdingId === draft.id ? "is-holding" : ""} key={draft.id} onClick={() => openDraft(draft)} type="button" {...longPressProps(draft)}><span>{draft.title}</span><time>{diaryTimestamp(draft)}</time></button>)}</div> : null}
+            <div aria-hidden={!draftsOpen} className="diary-draft-list-shell"><div className="diary-draft-list">{drafts.map((draft) => <button aria-label={`打开草稿《${draft.title}》，长按可管理`} className={holdingId === draft.id ? "is-holding" : ""} key={draft.id} onClick={() => openDraft(draft)} ref={registerDiaryNode(draft.id)} tabIndex={draftsOpen ? 0 : -1} type="button" {...longPressProps(draft)}><span>{draft.title}</span><time>{diaryTimestamp(draft)}</time></button>)}</div></div>
           </article> : null}
-          {column.map((diary) => <article className={`${diary.images.length ? "diary-card has-photo" : `diary-card text-card category-${diary.category}`}${holdingId === diary.id ? " is-holding" : ""}`} key={diary.id} {...longPressProps(diary)}>
+          {column.map((diary) => <article className={`${diary.images.length ? "diary-card has-photo" : `diary-card text-card category-${diary.category}`}${holdingId === diary.id ? " is-holding" : ""}`} key={diary.id} ref={registerDiaryNode(diary.id)} {...longPressProps(diary)}>
             <button aria-label={`打开《${diary.title}》，长按可编辑`} onClick={() => openDetail(diary)} type="button">
               {diary.images[0] ? <div className="diary-cover"><img alt="" src={diary.images[0]} />{diary.images.length > 1 ? <span>1/{diary.images.length}</span> : null}</div> : <div className="diary-text-cover"><BookOpenIcon aria-hidden="true" size={18} /><p>{diary.summary}</p></div>}
               <div className="diary-card-copy"><div><span>{diary.category === "learning" ? "学习" : "生活"}</span>{diary.is_pinned ? <PushPinIcon aria-label="已置顶" size={13} weight="fill" /> : null}</div><h2>{diary.title}</h2><p>{[diary.location, diary.weather].filter(Boolean).join(" · ") || "地点与天气未记录"}</p><time>{diaryTimestamp(diary)}</time>{polishingIds.has(diary.id) ? <small className="diary-card-sync"><SpinnerGapIcon aria-hidden="true" size={12} />AI 正在整理</small> : syncingIds.has(diary.id) ? <small className="diary-card-sync"><SpinnerGapIcon aria-hidden="true" size={12} />正在发布</small> : null}</div>

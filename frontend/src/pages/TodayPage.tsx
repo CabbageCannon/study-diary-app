@@ -58,7 +58,7 @@ export function TodayPage() {
           </div>
 
           <div className="today-progress-panel">
-            <TodayProgressBar isLoading={isLoading} progressPercent={progressPercent} />
+            <TodayProgressBar isLoading={isLoading} progressPercent={progressPercent} targetTotal={targetTotal} />
             <div className="today-progress-details">
               {progressItems.map((item) => <ProgressLine item={item} isLoading={isLoading} key={item.key} />)}
             </div>
@@ -74,16 +74,18 @@ export function TodayPage() {
   );
 }
 
-function TodayProgressBar({ isLoading, progressPercent }: { isLoading: boolean; progressPercent: number }) {
+function TodayProgressBar({ isLoading, progressPercent, targetTotal }: { isLoading: boolean; progressPercent: number; targetTotal: number }) {
   const fillRef = useRef<HTMLSpanElement>(null);
   const animationRef = useRef<Animation | null>(null);
   const target = Math.min(100, Math.max(0, progressPercent)) / 100;
+  const segmentCount = Math.max(0, Math.round(targetTotal));
 
   useLayoutEffect(() => {
     const fill = fillRef.current;
     if (!fill || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       animationRef.current?.cancel();
       animationRef.current = null;
+      if (fill) fill.style.transform = `scaleX(${isLoading ? 0.14 : target})`;
       return;
     }
 
@@ -107,6 +109,10 @@ function TodayProgressBar({ isLoading, progressPercent }: { isLoading: boolean; 
       { opacity: 1, transform: `scaleX(${current + distance * 0.62})`, offset: 0.7 },
       { opacity: 1, transform: `scaleX(${target})` },
     ], { duration: 820, easing: "ease-out", fill: "forwards" });
+    animationRef.current.onfinish = () => {
+      fill.style.transform = `scaleX(${target})`;
+      animationRef.current = null;
+    };
   }, [isLoading, target]);
 
   useLayoutEffect(() => () => animationRef.current?.cancel(), []);
@@ -121,7 +127,12 @@ function TodayProgressBar({ isLoading, progressPercent }: { isLoading: boolean; 
       className="today-progress-track"
       role="progressbar"
     >
-      <span ref={fillRef} style={{ transform: `scaleX(${isLoading ? 0.14 : target})` }} />
+      <span className="today-progress-fill" ref={fillRef} />
+      {segmentCount > 1 ? (
+        <span aria-hidden="true" className="today-progress-segments">
+          {Array.from({ length: segmentCount }).map((_, index) => <i key={index} />)}
+        </span>
+      ) : null}
     </div>
   );
 }

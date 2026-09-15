@@ -297,7 +297,7 @@ export function MePage() {
 }
 
 function SettingsItem({ active, children, controls, icon, label, note, onToggle }: { active: boolean; children: ReactNode; controls: string; icon: ReactNode; label: string; note: string; onToggle: () => void }) {
-  return <section className={active ? "me-settings-item me-settings-item-active" : "me-settings-item"}><button aria-controls={controls} aria-expanded={active} className="me-settings-trigger" onClick={onToggle} type="button"><span className="me-settings-icon">{icon}</span><span><strong>{label}</strong><small>{note}</small></span><CaretDownIcon aria-hidden="true" className="me-settings-caret" size={18} weight="bold" /></button>{active ? children : null}</section>;
+  return <section className={active ? "me-settings-item me-settings-item-active" : "me-settings-item"}><button aria-controls={controls} aria-expanded={active} className="me-settings-trigger" onClick={onToggle} type="button"><span className="me-settings-icon">{icon}</span><span><strong>{label}</strong><small>{note}</small></span><CaretDownIcon aria-hidden="true" className="me-settings-caret" size={18} weight="bold" /></button><div aria-hidden={!active} className={active ? "me-settings-panel-shell is-open" : "me-settings-panel-shell"} inert={!active}><div>{children}</div></div></section>;
 }
 
 function SectionActions({ dirty, error, message, onCancel, saving = false }: { dirty: boolean; error: string; message: string; onCancel: () => void; saving?: boolean }) {

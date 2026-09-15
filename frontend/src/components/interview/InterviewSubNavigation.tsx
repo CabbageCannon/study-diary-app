@@ -1,13 +1,23 @@
-import { NavLink } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+
+import { LiquidTabs } from "../LiquidTabs";
 
 const items = [
-  { to: "/interview", label: "练习", end: true },
-  { to: "/interview/setup", label: "题集", end: false },
-  { to: "/interview/history", label: "历史", end: false },
+  { to: "/interview", label: "练习", matches: (path: string) => path === "/interview" || path.startsWith("/interview/session/") },
+  { to: "/interview/setup", label: "题集", matches: (path: string) => path === "/interview/setup" },
+  { to: "/interview/history", label: "历史", matches: (path: string) => path === "/interview/history" },
 ];
 
 export function InterviewSubNavigation() {
-  return <nav className="workspace-segmented-control" aria-label="八股训练导航">
-    {items.map((item) => <NavLink className={({ isActive }) => isActive ? "workspace-segment workspace-segment-active" : "workspace-segment"} end={item.end} key={item.to} to={item.to}>{item.label}</NavLink>)}
-  </nav>;
+  const { pathname } = useLocation();
+
+  return (
+    <LiquidTabs
+      ariaLabel="八股训练导航"
+      className="workspace-segmented-control"
+      itemClassName="workspace-segment"
+      activeItemClassName="workspace-segment-active"
+      items={items.map((item) => ({ key: item.to, to: item.to, label: item.label, active: item.matches(pathname) }))}
+    />
+  );
 }

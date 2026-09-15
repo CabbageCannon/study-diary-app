@@ -51,7 +51,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
 }
 .workspace-segment,
 .algorithm-subnav-link {
+  position: relative;
+  z-index: 0;
   display: inline-flex;
+  overflow: hidden;
   min-height: 34px;
   align-items: center;
   justify-content: center;
@@ -71,12 +74,121 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
 .workspace-segment-active,
 .workspace-segment-active:hover,
 .algorithm-subnav-link-active,
-.algorithm-subnav-link-active:hover { background: var(--paper-strong); color: var(--ink); box-shadow: 0 1px 4px color-mix(in srgb, var(--ink) 12%, transparent); }
+.algorithm-subnav-link-active:hover { background: transparent; color: var(--ink); box-shadow: none; }
+.nav-link {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+  border-left-color: transparent;
+}
+.nav-link::before {
+  position: absolute;
+  inset: 5px 7px 5px 6px;
+  z-index: 0;
+  border-radius: 15px 10px 16px 11px;
+  background: color-mix(in srgb, var(--accent-wash) 78%, var(--paper-strong));
+  content: "";
+  opacity: 0;
+  transform: scale(.82, .62) translateX(-7px);
+  transition: opacity 180ms ease-out, transform 280ms cubic-bezier(.2,.8,.2,1), border-radius 280ms cubic-bezier(.2,.8,.2,1);
+}
+.nav-link-active { border-left-color: transparent; color: var(--accent-strong); }
+.nav-link-active::before {
+  opacity: 1;
+  border-radius: 10px 16px 11px 15px;
+  transform: scale(1) translateX(0);
+}
+.nav-link-active::after { opacity: 0; }
+
+.liquid-tabs {
+  isolation: isolate;
+}
+
+.workspace-segmented-control.liquid-tabs,
+.algorithm-sub-navigation.liquid-tabs {
+  position: relative;
+}
+
+.liquid-tabs > a {
+  position: relative;
+  z-index: 1;
+}
+
+.liquid-tabs-indicator {
+  position: absolute;
+  z-index: 0;
+  top: 3px;
+  bottom: 3px;
+  left: 0;
+  width: var(--liquid-width, 0);
+  border-radius: 10px 14px 9px 13px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(var(--liquid-x, 0), 0, 0);
+  transition: transform 360ms cubic-bezier(.2,.9,.16,1), width 360ms cubic-bezier(.2,.9,.16,1), opacity 140ms ease-out;
+}
+
+.liquid-tabs-indicator[data-ready="true"] {
+  opacity: 1;
+}
+
+.liquid-tabs-indicator::before,
+.liquid-tabs-indicator::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  content: "";
+  pointer-events: none;
+}
+
+.liquid-tabs-indicator::before {
+  background: color-mix(in srgb, var(--paper-strong) 92%, var(--accent-wash));
+  box-shadow: 0 1px 5px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.liquid-tabs-indicator::after {
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
+  opacity: 0;
+  transform: scaleX(1);
+}
+
+.liquid-tabs-indicator[data-moving="true"]::before {
+  animation: liquid-tab-body 420ms cubic-bezier(.2,.9,.16,1);
+}
+
+.liquid-tabs-indicator[data-moving="true"]::after {
+  animation: liquid-tab-tail 420ms cubic-bezier(.2,.9,.16,1);
+}
+
+@media (max-width: 760px) {
+  .mobile-bottom-navigation {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .mobile-nav-link {
+    position: relative;
+    z-index: 0;
+    isolation: isolate;
+    overflow: hidden;
+    background: transparent;
+  }
+
+  .mobile-nav-link-active {
+    background: transparent;
+    color: var(--accent-strong);
+  }
+
+  .mobile-bottom-navigation .liquid-tabs-indicator {
+    top: 5px;
+    bottom: 5px;
+    border-radius: 17px 13px 18px 14px;
+  }
+}
 
 .interview-workspace-content,
 .algorithm-workspace-content { display: grid; min-width: 0; padding: 20px var(--content-pad) 38px; }
 .interview-workspace-panel,
-.algorithm-workspace-panel { animation: apple-content-enter 180ms var(--apple-spring) both; }
+.algorithm-workspace-panel { animation: apple-content-enter 180ms var(--apple-spring) backwards; }
 
 .interview-resume-panel,
 .interview-quick-start,
@@ -98,6 +210,42 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
 .algorithm-overview-bar { grid-template-columns: repeat(4, max-content); border: 0; border-radius: 12px; background: var(--paper-strong); box-shadow: 0 4px 18px color-mix(in srgb, var(--ink) 5%, transparent); }
 .algorithm-overview-item { min-height: 46px; border-color: var(--rule); padding: 8px 12px; }
 
+.settings-switch-list {
+  gap: 8px;
+}
+
+.settings-switch-row,
+.toggle-field {
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--rule) 78%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--paper-strong) 82%, var(--wash));
+  padding: 12px 13px;
+  transition: background-color 180ms ease-out, border-color 180ms ease-out, transform 120ms ease-out;
+}
+
+.settings-switch-row {
+  min-height: 64px;
+  border-top: 1px solid color-mix(in srgb, var(--rule) 78%, transparent);
+}
+
+.settings-switch-row:hover,
+.toggle-field:hover {
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--rule));
+  background: color-mix(in srgb, var(--accent-wash) 44%, var(--paper-strong));
+}
+
+.settings-switch-row:active,
+.toggle-field:active {
+  transform: scale(.985);
+}
+
+.settings-switch-row:focus-within,
+.toggle-field:focus-within {
+  outline: 2px solid color-mix(in srgb, var(--accent) 44%, transparent);
+  outline-offset: 2px;
+}
+
 .algorithm-settings-layout { grid-template-columns: 1fr; }
 .algorithm-history-surface { overflow: hidden; border-radius: var(--apple-radius); background: var(--paper-strong); box-shadow: 0 8px 28px color-mix(in srgb, var(--ink) 5%, transparent); }
 .algorithm-history-toolbar { display: flex; min-height: 66px; align-items: center; justify-content: space-between; gap: 14px; border-bottom: 1px solid var(--rule); padding: 12px 15px; }
@@ -116,7 +264,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
 .algorithm-history-row small { border-radius: 999px; background: var(--wash-strong); color: var(--ink-soft); padding: 4px 7px; font-size: 0.65rem; }
 .algorithm-history-row svg { color: var(--muted); transition: transform 180ms var(--apple-spring); }
 .algorithm-history-entry.is-expanded .algorithm-history-row svg { transform: rotate(180deg); }
-.algorithm-history-inline-detail { display: grid; gap: 12px; border-top: 1px solid color-mix(in srgb, var(--rule) 75%, transparent); padding: 12px 14px 14px; animation: apple-content-enter 180ms var(--apple-spring) both; }
+.algorithm-history-inline-detail { display: grid; grid-template-rows: 0fr; border-top: 0 solid transparent; opacity: 0; transition: grid-template-rows 240ms var(--apple-spring), border-color 180ms ease-out, border-top-width 180ms ease-out, opacity 180ms ease-out; }
+.algorithm-history-inline-detail.is-open { grid-template-rows: 1fr; border-top: 1px solid color-mix(in srgb, var(--rule) 75%, transparent); opacity: 1; }
+.algorithm-history-detail-inner { display: grid; min-height: 0; gap: 12px; overflow: hidden; padding: 0 14px; transform: translateY(-5px); transition: padding 240ms var(--apple-spring), transform 220ms var(--apple-spring); }
+.algorithm-history-inline-detail.is-open .algorithm-history-detail-inner { padding: 12px 14px 14px; transform: translateY(0); }
 .algorithm-history-loading { display: flex; min-height: 64px; gap: 7px; align-items: center; justify-content: center; color: var(--muted); font-size: 0.75rem; }
 .algorithm-history-loading svg { animation: apple-spinner 800ms linear infinite; }
 .algorithm-history-summary { display: flex; gap: 18px; color: var(--muted); font-size: 0.7rem; }
@@ -172,6 +323,19 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
 @keyframes apple-content-enter {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes liquid-tab-body {
+  0% { transform: scaleX(1); }
+  38% { transform: scaleX(1.12); }
+  72% { transform: scaleX(0.96); }
+  100% { transform: scaleX(1); }
+}
+
+@keyframes liquid-tab-tail {
+  0% { opacity: 0; transform: scaleX(0.88); }
+  36% { opacity: 0.42; transform: scaleX(1.22); }
+  100% { opacity: 0; transform: scaleX(1); }
 }
 
 @media (max-width: 980px) {
@@ -263,6 +427,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
   .workspace-segment,
   .algorithm-subnav-link,
   .mobile-nav-link { transition-duration: 0.01ms; }
+  .liquid-tabs-indicator,
+  .liquid-tabs-indicator::before,
+  .liquid-tabs-indicator::after {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
   .action-spinner,
   .algorithm-history-loading svg { animation: none; }
 }

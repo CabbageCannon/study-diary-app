@@ -153,6 +153,7 @@ export function skipAlgorithmSessionProblem(id: string) {
 export function completeAlgorithmSession(id: string) {
   return request<AlgorithmSession>(`/api/algorithms/sessions/${id}/complete`, { method: "POST" }).then((session) => {
     expireCachedRequests("/api/algorithms/daily-feed", "/api/algorithms/sessions", "/api/algorithms/stats");
+    invalidateCachedRequests("/api/algorithms/reviews/candidates");
     invalidateCachedRequests("/api/algorithms/problems", "/api/algorithms/catalog-overview");
     return session;
   });
@@ -161,6 +162,7 @@ export function completeAlgorithmSession(id: string) {
 export function abandonAlgorithmSession(id: string) {
   return request<AlgorithmSession>(`/api/algorithms/sessions/${id}/abandon`, { method: "POST" }).then((session) => {
     expireCachedRequests("/api/algorithms/daily-feed", "/api/algorithms/sessions", "/api/algorithms/stats");
+    invalidateCachedRequests("/api/algorithms/reviews/candidates");
     invalidateCachedRequests("/api/algorithms/problems", "/api/algorithms/catalog-overview");
     return session;
   });
@@ -169,12 +171,14 @@ export function abandonAlgorithmSession(id: string) {
 export function deleteAlgorithmSession(id: string) {
   return request<void>(`/api/algorithms/sessions/${id}`, { method: "DELETE" }).then(() => {
     expireCachedRequests("/api/algorithms/sessions", "/api/algorithms/stats");
+    invalidateCachedRequests("/api/algorithms/reviews/candidates");
   });
 }
 
 export function saveAlgorithmAttempt(payload: SaveAlgorithmAttemptPayload) {
   return request<AlgorithmAttempt>("/api/algorithms/attempts", { method: "POST", body: JSON.stringify(payload) }).then((attempt) => {
     expireCachedRequests("/api/algorithms/daily-feed", "/api/algorithms/stats", "/api/algorithms/sessions?");
+    invalidateCachedRequests("/api/algorithms/reviews/candidates");
     invalidateCachedRequests("/api/algorithms/problems", "/api/algorithms/catalog-overview");
     return attempt;
   });
@@ -214,8 +218,16 @@ export function listDueAlgorithmReviews() {
   return request<AlgorithmReviewSchedule[]>("/api/algorithms/reviews/due?limit=50");
 }
 
-export function listAlgorithmReviewCandidates(filters: { time_order?: "recommended" | "recent" | "older"; from_date?: string; to_date?: string; min_accuracy?: number; max_accuracy?: number; limit?: number } = {}) {
-  return request<AlgorithmReviewCandidate[]>(`/api/algorithms/reviews/candidates${queryString(filters)}`);
+function algorithmReviewCandidatesPath(filters: { time_order?: "recommended" | "recent" | "older"; from_date?: string; to_date?: string; min_accuracy?: number; max_accuracy?: number; limit?: number } = {}) {
+  return `/api/algorithms/reviews/candidates${queryString(filters)}`;
+}
+
+export function listAlgorithmReviewCandidates(filters: { time_order?: "recommended" | "recent" | "older"; from_date?: string; to_date?: string; min_accuracy?: number; max_accuracy?: number; limit?: number } = {}, force = false) {
+  return cachedRequest<AlgorithmReviewCandidate[]>(algorithmReviewCandidatesPath(filters), Number.POSITIVE_INFINITY, force);
+}
+
+export function peekAlgorithmReviewCandidates(filters: { time_order?: "recommended" | "recent" | "older"; from_date?: string; to_date?: string; min_accuracy?: number; max_accuracy?: number; limit?: number } = {}) {
+  return peekCachedRequest<AlgorithmReviewCandidate[]>(algorithmReviewCandidatesPath(filters), Number.POSITIVE_INFINITY);
 }
 
 export function createAlgorithmReviewSession(payload: CreateAlgorithmReviewSessionPayload | number = 5) {

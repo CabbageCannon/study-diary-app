@@ -1,23 +1,22 @@
-import { useCallback, useEffect, useState } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Outlet } from "react-router-dom";
 
-import { getAlgorithmStats, peekAlgorithmStats } from "../api/algorithms";
+import { getAlgorithmStats, peekAnyAlgorithmStats } from "../api/algorithms";
 import { AlgorithmSubNavigation } from "../components/algorithms/AlgorithmSubNavigation";
 import type { AlgorithmStats } from "../types/algorithm";
 
+let didLoadAlgorithmStats = false;
+
 export function AlgorithmWorkspaceLayout() {
-  const { pathname } = useLocation();
-  const [stats, setStats] = useState<AlgorithmStats | null>(() => peekAlgorithmStats());
+  const [stats, setStats] = useState<AlgorithmStats | null>(() => peekAnyAlgorithmStats());
 
-  const loadStats = useCallback(async () => {
-    try {
-      setStats(await getAlgorithmStats());
-    } catch {
-      // Keep cached stats visible.
-    }
+  useEffect(() => {
+    if (didLoadAlgorithmStats) return;
+    didLoadAlgorithmStats = true;
+    void getAlgorithmStats(true).then(setStats).catch(() => {
+      didLoadAlgorithmStats = false;
+    });
   }, []);
-
-  useEffect(() => { void loadStats(); }, [loadStats, pathname]);
 
   return (
     <div className="page-stack algorithm-workspace-page">

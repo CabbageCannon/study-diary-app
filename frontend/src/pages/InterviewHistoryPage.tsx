@@ -170,8 +170,8 @@ function HistoryRow({ item, detail, expanded, isActing, isLoading, onToggle, onR
         <small>{statusLabel(item.status)}</small>
         <CaretDownIcon aria-hidden="true" size={16} weight="bold" />
       </button>
-      {expanded ? (
-        <section className="algorithm-history-inline-detail interview-history-inline-detail" id={`training-set-detail-${item.id}`}>
+      <section className={expanded ? "algorithm-history-inline-detail interview-history-inline-detail is-open" : "algorithm-history-inline-detail interview-history-inline-detail"} aria-hidden={!expanded} id={`training-set-detail-${item.id}`} inert={!expanded}>
+        <div className="algorithm-history-detail-inner">
           <div className="algorithm-history-summary"><span><strong>{item.question_count}</strong>题</span><span><strong>{item.answered_count}</strong>已答</span><span><strong>{item.average_score ?? "—"}</strong>平均分</span></div>
           <div className={item.status === "in_progress" ? "algorithm-history-actions" : "algorithm-history-actions training-set-actions-pair"}>
             {item.status === "in_progress" ? <button className="button button-secondary" onClick={onResume} type="button"><PlayIcon aria-hidden="true" size={16} weight="fill" />继续训练</button> : <button className="button button-secondary" disabled={isActing} onClick={onRestart} type="button"><ArrowCounterClockwiseIcon aria-hidden="true" size={16} weight="bold" />再次训练</button>}
@@ -180,8 +180,8 @@ function HistoryRow({ item, detail, expanded, isActing, isLoading, onToggle, onR
           </div>
           {isLoading ? <div className="algorithm-history-loading" role="status"><SpinnerGapIcon aria-hidden="true" size={18} />正在读取详情…</div> : null}
           {detail ? <HistorySetDetail questionSet={detail} /> : null}
-        </section>
-      ) : null}
+        </div>
+      </section>
     </article>
   );
 }

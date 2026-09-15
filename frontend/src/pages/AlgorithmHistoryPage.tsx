@@ -96,13 +96,15 @@ export function AlgorithmHistoryPage() {
           const detail = details[item.id];
           return <article className={expanded ? "algorithm-history-entry is-expanded" : "algorithm-history-entry"} key={item.id}>
             <button aria-controls={`algorithm-history-detail-${item.id}`} aria-expanded={expanded} className="algorithm-history-row" onClick={() => void toggle(item)} type="button"><time>{formatDate(item.last_active_at)}</time><strong>{modeLabel(item.mode)}</strong><small>{statusLabel(item.status)}</small><CaretDownIcon aria-hidden="true" size={16} weight="bold" /></button>
-            {expanded ? <section className="algorithm-history-inline-detail" id={`algorithm-history-detail-${item.id}`}>
+            <section className={expanded ? "algorithm-history-inline-detail is-open" : "algorithm-history-inline-detail"} aria-hidden={!expanded} id={`algorithm-history-detail-${item.id}`} inert={!expanded}>
+              <div className="algorithm-history-detail-inner">
               {loadingId === item.id ? <div className="algorithm-history-loading" role="status"><SpinnerGapIcon aria-hidden="true" size={18} />正在读取详情…</div> : null}
               {detail ? <><div className="algorithm-history-summary"><span><strong>{detail.question_count}</strong>题</span><span><strong>{detail.items.filter((entry) => entry.status === "solved").length}</strong>完成</span><span><strong>{detail.items.filter((entry) => entry.status === "needs_review").length}</strong>待复习</span></div><div className="algorithm-history-actions">{detail.status === "in_progress" ? <button className="button button-primary" onClick={() => navigate(`/algorithms/session/${detail.id}`)} type="button"><PlayIcon aria-hidden="true" size={16} weight="fill" />继续训练</button> : <button className="button button-secondary" onClick={() => navigate("/algorithms")} type="button"><ArrowCounterClockwiseIcon aria-hidden="true" size={16} weight="bold" />再练一次</button>}<button className="button button-danger" onClick={() => setPendingDelete(detail)} type="button"><TrashIcon aria-hidden="true" size={16} weight="bold" />删除</button></div><div className="algorithm-history-problems">{detail.items.map((entry) => {
                 const reasoningRecord = reasoning[detail.id]?.find((record) => record.answer.problem_id === entry.problem.stable_key);
                 return <article className="algorithm-history-record" key={entry.id}><div><small>第 {entry.position + 1} 题 · {itemStatusLabel(entry.status)}</small><h3>{entry.problem.title_zh || entry.problem.title}</h3><p>{entry.problem.topics.join(" · ") || "综合"}</p></div>{entry.latest_attempt || reasoningRecord ? <AlgorithmAttemptDetail attempt={entry.latest_attempt} reasoning={reasoningRecord} /> : <p className="history-answer-empty">尚未提交记录</p>}</article>;
               })}</div></> : null}
-            </section> : null}
+              </div>
+            </section>
           </article>;
         })}</div>
       </section>

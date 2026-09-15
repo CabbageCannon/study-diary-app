@@ -6,6 +6,7 @@ import { PlusIcon } from "@phosphor-icons/react/Plus";
 import { TreeStructureIcon } from "@phosphor-icons/react/TreeStructure";
 import { UserCircleIcon } from "@phosphor-icons/react/UserCircle";
 
+import { LiquidTabs } from "../components/LiquidTabs";
 import { useTheme } from "../contexts/ThemeContext";
 
 const desktopPrimaryItems = [
@@ -92,13 +93,19 @@ export function Navigation() {
         </div>
       </nav>
 
-      <nav className="mobile-bottom-navigation" aria-label="移动端主导航">
-        <NavLink className={pathname === "/today" ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} onClick={activeTabClick(pathname === "/today")} to="/today"><HouseIcon aria-hidden="true" size={20} weight="regular" /><span>今日</span></NavLink>
-        <NavLink className={interviewTrainingActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} onClick={activeTabClick(interviewTrainingActive)} to="/interview"><BookOpenIcon aria-hidden="true" size={20} weight="regular" /><span>八股</span></NavLink>
-        <NavLink className={diaryActive ? "mobile-nav-link mobile-nav-diary mobile-nav-link-active" : "mobile-nav-link mobile-nav-diary"} onClick={activeTabClick(diaryActive)} to="/diary"><i><PlusIcon aria-hidden="true" size={22} weight="bold" /></i><span>日记</span></NavLink>
-        <NavLink className={algorithmTrainingActive ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} onClick={activeTabClick(algorithmTrainingActive)} to="/algorithms"><TreeStructureIcon aria-hidden="true" size={20} weight="regular" /><span>算法</span></NavLink>
-        <NavLink className={pathname === "/me" ? "mobile-nav-link mobile-nav-link-active" : "mobile-nav-link"} onClick={activeTabClick(pathname === "/me")} to="/me"><UserCircleIcon aria-hidden="true" size={20} weight="regular" /><span>我的</span></NavLink>
-      </nav>
+      <LiquidTabs
+        ariaLabel="移动端主导航"
+        className="mobile-bottom-navigation"
+        itemClassName="mobile-nav-link"
+        activeItemClassName="mobile-nav-link-active"
+        items={[
+          { key: "today", to: "/today", label: "今日", active: pathname === "/today", onClick: activeTabClick(pathname === "/today"), icon: <HouseIcon aria-hidden="true" size={20} weight="regular" /> },
+          { key: "interview", to: "/interview", label: "八股", active: interviewTrainingActive, onClick: activeTabClick(interviewTrainingActive), icon: <BookOpenIcon aria-hidden="true" size={20} weight="regular" /> },
+          { key: "diary", to: "/diary", label: "日记", active: diaryActive, onClick: activeTabClick(diaryActive), className: "mobile-nav-diary", icon: <i><PlusIcon aria-hidden="true" size={22} weight="bold" /></i> },
+          { key: "algorithms", to: "/algorithms", label: "算法", active: algorithmTrainingActive, onClick: activeTabClick(algorithmTrainingActive), icon: <TreeStructureIcon aria-hidden="true" size={20} weight="regular" /> },
+          { key: "me", to: "/me", label: "我的", active: pathname === "/me", onClick: activeTabClick(pathname === "/me"), icon: <UserCircleIcon aria-hidden="true" size={20} weight="regular" /> },
+        ]}
+      />
     </>
   );
 }
