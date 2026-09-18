@@ -7,7 +7,7 @@ from fastapi import Request
 from app.config import settings
 
 
-AI_ROUTE_MARKERS = ("/draft", "/ai-review", "/evaluate", "/answers", "/hint", "/reasoning/checks")
+AI_ROUTE_MARKERS = ("/draft", "/ai-review", "/evaluate", "/answers", "/hint", "/reasoning/checks", "/speech/transcriptions")
 
 
 class SlidingWindowRateLimiter:

@@ -53,7 +53,13 @@ export function InterviewQuestionPanel({
             placeholder="直接讲出你的思路，说完会自动结束并写入这里。"
             rows={11}
           />
-          <VoiceInput inputRef={answerRef} text={answerText} onTextChange={(text) => { onAnswerSourceChange("voice"); onAnswerChange(text); }} />
+          <VoiceInput
+            context={`${question.domain} ${question.topic} ${question.tags.join(" ")} ${question.question}`}
+            disabled={disabled}
+            inputRef={answerRef}
+            text={answerText}
+            onTextChange={(text) => { onAnswerSourceChange("voice"); onAnswerChange(text); }}
+          />
         </div>
       </div>
       <span className="character-count">{answerSource === "voice" ? "来源：语音转写，可继续修改" : "本机草稿会自动保留"}</span>

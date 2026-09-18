@@ -29,6 +29,7 @@ import {
   setAlgorithmReasoningFixtureEnabled,
 } from "../api/algorithmReasoning";
 import { ApiRequestError } from "../api/client";
+import { VoiceInput } from "../components/VoiceInput";
 import { formatElapsedTime, useAlgorithmAttemptDraft, useAlgorithmSessionTimer } from "../hooks/useAlgorithmPracticeState";
 import type { AlgorithmItemStatus, AlgorithmSession } from "../types/algorithm";
 import type { AlgorithmReasoningCheckResponse, AlgorithmReasoningContextResponse } from "../types/algorithmReasoning";
@@ -124,6 +125,8 @@ export function AlgorithmSessionPage() {
   const [pendingHintLevel, setPendingHintLevel] = useState(0);
   const [hintError, setHintError] = useState("");
   const currentProblemIdRef = useRef<number | null>(null);
+  const approachRef = useRef<HTMLTextAreaElement | null>(null);
+  const answerSourceRef = useRef<"text" | "voice">("text");
   const currentItem = session?.items[session.current_index] ?? null;
   const effectiveSessionId = session?.id || sessionId || "pending";
   const draftState = useAlgorithmAttemptDraft(effectiveSessionId, currentItem?.problem_id ?? 0);
@@ -340,7 +343,7 @@ export function AlgorithmSessionPage() {
         problem_id: problemKey,
         session_id: activeSession.id,
         answer_text: draftState.draft.approach,
-        answer_source: "text",
+        answer_source: answerSourceRef.current,
         details: {
           time_complexity: draftState.draft.timeComplexity || null,
           space_complexity: draftState.draft.spaceComplexity || null,
@@ -578,7 +581,22 @@ export function AlgorithmSessionPage() {
             </div>
             <label className="form-field">
               <span>思路</span>
-              <textarea autoComplete="off" onChange={(event) => updateDraftApproach(event.target.value)} placeholder="可以用系统键盘听写。说清楚观察、做法、关键判断和你不确定的地方。" value={draftState.draft.approach} />
+              <div className="voice-textarea-shell">
+                <textarea
+                  autoComplete="off"
+                  onChange={(event) => { answerSourceRef.current = "text"; updateDraftApproach(event.target.value); }}
+                  placeholder="讲清楚观察、做法、关键判断和你不确定的地方。"
+                  ref={approachRef}
+                  value={draftState.draft.approach}
+                />
+                <VoiceInput
+                  context={`${context?.title_zh || currentItem.problem.title_zh || currentItem.problem.title} ${currentItem.problem.topics.join(" ")} ${context?.statement_zh || ""}`}
+                  disabled={isChecking}
+                  inputRef={approachRef}
+                  text={draftState.draft.approach}
+                  onTextChange={(value) => { answerSourceRef.current = "voice"; updateDraftApproach(value); }}
+                />
+              </div>
             </label>
             <span className="draft-save-state" role="status">{phase === "editing" ? "本机草稿会自动保留" : phaseText[phase]}</span>
             {isFeedbackStale ? <p className="draft-recovery-notice">你正在修改回答，新文字会作为新版本重新核对。</p> : null}

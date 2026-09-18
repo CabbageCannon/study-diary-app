@@ -492,6 +492,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
 .voice-button:active:not(:disabled) { transform: scale(0.92); }
 .voice-button:disabled { cursor: not-allowed; opacity: 0.42; }
 .voice-input[data-listening] .voice-button { border-color: var(--accent); background: var(--accent); color: white; animation: voice-pulse 1.4s ease-in-out infinite; }
+.voice-input[data-transcribing] .voice-button { border-color: var(--accent-soft); background: var(--accent-soft); color: var(--accent-strong); opacity: 1; }
 .voice-textarea-shell .voice-status { border-radius: 999px; background: var(--paper-strong); padding: 5px 8px; box-shadow: 0 2px 8px color-mix(in srgb, var(--ink) 6%, transparent); }
 .voice-textarea-shell .voice-input .field-error { position: absolute; right: 0; bottom: 48px; width: min(290px, calc(100vw - 72px)); border-radius: 10px; background: var(--paper-strong); padding: 9px 11px; box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 12%, transparent); text-align: left; }
 .answer-toolbar { justify-content: flex-end; }

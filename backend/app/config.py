@@ -39,6 +39,9 @@ class Settings:
         self.llm_api_key = os.getenv("LLM_API_KEY", "").strip()
         self.llm_base_url = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1").strip().rstrip("/")
         self.llm_model = os.getenv("LLM_MODEL", "gpt-4o-mini").strip()
+        self.asr_base_url = os.getenv("ASR_BASE_URL", "").strip().rstrip("/")
+        self.asr_api_key = os.getenv("ASR_API_KEY", "").strip()
+        self.asr_model = os.getenv("ASR_MODEL", "sensevoice").strip() or "sensevoice"
         self.database_url = _normalize_sqlite_url(
             os.getenv("DATABASE_URL", "sqlite:///./data/study_diary.db").strip()
         )

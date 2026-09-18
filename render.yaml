@@ -18,6 +18,12 @@ services:
         value: https://api.openai.com/v1
       - key: LLM_MODEL
         value: gpt-4o-mini
+      - key: ASR_BASE_URL
+        sync: false
+      - key: ASR_API_KEY
+        sync: false
+      - key: ASR_MODEL
+        value: sensevoice
       - key: APP_ACCESS_TOKEN
         sync: false
       - key: APP_TIMEZONE

@@ -11,6 +11,7 @@ from app.routers.desktop_pet import router as desktop_pet_router
 from app.routers.diaries import router as diaries_router
 from app.routers.interviews import router as interviews_router
 from app.routers.reminders import router as reminders_router
+from app.routers.speech import router as speech_router
 from app.routers.study_sessions import router as study_sessions_router
 from app.security import is_ai_request, rate_limit_key, rate_limiter, requires_write_access
 
@@ -51,6 +52,7 @@ app.include_router(diaries_router)
 app.include_router(algorithms_router)
 app.include_router(interviews_router)
 app.include_router(reminders_router)
+app.include_router(speech_router)
 app.include_router(study_sessions_router)
 app.include_router(desktop_pet_router)
 
