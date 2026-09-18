@@ -10,6 +10,7 @@ import { AlgorithmReviewPage } from "./pages/AlgorithmReviewPage";
 import { AlgorithmsPage } from "./pages/AlgorithmsPage";
 import { AlgorithmSettingsPage } from "./pages/AlgorithmSettingsPage";
 import { InterviewHistoryPage } from "./pages/InterviewHistoryPage";
+import { InterviewCatalogPage } from "./pages/InterviewCatalogPage";
 import { InterviewPage } from "./pages/InterviewPage";
 import { TodayPage } from "./pages/TodayPage";
 import { prefetchAppData } from "./services/appPrefetch";
@@ -73,11 +74,13 @@ export default function App() {
               )} />
               <Route path="/algorithms/session/:sessionId" element={routeView(<AlgorithmSessionPage />)} />
               <Route path="/algorithms/problems/:problemId" element={routeView(<AlgorithmProblemPage />)} />
+              <Route path="/interview/setup" element={<Navigate to="/interview/settings" replace />} />
               <Route path="/interview/*" element={routeView(
                 <InterviewWorkspaceLayout pages={[
                   routeView(<InterviewPage mode="practice" />),
-                  routeView(<InterviewPage mode="setup" />),
+                  routeView(<InterviewCatalogPage />),
                   routeView(<InterviewHistoryPage />),
+                  routeView(<InterviewPage mode="setup" />),
                 ]} />,
               )} />
               <Route path="/interview/session/:setId" element={routeView(<InterviewSessionPage />)} />

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/ArrowCounterClockwise";
 import { CaretDownIcon } from "@phosphor-icons/react/CaretDown";
 import { FlagIcon } from "@phosphor-icons/react/Flag";
@@ -55,8 +55,7 @@ function domainLabel(domain?: QuestionDomain | null) {
 
 export function InterviewPage({ mode }: { mode?: "practice" | "setup" } = {}) {
   const navigate = useNavigate();
-  const { pathname } = useLocation();
-  const isSetup = mode ? mode === "setup" : pathname === "/interview/setup";
+  const isSetup = mode === "setup";
   const [preferences] = useUserPreferences();
   const [payload, setPayload] = useState<CreateQuestionSetPayload>(loadSavedPayload);
   const [initialCache] = useState(() => ({
@@ -180,7 +179,7 @@ export function InterviewPage({ mode }: { mode?: "practice" | "setup" } = {}) {
 
   return (
     <div className="interview-page interview-home-page interview-workspace-panel">
-      {resumableSet ? (
+      {!isSetup && resumableSet ? (
         <section className="interview-resume-panel" aria-labelledby="resume-session-title">
           <div>
             <span className="pane-label">{resumableRemaining > 0 ? "未完成训练" : "待结束训练"}</span>
@@ -197,7 +196,7 @@ export function InterviewPage({ mode }: { mode?: "practice" | "setup" } = {}) {
 
       {isSetup ? (
         <section className="interview-setup-surface" aria-labelledby="interview-setup-heading">
-          <div><span className="pane-label">题集</span><h2 id="interview-setup-heading">按今天的状态调整</h2><p>选择题量、方向和难度，保存为下次默认训练。</p></div>
+          <div><span className="pane-label">推荐设置</span><h2 id="interview-setup-heading">调整推送方式</h2><p>设置默认题量、方向和难度，下次推荐会沿用这些偏好。</p></div>
           <InterviewSetupForm value={payload} isSubmitting={isSubmitting} error={error} onChange={setPayload} onSave={saveSetup} />
         </section>
       ) : (
@@ -239,7 +238,7 @@ export function InterviewPage({ mode }: { mode?: "practice" | "setup" } = {}) {
                 <summary><span><strong>指定偏好</strong><small>调整题集</small></span><CaretDownIcon aria-hidden="true" size={18} weight="bold" /></summary>
                 <div className="interview-continuation-body">
                   <p>选择题量、方向和难度，保存为下次默认训练。</p>
-                  <Link className="button button-secondary" to="/interview/setup">打开题集设置</Link>
+                  <Link className="button button-secondary" to="/interview/settings">打开题集设置</Link>
                 </div>
               </details>
             </aside>

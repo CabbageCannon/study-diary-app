@@ -37,6 +37,9 @@ from app.schemas import (
 from app.time_utils import app_local_date, app_local_day_end_utc
 
 
+RECENT_QUESTION_SET_LIMIT = 4
+
+
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -122,33 +125,47 @@ def create_question_set(db: Session, payload: InterviewQuestionSetCreate) -> tup
     candidate_ids = [question.id for question in candidates]
     schedules = repository.get_schedules_for_questions(db, candidate_ids)
     latest_answers = repository.get_latest_answer_times(db, candidate_ids)
-    due_questions = [
-        question
+    last_seen_times = repository.get_question_last_seen_times(db, candidate_ids)
+    recent_question_ids = repository.list_question_ids_for_sets(
+        db,
+        repository.list_recent_question_set_ids(db, RECENT_QUESTION_SET_LIMIT),
+    )
+    due_ids = {
+        question.id
         for question in candidates
         if question.id in schedules and as_utc(schedules[question.id].next_review_at) <= now
-    ]
-    remaining_questions = [question for question in candidates if question not in due_questions]
+    }
+    oldest = datetime.min.replace(tzinfo=timezone.utc)
+    rng = random.SystemRandom()
 
-    if payload.random_order:
-        random.SystemRandom().shuffle(due_questions)
-        unanswered_questions = [question for question in remaining_questions if question.id not in latest_answers]
-        answered_questions = [question for question in remaining_questions if question.id in latest_answers]
-        random.SystemRandom().shuffle(unanswered_questions)
-        random.SystemRandom().shuffle(answered_questions)
-        remaining_questions = unanswered_questions + answered_questions
-    else:
-        due_questions.sort(key=lambda question: as_utc(schedules[question.id].next_review_at))
-        remaining_questions.sort(
-            key=lambda question: (
-                question.id in latest_answers,
-                as_utc(latest_answers[question.id]) if question.id in latest_answers else datetime.min.replace(tzinfo=timezone.utc),
-                question.id,
-            )
+    def answer_sort_key(question: InterviewQuestion) -> tuple[bool, datetime, str]:
+        return (
+            question.id in latest_answers,
+            as_utc(latest_answers[question.id]) if question.id in latest_answers else oldest,
+            question.id,
         )
 
-    ordered_candidates = (due_questions if payload.include_due_reviews else []) + remaining_questions
-    if not payload.include_due_reviews:
-        ordered_candidates = remaining_questions + due_questions
+    def last_seen_sort_key(question: InterviewQuestion) -> tuple[datetime, str]:
+        return (as_utc(last_seen_times.get(question.id, oldest)), question.id)
+
+    def order_pool(pool: list[InterviewQuestion], *, fallback: bool = False) -> list[InterviewQuestion]:
+        due = [question for question in pool if question.id in due_ids]
+        rest = [question for question in pool if question.id not in due_ids]
+        if payload.random_order and not fallback:
+            rng.shuffle(due)
+            unanswered = [question for question in rest if question.id not in latest_answers]
+            answered = [question for question in rest if question.id in latest_answers]
+            rng.shuffle(unanswered)
+            rng.shuffle(answered)
+            rest = unanswered + answered
+        else:
+            due.sort(key=lambda question: as_utc(schedules[question.id].next_review_at))
+            rest.sort(key=last_seen_sort_key if fallback else answer_sort_key)
+        return (due if payload.include_due_reviews else []) + rest + ([] if payload.include_due_reviews else due)
+
+    fresh_candidates = [question for question in candidates if question.id not in recent_question_ids]
+    fallback_candidates = [question for question in candidates if question.id in recent_question_ids]
+    ordered_candidates = order_pool(fresh_candidates) + order_pool(fallback_candidates, fallback=True)
     selected_questions = ordered_candidates[: payload.question_count]
     if not selected_questions:
         raise ValueError("没有可用于训练的已审核题目。")

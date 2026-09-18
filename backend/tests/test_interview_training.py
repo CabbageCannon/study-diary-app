@@ -13,7 +13,7 @@ from app.config import settings
 from app.database import Base, get_db
 from app.llm import LLMError
 from app.main import app
-from app.models import InterviewAnswer, InterviewReviewSchedule
+from app.models import InterviewAnswer, InterviewQuestionSet, InterviewQuestionSetItem, InterviewReviewSchedule
 from app.repositories.interview_repository import upsert_question
 from app.schemas import AnswerEvaluation, InterviewQuestionSeed
 from app.services.interview_training_service import review_interval_days, utc_now
@@ -115,6 +115,31 @@ class InterviewTrainingApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 201)
         return response.json()
 
+    def insert_history_set(self, question_ids: list[str], days_ago: int) -> None:
+        happened_at = utc_now() - timedelta(days=days_ago)
+        question_set = InterviewQuestionSet(
+            date=happened_at.date().isoformat(),
+            domain="python",
+            topic="asyncio",
+            question_count=len(question_ids),
+            status="completed",
+            current_index=max(len(question_ids) - 1, 0),
+            last_active_at=happened_at,
+            completed_at=happened_at,
+        )
+        self.session.add(question_set)
+        self.session.flush()
+        for index, question_id in enumerate(question_ids):
+            self.session.add(
+                InterviewQuestionSetItem(
+                    question_set_id=question_set.id,
+                    question_id=question_id,
+                    order_index=index,
+                    status="answered",
+                )
+            )
+        self.session.commit()
+
     def test_review_is_protected_and_verified_requires_quality(self) -> None:
         denied = self.client.patch(
             "/api/interviews/questions/pending-training-001/review",
@@ -175,6 +200,79 @@ class InterviewTrainingApiTests(unittest.TestCase):
         self.assertIn("不足", question_set["availability_message"])
         self.assertEqual(question_set["items"][0]["question"]["id"], "verified-training-001")
         self.assertEqual(len({item["question"]["id"] for item in question_set["items"]}), 1)
+
+    def test_question_set_avoids_recent_four_sets_and_falls_back_by_oldest_seen(self) -> None:
+        for question_id in (
+            "verified-training-002",
+            "verified-training-003",
+            "verified-training-004",
+            "verified-training-005",
+            "verified-training-006",
+        ):
+            upsert_question(self.session, question_payload(question_id, "verified"))
+        self.session.commit()
+
+        self.insert_history_set(["verified-training-002"], 9)
+        self.insert_history_set(["verified-training-001"], 4)
+        self.insert_history_set(["verified-training-003"], 3)
+        self.insert_history_set(["verified-training-004"], 2)
+        self.insert_history_set(["verified-training-005"], 1)
+
+        fresh = self.client.post(
+            "/api/interviews/question-sets",
+            json={"domain": "python", "topic": "asyncio", "question_count": 2, "random_order": False},
+        )
+        self.assertEqual(fresh.status_code, 201)
+        fresh_ids = [item["question"]["id"] for item in fresh.json()["items"]]
+        self.assertEqual(fresh_ids, ["verified-training-002", "verified-training-006"])
+        created_fresh_set = self.session.get(InterviewQuestionSet, fresh.json()["id"])
+        assert created_fresh_set is not None
+        created_fresh_set.deleted_at = utc_now()
+        self.session.commit()
+
+        fallback = self.client.post(
+            "/api/interviews/question-sets",
+            json={"domain": "python", "topic": "asyncio", "question_count": 6, "random_order": False},
+        )
+        self.assertEqual(fallback.status_code, 201)
+        fallback_ids = [item["question"]["id"] for item in fallback.json()["items"]]
+        self.assertEqual(fallback_ids[:2], ["verified-training-002", "verified-training-006"])
+        self.assertEqual(fallback_ids[2:], ["verified-training-001", "verified-training-003", "verified-training-004", "verified-training-005"])
+        self.assertEqual(len(fallback_ids), 6)
+
+    def test_question_catalog_is_paged_and_omits_full_answer_fields(self) -> None:
+        for question_id in (
+            "verified-training-002",
+            "verified-training-003",
+            "verified-training-004",
+            "verified-training-005",
+            "verified-training-006",
+            "verified-training-007",
+        ):
+            upsert_question(self.session, question_payload(question_id, "verified"))
+        self.session.commit()
+
+        question_set = self.create_set()
+        with patch("app.services.interview_training_service.evaluate_interview_answer", successful_evaluation):
+            answered = self.client.post(
+                f"/api/interviews/question-sets/{question_set['id']}/answers",
+                json={
+                    "question_id": question_set["items"][0]["question"]["id"],
+                    "answer_text": "阻塞调用会占住事件循环，让其它协程没有机会及时执行。",
+                    "answer_source": "text",
+                },
+            )
+        self.assertEqual(answered.status_code, 201)
+
+        page = self.client.get("/api/interviews/questions/catalog?domain=python&page=1")
+        self.assertEqual(page.status_code, 200)
+        body = page.json()
+        self.assertEqual(body["page_size"], 6)
+        self.assertEqual(body["total"], 7)
+        self.assertEqual(body["total_pages"], 2)
+        self.assertEqual(len(body["items"]), 6)
+        self.assertNotIn("reference_answer", body["items"][0])
+        self.assertTrue(any(item["is_answered"] for item in body["items"]))
 
     def test_answer_belongs_to_set_duplicate_is_rejected_and_retry_keeps_history(self) -> None:
         question_set = self.create_set()

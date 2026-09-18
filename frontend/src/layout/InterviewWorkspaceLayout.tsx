@@ -5,7 +5,7 @@ import { InterviewSubNavigation } from "../components/interview/InterviewSubNavi
 import { SwipeRoutePager } from "../components/SwipeRoutePager";
 import type { InterviewTrainingStats } from "../types/interview";
 
-const interviewRoutes = ["/interview", "/interview/setup", "/interview/history"] as const;
+const interviewRoutes = ["/interview", "/interview/catalog", "/interview/history", "/interview/settings"] as const;
 
 export function InterviewWorkspaceLayout({ pages }: { pages: readonly ReactNode[] }) {
   const [stats, setStats] = useState<InterviewTrainingStats | null>(() => peekInterviewTrainingStats());

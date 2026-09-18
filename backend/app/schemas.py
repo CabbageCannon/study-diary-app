@@ -1223,6 +1223,23 @@ class InterviewQuestionForTraining(BaseModel):
     question: str
 
 
+class InterviewQuestionCatalogItemRead(BaseModel):
+    id: str
+    domain: QuestionDomain
+    topic: str
+    difficulty: Difficulty
+    question: str
+    is_answered: bool = False
+
+
+class InterviewQuestionCatalogPageRead(BaseModel):
+    page: int
+    page_size: int
+    total: int
+    total_pages: int
+    items: list[InterviewQuestionCatalogItemRead]
+
+
 class InterviewQuestionSetCreate(BaseModel):
     domain: QuestionDomain | None = None
     topic: str | None = Field(default=None, max_length=100)

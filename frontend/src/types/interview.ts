@@ -156,6 +156,23 @@ export interface InterviewQuestionForTraining {
   question: string;
 }
 
+export interface InterviewQuestionCatalogItem {
+  id: string;
+  domain: QuestionDomain;
+  topic: string;
+  difficulty: Difficulty;
+  question: string;
+  is_answered: boolean;
+}
+
+export interface InterviewQuestionCatalogPage {
+  page: number;
+  page_size: number;
+  total: number;
+  total_pages: number;
+  items: InterviewQuestionCatalogItem[];
+}
+
 export interface InterviewEvaluation {
   id: number;
   answer_id: number;

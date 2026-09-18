@@ -397,7 +397,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang 
     margin: 0 var(--content-pad);
     padding: 3px;
   }
-  .workspace-segmented-control { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-flow: initial; }
+  .workspace-segmented-control { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-flow: initial; }
   .algorithm-workspace-page > .algorithm-sub-navigation { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-flow: initial; }
   .workspace-segment,
   .algorithm-subnav-link { min-width: 0; padding: 0 7px; }

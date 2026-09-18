@@ -1,11 +1,13 @@
 from typing import Literal
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import get_db
 from app.llm import LLMError
+from app.models import InterviewAnswer, InterviewQuestion
 from app.repositories import interview_training_repository as training_repository
 from app.repositories.interview_repository import apply_review_update, get_question, list_questions
 from app.schemas import (
@@ -17,6 +19,8 @@ from app.schemas import (
     InterviewQuestionAIReviewRequest,
     InterviewQuestionAIReviewResult,
     InterviewQuestionBatchResult,
+    InterviewQuestionCatalogItemRead,
+    InterviewQuestionCatalogPageRead,
     InterviewQuestionIdsRequest,
     InterviewQuestionRead,
     InterviewQuestionReviewUpdate,
@@ -54,6 +58,7 @@ from app.services.interview_training_service import (
 
 router = APIRouter(prefix="/api/interviews", tags=["interviews"])
 VERIFIED_QUALITY_THRESHOLD = 70.0
+INTERVIEW_CATALOG_PAGE_SIZE = 6
 
 
 def require_question_review_enabled() -> None:
@@ -199,6 +204,61 @@ def reject_interview_questions_batch(
 ) -> InterviewQuestionBatchResult:
     require_question_review_enabled()
     return batch_reject(db, payload.question_ids)
+
+
+@router.get("/questions/catalog", response_model=InterviewQuestionCatalogPageRead)
+def list_interview_question_catalog(
+    page: int = Query(default=1, ge=1),
+    domain: Literal["agent", "rag", "llm_application", "python", "network", "mysql", "ai_engineering"] | None = None,
+    topic: str | None = None,
+    db: Session = Depends(get_db),
+) -> InterviewQuestionCatalogPageRead:
+    filters = [
+        InterviewQuestion.is_active.is_(True),
+        InterviewQuestion.review_status == "verified",
+    ]
+    if domain:
+        filters.append(InterviewQuestion.domain == domain)
+    if topic:
+        filters.append(InterviewQuestion.topic == topic.strip())
+
+    total = db.scalar(select(func.count()).select_from(InterviewQuestion).where(*filters)) or 0
+    questions = list(
+        db.scalars(
+            select(InterviewQuestion)
+            .where(*filters)
+            .order_by(InterviewQuestion.domain, InterviewQuestion.topic, InterviewQuestion.id)
+            .offset((page - 1) * INTERVIEW_CATALOG_PAGE_SIZE)
+            .limit(INTERVIEW_CATALOG_PAGE_SIZE)
+        ).all()
+    )
+    answered_ids = set()
+    if questions:
+        answered_ids = set(
+            db.scalars(
+                select(InterviewAnswer.question_id)
+                .where(InterviewAnswer.question_id.in_([question.id for question in questions]))
+                .distinct()
+            ).all()
+        )
+
+    return InterviewQuestionCatalogPageRead(
+        page=page,
+        page_size=INTERVIEW_CATALOG_PAGE_SIZE,
+        total=total,
+        total_pages=(total + INTERVIEW_CATALOG_PAGE_SIZE - 1) // INTERVIEW_CATALOG_PAGE_SIZE,
+        items=[
+            InterviewQuestionCatalogItemRead(
+                id=question.id,
+                domain=question.domain,
+                topic=question.topic,
+                difficulty=question.difficulty,
+                question=question.question,
+                is_answered=question.id in answered_ids,
+            )
+            for question in questions
+        ],
+    )
 
 
 @router.post("/batch-jobs", response_model=InterviewBatchJobRead, status_code=status.HTTP_202_ACCEPTED)

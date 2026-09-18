@@ -7,6 +7,7 @@ import type {
   InterviewQuestion,
   InterviewQuestionAIReviewResult,
   InterviewQuestionBatchResult,
+  InterviewQuestionCatalogPage,
   InterviewQuestionReviewUpdate,
   InterviewQuestionSet,
   InterviewQuestionSetSummary,
@@ -24,6 +25,12 @@ interface QuestionFilters {
   difficulty?: string;
   reviewStatus?: ReviewStatus;
   count?: number;
+}
+
+interface CatalogFilters {
+  page?: number;
+  domain?: string;
+  topic?: string;
 }
 
 function toQuery(params: Record<string, string | number | boolean | undefined>) {
@@ -48,6 +55,18 @@ export function listInterviewQuestions(filters: QuestionFilters = {}, signal?: A
     })}`,
     { signal },
   );
+}
+
+function questionCatalogPath(filters: CatalogFilters = {}) {
+  return `/api/interviews/questions/catalog${toQuery({
+    page: filters.page ?? 1,
+    domain: filters.domain,
+    topic: filters.topic,
+  })}`;
+}
+
+export function listInterviewQuestionCatalog(filters: CatalogFilters = {}, force = false): Promise<InterviewQuestionCatalogPage> {
+  return cachedRequest<InterviewQuestionCatalogPage>(questionCatalogPath(filters), undefined, force);
 }
 
 export function reviewInterviewQuestion(questionId: string, payload: InterviewQuestionReviewUpdate): Promise<InterviewQuestion> {

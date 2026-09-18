@@ -96,6 +96,40 @@ def get_latest_answer_times(db: Session, question_ids: list[str]) -> dict[str, d
     return {question_id: created_at for question_id, created_at in db.execute(statement).all() if created_at is not None}
 
 
+def get_question_last_seen_times(db: Session, question_ids: list[str]) -> dict[str, datetime]:
+    if not question_ids:
+        return {}
+    statement = (
+        select(InterviewQuestionSetItem.question_id, func.max(InterviewQuestionSet.last_active_at))
+        .join(InterviewQuestionSet, InterviewQuestionSet.id == InterviewQuestionSetItem.question_set_id)
+        .where(
+            InterviewQuestionSet.deleted_at.is_(None),
+            InterviewQuestionSetItem.question_id.in_(question_ids),
+        )
+        .group_by(InterviewQuestionSetItem.question_id)
+    )
+    return {question_id: last_seen for question_id, last_seen in db.execute(statement).all() if last_seen is not None}
+
+
+def list_recent_question_set_ids(db: Session, limit: int) -> list[int]:
+    statement = (
+        select(InterviewQuestionSet.id)
+        .where(InterviewQuestionSet.deleted_at.is_(None))
+        .order_by(InterviewQuestionSet.last_active_at.desc(), InterviewQuestionSet.id.desc())
+        .limit(limit)
+    )
+    return list(db.scalars(statement).all())
+
+
+def list_question_ids_for_sets(db: Session, question_set_ids: list[int]) -> set[str]:
+    if not question_set_ids:
+        return set()
+    statement = select(InterviewQuestionSetItem.question_id).where(
+        InterviewQuestionSetItem.question_set_id.in_(question_set_ids)
+    )
+    return set(db.scalars(statement).all())
+
+
 def get_schedules_for_questions(db: Session, question_ids: list[str]) -> dict[str, InterviewReviewSchedule]:
     if not question_ids:
         return {}

@@ -2308,6 +2308,13 @@ textarea:focus-visible {
 .catalog-browser-row small { color: var(--ink-muted); font-size: 0.73rem; }
 .catalog-browser-row:hover { color: var(--accent); transform: translateX(2px); }
 .catalog-browser-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.interview-catalog-page { display: grid; gap: 18px; }
+.interview-catalog-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.interview-catalog-card { display: grid; min-height: 132px; gap: 10px; align-content: start; border: 1px solid var(--rule); background: var(--paper); padding: 14px; }
+.interview-catalog-card p { display: -webkit-box; overflow: hidden; margin: 0; color: var(--ink); line-height: 1.55; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.interview-catalog-card small { color: var(--ink-muted); font-size: 0.75rem; }
+.interview-catalog-card span { width: fit-content; border: 1px solid var(--rule); padding: 3px 7px; color: var(--ink-muted); font-size: 0.72rem; }
+.interview-catalog-pagination { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
 .temporary-training-builder { padding: 0; }
 .temporary-training-body { display: grid; gap: 16px; border-top: 1px solid var(--rule); padding: 14px 0 2px; }
 .temporary-mode-list { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -2356,6 +2363,7 @@ textarea:focus-visible {
   .catalog-browser-filters { grid-template-columns: 1fr; }
   .catalog-browser-filters label:first-child { grid-column: auto; }
   .catalog-metric-grid > div { min-height: 60px; }
+  .interview-catalog-grid { grid-template-columns: 1fr; }
   .temporary-training-builder summary { min-height: 62px; }
 }
 

@@ -4,8 +4,9 @@ import { LiquidTabs } from "../LiquidTabs";
 
 const items = [
   { to: "/interview", label: "练习", matches: (path: string) => path === "/interview" || path.startsWith("/interview/session/") },
-  { to: "/interview/setup", label: "题集", matches: (path: string) => path === "/interview/setup" },
+  { to: "/interview/catalog", label: "题库", matches: (path: string) => path === "/interview/catalog" },
   { to: "/interview/history", label: "历史", matches: (path: string) => path === "/interview/history" },
+  { to: "/interview/settings", label: "设置", matches: (path: string) => path === "/interview/settings" },
 ];
 
 export function InterviewSubNavigation() {
