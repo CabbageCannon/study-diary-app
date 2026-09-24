@@ -1,5 +1,7 @@
 import { request } from "../api/client";
 import type { TodayWorkspaceData } from "../hooks/useTodayWorkspace";
+import { userStorageKey } from "../auth/userStorage";
+import type { AppTheme } from "../contexts/themes";
 
 export interface DailyGoals {
   interview: number;
@@ -20,6 +22,7 @@ export interface UserPreferences {
   learningStyle: string;
   dailyGoals: DailyGoals;
   reminder: ReminderSettings;
+  theme: AppTheme;
 }
 
 export interface TodayProgressItem {
@@ -48,8 +51,8 @@ export interface ReminderSubscriptionResponse extends ReminderSubscriptionPayloa
 }
 
 export const USER_PREFERENCES_CHANGED_EVENT = "study-diary:user-preferences-changed";
-const USER_PREFERENCES_KEY = "study-diary:user-preferences";
-const REVIEW_BASELINE_KEY = "study-diary:review-baseline";
+const USER_PREFERENCES_KEY = "user-preferences";
+const REVIEW_BASELINE_KEY = "review-baseline";
 const TIME_ZONE = "Asia/Shanghai";
 
 export const defaultUserPreferences: UserPreferences = {
@@ -67,6 +70,7 @@ export const defaultUserPreferences: UserPreferences = {
     time: "21:30",
     subscriptionId: null,
   },
+  theme: "mist",
 };
 
 const dailySentences = [
@@ -165,23 +169,22 @@ export function getDailySentence(date = new Date()) {
 
 export function loadUserPreferences(): UserPreferences {
   try {
-    const raw = window.localStorage.getItem(USER_PREFERENCES_KEY);
+    const raw = window.localStorage.getItem(userStorageKey(USER_PREFERENCES_KEY));
     if (!raw) return defaultUserPreferences;
     const saved = JSON.parse(raw) as Partial<UserPreferences>;
-    return {
-      ...defaultUserPreferences,
-      ...saved,
-      dailyGoals: { ...defaultUserPreferences.dailyGoals, ...saved.dailyGoals },
-      reminder: { ...defaultUserPreferences.reminder, ...saved.reminder },
-    };
+    return normalizeUserPreferences(saved);
   } catch {
     return defaultUserPreferences;
   }
 }
 
 export function saveUserPreferences(value: UserPreferences) {
-  window.localStorage.setItem(USER_PREFERENCES_KEY, JSON.stringify(value));
+  window.localStorage.setItem(userStorageKey(USER_PREFERENCES_KEY), JSON.stringify(value));
   window.dispatchEvent(new Event(USER_PREFERENCES_CHANGED_EVENT));
+}
+
+export function normalizeUserPreferences(saved: Partial<UserPreferences>): UserPreferences {
+  return { ...defaultUserPreferences, ...saved, dailyGoals: { ...defaultUserPreferences.dailyGoals, ...saved.dailyGoals }, reminder: { ...defaultUserPreferences.reminder, ...saved.reminder } };
 }
 
 export function clampGoal(value: number) {
@@ -232,9 +235,10 @@ function reviewProgress(dueCount: number, configuredGoal: number) {
   const dateKey = getShanghaiDateKey();
   let target = Math.max(dueCount, configuredGoal);
   try {
-    const saved = JSON.parse(window.localStorage.getItem(REVIEW_BASELINE_KEY) ?? "null") as { dateKey?: string; target?: number } | null;
+    const key = userStorageKey(REVIEW_BASELINE_KEY);
+    const saved = JSON.parse(window.localStorage.getItem(key) ?? "null") as { dateKey?: string; target?: number } | null;
     if (saved?.dateKey === dateKey && Number.isFinite(saved.target)) target = Math.max(configuredGoal, saved.target ?? 0);
-    else window.localStorage.setItem(REVIEW_BASELINE_KEY, JSON.stringify({ dateKey, target }));
+    else window.localStorage.setItem(key, JSON.stringify({ dateKey, target }));
   } catch {
     // Private browsing may disable storage; current due count remains useful.
   }

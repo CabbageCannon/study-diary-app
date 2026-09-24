@@ -1,6 +1,6 @@
 from hmac import compare_digest
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Response, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -29,27 +29,29 @@ def get_public_key() -> PushPublicKeyRead:
 @router.post("/subscriptions", response_model=PushSubscriptionRead, status_code=status.HTTP_201_CREATED)
 def create_subscription(
     payload: PushSubscriptionCreate,
+    request: Request,
     db: Session = Depends(get_db),
 ) -> PushSubscription:
-    return upsert_subscription(db, payload)
+    return upsert_subscription(db, payload, request.state.user_id)
 
 
 @router.patch("/subscriptions/{subscription_id}", response_model=PushSubscriptionRead)
 def patch_subscription(
     subscription_id: int,
     payload: PushSubscriptionUpdate,
+    request: Request,
     db: Session = Depends(get_db),
 ) -> PushSubscription:
     subscription = db.get(PushSubscription, subscription_id)
-    if subscription is None:
+    if subscription is None or subscription.user_id != request.state.user_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="提醒订阅不存在")
     return update_subscription(db, subscription, payload)
 
 
 @router.delete("/subscriptions/{subscription_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_subscription(subscription_id: int, db: Session = Depends(get_db)) -> Response:
+def delete_subscription(subscription_id: int, request: Request, db: Session = Depends(get_db)) -> Response:
     subscription = db.get(PushSubscription, subscription_id)
-    if subscription is not None:
+    if subscription is not None and subscription.user_id == request.state.user_id:
         db.delete(subscription)
         db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

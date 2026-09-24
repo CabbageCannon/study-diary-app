@@ -51,7 +51,10 @@ class Settings:
             "http://127.0.0.1:1420,http://tauri.localhost",
         ).strip()
         self.app_timezone = os.getenv("APP_TIMEZONE", "Asia/Shanghai").strip() or "Asia/Shanghai"
-        self.app_access_token = os.getenv("APP_ACCESS_TOKEN", "").strip()
+        self.supabase_url = os.getenv("SUPABASE_URL", "").strip().rstrip("/")
+        self.supabase_publishable_key = os.getenv("SUPABASE_PUBLISHABLE_KEY", "").strip()
+        self.supabase_service_role_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+        self.admin_user_id = os.getenv("ADMIN_USER_ID", "").strip()
         self.vapid_public_key = os.getenv("VAPID_PUBLIC_KEY", "").strip()
         self.vapid_private_key = os.getenv("VAPID_PRIVATE_KEY", "").strip()
         self.vapid_subject = os.getenv("VAPID_SUBJECT", "mailto:study-diary@example.com").strip()
@@ -67,10 +70,5 @@ class Settings:
     def frontend_origins(self) -> list[str]:
         origins = [*self.frontend_origin.split(","), *self.desktop_pet_origins.split(",")]
         return list(dict.fromkeys(origin.strip() for origin in origins if origin.strip()))
-
-    @property
-    def write_access_enabled(self) -> bool:
-        return bool(self.app_access_token)
-
 
 settings = Settings()

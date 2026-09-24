@@ -5304,3 +5304,17 @@ html[data-theme="frost"] .date-picker-day-selected:focus-visible {
   .algorithm-overview-item > strong { font-size: 0.94rem; }
   .algorithm-workspace-page > .algorithm-sub-navigation { padding: 0 var(--content-pad) 1px; }
 }
+/* Authentication stays independent from app routes so signed-out users never mount data pages. */
+.auth-screen { min-height: 100dvh; display: grid; place-items: center; padding: 24px; background: var(--wash, #eef1ed); color: var(--ink, #17201b); }
+.auth-card { width: min(100%, 420px); display: grid; gap: 24px; border: 1px solid var(--rule, #d6ddd7); border-radius: 24px; background: var(--paper-strong, #fff); padding: clamp(24px, 7vw, 40px); box-shadow: 0 18px 60px rgb(24 38 29 / 10%); }
+.auth-card header, .auth-card form { display: grid; gap: 14px; }
+.auth-card header small { color: var(--accent-strong, #39634b); font-size: .7rem; font-weight: 750; letter-spacing: .14em; }
+.auth-card h1, .auth-card p { margin: 0; }
+.auth-card header p { color: var(--muted, #667169); }
+.auth-card label { display: grid; gap: 7px; font-size: .8rem; font-weight: 650; }
+.auth-card input { min-height: 46px; border: 1px solid var(--rule, #d6ddd7); border-radius: 12px; background: transparent; color: inherit; padding: 0 13px; font: inherit; }
+.auth-card nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; }
+.auth-card nav button { border: 0; background: none; color: var(--accent-strong, #39634b); font: inherit; cursor: pointer; }
+.me-admin-users .setting-row { gap: 12px; }
+.me-admin-users .setting-row > span:first-child { min-width: 0; }
+.me-admin-users .setting-row strong { overflow-wrap: anywhere; }

@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
 from app import database
-from app.config import settings
 from app.database import Base, get_db
 from app.main import app
 from app.models import StudySession
@@ -20,8 +19,6 @@ class DesktopPetApiTests(unittest.TestCase):
         self.engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
         Base.metadata.create_all(self.engine)
         self.session = Session(self.engine)
-        self.previous_token = settings.app_access_token
-        settings.app_access_token = "desktop-test-token"
 
         def override_db():
             yield self.session
@@ -34,12 +31,11 @@ class DesktopPetApiTests(unittest.TestCase):
         app.dependency_overrides.clear()
         self.client.close()
         self.session.close()
-        settings.app_access_token = self.previous_token
         weather_service.weather_cache.clear()
 
     @property
     def headers(self) -> dict[str, str]:
-        return {"X-Study-Diary-Access": "desktop-test-token"}
+        return {"Authorization": "Bearer legacy-test"}
 
     def create_session(self, client_event_id: str = "desktop-pet-start-0001") -> dict[str, object]:
         response = self.client.post(
@@ -94,7 +90,7 @@ class DesktopPetApiTests(unittest.TestCase):
         self.assertIsNone(self.client.get("/api/study-sessions/active", headers=self.headers).json())
 
     def test_study_session_validation_and_access_protection(self) -> None:
-        self.assertEqual(self.client.get("/api/study-sessions/active").status_code, 401)
+        self.assertEqual(self.client.get("/api/study-sessions/active", headers={"Authorization": ""}).status_code, 401)
         created = self.create_session()
         invalid = self.client.patch(
             f"/api/study-sessions/{created['id']}/pause",
@@ -110,7 +106,7 @@ class DesktopPetApiTests(unittest.TestCase):
         self.assertEqual(duplicate.status_code, 409)
 
     def test_settings_validate_sort_and_deduplicate_milestones(self) -> None:
-        self.assertEqual(self.client.get("/api/desktop-pet/config").status_code, 401)
+        self.assertEqual(self.client.get("/api/desktop-pet/config", headers={"Authorization": ""}).status_code, 401)
         response = self.client.patch(
             "/api/desktop-pet/config",
             headers=self.headers,

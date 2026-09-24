@@ -18,6 +18,7 @@ from app.schemas import AlgorithmAIReview
 from app.security import is_ai_request
 from app.services.algorithm_practice_service import get_daily_feed, utc_now
 from app.services.data_import_service import import_algorithms
+from tests.conftest import TEST_USER_ID
 
 
 CATALOG_PATH = Path(__file__).resolve().parents[1] / "data" / "algorithms" / "problem_catalog.json"
@@ -316,9 +317,9 @@ class AlgorithmPracticeApiTests(unittest.TestCase):
         first_day = datetime(2026, 8, 3, 16, 30, tzinfo=timezone.utc)
         second_day = first_day + timedelta(days=1)
         with patch("app.services.algorithm_practice_service.utc_now", return_value=first_day):
-            first = get_daily_feed(self.session)
+            first = get_daily_feed(self.session, TEST_USER_ID)
         with patch("app.services.algorithm_practice_service.utc_now", return_value=second_day):
-            second = get_daily_feed(self.session)
+            second = get_daily_feed(self.session, TEST_USER_ID)
         self.assertEqual(first.date, "2026-08-04")
         self.assertEqual(second.date, "2026-08-05")
         self.assertNotEqual(first.date, second.date)

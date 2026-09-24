@@ -35,14 +35,14 @@ def _validate_client_time(value: datetime | None) -> datetime:
     return result
 
 
-def create_session(db: Session, payload: StudySessionCreate) -> tuple[StudySession, bool]:
-    existing = db.scalar(select(StudySession).where(StudySession.client_event_id == payload.client_event_id))
+def create_session(db: Session, payload: StudySessionCreate, user_id: str) -> tuple[StudySession, bool]:
+    existing = db.scalar(select(StudySession).where(StudySession.user_id == user_id, StudySession.client_event_id == payload.client_event_id))
     if existing:
         return existing, False
 
     active = db.scalar(
         select(StudySession)
-        .where(StudySession.source == payload.source, StudySession.status.in_(ACTIVE_STATUSES))
+        .where(StudySession.user_id == user_id, StudySession.source == payload.source, StudySession.status.in_(ACTIVE_STATUSES))
         .order_by(StudySession.updated_at.desc())
     )
     if active:
@@ -51,6 +51,7 @@ def create_session(db: Session, payload: StudySessionCreate) -> tuple[StudySessi
     started_at = _validate_client_time(payload.started_at)
     session = StudySession(
         id=str(uuid4()),
+        user_id=user_id,
         client_event_id=payload.client_event_id,
         source=payload.source,
         activity_type=payload.activity_type,
@@ -66,17 +67,17 @@ def create_session(db: Session, payload: StudySessionCreate) -> tuple[StudySessi
     return session, True
 
 
-def get_active_session(db: Session) -> StudySession | None:
+def get_active_session(db: Session, user_id: str) -> StudySession | None:
     return db.scalar(
         select(StudySession)
-        .where(StudySession.source == "desktop_pet", StudySession.status.in_(ACTIVE_STATUSES))
+        .where(StudySession.user_id == user_id, StudySession.source == "desktop_pet", StudySession.status.in_(ACTIVE_STATUSES))
         .order_by(StudySession.updated_at.desc())
     )
 
 
-def _get_session(db: Session, session_id: str) -> StudySession:
+def _get_session(db: Session, session_id: str, user_id: str) -> StudySession:
     session = db.get(StudySession, session_id)
-    if not session or session.source != "desktop_pet":
+    if not session or session.user_id != user_id or session.source != "desktop_pet":
         raise StudySessionError("未找到学习会话")
     return session
 
@@ -89,8 +90,8 @@ def _apply_elapsed(session: StudySession, payload: StudySessionAction) -> None:
     session.accumulated_seconds = payload.accumulated_seconds
 
 
-def pause_session(db: Session, session_id: str, payload: StudySessionAction) -> StudySession:
-    session = _get_session(db, session_id)
+def pause_session(db: Session, session_id: str, payload: StudySessionAction, user_id: str) -> StudySession:
+    session = _get_session(db, session_id, user_id)
     if session.status == "completed":
         return session
     if session.status == "paused":
@@ -104,8 +105,8 @@ def pause_session(db: Session, session_id: str, payload: StudySessionAction) -> 
     return session
 
 
-def resume_session(db: Session, session_id: str, payload: StudySessionAction) -> StudySession:
-    session = _get_session(db, session_id)
+def resume_session(db: Session, session_id: str, payload: StudySessionAction, user_id: str) -> StudySession:
+    session = _get_session(db, session_id, user_id)
     if session.status == "completed":
         return session
     if session.status == "running":
@@ -119,8 +120,8 @@ def resume_session(db: Session, session_id: str, payload: StudySessionAction) ->
     return session
 
 
-def complete_session(db: Session, session_id: str, payload: StudySessionAction) -> StudySession:
-    session = _get_session(db, session_id)
+def complete_session(db: Session, session_id: str, payload: StudySessionAction, user_id: str) -> StudySession:
+    session = _get_session(db, session_id, user_id)
     if session.status == "completed":
         return session
     _apply_elapsed(session, payload)
@@ -133,8 +134,8 @@ def complete_session(db: Session, session_id: str, payload: StudySessionAction) 
     return session
 
 
-def abandon_session(db: Session, session_id: str, payload: StudySessionAction) -> StudySession:
-    session = _get_session(db, session_id)
+def abandon_session(db: Session, session_id: str, payload: StudySessionAction, user_id: str) -> StudySession:
+    session = _get_session(db, session_id, user_id)
     if session.status in {"completed", "abandoned"}:
         return session
     _apply_elapsed(session, payload)
@@ -163,6 +164,7 @@ def _default_local_date(now: datetime | None) -> date:
 
 def list_today_sessions(
     db: Session,
+    user_id: str,
     local_date: date | None = None,
     timezone_offset_minutes: int = 0,
     now: datetime | None = None,
@@ -174,6 +176,7 @@ def list_today_sessions(
             select(StudySession)
             .where(
                 StudySession.source == "desktop_pet",
+                StudySession.user_id == user_id,
                 StudySession.started_at >= day_start,
                 StudySession.started_at < day_end,
             )
@@ -193,6 +196,7 @@ def current_elapsed_seconds(session: StudySession, now: datetime | None = None) 
 
 def get_study_summary(
     db: Session,
+    user_id: str,
     local_date: date | None = None,
     timezone_offset_minutes: int = 0,
     now: datetime | None = None,
@@ -202,8 +206,8 @@ def get_study_summary(
     current = as_utc(now)
     summary_date = local_date or current.date()
     day_start, day_end = local_date_bounds(summary_date, timezone_offset_minutes)
-    source_filter = StudySession.source == "desktop_pet"
-    today_filter = (source_filter, StudySession.started_at >= day_start, StudySession.started_at < day_end)
+    source_filter = (StudySession.user_id == user_id, StudySession.source == "desktop_pet")
+    today_filter = (*source_filter, StudySession.started_at >= day_start, StudySession.started_at < day_end)
 
     today_sessions = list(
         db.scalars(select(StudySession).where(*today_filter).order_by(StudySession.updated_at.desc())).all()
@@ -218,10 +222,10 @@ def get_study_summary(
     )
 
     total_accumulated = db.scalar(
-        select(func.coalesce(func.sum(StudySession.accumulated_seconds), 0)).where(source_filter)
+        select(func.coalesce(func.sum(StudySession.accumulated_seconds), 0)).where(*source_filter)
     ) or 0
     running_sessions = list(
-        db.scalars(select(StudySession).where(source_filter, StudySession.status == "running")).all()
+        db.scalars(select(StudySession).where(*source_filter, StudySession.status == "running")).all()
     )
     total_running_extra = sum(
         current_elapsed_seconds(session, current) - session.accumulated_seconds for session in running_sessions
@@ -268,7 +272,7 @@ def get_study_summary(
         "today_session_count": len(today_sessions),
         "today_topic_count": len(topics),
         "today_topics": today_topics,
-        "active_session": get_active_session(db),
+        "active_session": get_active_session(db, user_id),
         "recent_study_sessions": today_sessions[:5],
         "generated_at": current,
     }

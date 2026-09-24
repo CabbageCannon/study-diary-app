@@ -200,24 +200,25 @@ def _ensure_problem(db: Session, identifier: str) -> AlgorithmProblem:
 
 def _ensure_session_problem(
     db: Session,
+    user_id: str,
     session_id: str | None,
     problem: AlgorithmProblem,
 ) -> AlgorithmPracticeSessionItem | None:
     if not session_id:
         return None
-    session = get_session(db, session_id)
+    session = get_session(db, user_id, session_id)
     if session is None:
         raise AlgorithmReasoningConflict("训练会话不存在或已删除。")
-    item = get_session_item(db, session.id, problem.id)
+    item = get_session_item(db, user_id, session.id, problem.id)
     if item is None:
         raise AlgorithmReasoningConflict("该题目不属于当前训练会话。")
     return item
 
 
-def _next_version(db: Session, problem_id: int, session_id: str | None, revision_of_answer_id: int | None) -> int:
+def _next_version(db: Session, user_id: str, problem_id: int, session_id: str | None, revision_of_answer_id: int | None) -> int:
     if revision_of_answer_id is None:
         return 1
-    previous = db.get(AlgorithmReasoningAnswer, revision_of_answer_id)
+    previous = db.scalar(select(AlgorithmReasoningAnswer).where(AlgorithmReasoningAnswer.id == revision_of_answer_id, AlgorithmReasoningAnswer.user_id == user_id))
     if previous is None:
         raise AlgorithmReasoningConflict("修订来源回答不存在。")
     if previous.problem_id != problem_id or previous.session_id != session_id:
@@ -244,33 +245,34 @@ def _assert_idempotent_match(
             raise AlgorithmReasoningConflict("client_answer_id 已存在，但提交内容与已保存回答不一致。请为修改后的回答生成新的 UUID。")
 
 
-def _mark_session_item_answered(db: Session, item: AlgorithmPracticeSessionItem | None, now) -> bool:
+def _mark_session_item_answered(db: Session, user_id: str, item: AlgorithmPracticeSessionItem | None, now) -> bool:
     if item is None or item.status in ANSWERED_ITEM_STATUSES:
         return False
     item.status = "needs_review"
     item.started_at = item.started_at or now
     item.completed_at = item.completed_at or now
-    if item.session_id and (session := get_session(db, item.session_id)):
+    if item.session_id and (session := get_session(db, user_id, item.session_id)):
         session.last_active_at = now
     return True
 
 
-def save_reasoning_answer(db: Session, payload: AlgorithmReasoningAnswerCreate) -> tuple[AlgorithmReasoningAnswer, bool]:
+def save_reasoning_answer(db: Session, user_id: str, payload: AlgorithmReasoningAnswerCreate) -> tuple[AlgorithmReasoningAnswer, bool]:
     existing = db.scalar(
-        select(AlgorithmReasoningAnswer).where(AlgorithmReasoningAnswer.client_answer_id == payload.client_answer_id)
+        select(AlgorithmReasoningAnswer).where(AlgorithmReasoningAnswer.user_id == user_id, AlgorithmReasoningAnswer.client_answer_id == payload.client_answer_id)
     )
     if existing is not None:
         _assert_idempotent_match(db, existing, payload)
         item = db.get(AlgorithmPracticeSessionItem, existing.session_item_id) if existing.session_item_id else None
-        if _mark_session_item_answered(db, item, existing.saved_at):
+        if _mark_session_item_answered(db, user_id, item, existing.saved_at):
             db.commit()
         return existing, False
 
     problem = _ensure_problem(db, payload.problem_id)
-    session_item = _ensure_session_problem(db, payload.session_id, problem)
-    version = _next_version(db, problem.id, payload.session_id, payload.revision_of_answer_id)
+    session_item = _ensure_session_problem(db, user_id, payload.session_id, problem)
+    version = _next_version(db, user_id, problem.id, payload.session_id, payload.revision_of_answer_id)
     now = utc_now()
     answer = AlgorithmReasoningAnswer(
+        user_id=user_id,
         problem_id=problem.id,
         session_id=payload.session_id,
         session_item_id=session_item.id if session_item else None,
@@ -283,7 +285,7 @@ def save_reasoning_answer(db: Session, payload: AlgorithmReasoningAnswerCreate) 
         saved_at=now,
     )
     db.add(answer)
-    _mark_session_item_answered(db, session_item, now)
+    _mark_session_item_answered(db, user_id, session_item, now)
     db.commit()
     db.refresh(answer)
     return answer, True
@@ -299,8 +301,8 @@ def get_problem_reasoning_context(db: Session, problem_identifier: str) -> Algor
     )
 
 
-def get_answer_detail(db: Session, answer_id: int) -> AlgorithmReasoningAnswerDetailRead:
-    answer = db.get(AlgorithmReasoningAnswer, answer_id)
+def get_answer_detail(db: Session, user_id: str, answer_id: int) -> AlgorithmReasoningAnswerDetailRead:
+    answer = db.scalar(select(AlgorithmReasoningAnswer).where(AlgorithmReasoningAnswer.id == answer_id, AlgorithmReasoningAnswer.user_id == user_id))
     if answer is None:
         raise AlgorithmReasoningNotFound("回答不存在。")
     feedback = _feedback_for_answer(db, answer.id)
@@ -312,13 +314,14 @@ def get_answer_detail(db: Session, answer_id: int) -> AlgorithmReasoningAnswerDe
 
 def list_reasoning_answers(
     db: Session,
+    user_id: str,
     *,
     problem_identifier: str | None,
     session_id: str | None,
     client_answer_id: str | None,
     limit: int,
 ) -> list[AlgorithmReasoningAnswerDetailRead]:
-    statement = select(AlgorithmReasoningAnswer)
+    statement = select(AlgorithmReasoningAnswer).where(AlgorithmReasoningAnswer.user_id == user_id)
     if problem_identifier:
         problem = _ensure_problem(db, problem_identifier)
         statement = statement.where(AlgorithmReasoningAnswer.problem_id == problem.id)
@@ -327,7 +330,7 @@ def list_reasoning_answers(
     if client_answer_id:
         statement = statement.where(AlgorithmReasoningAnswer.client_answer_id == client_answer_id)
     answers = list(db.scalars(statement.order_by(AlgorithmReasoningAnswer.saved_at.desc(), AlgorithmReasoningAnswer.id.desc()).limit(limit)).all())
-    return [get_answer_detail(db, answer.id) for answer in answers]
+    return [get_answer_detail(db, user_id, answer.id) for answer in answers]
 
 
 def _previous_feedback(db: Session, answer: AlgorithmReasoningAnswer) -> AlgorithmReasoningFeedback | None:
@@ -343,6 +346,7 @@ def _sync_feedback_progress(db: Session, answer: AlgorithmReasoningAnswer, feedb
     now = utc_now()
     details = answer.details
     attempt = AlgorithmAttempt(
+        user_id=answer.user_id,
         problem_id=answer.problem_id,
         session_id=answer.session_id,
         session_item_id=answer.session_item_id,
@@ -380,11 +384,12 @@ def _sync_feedback_progress(db: Session, answer: AlgorithmReasoningAnswer, feedb
 
 async def check_saved_reasoning_answer(
     db: Session,
+    user_id: str,
     answer_id: int,
     *,
     refresh: bool = False,
 ) -> AlgorithmReasoningCheckResponse:
-    answer = db.get(AlgorithmReasoningAnswer, answer_id)
+    answer = db.scalar(select(AlgorithmReasoningAnswer).where(AlgorithmReasoningAnswer.id == answer_id, AlgorithmReasoningAnswer.user_id == user_id))
     if answer is None:
         raise AlgorithmReasoningNotFound("回答不存在。")
 
@@ -444,10 +449,11 @@ async def check_saved_reasoning_answer(
 
 async def save_and_check_reasoning_answer(
     db: Session,
+    user_id: str,
     payload: AlgorithmReasoningAnswerCreate,
 ) -> tuple[AlgorithmReasoningCheckResponse, bool]:
-    answer, created = save_reasoning_answer(db, payload)
-    response = await check_saved_reasoning_answer(db, answer.id, refresh=False)
+    answer, created = save_reasoning_answer(db, user_id, payload)
+    response = await check_saved_reasoning_answer(db, user_id, answer.id, refresh=False)
     return response, created
 
 

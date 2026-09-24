@@ -7,11 +7,11 @@ from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
 from app import database
-from app.config import settings
 from app.database import Base, get_db
 from app.main import app
 from app.models import StudySession
 from app.services import study_session_service
+from tests.conftest import TEST_USER_ID
 
 
 class DesktopPetSummaryAndControlTests(unittest.TestCase):
@@ -19,8 +19,6 @@ class DesktopPetSummaryAndControlTests(unittest.TestCase):
         self.engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
         Base.metadata.create_all(self.engine)
         self.session = Session(self.engine)
-        self.previous_token = settings.app_access_token
-        settings.app_access_token = "desktop-test-token"
         self.sequence = 0
 
         def override_db():
@@ -33,11 +31,10 @@ class DesktopPetSummaryAndControlTests(unittest.TestCase):
         app.dependency_overrides.clear()
         self.client.close()
         self.session.close()
-        settings.app_access_token = self.previous_token
 
     @property
     def headers(self) -> dict[str, str]:
-        return {"X-Study-Diary-Access": "desktop-test-token"}
+        return {"Authorization": "Bearer legacy-test"}
 
     def add_session(
         self,
@@ -53,6 +50,7 @@ class DesktopPetSummaryAndControlTests(unittest.TestCase):
         self.sequence += 1
         item = StudySession(
             id=f"session-{self.sequence}",
+            user_id=TEST_USER_ID,
             client_event_id=f"desktop-summary-event-{self.sequence}",
             source="desktop_pet",
             activity_type=activity_type,
@@ -70,6 +68,7 @@ class DesktopPetSummaryAndControlTests(unittest.TestCase):
     def summary(self, now: datetime | None = None) -> dict[str, object]:
         return study_session_service.get_study_summary(
             self.session,
+            TEST_USER_ID,
             date(2026, 8, 4),
             480,
             now or datetime(2026, 8, 4, 4, 0, tzinfo=timezone.utc),
@@ -134,10 +133,10 @@ class DesktopPetSummaryAndControlTests(unittest.TestCase):
         self.add_session(started_at=datetime(2026, 8, 3, 14, 59, 59, tzinfo=timezone.utc), accumulated_seconds=30)
         self.add_session(started_at=datetime(2026, 8, 3, 15, 0, tzinfo=timezone.utc), accumulated_seconds=40)
         utc_plus_eight = study_session_service.get_study_summary(
-            self.session, date(2026, 8, 4), 480, datetime(2026, 8, 4, 4, tzinfo=timezone.utc)
+            self.session, TEST_USER_ID, date(2026, 8, 4), 480, datetime(2026, 8, 4, 4, tzinfo=timezone.utc)
         )
         utc_plus_nine = study_session_service.get_study_summary(
-            self.session, date(2026, 8, 4), 540, datetime(2026, 8, 4, 4, tzinfo=timezone.utc)
+            self.session, TEST_USER_ID, date(2026, 8, 4), 540, datetime(2026, 8, 4, 4, tzinfo=timezone.utc)
         )
         self.assertEqual(utc_plus_eight["today_study_seconds"], 20)
         self.assertEqual(utc_plus_nine["today_study_seconds"], 70)
@@ -161,7 +160,7 @@ class DesktopPetSummaryAndControlTests(unittest.TestCase):
             "title": "同步链路测试",
             "started_at": "2026-08-04T01:00:00Z",
         }
-        self.assertEqual(self.client.post("/api/study-sessions", json=create_payload).status_code, 401)
+        self.assertEqual(self.client.post("/api/study-sessions", headers={"Authorization": ""}, json=create_payload).status_code, 401)
 
         created = self.client.post("/api/study-sessions", headers=self.headers, json=create_payload)
         self.assertEqual(created.status_code, 201, created.text)
@@ -195,7 +194,7 @@ class DesktopPetSummaryAndControlTests(unittest.TestCase):
         self.assertEqual(self.session.query(StudySession).count(), 1)
 
     def test_show_control_requires_access_and_is_versioned(self) -> None:
-        self.assertEqual(self.client.post("/api/desktop-pet/control/show").status_code, 401)
+        self.assertEqual(self.client.post("/api/desktop-pet/control/show", headers={"Authorization": ""}).status_code, 401)
         first = self.client.post("/api/desktop-pet/control/show", headers=self.headers)
         second = self.client.post("/api/desktop-pet/control/show", headers=self.headers)
         self.assertEqual(first.status_code, 200, first.text)

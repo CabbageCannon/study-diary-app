@@ -5,6 +5,7 @@ import { PlayIcon } from "@phosphor-icons/react/Play";
 import { SpinnerGapIcon } from "@phosphor-icons/react/SpinnerGap";
 
 import { createAlgorithmReviewSession, listAlgorithmReviewCandidates, peekAlgorithmReviewCandidates } from "../api/algorithms";
+import { userStorageKey } from "../auth/userStorage";
 import type { AlgorithmReviewCandidate } from "../types/algorithm";
 
 type AccuracyFilter = "all" | "weak" | "partial" | "high";
@@ -75,7 +76,7 @@ export function AlgorithmReviewPage() {
     setError("");
     try {
       const session = await createAlgorithmReviewSession({ problem_ids: selectedIds, count: selectedIds.length });
-      window.localStorage.setItem("study-diary:algorithm:last-active-session", session.id);
+      window.localStorage.setItem(userStorageKey("algorithm:last-active-session"), session.id);
       navigate(`/algorithms/session/${session.id}`);
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : "创建复习训练失败。");

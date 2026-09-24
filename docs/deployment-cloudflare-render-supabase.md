@@ -1,6 +1,6 @@
 # Cloudflare + Render + Supabase 部署教程
 
-本方案把 FastAPI 部署到 Render、React PWA 部署到 Cloudflare Workers 静态资源，并把正式数据放在 Supabase PostgreSQL。前端只访问 Render API，不需要 Supabase SDK，也不要把 Supabase 数据库密码或 LLM 密钥放进 Cloudflare。
+本方案把 FastAPI 部署到 Render、React PWA 部署到 Cloudflare Workers，并把正式数据和用户身份放在 Supabase。前端通过 Supabase Auth 登录，经同源 Cloudflare Worker 代理访问 Render API；数据库密码、service role 和 LLM 密钥只放 Render。现有个人数据升级时，还需执行[多用户上线与历史数据认领](multi-user-rollout.md)。
 
 ## 1. 创建 Supabase 数据库
 
@@ -12,7 +12,7 @@
    postgresql://postgres.<project-ref>:<url-encoded-password>@aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=require
    ```
 
-数据库连接串只填写到 Render 的 `DATABASE_URL`。前端不需要 Supabase URL、anon key 或 service role key。
+数据库连接串只填写到 Render 的 `DATABASE_URL`。前端只需要公开的 Supabase 项目 URL 与 publishable key，绝不能放数据库密码或 service role key。
 
 ## 2. 迁移现有 SQLite 数据
 
@@ -40,7 +40,10 @@ Remove-Item Env:DATABASE_URL
 | `DATABASE_URL` | Supabase Session pooler URI，末尾带 `?sslmode=require` |
 | `FRONTEND_ORIGIN` | 首次可暂填 `https://example.invalid`，Cloudflare 创建完成后再替换 |
 | `LLM_API_KEY` | 你的模型服务密钥 |
-| `APP_ACCESS_TOKEN` | 你自己设置的访问码，手机端需要输入 |
+| `SUPABASE_URL` | Supabase 项目 URL |
+| `SUPABASE_PUBLISHABLE_KEY` | Supabase 公开 publishable key |
+| `SUPABASE_SERVICE_ROLE_KEY` | 仅后端使用，用于管理员列出完整用户列表 |
+| `ADMIN_USER_ID` | 邮箱已验证的管理员 Auth 用户 UUID |
 
 `LLM_BASE_URL` 和 `LLM_MODEL` 默认使用 OpenAI；使用其他兼容服务时，在 Render 环境变量中改成该服务的地址和模型名。不要把上述密钥提交到 Git。
 
@@ -64,16 +67,18 @@ https://study-diary-api.onrender.com/api/health
 1. 在 Cloudflare **Workers & Pages** 中打开已创建的 `study-diary-app`。
 2. Git 生产分支选择 `codex/mobile-integration`，Root Directory 设置为 `frontend`。
 3. 构建命令使用 `npm run build`，部署命令使用 `npx wrangler deploy`。
-4. 仓库的 `frontend/.env.production` 已写入正式 Render 地址，Cloudflare 构建会自动读取：
+4. 在 Cloudflare 构建环境中设置公开的 Supabase Auth 配置。`VITE_API_BASE_URL` 留空，同源 Worker 会代理 `/api/*` 到 Render：
 
    ```env
-   VITE_API_BASE_URL=https://study-diary-api.onrender.com
+   VITE_API_BASE_URL=
+   VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+   VITE_SUPABASE_PUBLISHABLE_KEY=<publishable-key>
    VITE_ENABLE_QUESTION_REVIEW=false
    VITE_ENABLE_AI_QUESTION_REVIEW=false
    VITE_ENABLE_QUESTION_QUICK_PUBLISH=false
    ```
 
-5. 从 `codex/mobile-integration` 触发一次生产部署，记下正式地址，例如 `https://study-diary-app.<账户子域>.workers.dev`。以后更换 Render 服务时，同步更新该文件中的 `VITE_API_BASE_URL`。
+5. 从 `codex/mobile-integration` 触发一次生产部署，记下正式地址，例如 `https://study-diary-app.<账户子域>.workers.dev`。以后更换 Render 服务时，更新 `frontend/wrangler.jsonc` 的 `BACKEND_URL`。
 
 `frontend/wrangler.jsonc` 已使用 Cloudflare 原生的 `single-page-application` 回退，直接刷新 `/today`、`/interview` 或 `/algorithms` 不会返回 404。不要再添加 `/* /index.html 200`：Workers 不支持这种 Pages/Netlify 风格的重写，并会把它判定为无限循环。
 
@@ -93,8 +98,8 @@ FRONTEND_ORIGIN=https://study-diary-app.<账户子域>.workers.dev,https://study
 
 ## 6. 上线验收
 
-1. 打开 Cloudflare 正式地址，确认“今日”、八股和算法题能加载。
-2. 进入“我的 → 输入访问码”，填写 Render 的 `APP_ACCESS_TOKEN`。
+1. 打开 Cloudflare 正式地址，确认先出现登录页，未登录不能读取学习 API。
+2. 注册并验证邮箱后登录，确认“今日”、八股和算法题能加载。
 3. 完成一道八股和一道算法题，确认答案与 LLM 反馈可保存。
 4. 在 Supabase Table Editor 中确认对应表产生记录。
 5. 用 iPhone Safari 添加到主屏幕，并填写 [iPhone HTTPS PWA 验收记录](mobile-app/IPHONE_ACCEPTANCE.md)。

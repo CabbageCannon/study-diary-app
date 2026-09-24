@@ -1,10 +1,10 @@
 import type { CreateDiaryDraftPayload, Diary, DiaryDraft, MobileDiaryPayload, RewriteDiaryDraftPayload, SaveDiaryPayload, UpdateDiaryPayload } from "../types/diary";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
-const ACCESS_TOKEN_STORAGE_KEY = "study-diary:access-token";
 const API_CACHE_PREFIX = "study-diary:api-cache:";
 const DEFAULT_CACHE_AGE = 5 * 60 * 1000;
-export const ACCESS_TOKEN_CHANGED_EVENT = "study-diary:access-token-changed";
+let accessToken = "";
+let cacheUserId = "anonymous";
 
 type CachedValue = { storedAt: number; value: unknown };
 const memoryCache = new Map<string, CachedValue>();
@@ -18,18 +18,14 @@ export class ApiRequestError extends Error {
 }
 
 export function getAccessToken() {
-  return window.sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)?.trim() ?? "";
+  return accessToken;
 }
 
-export function saveAccessToken(value: string) {
-  const nextValue = value.trim();
-  if (nextValue) {
-    window.sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, nextValue);
-  } else {
-    window.sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
-  }
-  window.dispatchEvent(new Event(ACCESS_TOKEN_CHANGED_EVENT));
+export function setAccessToken(value: string) {
+  accessToken = value.trim();
 }
+
+export function setCacheUser(userId: string | null) { cacheUserId = userId || "anonymous"; }
 
 export function hasAccessToken() {
   return Boolean(getAccessToken());
@@ -37,16 +33,19 @@ export function hasAccessToken() {
 
 export async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const accessToken = getAccessToken();
+  const requestUserId = cacheUserId;
   const isFormData = options?.body instanceof FormData;
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     credentials: "include",
     headers: {
       ...(!isFormData ? { "Content-Type": "application/json" } : {}),
-      ...(accessToken ? { "X-Study-Diary-Access": accessToken } : {}),
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...(options?.headers ?? {}),
     },
   });
+
+  if (requestUserId !== cacheUserId) throw new ApiRequestError("账户已切换，请重试。", 409);
 
   if (!response.ok) {
     const message = await readErrorMessage(response);
@@ -57,14 +56,16 @@ export async function request<T>(path: string, options?: RequestInit): Promise<T
     return undefined as T;
   }
 
-  return response.json() as Promise<T>;
+  const data = await response.json() as T;
+  if (requestUserId !== cacheUserId) throw new ApiRequestError("账户已切换，请重试。", 409);
+  return data;
 }
 
 function readCachedEntry(path: string) {
   let cached = memoryCache.get(path);
   if (!cached) {
     try {
-      const raw = window.localStorage.getItem(`${API_CACHE_PREFIX}${path}`);
+      const raw = window.localStorage.getItem(`${API_CACHE_PREFIX}${cacheUserId}:${path}`);
       cached = raw ? JSON.parse(raw) as CachedValue : undefined;
       if (cached) memoryCache.set(path, cached);
     } catch {
@@ -77,7 +78,7 @@ function readCachedEntry(path: string) {
 function writeCachedEntry(path: string, cached: CachedValue) {
   memoryCache.set(path, cached);
   try {
-    window.localStorage.setItem(`${API_CACHE_PREFIX}${path}`, JSON.stringify(cached));
+    window.localStorage.setItem(`${API_CACHE_PREFIX}${cacheUserId}:${path}`, JSON.stringify(cached));
   } catch {
     // Memory cache still keeps the current session fast when storage is full.
   }
@@ -105,7 +106,9 @@ export function invalidateCachedRequests(...pathPrefixes: string[]) {
     for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
       const key = window.localStorage.key(index);
       if (!key?.startsWith(API_CACHE_PREFIX)) continue;
-      const path = key.slice(API_CACHE_PREFIX.length);
+      const stored = key.slice(API_CACHE_PREFIX.length);
+      if (!stored.startsWith(`${cacheUserId}:`)) continue;
+      const path = stored.slice(cacheUserId.length + 1);
       if (pathPrefixes.some((prefix) => path.startsWith(prefix))) window.localStorage.removeItem(key);
     }
   } catch {
@@ -121,7 +124,9 @@ export function expireCachedRequests(...pathPrefixes: string[]) {
     for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
       const key = window.localStorage.key(index);
       if (!key?.startsWith(API_CACHE_PREFIX)) continue;
-      const path = key.slice(API_CACHE_PREFIX.length);
+      const stored = key.slice(API_CACHE_PREFIX.length);
+      if (!stored.startsWith(`${cacheUserId}:`)) continue;
+      const path = stored.slice(cacheUserId.length + 1);
       if (!pathPrefixes.some((prefix) => path.startsWith(prefix)) || memoryCache.has(path)) continue;
       const raw = window.localStorage.getItem(key);
       if (raw) writeCachedEntry(path, { ...JSON.parse(raw) as CachedValue, storedAt: 0 });
@@ -131,23 +136,30 @@ export function expireCachedRequests(...pathPrefixes: string[]) {
   }
 }
 
+export function clearClientState() {
+  memoryCache.clear();
+  pendingRequests.clear();
+}
+
 export function cachedRequest<T>(path: string, maxAgeMs = DEFAULT_CACHE_AGE, force = false): Promise<T> {
   const cached = force ? null : readCachedValue<T>(path, maxAgeMs);
   if (cached !== null) return Promise.resolve(cached);
   const pending = pendingRequests.get(path) as Promise<T> | undefined;
   if (pending) return pending;
 
+  const requestUserId = cacheUserId;
   const requestPromise = request<T>(path)
     .then((value) => {
-      primeCachedRequest(path, value);
+      if (requestUserId === cacheUserId) primeCachedRequest(path, value);
       return value;
     })
     .catch((error) => {
+      if (error instanceof ApiRequestError && error.status < 500) throw error;
       const stale = readCachedValue<T>(path, Number.POSITIVE_INFINITY);
       if (stale !== null) return stale;
       throw error;
     })
-    .finally(() => pendingRequests.delete(path));
+    .finally(() => { if (pendingRequests.get(path) === requestPromise) pendingRequests.delete(path); });
   pendingRequests.set(path, requestPromise);
   return requestPromise;
 }
@@ -177,9 +189,10 @@ function formatApiErrorItem(item: unknown): string {
 }
 
 export function listDiaries(force = false): Promise<Diary[]> {
+  const requestUserId = cacheUserId;
   return cachedRequest<Diary[]>("/api/diaries", undefined, force).then((items) => {
     const normalized = items.map(normalizeDiary);
-    primeCachedRequest("/api/diaries", normalized);
+    if (requestUserId === cacheUserId) primeCachedRequest("/api/diaries", normalized);
     return normalized;
   });
 }

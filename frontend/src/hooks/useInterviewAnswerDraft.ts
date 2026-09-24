@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { userStorageKey } from "../auth/userStorage";
 
 const LAST_ACTIVE_SESSION_KEY = "study-diary:interview:last-active-session";
 const SAVE_DELAY_MS = 750;
@@ -6,7 +7,7 @@ const SAVE_DELAY_MS = 750;
 export type InterviewDraftSaveState = "idle" | "saving" | "saved" | "local_only";
 
 function draftKey(setId: number, questionId: string) {
-  return `study-diary:interview:session:${setId}:question:${questionId}:draft`;
+  return userStorageKey(`interview:session:${setId}:question:${questionId}:draft`);
 }
 
 function writeDraft(key: string, value: string) {
@@ -18,17 +19,17 @@ function writeDraft(key: string, value: string) {
 }
 
 export function setLastActiveInterviewSession(setId: number) {
-  window.localStorage.setItem(LAST_ACTIVE_SESSION_KEY, String(setId));
+  window.localStorage.setItem(userStorageKey(LAST_ACTIVE_SESSION_KEY), String(setId));
 }
 
 export function clearLastActiveInterviewSession(setId?: number) {
-  if (!setId || window.localStorage.getItem(LAST_ACTIVE_SESSION_KEY) === String(setId)) {
-    window.localStorage.removeItem(LAST_ACTIVE_SESSION_KEY);
+  if (!setId || window.localStorage.getItem(userStorageKey(LAST_ACTIVE_SESSION_KEY)) === String(setId)) {
+    window.localStorage.removeItem(userStorageKey(LAST_ACTIVE_SESSION_KEY));
   }
 }
 
 export function getLastActiveInterviewSession() {
-  const value = Number(window.localStorage.getItem(LAST_ACTIVE_SESSION_KEY));
+  const value = Number(window.localStorage.getItem(userStorageKey(LAST_ACTIVE_SESSION_KEY)));
   return Number.isInteger(value) && value > 0 ? value : null;
 }
 
@@ -37,7 +38,7 @@ export function clearInterviewAnswerDraft(setId: number, questionId: string) {
 }
 
 export function clearInterviewSessionDrafts(setId: number) {
-  const prefix = `study-diary:interview:session:${setId}:question:`;
+  const prefix = userStorageKey(`interview:session:${setId}:question:`);
   for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
     const key = window.localStorage.key(index);
     if (key?.startsWith(prefix)) {

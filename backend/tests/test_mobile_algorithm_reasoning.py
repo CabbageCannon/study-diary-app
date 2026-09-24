@@ -21,6 +21,7 @@ from app.security import is_ai_request
 from app.services.algorithm_catalog_service import read_json, write_json
 from app.services.algorithm_reasoning_service import check_saved_reasoning_answer, save_reasoning_answer
 from app.services.data_import_service import import_algorithms, import_mobile_problem_contexts
+from tests.conftest import TEST_USER_ID
 
 
 CATALOG_PATH = Path(__file__).resolve().parents[1] / "data" / "algorithms" / "problem_catalog.json"
@@ -218,6 +219,7 @@ class MobileAlgorithmReasoningTests(unittest.TestCase):
 
         answer, created = save_reasoning_answer(
             self.session,
+            TEST_USER_ID,
             AlgorithmReasoningAnswerCreate.model_validate(
                 self.payload(
                     problem_id="leetcode-49",
@@ -227,7 +229,7 @@ class MobileAlgorithmReasoningTests(unittest.TestCase):
         )
         self.assertTrue(created)
         with patch("app.services.algorithm_reasoning_service.generate_algorithm_reasoning_feedback", llm_correct):
-            checked = run(check_saved_reasoning_answer(self.session, answer.id))
+            checked = run(check_saved_reasoning_answer(self.session, TEST_USER_ID, answer.id))
         self.assertEqual(checked.check_status, "completed")
         self.assertEqual(checked.problem_context.problem_id, "leetcode-49")
 

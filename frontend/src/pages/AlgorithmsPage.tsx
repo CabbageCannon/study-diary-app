@@ -8,6 +8,7 @@ import { DailyPrimaryProblem } from "../components/algorithms/DailyPrimaryProble
 import { RefreshDailyRecommendationDialog } from "../components/algorithms/RefreshDailyRecommendationDialog";
 import { TemporaryTrainingBuilder } from "../components/algorithms/TemporaryTrainingBuilder";
 import { useUserPreferences } from "../hooks/useUserPreferences";
+import { userStorageKey } from "../auth/userStorage";
 import type { AlgorithmDailyFeed, AlgorithmProblem, AlgorithmSessionSummary, AlgorithmStats, CreateAlgorithmSessionPayload } from "../types/algorithm";
 
 export function AlgorithmsPage() {
@@ -74,7 +75,7 @@ export function AlgorithmsPage() {
       const count = Math.max(1, remainingToday || dailyGoal || 1);
       const problemIds = [feed.primary_problem, ...feed.extra_problems].slice(0, count).map((problem) => String(problem.id));
       const session = await createAlgorithmSession({ mode: "daily", count, problem_ids: problemIds, prioritize_due_review: true });
-      window.localStorage.setItem("study-diary:algorithm:last-active-session", session.id);
+      window.localStorage.setItem(userStorageKey("algorithm:last-active-session"), session.id);
       navigate(`/algorithms/session/${session.id}`);
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : "创建今日训练失败。");
@@ -89,7 +90,7 @@ export function AlgorithmsPage() {
     setError("");
     try {
       const session = await createAlgorithmSession({ mode: "custom", count: 1, problem_ids: [String(problem.id)], prioritize_due_review: false });
-      window.localStorage.setItem("study-diary:algorithm:last-active-session", session.id);
+      window.localStorage.setItem(userStorageKey("algorithm:last-active-session"), session.id);
       navigate(`/algorithms/session/${session.id}`);
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : "创建单题训练失败。");
@@ -130,7 +131,7 @@ export function AlgorithmsPage() {
     setError("");
     try {
       const session = await createAlgorithmSession(payload);
-      window.localStorage.setItem("study-diary:algorithm:last-active-session", session.id);
+      window.localStorage.setItem(userStorageKey("algorithm:last-active-session"), session.id);
       navigate(`/algorithms/session/${session.id}`);
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : "创建指定训练失败。");
