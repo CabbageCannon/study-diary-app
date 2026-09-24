@@ -35,7 +35,7 @@ export function AuthGate({ children }: PropsWithChildren) {
       {mode !== "password" ? <label><span>邮箱</span><input autoComplete="email" required type="email" value={email} onChange={(event) => setEmail(event.currentTarget.value)} /></label> : null}
       {mode !== "forgot" ? <label><span>{mode === "password" ? "新密码" : "密码"}</span><input autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={8} required type="password" value={password} onChange={(event) => setPassword(event.currentTarget.value)} /></label> : null}
       {error ? <p className="field-error" role="alert">{error}</p> : null}{message ? <p className="settings-success" role="status">{message}</p> : null}
-      <button className="button button-primary" disabled={busy} type="submit">{busy ? "请稍候…" : title}</button>
+      <button className="button button-primary" disabled={busy || (mode === "password" && !auth.session)} type="submit">{busy ? "请稍候…" : mode === "password" && !auth.session ? "正在确认链接…" : title}</button>
     </form>
     {mode !== "password" ? <nav aria-label="账户操作">
       {mode !== "login" ? <button onClick={() => { setMode("login"); setError(""); setMessage(""); }} type="button">返回登录</button> : null}

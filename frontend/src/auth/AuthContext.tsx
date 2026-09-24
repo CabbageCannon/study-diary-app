@@ -38,7 +38,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<Session | null>(null);
   const [me, setMe] = useState<CurrentUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [recoveringPassword, setRecoveringPassword] = useState(() => new URLSearchParams(window.location.hash.slice(1)).get("type") === "recovery" || new URLSearchParams(window.location.search).get("type") === "recovery");
+  const [recoveringPassword, setRecoveringPassword] = useState(() => [window.location.hash.slice(1), window.location.search.slice(1)].some((query) => ["recovery", "invite"].includes(new URLSearchParams(query).get("type") ?? "")));
 
   useEffect(() => {
     let alive = true;
@@ -79,7 +79,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       } finally { if (alive && version === authVersion) setLoading(false); }
     }
     const { data } = supabase.auth.onAuthStateChange((event, next) => {
-      if (event === "PASSWORD_RECOVERY" || (recoveringPassword && event === "INITIAL_SESSION")) {
+      if (event === "PASSWORD_RECOVERY" || (recoveringPassword && (event === "INITIAL_SESSION" || event === "SIGNED_IN"))) {
         authVersion += 1;
         clearClientState(); setAccessToken(""); setCacheUser(null); setStorageUser(null);
         setSession(next); setMe(null); setRecoveringPassword(true); setLoading(false); return;
