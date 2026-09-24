@@ -32,6 +32,7 @@ PERSONAL_TABLES = (
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--admin-user-id", required=True)
+    parser.add_argument("--admin-email", required=True)
     parser.add_argument("--apply", action="store_true")
     args = parser.parse_args()
     user_id = str(UUID(args.admin_user_id))
@@ -42,7 +43,7 @@ def main() -> None:
         profile = connection.execute(
             text("SELECT email, active FROM user_profiles WHERE id = :id"), {"id": user_id}
         ).one_or_none()
-        if profile is None or not profile.active:
+        if profile is None or not profile.active or profile.email.casefold() != args.admin_email.strip().casefold():
             raise SystemExit("Sign in with the verified administrator account before claiming legacy data")
         counts = {
             table: int(connection.execute(text(f"SELECT count(*) FROM {table} WHERE user_id IS NULL")).scalar_one())

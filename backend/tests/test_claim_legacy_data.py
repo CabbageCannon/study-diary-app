@@ -24,8 +24,11 @@ class ClaimLegacyDataTests(unittest.TestCase):
         with (
             patch("scripts.claim_legacy_data.engine", engine),
             patch("scripts.claim_legacy_data.settings.admin_user_id", ADMIN),
-            patch("sys.argv", ["claim_legacy_data", "--admin-user-id", ADMIN, "--apply"]),
+            patch("sys.argv", ["claim_legacy_data", "--admin-user-id", ADMIN, "--admin-email", "admin@example.com", "--apply"]),
         ):
+            with patch("sys.argv", ["claim_legacy_data", "--admin-user-id", ADMIN, "--admin-email", "wrong@example.com", "--apply"]):
+                with self.assertRaises(SystemExit):
+                    main()
             main()
             main()
         with Session(engine) as db:
