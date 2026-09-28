@@ -6,11 +6,12 @@ from datetime import datetime, timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pywebpush import WebPushException, webpush
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.models import Diary, PushSubscription
+from app.models import Diary, PushSubscription, UserProfile
 from app.schemas import PushSubscriptionCreate, PushSubscriptionUpdate
 from app.services.algorithm_practice_service import algorithm_stats
 from app.services.interview_training_service import get_training_stats
@@ -33,11 +34,15 @@ REMINDER_OPENERS = (
 )
 
 
-def upsert_subscription(db: Session, payload: PushSubscriptionCreate) -> PushSubscription:
+def upsert_subscription(db: Session, payload: PushSubscriptionCreate, user_id: str) -> PushSubscription:
     subscription = db.scalar(select(PushSubscription).where(PushSubscription.endpoint == payload.endpoint))
     if subscription is None:
-        subscription = PushSubscription(endpoint=payload.endpoint, p256dh=payload.p256dh, auth=payload.auth)
+        subscription = PushSubscription(user_id=user_id, endpoint=payload.endpoint, p256dh=payload.p256dh, auth=payload.auth)
         db.add(subscription)
+    elif subscription.user_id != user_id:
+        if subscription.p256dh != payload.p256dh or subscription.auth != payload.auth:
+            raise HTTPException(status_code=409, detail="该设备提醒已关联其他账户。")
+        subscription.user_id = user_id
     for field, value in payload.model_dump().items():
         setattr(subscription, field, value)
     db.commit()
@@ -79,14 +84,14 @@ def reminder_copy(subscription: PushSubscription, missing: list[str], date_key: 
 
 
 def _missing_items(db: Session, subscription: PushSubscription, date_key: str) -> list[str]:
-    algorithm = algorithm_stats(db)
-    interview = get_training_stats(db)
+    algorithm = algorithm_stats(db, subscription.user_id)
+    interview = get_training_stats(db, subscription.user_id)
     missing: list[str] = []
     if interview.today_answered_count < subscription.interview_goal:
         missing.append(f"八股 {subscription.interview_goal - interview.today_answered_count} 道")
     if algorithm.today_completed_count < subscription.algorithm_goal:
         missing.append(f"算法 {subscription.algorithm_goal - algorithm.today_completed_count} 道")
-    if subscription.include_diary and db.scalar(select(Diary.id).where(Diary.date == date_key, Diary.status == "published").limit(1)) is None:
+    if subscription.include_diary and db.scalar(select(Diary.id).where(Diary.user_id == subscription.user_id, Diary.date == date_key, Diary.status == "published").limit(1)) is None:
         missing.append("一篇日记")
     due_count = algorithm.due_review_count + interview.due_review_count
     if subscription.include_review and due_count:
@@ -96,7 +101,10 @@ def _missing_items(db: Session, subscription: PushSubscription, date_key: str) -
 
 def dispatch_due_reminders(db: Session, now: datetime | None = None) -> dict[str, int]:
     current = now or datetime.now(timezone.utc)
-    subscriptions = list(db.scalars(select(PushSubscription).where(PushSubscription.enabled.is_(True))).all())
+    subscriptions = list(db.scalars(
+        select(PushSubscription).join(UserProfile, PushSubscription.user_id == UserProfile.id)
+        .where(PushSubscription.enabled.is_(True), UserProfile.active.is_(True))
+    ).all())
     result = {"checked": len(subscriptions), "sent": 0, "disabled": 0}
     if not settings.vapid_private_key or not settings.vapid_subject:
         return result

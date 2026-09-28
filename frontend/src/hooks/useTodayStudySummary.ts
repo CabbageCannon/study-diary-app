@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ApiRequestError } from "../api/client";
 import { getDesktopPetDashboard } from "../api/desktopPet";
-import { useAccessToken } from "../auth/AccessTokenContext";
+import { useAuth } from "../auth/AuthContext";
 import type { DesktopPetDashboard } from "../types/desktopPet";
 
 const REFRESH_INTERVAL_MS = 8_000;
@@ -24,7 +24,7 @@ export function useTodayStudySummary() {
   const [summary, setSummary] = useState<DesktopPetDashboard | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<TodayStudySummaryError | null>(null);
-  const { accessTokenVersion } = useAccessToken();
+  const { session } = useAuth();
   const inFlightRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -65,7 +65,7 @@ export function useTodayStudySummary() {
       document.removeEventListener("visibilitychange", refreshWhenActive);
       abortControllerRef.current?.abort();
     };
-  }, [accessTokenVersion, refresh]);
+  }, [session?.access_token, refresh]);
 
   return { summary, isLoading, error, refresh };
 }

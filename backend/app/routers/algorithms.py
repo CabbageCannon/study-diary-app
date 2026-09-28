@@ -1,7 +1,7 @@
 from datetime import date as date_type
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
@@ -115,6 +115,7 @@ def _save_failed_response(exc: Exception) -> JSONResponse:
 
 @router.get("/problems", response_model=list[AlgorithmProblemRead])
 def list_algorithm_problems(
+    request: Request,
     difficulty: Literal["easy", "medium", "hard"] | None = None,
     pattern: str | None = None,
     topic: str | None = None,
@@ -128,6 +129,7 @@ def list_algorithm_problems(
 ) -> list[AlgorithmProblemRead]:
     return list_catalog_problems(
         db,
+        request.state.user_id,
         difficulty=difficulty,
         pattern=pattern.strip() if pattern else None,
         topic=topic.strip() if topic else None,
@@ -140,156 +142,158 @@ def list_algorithm_problems(
 
 
 @router.get("/daily", response_model=AlgorithmProblemRead)
-def get_daily_problem(db: Session = Depends(get_db)) -> AlgorithmProblemRead:
+def get_daily_problem(request: Request, db: Session = Depends(get_db)) -> AlgorithmProblemRead:
     try:
-        return daily_problem(db)
+        return daily_problem(db, request.state.user_id)
     except AlgorithmPracticeError as exc:
         raise _domain_error(exc) from exc
 
 
 @router.get("/daily-feed", response_model=AlgorithmDailyFeedRead)
-def get_algorithm_daily_feed(db: Session = Depends(get_db)) -> AlgorithmDailyFeedRead:
+def get_algorithm_daily_feed(request: Request, db: Session = Depends(get_db)) -> AlgorithmDailyFeedRead:
     try:
-        return get_daily_feed(db)
+        return get_daily_feed(db, request.state.user_id)
     except AlgorithmPracticeError as exc:
         raise _domain_error(exc) from exc
 
 
 @router.post("/daily-feed/refresh", response_model=AlgorithmDailyFeedRead)
-def refresh_algorithm_daily_feed(db: Session = Depends(get_db)) -> AlgorithmDailyFeedRead:
+def refresh_algorithm_daily_feed(request: Request, db: Session = Depends(get_db)) -> AlgorithmDailyFeedRead:
     try:
-        return refresh_daily_feed(db)
+        return refresh_daily_feed(db, request.state.user_id)
     except AlgorithmPracticeError as exc:
         raise _domain_error(exc) from exc
 
 
 @router.get("/daily-settings", response_model=AlgorithmDailyRecommendationSettingsRead)
-def get_algorithm_daily_settings(db: Session = Depends(get_db)) -> AlgorithmDailyRecommendationSettingsRead:
-    return get_daily_settings(db)
+def get_algorithm_daily_settings(request: Request, db: Session = Depends(get_db)) -> AlgorithmDailyRecommendationSettingsRead:
+    return get_daily_settings(db, request.state.user_id)
 
 
 @router.patch("/daily-settings", response_model=AlgorithmDailyRecommendationSettingsRead)
 def patch_algorithm_daily_settings(
-    payload: AlgorithmDailyRecommendationSettingsUpdate, db: Session = Depends(get_db)
+    payload: AlgorithmDailyRecommendationSettingsUpdate, request: Request, db: Session = Depends(get_db)
 ) -> AlgorithmDailyRecommendationSettingsRead:
-    return update_daily_settings(db, payload)
+    return update_daily_settings(db, request.state.user_id, payload)
 
 
 @router.get("/catalog-overview", response_model=AlgorithmCatalogOverviewRead)
-def get_algorithm_catalog_overview(db: Session = Depends(get_db)) -> AlgorithmCatalogOverviewRead:
-    return algorithm_catalog_overview(db)
+def get_algorithm_catalog_overview(request: Request, db: Session = Depends(get_db)) -> AlgorithmCatalogOverviewRead:
+    return algorithm_catalog_overview(db, request.state.user_id)
 
 
 @router.post("/sessions", response_model=AlgorithmPracticeSessionRead, status_code=status.HTTP_201_CREATED)
 def create_algorithm_session(
-    payload: AlgorithmPracticeSessionCreate, db: Session = Depends(get_db)
+    payload: AlgorithmPracticeSessionCreate, request: Request, db: Session = Depends(get_db)
 ) -> AlgorithmPracticeSessionRead:
     try:
-        return create_session(db, payload)
+        return create_session(db, request.state.user_id, payload)
     except AlgorithmPracticeError as exc:
         raise _domain_error(exc) from exc
 
 
 @router.get("/sessions", response_model=list[AlgorithmPracticeSessionSummary])
 def list_algorithm_sessions(
+    request: Request,
     status_filter: Literal["in_progress", "completed", "abandoned"] | None = Query(default=None, alias="status"),
     limit: int = Query(default=30, ge=1, le=100),
     db: Session = Depends(get_db),
 ) -> list[AlgorithmPracticeSessionSummary]:
-    return list_session_summaries(db, status=status_filter, limit=limit)
+    return list_session_summaries(db, request.state.user_id, status=status_filter, limit=limit)
 
 
 @router.get("/sessions/{session_id}", response_model=AlgorithmPracticeSessionRead)
-def get_algorithm_session(session_id: str, db: Session = Depends(get_db)) -> AlgorithmPracticeSessionRead:
+def get_algorithm_session(session_id: str, request: Request, db: Session = Depends(get_db)) -> AlgorithmPracticeSessionRead:
     try:
-        return get_session_read(db, session_id)
+        return get_session_read(db, request.state.user_id, session_id)
     except AlgorithmPracticeError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
 
 @router.patch("/sessions/{session_id}/progress", response_model=AlgorithmPracticeSessionRead)
 def update_algorithm_session_progress(
-    session_id: str, payload: AlgorithmPracticeSessionProgressUpdate, db: Session = Depends(get_db)
+    session_id: str, payload: AlgorithmPracticeSessionProgressUpdate, request: Request, db: Session = Depends(get_db)
 ) -> AlgorithmPracticeSessionRead:
     try:
-        return update_session_progress(db, session_id, payload)
+        return update_session_progress(db, request.state.user_id, session_id, payload)
     except AlgorithmPracticeError as exc:
         raise _domain_error(exc) from exc
 
 
 @router.post("/sessions/{session_id}/skip", response_model=AlgorithmPracticeSessionRead)
-def skip_algorithm_session_problem(session_id: str, db: Session = Depends(get_db)) -> AlgorithmPracticeSessionRead:
+def skip_algorithm_session_problem(session_id: str, request: Request, db: Session = Depends(get_db)) -> AlgorithmPracticeSessionRead:
     try:
-        return skip_session_problem(db, session_id)
+        return skip_session_problem(db, request.state.user_id, session_id)
     except AlgorithmPracticeError as exc:
         raise _domain_error(exc) from exc
 
 
 @router.post("/sessions/{session_id}/complete", response_model=AlgorithmPracticeSessionRead)
-def complete_algorithm_session(session_id: str, db: Session = Depends(get_db)) -> AlgorithmPracticeSessionRead:
+def complete_algorithm_session(session_id: str, request: Request, db: Session = Depends(get_db)) -> AlgorithmPracticeSessionRead:
     try:
-        return finish_session(db, session_id)
+        return finish_session(db, request.state.user_id, session_id)
     except AlgorithmPracticeError as exc:
         raise _domain_error(exc) from exc
 
 
 @router.post("/sessions/{session_id}/abandon", response_model=AlgorithmPracticeSessionRead)
-def abandon_algorithm_session(session_id: str, db: Session = Depends(get_db)) -> AlgorithmPracticeSessionRead:
+def abandon_algorithm_session(session_id: str, request: Request, db: Session = Depends(get_db)) -> AlgorithmPracticeSessionRead:
     try:
-        return finish_session(db, session_id, abandoned=True)
+        return finish_session(db, request.state.user_id, session_id, abandoned=True)
     except AlgorithmPracticeError as exc:
         raise _domain_error(exc) from exc
 
 
 @router.delete("/sessions/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
-def remove_algorithm_session(session_id: str, db: Session = Depends(get_db)) -> Response:
+def remove_algorithm_session(session_id: str, request: Request, db: Session = Depends(get_db)) -> Response:
     try:
-        delete_session(db, session_id)
+        delete_session(db, request.state.user_id, session_id)
     except AlgorithmPracticeError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post("/attempts", response_model=AlgorithmAttemptRead, status_code=status.HTTP_201_CREATED)
-def save_algorithm_attempt(payload: AlgorithmAttemptCreate, db: Session = Depends(get_db)) -> AlgorithmAttemptRead:
+def save_algorithm_attempt(payload: AlgorithmAttemptCreate, request: Request, db: Session = Depends(get_db)) -> AlgorithmAttemptRead:
     try:
-        return create_attempt(db, payload)
+        return create_attempt(db, request.state.user_id, payload)
     except AlgorithmPracticeError as exc:
         raise _domain_error(exc) from exc
 
 
 @router.get("/attempts", response_model=list[AlgorithmAttemptRead])
 def list_algorithm_attempts(
+    request: Request,
     problem_id: int | None = None,
     session_id: str | None = None,
     limit: int = Query(default=100, ge=1, le=200),
     db: Session = Depends(get_db),
 ) -> list[AlgorithmAttemptRead]:
-    return [AlgorithmAttemptRead.model_validate(attempt) for attempt in list_attempts(db, problem_id=problem_id, session_id=session_id, limit=limit)]
+    return [AlgorithmAttemptRead.model_validate(attempt) for attempt in list_attempts(db, request.state.user_id, problem_id=problem_id, session_id=session_id, limit=limit)]
 
 
 @router.get("/attempts/{attempt_id}", response_model=AlgorithmAttemptRead)
-def get_algorithm_attempt(attempt_id: int, db: Session = Depends(get_db)) -> AlgorithmAttemptRead:
+def get_algorithm_attempt(attempt_id: int, request: Request, db: Session = Depends(get_db)) -> AlgorithmAttemptRead:
     try:
-        return get_attempt_read(db, attempt_id)
+        return get_attempt_read(db, request.state.user_id, attempt_id)
     except AlgorithmPracticeError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
 
 @router.patch("/attempts/{attempt_id}", response_model=AlgorithmAttemptRead)
 def patch_algorithm_attempt(
-    attempt_id: int, payload: AlgorithmAttemptUpdate, db: Session = Depends(get_db)
+    attempt_id: int, payload: AlgorithmAttemptUpdate, request: Request, db: Session = Depends(get_db)
 ) -> AlgorithmAttemptRead:
     try:
-        return update_attempt(db, attempt_id, payload)
+        return update_attempt(db, request.state.user_id, attempt_id, payload)
     except AlgorithmPracticeError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
 
 @router.delete("/attempts/{attempt_id}", status_code=status.HTTP_204_NO_CONTENT)
-def remove_algorithm_attempt(attempt_id: int, db: Session = Depends(get_db)) -> Response:
+def remove_algorithm_attempt(attempt_id: int, request: Request, db: Session = Depends(get_db)) -> Response:
     try:
-        delete_attempt(db, attempt_id)
+        delete_attempt(db, request.state.user_id, attempt_id)
     except AlgorithmPracticeError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -297,10 +301,10 @@ def remove_algorithm_attempt(attempt_id: int, db: Session = Depends(get_db)) -> 
 
 @router.post("/attempts/{attempt_id}/hint", response_model=AlgorithmHintRead)
 async def get_algorithm_hint(
-    attempt_id: int, payload: AlgorithmHintRequest, db: Session = Depends(get_db)
+    attempt_id: int, payload: AlgorithmHintRequest, request: Request, db: Session = Depends(get_db)
 ) -> AlgorithmHintRead:
     try:
-        return await request_hint(db, attempt_id, payload.hint_level, payload.approach)
+        return await request_hint(db, request.state.user_id, attempt_id, payload.hint_level, payload.approach)
     except AlgorithmPracticeError as exc:
         raise _domain_error(exc) from exc
     except LLMError as exc:
@@ -308,25 +312,26 @@ async def get_algorithm_hint(
 
 
 @router.post("/attempts/{attempt_id}/ai-review", response_model=AlgorithmAttemptRead)
-async def review_algorithm_attempt(attempt_id: int, db: Session = Depends(get_db)) -> AlgorithmAttemptRead:
+async def review_algorithm_attempt(attempt_id: int, request: Request, db: Session = Depends(get_db)) -> AlgorithmAttemptRead:
     try:
-        return await request_ai_review(db, attempt_id)
+        return await request_ai_review(db, request.state.user_id, attempt_id)
     except AlgorithmPracticeError as exc:
         raise _domain_error(exc) from exc
     except LLMError as exc:
-        mark_ai_review_failed(db, attempt_id)
+        mark_ai_review_failed(db, request.state.user_id, attempt_id)
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="AI 复盘暂时不可用，可稍后重试；解题记录已保留。") from exc
 
 
 @router.get("/reviews/due", response_model=list[AlgorithmReviewScheduleRead])
 def list_due_algorithm_reviews(
-    limit: int = Query(default=30, ge=1, le=100), db: Session = Depends(get_db)
+    request: Request, limit: int = Query(default=30, ge=1, le=100), db: Session = Depends(get_db)
 ) -> list[AlgorithmReviewScheduleRead]:
-    return due_reviews(db, limit=limit)
+    return due_reviews(db, request.state.user_id, limit=limit)
 
 
 @router.get("/reviews/candidates", response_model=list[AlgorithmReviewCandidateRead])
 def list_algorithm_review_candidates(
+    request: Request,
     time_order: Literal["recommended", "recent", "older"] = "recommended",
     from_date: date_type | None = None,
     to_date: date_type | None = None,
@@ -337,6 +342,7 @@ def list_algorithm_review_candidates(
 ) -> list[AlgorithmReviewCandidateRead]:
     return list_review_candidates(
         db,
+        request.state.user_id,
         time_order=time_order,
         from_date=from_date,
         to_date=to_date,
@@ -348,24 +354,25 @@ def list_algorithm_review_candidates(
 
 @router.post("/reviews/session", response_model=AlgorithmPracticeSessionRead, status_code=status.HTTP_201_CREATED)
 def create_algorithm_review_session(
+    request: Request,
     payload: AlgorithmReviewSessionCreate | None = None,
     count: int = Query(default=5, ge=1, le=20),
     db: Session = Depends(get_db),
 ) -> AlgorithmPracticeSessionRead:
     try:
-        return create_review_session(db, count=payload.count if payload else count, problem_ids=payload.problem_ids if payload else None)
+        return create_review_session(db, request.state.user_id, count=payload.count if payload else count, problem_ids=payload.problem_ids if payload else None)
     except AlgorithmPracticeError as exc:
         raise _domain_error(exc) from exc
 
 
 @router.get("/stats", response_model=AlgorithmStatsRead)
-def get_algorithm_stats(db: Session = Depends(get_db)) -> AlgorithmStatsRead:
-    return algorithm_stats(db)
+def get_algorithm_stats(request: Request, db: Session = Depends(get_db)) -> AlgorithmStatsRead:
+    return algorithm_stats(db, request.state.user_id)
 
 
 @router.get("/weaknesses", response_model=list[AlgorithmWeaknessRead])
-def get_algorithm_weaknesses(db: Session = Depends(get_db)) -> list[AlgorithmWeaknessRead]:
-    return algorithm_weaknesses(db)
+def get_algorithm_weaknesses(request: Request, db: Session = Depends(get_db)) -> list[AlgorithmWeaknessRead]:
+    return algorithm_weaknesses(db, request.state.user_id)
 
 
 @router.post(
@@ -420,16 +427,17 @@ def get_algorithm_reasoning_context(
 )
 def save_algorithm_reasoning_answer(
     payload: AlgorithmReasoningAnswerCreate,
+    request: Request,
     response: Response,
     db: Session = Depends(get_db),
 ) -> AlgorithmReasoningAnswerDetailRead:
     try:
-        answer, created = save_reasoning_answer(db, payload)
+        answer, created = save_reasoning_answer(db, request.state.user_id, payload)
     except AlgorithmReasoningError as exc:
         raise _reasoning_error(exc) from exc
     if not created:
         response.status_code = status.HTTP_200_OK
-    return get_answer_detail(db, answer.id)
+    return get_answer_detail(db, request.state.user_id, answer.id)
 
 
 @router.post(
@@ -437,13 +445,13 @@ def save_algorithm_reasoning_answer(
     response_model=AlgorithmReasoningCheckResponse,
     status_code=status.HTTP_201_CREATED,
 )
-async def check_algorithm_reasoning(payload: dict[str, object], response: Response, db: Session = Depends(get_db)):
+async def check_algorithm_reasoning(payload: dict[str, object], response: Response, request: Request, db: Session = Depends(get_db)):
     try:
         parsed = AlgorithmReasoningCheckCreate.model_validate(payload)
     except ValidationError as exc:
         return _save_failed_response(exc)
     try:
-        result, created = await save_and_check_reasoning_answer(db, parsed)
+        result, created = await save_and_check_reasoning_answer(db, request.state.user_id, parsed)
     except AlgorithmReasoningError as exc:
         raise _reasoning_error(exc) from exc
     if not created:
@@ -457,11 +465,12 @@ async def check_algorithm_reasoning(payload: dict[str, object], response: Respon
 )
 async def recheck_algorithm_reasoning_answer(
     answer_id: int,
+    request: Request,
     payload: AlgorithmReasoningRecheckRequest | None = None,
     db: Session = Depends(get_db),
 ) -> AlgorithmReasoningCheckResponse:
     try:
-        return await check_saved_reasoning_answer(db, answer_id, refresh=payload.refresh if payload else False)
+        return await check_saved_reasoning_answer(db, request.state.user_id, answer_id, refresh=payload.refresh if payload else False)
     except AlgorithmReasoningError as exc:
         raise _reasoning_error(exc) from exc
 
@@ -469,16 +478,18 @@ async def recheck_algorithm_reasoning_answer(
 @router.get("/reasoning/answers/{answer_id}", response_model=AlgorithmReasoningAnswerDetailRead)
 def get_algorithm_reasoning_answer(
     answer_id: int,
+    request: Request,
     db: Session = Depends(get_db),
 ) -> AlgorithmReasoningAnswerDetailRead:
     try:
-        return get_answer_detail(db, answer_id)
+        return get_answer_detail(db, request.state.user_id, answer_id)
     except AlgorithmReasoningError as exc:
         raise _reasoning_error(exc) from exc
 
 
 @router.get("/reasoning/answers", response_model=list[AlgorithmReasoningAnswerDetailRead])
 def list_algorithm_reasoning_answers(
+    request: Request,
     problem_id: str | None = None,
     session_id: str | None = None,
     client_answer_id: str | None = None,
@@ -488,6 +499,7 @@ def list_algorithm_reasoning_answers(
     try:
         return list_reasoning_answers(
             db,
+            request.state.user_id,
             problem_identifier=problem_id,
             session_id=session_id,
             client_answer_id=client_answer_id,

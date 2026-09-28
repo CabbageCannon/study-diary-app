@@ -8,6 +8,7 @@ import { PaletteIcon } from "@phosphor-icons/react/Palette";
 import { SpinnerGapIcon } from "@phosphor-icons/react/SpinnerGap";
 import { TargetIcon } from "@phosphor-icons/react/Target";
 import { UserCircleIcon } from "@phosphor-icons/react/UserCircle";
+import { useAuth, type AdminUser } from "../auth/AuthContext";
 
 import { usePwaInstall } from "../contexts/PwaInstallContext";
 import { usePwaUpdate, type PwaUpdatePhase } from "../contexts/PwaUpdateContext";
@@ -25,7 +26,7 @@ import {
   type UserPreferences,
 } from "../services/userPreferences";
 
-type SettingsSection = "profile" | "appearance" | "goals" | "reminder" | "version" | "install";
+type SettingsSection = "account" | "admin" | "profile" | "appearance" | "goals" | "reminder" | "version" | "install";
 
 const versionCopy: Record<PwaUpdatePhase, { title: string; detail: string; button: string }> = {
   idle: { title: "随时检查新版本", detail: "主动向服务器确认，无需清空缓存。", button: "检测新版本" },
@@ -40,6 +41,7 @@ const versionCopy: Record<PwaUpdatePhase, { title: string; detail: string; butto
 };
 
 export function MePage() {
+  const auth = useAuth();
   const { data, isLoading } = useTodayWorkspace();
   const [preferences, setPreferences] = useUserPreferences();
   const [form, setForm] = useState<UserPreferences>(preferences);
@@ -49,12 +51,15 @@ export function MePage() {
   const [permission, setPermission] = useState(notificationPermission());
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
   const { theme, setTheme } = useTheme();
   const [draftTheme, setDraftTheme] = useState<AppTheme>(theme);
   const { canOfferInstall, closeIosGuide, dismissIosGuide, isIosGuideOpen, requestInstall } = usePwaInstall();
   const { applyUpdate, checkForUpdate, error: updateError, phase: updatePhase } = usePwaUpdate();
 
   useEffect(() => setForm(preferences), [preferences]);
+  useEffect(() => { if (preferences.theme !== theme) setTheme(preferences.theme); }, [preferences.theme, setTheme, theme]);
   useEffect(() => setDraftTheme(theme), [theme]);
 
   const progressItems = getTodayProgressItems(data, form);
@@ -77,12 +82,17 @@ export function MePage() {
   function clearStatus() { setMessage(""); setError(""); }
 
   function toggleSection(section: SettingsSection) {
+    if (savingSection) return;
     clearStatus();
     setPendingReminderTime(null);
     setForm(preferences);
     setDraftTheme(theme);
     if (activeSection === "install") closeIosGuide();
     setActiveSection((current) => current === section ? null : section);
+    if (section === "admin" && activeSection !== "admin" && !users.length) {
+      setUsersLoading(true);
+      void auth.listUsers().then(setUsers).catch((reason) => setError(reason instanceof Error ? reason.message : "用户列表加载失败。" )).finally(() => setUsersLoading(false));
+    }
   }
 
   function cancelSection() {
@@ -103,28 +113,38 @@ export function MePage() {
     clearStatus();
   }
 
-  function saveProfile(event: FormEvent<HTMLFormElement>) {
+  async function saveProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!profileDirty) return;
     const next = { ...preferences, nickname: form.nickname.trim(), targetRole: form.targetRole.trim(), learningStyle: form.learningStyle.trim() };
-    setPreferences(next); setForm(next); setMessage("个人资料已保存。");
+    setSavingSection("profile"); clearStatus(); setPreferences(next); setForm(next);
+    try { await auth.updatePreferences(next); setMessage("个人资料已保存。"); }
+    catch { setPreferences(preferences); setForm(preferences); setError("保存失败，已恢复原来的个人资料。"); }
+    finally { setSavingSection(null); }
   }
 
-  function saveAppearance(event: FormEvent<HTMLFormElement>) {
+  async function saveAppearance(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!appearanceDirty) return;
-    setTheme(draftTheme);
-    setMessage("外观已保存。");
+    const previous = preferences;
+    const next = { ...preferences, theme: draftTheme };
+    setSavingSection("appearance"); clearStatus(); setTheme(draftTheme); setPreferences(next);
+    try { await auth.updatePreferences(next); setMessage("外观已保存。"); }
+    catch { setTheme(previous.theme); setPreferences(previous); setError("保存失败，已恢复原来的外观。"); }
+    finally { setSavingSection(null); }
   }
 
-  function saveGoals(event: FormEvent<HTMLFormElement>) {
+  async function saveGoals(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!goalsDirty) return;
     const next = { ...preferences, dailyGoals: {
       interview: clampGoal(form.dailyGoals.interview), algorithm: clampGoal(form.dailyGoals.algorithm),
       diary: clampGoal(form.dailyGoals.diary), review: clampGoal(form.dailyGoals.review),
     } };
-    setPreferences(next); setForm(next); setMessage("每日计划已保存。");
+    setSavingSection("goals"); clearStatus(); setPreferences(next); setForm(next);
+    try { await auth.updatePreferences(next); setMessage("每日计划已保存。"); }
+    catch { setPreferences(preferences); setForm(preferences); setError("保存失败，已恢复原来的每日计划。"); setSavingSection(null); return; }
+    setSavingSection(null);
     if (next.reminder.enabled && next.reminder.subscriptionId) {
       void updateReminderPush(next.reminder.subscriptionId, reminderSettingsFromPreferences(next))
         .catch(() => setError("计划已保存，但提醒目标同步失败，请稍后重试。"));
@@ -132,7 +152,7 @@ export function MePage() {
   }
 
   async function toggleReminder(enabled: boolean) {
-    if (reminderSaving) return;
+    if (savingSection) return;
     const previous = preferences;
     const next: UserPreferences = {
       ...previous,
@@ -147,11 +167,12 @@ export function MePage() {
           ? await updateReminderPush(previous.reminder.subscriptionId, reminderSettingsFromPreferences(next))
           : await subscribeReminderPush(reminderPayloadFromPreferences(next, subscription));
         const committed = { ...next, reminder: { ...next.reminder, subscriptionId: saved.id } };
-        setPreferences(committed); setForm(committed);
+        await auth.updatePreferences(committed); setPreferences(committed); setForm(committed);
         setMessage(`已开启，每天 ${committed.reminder.time} 提醒。`);
       } else {
         if (previous.reminder.subscriptionId) await deleteReminderPush(previous.reminder.subscriptionId);
         await unsubscribeBrowserPush().catch(() => undefined);
+        await auth.updatePreferences(next);
         setMessage("每日提醒已关闭。");
       }
     } catch (reason) {
@@ -198,7 +219,7 @@ export function MePage() {
         ? await updateReminderPush(previous.reminder.subscriptionId, reminderSettingsFromPreferences(next))
         : await createBrowserPushSubscription().then((subscription) => subscribeReminderPush(reminderPayloadFromPreferences(next, subscription)));
       const committed = { ...next, reminder: { ...next.reminder, subscriptionId: saved.id } };
-      setPreferences(committed); setForm(committed);
+      await auth.updatePreferences(committed); setPreferences(committed); setForm(committed);
       setMessage(`提醒时间已改为 ${committed.reminder.time}。`);
     } catch (reason) {
       setPreferences(previous); setForm(previous);
@@ -230,6 +251,20 @@ export function MePage() {
     </header>
 
     <div className="me-settings-list">
+      <SettingsItem active={activeSection === "account"} controls="me-account-panel" icon={<UserCircleIcon aria-hidden="true" size={21} />} label="账户" note={auth.me?.email ?? ""} onToggle={() => toggleSection("account")}>
+        <div className="me-settings-panel" id="me-account-panel">
+          <div className="setting-row"><span><strong>登录邮箱</strong><small>{auth.me?.role === "admin" ? "管理员" : "普通用户"}</small></span><span className="setting-value">{auth.me?.email}</span></div>
+          <button className="button button-secondary" onClick={() => void auth.signOut()} type="button">退出登录</button>
+        </div>
+      </SettingsItem>
+
+      {auth.me?.role === "admin" ? <SettingsItem active={activeSection === "admin"} controls="me-admin-panel" icon={<UserCircleIcon aria-hidden="true" size={21} />} label="用户管理" note="停用或恢复账户" onToggle={() => toggleSection("admin")}>
+        <div className="me-settings-panel me-admin-users" id="me-admin-panel">
+          {usersLoading ? <p role="status">正在加载用户…</p> : users.map((user) => <div className="setting-row" key={user.id}><span><strong>{user.email}</strong><small>{user.role === "admin" ? "管理员" : user.active ? "正常" : "已停用"}</small></span><button className="button button-secondary" disabled={user.id === auth.me?.id} onClick={() => { const active = !user.active; void auth.setUserActive(user.id, active).then((updated) => setUsers((current) => current.map((item) => item.id === updated.id ? updated : item))).catch((reason) => setError(reason instanceof Error ? reason.message : "操作失败。")); }} type="button">{user.active ? "停用" : "恢复"}</button></div>)}
+          {error ? <p className="field-error" role="alert">{error}</p> : null}
+        </div>
+      </SettingsItem> : null}
+
       <SettingsItem active={activeSection === "profile"} controls="me-profile-panel" icon={<UserCircleIcon aria-hidden="true" size={21} />} label="个人资料" note={preferences.targetRole || "昵称与学习方向"} onToggle={() => toggleSection("profile")}>
         <form className="me-settings-panel" id="me-profile-panel" onSubmit={saveProfile}>
           <div className="settings-grid">
@@ -237,7 +272,7 @@ export function MePage() {
             <label className="form-field"><span>学习方向</span><input maxLength={80} onChange={(event) => updateField("targetRole", event.currentTarget.value)} value={form.targetRole} /></label>
             <label className="form-field me-wide-field"><span>一句话目标</span><textarea maxLength={180} onChange={(event) => updateField("learningStyle", event.currentTarget.value)} value={form.learningStyle} /></label>
           </div>
-          <SectionActions dirty={profileDirty} error={error} message={message} onCancel={cancelSection} />
+          <SectionActions dirty={profileDirty} error={error} message={message} onCancel={cancelSection} saving={savingSection === "profile"} />
         </form>
       </SettingsItem>
 
@@ -246,7 +281,7 @@ export function MePage() {
           <div className="theme-picker" role="radiogroup" aria-label="外观主题">
             {THEMES.map((item) => <button aria-checked={draftTheme === item.id} className={draftTheme === item.id ? "theme-option theme-option-active" : "theme-option"} key={item.id} onClick={() => { setDraftTheme(item.id); clearStatus(); }} role="radio" type="button"><span className="theme-swatches" aria-hidden="true">{item.colors.map((color) => <i key={color} style={{ background: color }} />)}</span><span><strong>{item.label}</strong><small>{item.note}</small></span></button>)}
           </div>
-          <SectionActions dirty={appearanceDirty} error={error} message={message} onCancel={cancelSection} />
+          <SectionActions dirty={appearanceDirty} error={error} message={message} onCancel={cancelSection} saving={savingSection === "appearance"} />
         </form>
       </SettingsItem>
 
@@ -259,7 +294,7 @@ export function MePage() {
             <GoalInput label="复习" value={form.dailyGoals.review} onChange={(value) => updateGoal("review", value)} />
           </div>
           <p className="me-inline-preview">{progressItems.map((item) => `${item.label} ${isLoading ? "-" : `${Math.min(item.completed, item.target)}/${item.target}`}`).join(" · ")}</p>
-          <SectionActions dirty={goalsDirty} error={error} message={message} onCancel={cancelSection} />
+          <SectionActions dirty={goalsDirty} error={error} message={message} onCancel={cancelSection} saving={savingSection === "goals"} />
         </form>
       </SettingsItem>
 

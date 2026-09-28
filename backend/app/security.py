@@ -1,11 +1,7 @@
 from collections import defaultdict, deque
-from hmac import compare_digest
 from time import monotonic
 
 from fastapi import Request
-
-from app.config import settings
-
 
 AI_ROUTE_MARKERS = ("/draft", "/ai-review", "/evaluate", "/answers", "/hint", "/reasoning/checks", "/speech/transcriptions")
 
@@ -27,13 +23,6 @@ class SlidingWindowRateLimiter:
 
 
 rate_limiter = SlidingWindowRateLimiter()
-
-
-def requires_write_access(request: Request) -> bool:
-    if not settings.write_access_enabled:
-        return False
-    supplied = request.headers.get("X-Study-Diary-Access", "")
-    return not compare_digest(supplied, settings.app_access_token)
 
 
 def is_ai_request(request: Request) -> bool:

@@ -13,7 +13,6 @@ import { InterviewHistoryPage } from "./pages/InterviewHistoryPage";
 import { InterviewCatalogPage } from "./pages/InterviewCatalogPage";
 import { InterviewPage } from "./pages/InterviewPage";
 import { TodayPage } from "./pages/TodayPage";
-import { prefetchAppData } from "./services/appPrefetch";
 
 const HistoryPage = lazy(() => import("./pages/HistoryPage").then((module) => ({ default: module.HistoryPage })));
 const DiaryPage = lazy(() => import("./pages/DiaryPage").then((module) => ({ default: module.DiaryPage })));
@@ -30,12 +29,11 @@ const InterviewWorkspaceLayout = lazy(() => import("./layout/InterviewWorkspaceL
 const questionReviewEnabled = import.meta.env.VITE_ENABLE_QUESTION_REVIEW === "true";
 
 const standaloneSessionKey = "study-diary:standalone-session-started";
-if (window.matchMedia("(display-mode: standalone)").matches && !window.sessionStorage.getItem(standaloneSessionKey)) {
+if (window.matchMedia("(display-mode: standalone)").matches && !window.sessionStorage.getItem(standaloneSessionKey) && !window.location.hash && !window.location.search) {
   window.sessionStorage.setItem(standaloneSessionKey, "1");
   if (window.location.pathname !== "/today") window.history.replaceState(null, "", "/today");
 }
 
-void prefetchAppData();
 window.setTimeout(() => {
   void Promise.allSettled([
     import("./pages/InterviewSessionPage"),

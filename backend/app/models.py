@@ -11,10 +11,31 @@ def utc_now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+class UserProfile(Base):
+    __tablename__ = "user_profiles"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    email: Mapped[str] = mapped_column(String(320), index=True)
+    role: Mapped[str] = mapped_column(String(20), default="user")
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    preferences_json: Mapped[str] = mapped_column(Text, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+    @property
+    def preferences(self) -> dict[str, object]:
+        try:
+            value = json.loads(self.preferences_json or "{}")
+        except json.JSONDecodeError:
+            return {}
+        return value if isinstance(value, dict) else {}
+
+
 class Diary(Base):
     __tablename__ = "diaries"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
     date: Mapped[str] = mapped_column(String(10), index=True)
     title: Mapped[str] = mapped_column(String(160))
     raw_text: Mapped[str] = mapped_column(Text)
@@ -55,6 +76,7 @@ class PushSubscription(Base):
     __tablename__ = "push_subscriptions"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
     endpoint: Mapped[str] = mapped_column(Text, unique=True)
     p256dh: Mapped[str] = mapped_column(Text)
     auth: Mapped[str] = mapped_column(Text)
@@ -116,6 +138,7 @@ class AlgorithmPracticeSession(Base):
     __tablename__ = "algorithm_practice_sessions"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
     mode: Mapped[str] = mapped_column(String(32), index=True)
     status: Mapped[str] = mapped_column(String(20), default="in_progress", index=True)
     requested_count: Mapped[int] = mapped_column(Integer)
@@ -163,6 +186,7 @@ class AlgorithmAttempt(Base):
     __tablename__ = "algorithm_attempts"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
     problem_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problems.id"), index=True)
     session_id: Mapped[str | None] = mapped_column(
         ForeignKey("algorithm_practice_sessions.id", ondelete="SET NULL"), nullable=True, index=True
@@ -202,9 +226,11 @@ class AlgorithmAttempt(Base):
 
 class AlgorithmReviewSchedule(Base):
     __tablename__ = "algorithm_review_schedules"
+    __table_args__ = (UniqueConstraint("user_id", "problem_id", name="uq_algorithm_review_user_problem"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    problem_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problems.id"), unique=True, index=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
+    problem_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problems.id"), index=True)
     last_attempt_id: Mapped[int] = mapped_column(ForeignKey("algorithm_attempts.id"), index=True)
     next_review_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     interval_days: Mapped[int] = mapped_column(Integer)
@@ -217,9 +243,11 @@ class AlgorithmReviewSchedule(Base):
 
 class AlgorithmProblemProgress(Base):
     __tablename__ = "algorithm_problem_progress"
+    __table_args__ = (UniqueConstraint("user_id", "problem_id", name="uq_algorithm_progress_user_problem"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    problem_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problems.id"), unique=True, index=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
+    problem_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problems.id"), index=True)
     status: Mapped[str] = mapped_column(String(24), default="unseen", index=True)
     attempt_count: Mapped[int] = mapped_column(Integer, default=0)
     solved_count: Mapped[int] = mapped_column(Integer, default=0)
@@ -271,6 +299,7 @@ class AlgorithmReasoningAnswer(Base):
     __table_args__ = (UniqueConstraint("client_answer_id", name="uq_algorithm_reasoning_client_answer"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
     problem_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problems.id"), index=True)
     session_id: Mapped[str | None] = mapped_column(
         ForeignKey("algorithm_practice_sessions.id", ondelete="SET NULL"), nullable=True, index=True
@@ -333,7 +362,8 @@ class AlgorithmReasoningFeedback(Base):
 class AlgorithmDailyRecommendationSettings(Base):
     __tablename__ = "algorithm_daily_recommendation_settings"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), unique=True, index=True, nullable=True)
     strategy: Mapped[str] = mapped_column(String(32), default="balanced")
     topics_json: Mapped[str] = mapped_column("topics", Text, default="[]")
     difficulties_json: Mapped[str] = mapped_column("difficulties", Text, default="[]")
@@ -370,9 +400,11 @@ class AlgorithmDailyRecommendationSettings(Base):
 
 class AlgorithmDailyFeed(Base):
     __tablename__ = "algorithm_daily_feeds"
+    __table_args__ = (UniqueConstraint("user_id", "recommendation_date", name="uq_algorithm_feed_user_date"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    recommendation_date: Mapped[str] = mapped_column(String(10), unique=True, index=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
+    recommendation_date: Mapped[str] = mapped_column(String(10), index=True)
     primary_problem_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problems.id"), index=True)
     extra_problem_ids_json: Mapped[str] = mapped_column("extra_problem_ids", Text, default="[]")
     settings_snapshot_json: Mapped[str] = mapped_column("settings_snapshot", Text, default="{}")
@@ -521,6 +553,7 @@ class InterviewQuestionSet(Base):
     __tablename__ = "interview_question_sets"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
     date: Mapped[str] = mapped_column(String(10), index=True)
     domain: Mapped[str | None] = mapped_column(String(80), nullable=True, index=True)
     topic: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
@@ -562,6 +595,7 @@ class InterviewAnswer(Base):
     __table_args__ = (UniqueConstraint("question_set_id", "question_id", "attempt_index", name="uq_interview_answer_attempt"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
     question_set_id: Mapped[int] = mapped_column(
         ForeignKey("interview_question_sets.id", ondelete="CASCADE"), index=True
     )
@@ -621,9 +655,11 @@ class InterviewEvaluation(Base):
 
 class InterviewReviewSchedule(Base):
     __tablename__ = "interview_review_schedules"
+    __table_args__ = (UniqueConstraint("user_id", "question_id", name="uq_interview_review_user_question"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    question_id: Mapped[str] = mapped_column(ForeignKey("interview_questions.id"), unique=True, index=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
+    question_id: Mapped[str] = mapped_column(ForeignKey("interview_questions.id"), index=True)
     last_answer_id: Mapped[int] = mapped_column(ForeignKey("interview_answers.id"), index=True)
     last_score: Mapped[float] = mapped_column(Float)
     next_review_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
@@ -642,9 +678,11 @@ class StudySession(Base):
     """
 
     __tablename__ = "study_sessions"
+    __table_args__ = (UniqueConstraint("user_id", "client_event_id", name="uq_study_session_user_event"),)
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    client_event_id: Mapped[str] = mapped_column(String(100), unique=True, index=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
+    client_event_id: Mapped[str] = mapped_column(String(100), index=True)
     source: Mapped[str] = mapped_column(String(32), index=True)
     activity_type: Mapped[str] = mapped_column(String(32), index=True)
     title: Mapped[str] = mapped_column(String(160), default="自主学习")

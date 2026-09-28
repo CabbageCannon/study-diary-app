@@ -17,6 +17,7 @@ import {
   peekInterviewQuestionSets,
 } from "../api/interviews";
 import { ConfirmActionDialog } from "../components/interview/ConfirmActionDialog";
+import { userStorageKey } from "../auth/userStorage";
 import { domainOptions, InterviewSetupForm } from "../components/interview/InterviewSetupForm";
 import { getLastActiveInterviewSession } from "../hooks/useInterviewAnswerDraft";
 import { useUserPreferences } from "../hooks/useUserPreferences";
@@ -32,7 +33,7 @@ const initialPayload: CreateQuestionSetPayload = {
 
 function loadSavedPayload(): CreateQuestionSetPayload {
   try {
-    const raw = window.localStorage.getItem(INTERVIEW_SETUP_KEY);
+    const raw = window.localStorage.getItem(userStorageKey(INTERVIEW_SETUP_KEY));
     if (!raw) return initialPayload;
     const saved = JSON.parse(raw) as Partial<CreateQuestionSetPayload>;
     return { ...initialPayload, ...saved, question_count: Number(saved.question_count) || initialPayload.question_count };
@@ -42,7 +43,7 @@ function loadSavedPayload(): CreateQuestionSetPayload {
 }
 
 function savePayload(value: CreateQuestionSetPayload) {
-  window.localStorage.setItem(INTERVIEW_SETUP_KEY, JSON.stringify(value));
+  window.localStorage.setItem(userStorageKey(INTERVIEW_SETUP_KEY), JSON.stringify(value));
 }
 
 function resumeLabel(summary: InterviewQuestionSetSummary) {

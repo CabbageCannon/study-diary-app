@@ -7,8 +7,9 @@ from app.models import Diary
 from app.schemas import DiarySave, DiaryUpdate
 
 
-def create_diary(db: Session, payload: DiarySave) -> Diary:
+def create_diary(db: Session, payload: DiarySave, user_id: str) -> Diary:
     diary = Diary(
+        user_id=user_id,
         date=payload.date,
         title=payload.title,
         raw_text=payload.raw_text,
@@ -28,13 +29,13 @@ def create_diary(db: Session, payload: DiarySave) -> Diary:
     return diary
 
 
-def list_diaries(db: Session) -> list[Diary]:
-    statement = select(Diary).order_by(Diary.is_pinned.desc(), Diary.updated_at.desc())
+def list_diaries(db: Session, user_id: str) -> list[Diary]:
+    statement = select(Diary).where(Diary.user_id == user_id).order_by(Diary.is_pinned.desc(), Diary.updated_at.desc())
     return list(db.scalars(statement).all())
 
 
-def get_diary(db: Session, diary_id: int) -> Diary | None:
-    return db.get(Diary, diary_id)
+def get_diary(db: Session, diary_id: int, user_id: str) -> Diary | None:
+    return db.scalar(select(Diary).where(Diary.id == diary_id, Diary.user_id == user_id))
 
 
 def delete_diary(db: Session, diary: Diary) -> None:

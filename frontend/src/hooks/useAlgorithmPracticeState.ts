@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { userStorageKey } from "../auth/userStorage";
 
 export interface AlgorithmAttemptDraft {
   result: "solved" | "partially_solved" | "failed" | "gave_up";
@@ -50,11 +51,11 @@ function normalizeDraft(value: Partial<AlgorithmAttemptDraft> | null): Algorithm
 }
 
 function draftStorageKey(sessionId: string, problemId: number) {
-  return `study-diary:algorithm:session:${sessionId}:problem:${problemId}:draft`;
+  return userStorageKey(`algorithm:session:${sessionId}:problem:${problemId}:draft`);
 }
 
 function timerStorageKey(sessionId: string) {
-  return `study-diary:algorithm:session:${sessionId}:timer`;
+  return userStorageKey(`algorithm:session:${sessionId}:timer`);
 }
 
 export function useAlgorithmAttemptDraft(sessionId: string, problemId: number) {

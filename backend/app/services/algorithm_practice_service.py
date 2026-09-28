@@ -119,21 +119,21 @@ def _matches_request(problem: AlgorithmProblem, request: AlgorithmPracticeSessio
     return True
 
 
-def _due_problem_ids(db: Session, now: datetime) -> set[int]:
+def _due_problem_ids(db: Session, user_id: str, now: datetime) -> set[int]:
     return {
         problem_id
         for problem_id in db.scalars(
-            select(AlgorithmReviewSchedule.problem_id).where(AlgorithmReviewSchedule.next_review_at <= now)
+            select(AlgorithmReviewSchedule.problem_id).where(AlgorithmReviewSchedule.user_id == user_id, AlgorithmReviewSchedule.next_review_at <= now)
         ).all()
     }
 
 
-def _attempted_problem_ids(db: Session) -> set[int]:
-    return set(db.scalars(select(AlgorithmAttempt.problem_id).where(AlgorithmAttempt.submitted_at.is_not(None))).all())
+def _attempted_problem_ids(db: Session, user_id: str) -> set[int]:
+    return set(db.scalars(select(AlgorithmAttempt.problem_id).where(AlgorithmAttempt.user_id == user_id, AlgorithmAttempt.submitted_at.is_not(None))).all())
 
 
-def _weak_topics(db: Session, problems: list[AlgorithmProblem]) -> set[str]:
-    progress = progress_by_problem(db, [problem.id for problem in problems])
+def _weak_topics(db: Session, user_id: str, problems: list[AlgorithmProblem]) -> set[str]:
+    progress = progress_by_problem(db, user_id, [problem.id for problem in problems])
     scored: list[tuple[float, str]] = []
     by_topic: dict[str, list[AlgorithmProblemProgress]] = defaultdict(list)
     problem_by_id = {problem.id: problem for problem in problems}
@@ -170,7 +170,7 @@ def _similar_candidates(reference: AlgorithmProblem, problems: list[AlgorithmPro
     return [problem for _, problem in sorted(candidates, key=lambda item: (-item[0], item[1].id))]
 
 
-def _select_problems(db: Session, request: AlgorithmPracticeSessionCreate, session_seed: str) -> tuple[list[AlgorithmProblem], int]:
+def _select_problems(db: Session, user_id: str, request: AlgorithmPracticeSessionCreate, session_seed: str) -> tuple[list[AlgorithmProblem], int]:
     now = utc_now()
     problems = list_active_problems(db)
     if not problems:
@@ -204,12 +204,12 @@ def _select_problems(db: Session, request: AlgorithmPracticeSessionCreate, sessi
         return selected[: request.count], len(selected)
 
     candidates = [problem for problem in problems if _matches_request(problem, request)]
-    progress = progress_by_problem(db, [problem.id for problem in candidates])
-    latest_attempts = latest_attempts_by_problem(db, [problem.id for problem in candidates])
-    due_ids = _due_problem_ids(db, now)
+    progress = progress_by_problem(db, user_id, [problem.id for problem in candidates])
+    latest_attempts = latest_attempts_by_problem(db, user_id, [problem.id for problem in candidates])
+    due_ids = _due_problem_ids(db, user_id, now)
 
     if request.mode == "review":
-        attempted_ids = _attempted_problem_ids(db)
+        attempted_ids = _attempted_problem_ids(db, user_id)
         if request.problem_ids:
             lookup = {problem.stable_key: problem for problem in problems} | {str(problem.id): problem for problem in problems}
             selected = [lookup.get(identifier) for identifier in request.problem_ids]
@@ -229,7 +229,7 @@ def _select_problems(db: Session, request: AlgorithmPracticeSessionCreate, sessi
             or latest_attempts.get(problem.id, None) and latest_attempts[problem.id].result in FAILED_RESULTS
         ]
     elif request.mode == "weakness":
-        weak_topics = _weak_topics(db, candidates)
+        weak_topics = _weak_topics(db, user_id, candidates)
         candidates = [problem for problem in candidates if weak_topics.intersection(problem.topics)]
     elif request.mode == "similar":
         if not request.reference_problem_id:
@@ -258,10 +258,10 @@ def _select_problems(db: Session, request: AlgorithmPracticeSessionCreate, sessi
     return ordered[: request.count], len(candidates)
 
 
-def _session_items_read(db: Session, session: AlgorithmPracticeSession) -> list[AlgorithmPracticeSessionItemRead]:
-    items = list_session_items(db, session.id)
+def _session_items_read(db: Session, user_id: str, session: AlgorithmPracticeSession) -> list[AlgorithmPracticeSessionItemRead]:
+    items = list_session_items(db, user_id, session.id)
     problems = {problem.id: problem for problem in list_active_problems(db)}
-    attempts = list_attempts(db, session_id=session.id, limit=500)
+    attempts = list_attempts(db, user_id, session_id=session.id, limit=500)
     attempts_by_problem: dict[int, list[AlgorithmAttempt]] = defaultdict(list)
     for attempt in attempts:
         attempts_by_problem[attempt.problem_id].append(attempt)
@@ -288,8 +288,8 @@ def _session_items_read(db: Session, session: AlgorithmPracticeSession) -> list[
     return result
 
 
-def session_read(db: Session, session: AlgorithmPracticeSession, *, available_problem_count: int = 0) -> AlgorithmPracticeSessionRead:
-    items = _session_items_read(db, session)
+def session_read(db: Session, user_id: str, session: AlgorithmPracticeSession, *, available_problem_count: int = 0) -> AlgorithmPracticeSessionRead:
+    items = _session_items_read(db, user_id, session)
     message = None
     if available_problem_count and len(items) < session.requested_count:
         message = f"当前筛选仅找到 {len(items)} 道可用题目，已按固定顺序创建训练。"
@@ -313,12 +313,13 @@ def session_read(db: Session, session: AlgorithmPracticeSession, *, available_pr
     )
 
 
-def create_session(db: Session, request: AlgorithmPracticeSessionCreate) -> AlgorithmPracticeSessionRead:
+def create_session(db: Session, user_id: str, request: AlgorithmPracticeSessionCreate) -> AlgorithmPracticeSessionRead:
     session_id = str(uuid4())
-    selected, available_count = _select_problems(db, request, session_id)
+    selected, available_count = _select_problems(db, user_id, request, session_id)
     now = utc_now()
     session = AlgorithmPracticeSession(
         id=session_id,
+        user_id=user_id,
         mode=request.mode,
         status="in_progress",
         requested_count=request.count,
@@ -340,7 +341,7 @@ def create_session(db: Session, request: AlgorithmPracticeSessionCreate) -> Algo
         )
     db.commit()
     db.refresh(session)
-    return session_read(db, session, available_problem_count=available_count)
+    return session_read(db, user_id, session, available_problem_count=available_count)
 
 
 DAILY_STRATEGY_LABELS = {
@@ -398,10 +399,10 @@ def _daily_settings_read(settings: AlgorithmDailyRecommendationSettings) -> Algo
     )
 
 
-def get_daily_settings(db: Session) -> AlgorithmDailyRecommendationSettingsRead:
-    settings = get_daily_recommendation_settings(db)
+def get_daily_settings(db: Session, user_id: str) -> AlgorithmDailyRecommendationSettingsRead:
+    settings = get_daily_recommendation_settings(db, user_id)
     if settings is None:
-        settings = AlgorithmDailyRecommendationSettings(id=1)
+        settings = AlgorithmDailyRecommendationSettings(user_id=user_id)
         db.add(settings)
         db.commit()
         db.refresh(settings)
@@ -409,11 +410,11 @@ def get_daily_settings(db: Session) -> AlgorithmDailyRecommendationSettingsRead:
 
 
 def update_daily_settings(
-    db: Session, payload: AlgorithmDailyRecommendationSettingsUpdate
+    db: Session, user_id: str, payload: AlgorithmDailyRecommendationSettingsUpdate
 ) -> AlgorithmDailyRecommendationSettingsRead:
-    settings = get_daily_recommendation_settings(db)
+    settings = get_daily_recommendation_settings(db, user_id)
     if settings is None:
-        settings = AlgorithmDailyRecommendationSettings(id=1)
+        settings = AlgorithmDailyRecommendationSettings(user_id=user_id)
         db.add(settings)
     settings.strategy = payload.strategy
     settings.topics_json = json.dumps(payload.topics, ensure_ascii=False)
@@ -445,12 +446,12 @@ def _matches_daily_settings(
     return True
 
 
-def _recent_daily_assignment_ids(db: Session, recommendation_date: str, avoid_days: int) -> set[int]:
+def _recent_daily_assignment_ids(db: Session, user_id: str, recommendation_date: str, avoid_days: int) -> set[int]:
     if avoid_days <= 0:
         return set()
     start_date = (datetime.fromisoformat(recommendation_date) - timedelta(days=avoid_days)).date().isoformat()
     ids: set[int] = set()
-    for feed in list_daily_feeds_since(db, start_date, before_date=recommendation_date):
+    for feed in list_daily_feeds_since(db, user_id, start_date, before_date=recommendation_date):
         ids.add(feed.primary_problem_id)
         ids.update(feed.extra_problem_ids)
     return ids
@@ -458,6 +459,7 @@ def _recent_daily_assignment_ids(db: Session, recommendation_date: str, avoid_da
 
 def _daily_candidates(
     db: Session,
+    user_id: str,
     settings: AlgorithmDailyRecommendationSettings,
     recommendation_date: str,
     refresh_version: int,
@@ -495,12 +497,12 @@ def _daily_candidates(
         candidates = active_problems
         warnings.append("当前筛选没有可用题目，已临时放宽为全部本地题目。")
 
-    progress = progress_by_problem(db, [problem.id for problem in candidates])
-    latest_attempts = latest_attempts_by_problem(db, [problem.id for problem in candidates])
-    due_ids = _due_problem_ids(db, utc_now()) if settings.include_review_items else set()
+    progress = progress_by_problem(db, user_id, [problem.id for problem in candidates])
+    latest_attempts = latest_attempts_by_problem(db, user_id, [problem.id for problem in candidates])
+    due_ids = _due_problem_ids(db, user_id, utc_now()) if settings.include_review_items else set()
 
     if settings.strategy == "weakness":
-        weak_topics = _weak_topics(db, candidates)
+        weak_topics = _weak_topics(db, user_id, candidates)
         narrowed = [problem for problem in candidates if weak_topics.intersection(problem.topics)]
         if narrowed:
             candidates = narrowed
@@ -524,7 +526,7 @@ def _daily_candidates(
         else:
             warnings.append("排除已完成后题池为空，已临时允许已完成题目。")
 
-    recent_ids = _recent_daily_assignment_ids(db, recommendation_date, settings.avoid_recent_days)
+    recent_ids = _recent_daily_assignment_ids(db, user_id, recommendation_date, settings.avoid_recent_days)
     without_recent = [problem for problem in candidates if problem.id not in recent_ids or problem.id in due_ids]
     desired_count = 1 + settings.extra_recommendation_count
     if without_recent:
@@ -534,7 +536,7 @@ def _daily_candidates(
         candidates = list({problem.id: problem for problem in candidates + [item for item in active_problems if item.id not in current_ids]}.values())
         warnings.append("当前题池不足，额外列表已放宽最近推荐限制。")
 
-    candidate_progress = progress_by_problem(db, [problem.id for problem in candidates])
+    candidate_progress = progress_by_problem(db, user_id, [problem.id for problem in candidates])
     strategy_seed = f"daily-feed:{recommendation_date}:{settings.strategy}:{refresh_version}"
 
     def priority(problem: AlgorithmProblem) -> tuple[int, int, str]:
@@ -556,14 +558,14 @@ def _daily_candidates(
     return ordered[:desired_count], " ".join(dict.fromkeys(warnings)) or None
 
 
-def _daily_feed_read(db: Session, feed: AlgorithmDailyFeed) -> AlgorithmDailyFeedRead:
+def _daily_feed_read(db: Session, user_id: str, feed: AlgorithmDailyFeed) -> AlgorithmDailyFeedRead:
     problems = {problem.id: problem for problem in list_active_problems(db)}
     primary = problems.get(feed.primary_problem_id)
     if primary is None:
         raise AlgorithmPracticeError("今日主推荐题目已失效，正在重新生成推荐。")
     extras = [problems[problem_id] for problem_id in feed.extra_problem_ids if problem_id in problems and problem_id != primary.id]
     snapshot = feed.settings_snapshot
-    progress = progress_by_problem(db, [primary.id]).get(primary.id)
+    progress = progress_by_problem(db, user_id, [primary.id]).get(primary.id)
     return AlgorithmDailyFeedRead(
         date=feed.recommendation_date,
         primary_problem=_problem_read(primary),
@@ -582,18 +584,20 @@ def _daily_feed_read(db: Session, feed: AlgorithmDailyFeed) -> AlgorithmDailyFee
 
 def _generate_daily_feed(
     db: Session,
+    user_id: str,
     settings: AlgorithmDailyRecommendationSettings,
     recommendation_date: str,
     existing: AlgorithmDailyFeed | None,
 ) -> AlgorithmDailyFeedRead:
     refresh_version = (existing.refresh_version + 1) if existing else 0
-    selected, warning = _daily_candidates(db, settings, recommendation_date, refresh_version)
+    selected, warning = _daily_candidates(db, user_id, settings, recommendation_date, refresh_version)
     if not selected:
         raise AlgorithmPracticeError("当前题库没有可用于每日推荐的题目。")
     now = utc_now()
     snapshot = _settings_snapshot(settings)
     if existing is None:
         existing = AlgorithmDailyFeed(
+            user_id=user_id,
             recommendation_date=recommendation_date,
             primary_problem_id=selected[0].id,
             extra_problem_ids_json=json.dumps([problem.id for problem in selected[1:]], ensure_ascii=False),
@@ -612,43 +616,43 @@ def _generate_daily_feed(
         existing.refreshed_at = now
     db.commit()
     db.refresh(existing)
-    return _daily_feed_read(db, existing)
+    return _daily_feed_read(db, user_id, existing)
 
 
-def get_daily_feed(db: Session) -> AlgorithmDailyFeedRead:
+def get_daily_feed(db: Session, user_id: str) -> AlgorithmDailyFeedRead:
     recommendation_date = app_local_date(utc_now()).isoformat()
-    settings = get_daily_recommendation_settings(db)
+    settings = get_daily_recommendation_settings(db, user_id)
     if settings is None:
-        get_daily_settings(db)
-        settings = get_daily_recommendation_settings(db)
+        get_daily_settings(db, user_id)
+        settings = get_daily_recommendation_settings(db, user_id)
     assert settings is not None
-    feed = get_daily_feed_record(db, recommendation_date)
+    feed = get_daily_feed_record(db, user_id, recommendation_date)
     if feed is None:
-        return _generate_daily_feed(db, settings, recommendation_date, None)
+        return _generate_daily_feed(db, user_id, settings, recommendation_date, None)
     try:
-        return _daily_feed_read(db, feed)
+        return _daily_feed_read(db, user_id, feed)
     except AlgorithmPracticeError:
-        return _generate_daily_feed(db, settings, recommendation_date, feed)
+        return _generate_daily_feed(db, user_id, settings, recommendation_date, feed)
 
 
-def refresh_daily_feed(db: Session) -> AlgorithmDailyFeedRead:
+def refresh_daily_feed(db: Session, user_id: str) -> AlgorithmDailyFeedRead:
     recommendation_date = app_local_date(utc_now()).isoformat()
-    settings = get_daily_recommendation_settings(db)
+    settings = get_daily_recommendation_settings(db, user_id)
     if settings is None:
-        get_daily_settings(db)
-        settings = get_daily_recommendation_settings(db)
+        get_daily_settings(db, user_id)
+        settings = get_daily_recommendation_settings(db, user_id)
     assert settings is not None
-    return _generate_daily_feed(db, settings, recommendation_date, get_daily_feed_record(db, recommendation_date))
+    return _generate_daily_feed(db, user_id, settings, recommendation_date, get_daily_feed_record(db, user_id, recommendation_date))
 
 
-def daily_problem(db: Session) -> AlgorithmProblemRead:
-    return get_daily_feed(db).primary_problem
+def daily_problem(db: Session, user_id: str) -> AlgorithmProblemRead:
+    return get_daily_feed(db, user_id).primary_problem
 
 
-def algorithm_catalog_overview(db: Session) -> AlgorithmCatalogOverviewRead:
+def algorithm_catalog_overview(db: Session, user_id: str) -> AlgorithmCatalogOverviewRead:
     problems = list_all_problems(db)
-    progress = progress_by_problem(db, [problem.id for problem in problems])
-    due_ids = _due_problem_ids(db, utc_now())
+    progress = progress_by_problem(db, user_id, [problem.id for problem in problems])
+    due_ids = _due_problem_ids(db, user_id, utc_now())
     difficulty_counts = {difficulty: sum(problem.difficulty == difficulty for problem in problems) for difficulty in ("easy", "medium", "hard")}
     source_counts: dict[str, int] = defaultdict(int)
     topic_counts: dict[str, int] = defaultdict(int)
@@ -670,6 +674,7 @@ def algorithm_catalog_overview(db: Session) -> AlgorithmCatalogOverviewRead:
 
 def list_catalog_problems(
     db: Session,
+    user_id: str,
     *,
     difficulty: str | None = None,
     pattern: str | None = None,
@@ -681,7 +686,7 @@ def list_catalog_problems(
     limit: int = 20,
 ) -> list[AlgorithmProblemRead]:
     problems = list_active_problems(db)
-    progress = progress_by_problem(db, [problem.id for problem in problems])
+    progress = progress_by_problem(db, user_id, [problem.id for problem in problems])
     search_text = (search or "").casefold().strip()
     result: list[AlgorithmProblemRead] = []
     for problem in problems:
@@ -712,17 +717,17 @@ def list_catalog_problems(
     return result
 
 
-def get_session_read(db: Session, session_id: str) -> AlgorithmPracticeSessionRead:
-    session = get_session(db, session_id)
+def get_session_read(db: Session, user_id: str, session_id: str) -> AlgorithmPracticeSessionRead:
+    session = get_session(db, user_id, session_id)
     if session is None:
         raise AlgorithmPracticeError("训练会话不存在或已删除。")
-    return session_read(db, session)
+    return session_read(db, user_id, session)
 
 
-def list_session_summaries(db: Session, *, status: str | None, limit: int) -> list[AlgorithmPracticeSessionSummary]:
+def list_session_summaries(db: Session, user_id: str, *, status: str | None, limit: int) -> list[AlgorithmPracticeSessionSummary]:
     summaries: list[AlgorithmPracticeSessionSummary] = []
-    for session in list_sessions(db, status=status, limit=limit):
-        items = list_session_items(db, session.id)
+    for session in list_sessions(db, user_id, status=status, limit=limit):
+        items = list_session_items(db, user_id, session.id)
         summaries.append(
             AlgorithmPracticeSessionSummary(
                 id=session.id,
@@ -741,14 +746,14 @@ def list_session_summaries(db: Session, *, status: str | None, limit: int) -> li
 
 
 def update_session_progress(
-    db: Session, session_id: str, payload: AlgorithmPracticeSessionProgressUpdate
+    db: Session, user_id: str, session_id: str, payload: AlgorithmPracticeSessionProgressUpdate
 ) -> AlgorithmPracticeSessionRead:
-    session = get_session(db, session_id)
+    session = get_session(db, user_id, session_id)
     if session is None:
         raise AlgorithmPracticeError("训练会话不存在或已删除。")
     if session.status != "in_progress":
         raise AlgorithmPracticeError("已结束的训练会话不能继续更新进度。")
-    items = list_session_items(db, session.id)
+    items = list_session_items(db, user_id, session.id)
     if payload.current_index >= len(items):
         raise AlgorithmPracticeError("当前题目位置超出会话范围。")
     item = items[payload.current_index]
@@ -765,14 +770,14 @@ def update_session_progress(
             item.skipped_at = now
     db.commit()
     db.refresh(session)
-    return session_read(db, session)
+    return session_read(db, user_id, session)
 
 
-def skip_session_problem(db: Session, session_id: str) -> AlgorithmPracticeSessionRead:
-    session = get_session(db, session_id)
+def skip_session_problem(db: Session, user_id: str, session_id: str) -> AlgorithmPracticeSessionRead:
+    session = get_session(db, user_id, session_id)
     if session is None or session.status != "in_progress":
         raise AlgorithmPracticeError("只能跳过进行中的训练题目。")
-    items = list_session_items(db, session.id)
+    items = list_session_items(db, user_id, session.id)
     if not items:
         raise AlgorithmPracticeError("训练会话没有题目。")
     item = items[min(session.current_index, len(items) - 1)]
@@ -788,11 +793,11 @@ def skip_session_problem(db: Session, session_id: str) -> AlgorithmPracticeSessi
         next_item.started_at = next_item.started_at or now
     db.commit()
     db.refresh(session)
-    return session_read(db, session)
+    return session_read(db, user_id, session)
 
 
-def finish_session(db: Session, session_id: str, *, abandoned: bool = False) -> AlgorithmPracticeSessionRead:
-    session = get_session(db, session_id)
+def finish_session(db: Session, user_id: str, session_id: str, *, abandoned: bool = False) -> AlgorithmPracticeSessionRead:
+    session = get_session(db, user_id, session_id)
     if session is None:
         raise AlgorithmPracticeError("训练会话不存在或已删除。")
     if session.status != "in_progress":
@@ -806,11 +811,11 @@ def finish_session(db: Session, session_id: str, *, abandoned: bool = False) -> 
         session.completed_at = now
     db.commit()
     db.refresh(session)
-    return session_read(db, session)
+    return session_read(db, user_id, session)
 
 
-def delete_session(db: Session, session_id: str) -> None:
-    session = get_session(db, session_id)
+def delete_session(db: Session, user_id: str, session_id: str) -> None:
+    session = get_session(db, user_id, session_id)
     if session is None:
         raise AlgorithmPracticeError("训练会话不存在或已删除。")
     session.deleted_at = utc_now()
@@ -826,9 +831,9 @@ def _review_interval(result: str, needs_review: bool, previous_count: int, maste
 
 
 def _sync_progress_and_review(db: Session, attempt: AlgorithmAttempt) -> None:
-    progress = db.scalar(select(AlgorithmProblemProgress).where(AlgorithmProblemProgress.problem_id == attempt.problem_id))
+    progress = db.scalar(select(AlgorithmProblemProgress).where(AlgorithmProblemProgress.user_id == attempt.user_id, AlgorithmProblemProgress.problem_id == attempt.problem_id))
     if progress is None:
-        progress = AlgorithmProblemProgress(problem_id=attempt.problem_id)
+        progress = AlgorithmProblemProgress(user_id=attempt.user_id, problem_id=attempt.problem_id)
         db.add(progress)
         db.flush()
     requires_review = attempt.needs_review or attempt.result in FAILED_RESULTS or attempt.result == "partially_solved"
@@ -848,12 +853,13 @@ def _sync_progress_and_review(db: Session, attempt: AlgorithmAttempt) -> None:
     else:
         progress.status = "attempted"
 
-    schedule = get_review_schedule(db, attempt.problem_id)
+    schedule = get_review_schedule(db, attempt.user_id, attempt.problem_id)
     previous_count = schedule.review_count if schedule else 0
     interval = _review_interval(attempt.result, requires_review, previous_count, progress.mastery_level)
     reason = "wrong" if attempt.result in FAILED_RESULTS else "needs_review" if requires_review else "spaced_repetition"
     if schedule is None:
         schedule = AlgorithmReviewSchedule(
+            user_id=attempt.user_id,
             problem_id=attempt.problem_id,
             last_attempt_id=attempt.id,
             next_review_at=(attempt.submitted_at or utc_now()) + timedelta(days=interval),
@@ -872,20 +878,21 @@ def _sync_progress_and_review(db: Session, attempt: AlgorithmAttempt) -> None:
         schedule.reason = reason
 
 
-def create_attempt(db: Session, payload: AlgorithmAttemptCreate) -> AlgorithmAttemptRead:
+def create_attempt(db: Session, user_id: str, payload: AlgorithmAttemptCreate) -> AlgorithmAttemptRead:
     problem = get_problem(db, payload.problem_id)
     if problem is None or not problem.is_active:
         raise AlgorithmPracticeError("题目不存在于可用的本地题库。")
     session_item: AlgorithmPracticeSessionItem | None = None
     if payload.session_id:
-        session = get_session(db, payload.session_id)
+        session = get_session(db, user_id, payload.session_id)
         if session is None:
             raise AlgorithmPracticeError("训练会话不存在或已删除。")
-        session_item = get_session_item(db, session.id, problem.id)
+        session_item = get_session_item(db, user_id, session.id, problem.id)
         if session_item is None:
             raise AlgorithmPracticeError("该题目不属于当前训练会话。")
     now = utc_now()
     attempt = AlgorithmAttempt(
+        user_id=user_id,
         problem_id=problem.id,
         session_id=payload.session_id,
         session_item_id=session_item.id if session_item else None,
@@ -908,7 +915,7 @@ def create_attempt(db: Session, payload: AlgorithmAttemptCreate) -> AlgorithmAtt
     if session_item:
         session_item.status = "solved" if payload.result == "solved" and not payload.needs_review else "needs_review"
         session_item.completed_at = now
-        session = get_session(db, payload.session_id)
+        session = get_session(db, user_id, payload.session_id)
         if session:
             session.last_active_at = now
     _sync_progress_and_review(db, attempt)
@@ -917,8 +924,8 @@ def create_attempt(db: Session, payload: AlgorithmAttemptCreate) -> AlgorithmAtt
     return _attempt_read(attempt)  # type: ignore[return-value]
 
 
-def update_attempt(db: Session, attempt_id: int, payload: AlgorithmAttemptUpdate) -> AlgorithmAttemptRead:
-    attempt = get_attempt(db, attempt_id)
+def update_attempt(db: Session, user_id: str, attempt_id: int, payload: AlgorithmAttemptUpdate) -> AlgorithmAttemptRead:
+    attempt = get_attempt(db, user_id, attempt_id)
     if attempt is None:
         raise AlgorithmPracticeError("解题记录不存在。")
     for name, value in payload.model_dump(exclude_unset=True).items():
@@ -928,19 +935,19 @@ def update_attempt(db: Session, attempt_id: int, payload: AlgorithmAttemptUpdate
     return _attempt_read(attempt)  # type: ignore[return-value]
 
 
-def delete_attempt(db: Session, attempt_id: int) -> None:
-    attempt = get_attempt(db, attempt_id)
+def delete_attempt(db: Session, user_id: str, attempt_id: int) -> None:
+    attempt = get_attempt(db, user_id, attempt_id)
     if attempt is None:
         raise AlgorithmPracticeError("解题记录不存在。")
 
     remaining_attempts = list(
         db.scalars(
             select(AlgorithmAttempt)
-            .where(AlgorithmAttempt.problem_id == attempt.problem_id, AlgorithmAttempt.id != attempt.id)
+            .where(AlgorithmAttempt.user_id == user_id, AlgorithmAttempt.problem_id == attempt.problem_id, AlgorithmAttempt.id != attempt.id)
             .order_by(AlgorithmAttempt.submitted_at.desc(), AlgorithmAttempt.id.desc())
         ).all()
     )
-    schedule = get_review_schedule(db, attempt.problem_id)
+    schedule = get_review_schedule(db, user_id, attempt.problem_id)
     if schedule and schedule.last_attempt_id == attempt.id:
         if remaining_attempts:
             latest = remaining_attempts[0]
@@ -955,7 +962,7 @@ def delete_attempt(db: Session, attempt_id: int) -> None:
         else:
             db.delete(schedule)
 
-    progress = db.scalar(select(AlgorithmProblemProgress).where(AlgorithmProblemProgress.problem_id == attempt.problem_id))
+    progress = db.scalar(select(AlgorithmProblemProgress).where(AlgorithmProblemProgress.user_id == user_id, AlgorithmProblemProgress.problem_id == attempt.problem_id))
     if progress:
         if not remaining_attempts:
             db.delete(progress)
@@ -973,15 +980,15 @@ def delete_attempt(db: Session, attempt_id: int) -> None:
     db.commit()
 
 
-def get_attempt_read(db: Session, attempt_id: int) -> AlgorithmAttemptRead:
-    attempt = get_attempt(db, attempt_id)
+def get_attempt_read(db: Session, user_id: str, attempt_id: int) -> AlgorithmAttemptRead:
+    attempt = get_attempt(db, user_id, attempt_id)
     if attempt is None:
         raise AlgorithmPracticeError("解题记录不存在。")
     return _attempt_read(attempt)  # type: ignore[return-value]
 
 
-async def request_hint(db: Session, attempt_id: int, hint_level: int, approach: str) -> AlgorithmHintRead:
-    attempt = get_attempt(db, attempt_id)
+async def request_hint(db: Session, user_id: str, attempt_id: int, hint_level: int, approach: str) -> AlgorithmHintRead:
+    attempt = get_attempt(db, user_id, attempt_id)
     if attempt is None:
         raise AlgorithmPracticeError("解题记录不存在。")
     problem = get_problem(db, attempt.problem_id)
@@ -995,8 +1002,8 @@ async def request_hint(db: Session, attempt_id: int, hint_level: int, approach: 
     return AlgorithmHintRead(hint_level=hint_level, content=content, remaining_hint_levels=max(0, 4 - hint_level))
 
 
-async def request_ai_review(db: Session, attempt_id: int) -> AlgorithmAttemptRead:
-    attempt = get_attempt(db, attempt_id)
+async def request_ai_review(db: Session, user_id: str, attempt_id: int) -> AlgorithmAttemptRead:
+    attempt = get_attempt(db, user_id, attempt_id)
     if attempt is None:
         raise AlgorithmPracticeError("解题记录不存在。")
     problem = get_problem(db, attempt.problem_id)
@@ -1012,16 +1019,17 @@ async def request_ai_review(db: Session, attempt_id: int) -> AlgorithmAttemptRea
     attempt.ai_feedback_status = "completed"
     if review.needs_review:
         attempt.needs_review = True
-        progress = db.scalar(select(AlgorithmProblemProgress).where(AlgorithmProblemProgress.problem_id == attempt.problem_id))
+        progress = db.scalar(select(AlgorithmProblemProgress).where(AlgorithmProblemProgress.user_id == user_id, AlgorithmProblemProgress.problem_id == attempt.problem_id))
         if progress is None:
-            progress = AlgorithmProblemProgress(problem_id=attempt.problem_id)
+            progress = AlgorithmProblemProgress(user_id=user_id, problem_id=attempt.problem_id)
             db.add(progress)
         progress.needs_review = True
         progress.status = "needs_review"
-        schedule = get_review_schedule(db, attempt.problem_id)
+        schedule = get_review_schedule(db, user_id, attempt.problem_id)
         if schedule is None:
             db.add(
                 AlgorithmReviewSchedule(
+                    user_id=user_id,
                     problem_id=attempt.problem_id,
                     last_attempt_id=attempt.id,
                     next_review_at=utc_now() + timedelta(days=3),
@@ -1041,20 +1049,20 @@ async def request_ai_review(db: Session, attempt_id: int) -> AlgorithmAttemptRea
     return _attempt_read(attempt)  # type: ignore[return-value]
 
 
-def mark_ai_review_failed(db: Session, attempt_id: int) -> None:
-    attempt = get_attempt(db, attempt_id)
+def mark_ai_review_failed(db: Session, user_id: str, attempt_id: int) -> None:
+    attempt = get_attempt(db, user_id, attempt_id)
     if attempt is None:
         return
     attempt.ai_feedback_status = "failed"
     db.commit()
 
 
-def due_reviews(db: Session, *, limit: int) -> list[AlgorithmReviewScheduleRead]:
+def due_reviews(db: Session, user_id: str, *, limit: int) -> list[AlgorithmReviewScheduleRead]:
     now = utc_now()
     schedules = list(
         db.scalars(
             select(AlgorithmReviewSchedule)
-            .where(AlgorithmReviewSchedule.next_review_at <= now)
+            .where(AlgorithmReviewSchedule.user_id == user_id, AlgorithmReviewSchedule.next_review_at <= now)
             .order_by(AlgorithmReviewSchedule.next_review_at)
             .limit(limit)
         ).all()
@@ -1067,7 +1075,7 @@ def due_reviews(db: Session, *, limit: int) -> list[AlgorithmReviewScheduleRead]
             review_count=schedule.review_count,
             mastery_level=schedule.mastery_level,
             reason=schedule.reason,
-            last_attempt=_attempt_read(get_attempt(db, schedule.last_attempt_id)),
+            last_attempt=_attempt_read(get_attempt(db, user_id, schedule.last_attempt_id)),
         )
         for schedule in schedules
         if (problem := get_problem(db, schedule.problem_id)) is not None
@@ -1076,6 +1084,7 @@ def due_reviews(db: Session, *, limit: int) -> list[AlgorithmReviewScheduleRead]
 
 def list_review_candidates(
     db: Session,
+    user_id: str,
     *,
     time_order: str = "recommended",
     from_date: date_type | None = None,
@@ -1085,9 +1094,9 @@ def list_review_candidates(
     limit: int = 50,
 ) -> list[AlgorithmReviewCandidateRead]:
     problems = list_active_problems(db)
-    latest_attempts = latest_attempts_by_problem(db, [problem.id for problem in problems])
-    schedules = review_schedules_by_problem(db, [problem.id for problem in problems])
-    progress = progress_by_problem(db, [problem.id for problem in problems])
+    latest_attempts = latest_attempts_by_problem(db, user_id, [problem.id for problem in problems])
+    schedules = review_schedules_by_problem(db, user_id, [problem.id for problem in problems])
+    progress = progress_by_problem(db, user_id, [problem.id for problem in problems])
     feedbacks = {
         feedback.synced_attempt_id: feedback
         for feedback in db.scalars(
@@ -1138,9 +1147,9 @@ def list_review_candidates(
     return sorted(rows, key=sort_key)[:limit]
 
 
-def create_review_session(db: Session, *, count: int, problem_ids: list[int] | None = None) -> AlgorithmPracticeSessionRead:
+def create_review_session(db: Session, user_id: str, *, count: int, problem_ids: list[int] | None = None) -> AlgorithmPracticeSessionRead:
     ids = [str(problem_id) for problem_id in problem_ids or []]
-    return create_session(db, AlgorithmPracticeSessionCreate(mode="review", count=len(ids) or count, problem_ids=ids, prioritize_due_review=True))
+    return create_session(db, user_id, AlgorithmPracticeSessionCreate(mode="review", count=len(ids) or count, problem_ids=ids, prioritize_due_review=True))
 
 
 def similar_problems(db: Session, problem_id: str, *, limit: int) -> list[AlgorithmProblemRead]:
@@ -1156,22 +1165,24 @@ def _date_key(value: datetime | None) -> str | None:
     return app_local_date(value).isoformat()
 
 
-def algorithm_stats(db: Session) -> AlgorithmStatsRead:
+def algorithm_stats(db: Session, user_id: str) -> AlgorithmStatsRead:
     now = utc_now()
-    attempts = list(db.scalars(select(AlgorithmAttempt).where(AlgorithmAttempt.submitted_at.is_not(None))).all())
+    attempts = list(db.scalars(select(AlgorithmAttempt).where(AlgorithmAttempt.user_id == user_id, AlgorithmAttempt.submitted_at.is_not(None))).all())
     completed_items = list(
         db.scalars(
-            select(AlgorithmPracticeSessionItem).where(
+            select(AlgorithmPracticeSessionItem).join(AlgorithmPracticeSession).where(
+                AlgorithmPracticeSession.user_id == user_id,
                 AlgorithmPracticeSessionItem.completed_at.is_not(None),
                 AlgorithmPracticeSessionItem.status.in_(("solved", "needs_review")),
             )
         ).all()
     )
     problems = {problem.id: problem for problem in list_active_problems(db)}
-    progress = list(db.scalars(select(AlgorithmProblemProgress)).all())
+    progress = list(db.scalars(select(AlgorithmProblemProgress).where(AlgorithmProblemProgress.user_id == user_id)).all())
     sessions = list(
         db.scalars(
             select(AlgorithmPracticeSession).where(
+                AlgorithmPracticeSession.user_id == user_id,
                 AlgorithmPracticeSession.status == "in_progress", AlgorithmPracticeSession.deleted_at.is_(None)
             )
         ).all()
@@ -1234,7 +1245,7 @@ def algorithm_stats(db: Session) -> AlgorithmStatsRead:
             topic: round(topic_successes[topic] / count, 3) for topic, count in topic_attempts.items() if count
         },
         average_duration_seconds=round(sum(durations) / len(durations)) if durations else None,
-        due_review_count=len(_due_problem_ids(db, now)),
+        due_review_count=len(_due_problem_ids(db, user_id, now)),
         wrong_problem_count=sum(record.needs_review for record in progress),
         in_progress_session_count=len(sessions),
         recent_7_days=trend(7),
@@ -1242,11 +1253,11 @@ def algorithm_stats(db: Session) -> AlgorithmStatsRead:
     )
 
 
-def algorithm_weaknesses(db: Session) -> list[AlgorithmWeaknessRead]:
-    stats = algorithm_stats(db)
+def algorithm_weaknesses(db: Session, user_id: str) -> list[AlgorithmWeaknessRead]:
+    stats = algorithm_stats(db, user_id)
     problems = {problem.id: problem for problem in list_active_problems(db)}
-    progress = list(db.scalars(select(AlgorithmProblemProgress)).all())
-    schedules = review_schedules_by_problem(db, problems)
+    progress = list(db.scalars(select(AlgorithmProblemProgress).where(AlgorithmProblemProgress.user_id == user_id)).all())
+    schedules = review_schedules_by_problem(db, user_id, problems)
     by_topic: dict[str, list[AlgorithmProblemProgress]] = defaultdict(list)
     for record in progress:
         problem = problems.get(record.problem_id)

@@ -29,6 +29,7 @@ import {
   setAlgorithmReasoningFixtureEnabled,
 } from "../api/algorithmReasoning";
 import { ApiRequestError } from "../api/client";
+import { userStorageKey } from "../auth/userStorage";
 import { VoiceInput } from "../components/VoiceInput";
 import { formatElapsedTime, useAlgorithmAttemptDraft, useAlgorithmSessionTimer } from "../hooks/useAlgorithmPracticeState";
 import type { AlgorithmItemStatus, AlgorithmSession } from "../types/algorithm";
@@ -73,7 +74,7 @@ function conclusionLabel(value: string) {
 }
 
 function reasoningCacheKey(sessionId: string, problemId: number) {
-  return `study-diary:algorithm:session:${sessionId}:problem:${problemId}:reasoning`;
+  return userStorageKey(`algorithm:session:${sessionId}:problem:${problemId}:reasoning`);
 }
 
 function readCachedReasoning(key: string) {
@@ -179,7 +180,7 @@ export function AlgorithmSessionPage() {
 
   useEffect(() => {
     if (session?.status === "in_progress") {
-      window.localStorage.setItem("study-diary:algorithm:last-active-session", session.id);
+      window.localStorage.setItem(userStorageKey("algorithm:last-active-session"), session.id);
     }
   }, [session]);
 
@@ -494,7 +495,7 @@ export function AlgorithmSessionPage() {
     try {
       const next = await completeAlgorithmSession(session.id);
       setSession(next);
-      window.localStorage.removeItem("study-diary:algorithm:last-active-session");
+      window.localStorage.removeItem(userStorageKey("algorithm:last-active-session"));
       timer.resetTimer();
       if (nextPath) navigate(nextPath);
     } catch (completeError) {

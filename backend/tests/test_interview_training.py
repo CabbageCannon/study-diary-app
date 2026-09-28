@@ -17,6 +17,7 @@ from app.models import InterviewAnswer, InterviewQuestionSet, InterviewQuestionS
 from app.repositories.interview_repository import upsert_question
 from app.schemas import AnswerEvaluation, InterviewQuestionSeed
 from app.services.interview_training_service import review_interval_days, utc_now
+from tests.conftest import TEST_USER_ID
 
 
 def question_payload(question_id: str, review_status: str) -> InterviewQuestionSeed:
@@ -118,6 +119,7 @@ class InterviewTrainingApiTests(unittest.TestCase):
     def insert_history_set(self, question_ids: list[str], days_ago: int) -> None:
         happened_at = utc_now() - timedelta(days=days_ago)
         question_set = InterviewQuestionSet(
+            user_id=TEST_USER_ID,
             date=happened_at.date().isoformat(),
             domain="python",
             topic="asyncio",

@@ -1,4 +1,5 @@
 import type { DiaryDraft } from "../types/diary";
+import { userStorageKey } from "../auth/userStorage";
 
 const STORAGE_KEY = "study-diary:diary:working-draft";
 
@@ -29,7 +30,7 @@ function isDiaryDraft(value: unknown): value is DiaryDraft {
 
 export function loadDiaryDraftSnapshot(): DiaryDraftSnapshot | null {
   try {
-    const rawValue = window.localStorage.getItem(STORAGE_KEY);
+    const rawValue = window.localStorage.getItem(userStorageKey(STORAGE_KEY));
     if (!rawValue) return null;
     const value = JSON.parse(rawValue) as Record<string, unknown>;
     if (
@@ -41,7 +42,7 @@ export function loadDiaryDraftSnapshot(): DiaryDraftSnapshot | null {
       || typeof value.feedback !== "string"
       || (value.draft !== null && !isDiaryDraft(value.draft))
     ) {
-      window.localStorage.removeItem(STORAGE_KEY);
+      window.localStorage.removeItem(userStorageKey(STORAGE_KEY));
       return null;
     }
     return value as unknown as DiaryDraftSnapshot;
@@ -57,7 +58,7 @@ export function saveDiaryDraftSnapshot(input: DiaryDraftSnapshotInput): DiaryDra
     ...input,
   };
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+    window.localStorage.setItem(userStorageKey(STORAGE_KEY), JSON.stringify(snapshot));
     return snapshot;
   } catch {
     return null;
@@ -66,7 +67,7 @@ export function saveDiaryDraftSnapshot(input: DiaryDraftSnapshotInput): DiaryDra
 
 export function clearDiaryDraftSnapshot() {
   try {
-    window.localStorage.removeItem(STORAGE_KEY);
+    window.localStorage.removeItem(userStorageKey(STORAGE_KEY));
   } catch {
     // Local draft persistence is best-effort and must never block editing.
   }

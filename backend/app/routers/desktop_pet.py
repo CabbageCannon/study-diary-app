@@ -1,7 +1,7 @@
 import json
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -19,7 +19,12 @@ from app.schemas import (
 from app.services import study_session_service, weather_service
 
 
-router = APIRouter(prefix="/api/desktop-pet", tags=["desktop-pet"])
+def require_admin(request: Request) -> None:
+    if not request.state.is_admin:
+        raise HTTPException(status_code=403, detail="仅管理员可使用桌宠。")
+
+
+router = APIRouter(prefix="/api/desktop-pet", tags=["desktop-pet"], dependencies=[Depends(require_admin)])
 SHOW_REQUEST_TTL_SECONDS = 45
 
 
@@ -148,6 +153,7 @@ async def get_desktop_pet_weather(db: Session = Depends(get_db)) -> DesktopPetWe
 
 @router.get("/dashboard", response_model=DesktopPetDashboardRead)
 def get_desktop_pet_dashboard(
+    request: Request,
     response: Response,
     local_date: date | None = Query(default=None, alias="date"),
     timezone_offset_minutes: int = Query(default=0, ge=-840, le=840),
@@ -155,12 +161,12 @@ def get_desktop_pet_dashboard(
 ) -> DesktopPetDashboardRead:
     response.headers["Cache-Control"] = "no-store"
     now = study_session_service.utc_now()
-    summary = study_session_service.get_study_summary(db, local_date, timezone_offset_minutes, now)
+    summary = study_session_service.get_study_summary(db, request.state.user_id, local_date, timezone_offset_minutes, now)
     due_interview_reviews = db.scalar(
-        select(func.count()).select_from(InterviewReviewSchedule).where(InterviewReviewSchedule.next_review_at <= now)
+        select(func.count()).select_from(InterviewReviewSchedule).where(InterviewReviewSchedule.user_id == request.state.user_id, InterviewReviewSchedule.next_review_at <= now)
     ) or 0
     due_algorithm_reviews = db.scalar(
-        select(func.count()).select_from(AlgorithmReviewSchedule).where(AlgorithmReviewSchedule.next_review_at <= now)
+        select(func.count()).select_from(AlgorithmReviewSchedule).where(AlgorithmReviewSchedule.user_id == request.state.user_id, AlgorithmReviewSchedule.next_review_at <= now)
     ) or 0
     return DesktopPetDashboardRead(
         **summary,
