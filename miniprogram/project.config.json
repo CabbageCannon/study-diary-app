@@ -3,6 +3,7 @@
   "projectname": "study-diary-miniapp",
   "description": "学习日记微信小程序",
   "appid": "wx5372148eb34bcbdc",
+  "libVersion": "3.16.1",
   "setting": {
     "urlCheck": true,
     "es6": true,

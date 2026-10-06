@@ -1,11 +1,17 @@
-.practice-hero { display: flex; align-items: flex-end; justify-content: space-between; margin-top: 30px; padding: 28px; border-radius: 32px; background: #e8e0d3; }
-.practice-kicker { display: block; color: #8a7b68; font-size: 20px; font-weight: 650; letter-spacing: .1em; }
-.practice-count { display: block; margin-top: 7px; color: #302c26; font-size: 58px; font-weight: 720; letter-spacing: -.07em; line-height: 1; }
-.practice-unit { color: #6f665b; font-size: 25px; font-weight: 600; letter-spacing: 0; }
-.practice-caption { display: block; margin-top: 9px; color: #71685d; font-size: 22px; }
-.due-pill { display: flex; min-width: 82px; min-height: 82px; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(77, 63, 44, .12); border-radius: 22px; color: #5d5449; font-size: 19px; line-height: 1.35; text-align: center; }
-.due-pill text:first-child { color: #302c26; font-size: 29px; font-weight: 700; }
-.feature-card { margin-top: 16px; }
-.history-card { margin-top: 0; padding-top: 8px; padding-bottom: 8px; }
-.history-row { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; border-bottom: 1px solid rgba(72, 64, 52, .08); }.history-row:last-child { border: 0; }
-.history-title { display: block; color: #3c3730; font-size: 27px; font-weight: 620; }.history-date { display: block; margin-top: 6px; color: #958b7e; font-size: 20px; }.history-count { color: #777067; font-size: 25px; font-variant-numeric: tabular-nums; }
+.interview-screen .page-header { margin-top: 15px; margin-bottom: 28px; }
+.interview-stats { display: flex; justify-content: space-between; margin: 28px 0 64px; color: #5b544a; font-size: 25px; white-space: nowrap; }
+.interview-stats > text { flex: 1; text-align: center; }
+.interview-stats > text + text { border-left: 1px solid #cfc4b5; }
+.stat-emphasis { color: #292722; font-size: 30px; font-weight: 650; }
+.interview-feature { padding: 32px; box-shadow: 0 4px 12px rgba(66,52,32,.035); }
+.interview-feature-title { display: block; margin: 22px 0 14px; font-size: 40px; font-weight: 650; line-height: 1.4; }
+.interview-feature .button { margin-top: 30px; }
+.history-heading { margin-top: 48px; }
+.history-card { overflow: hidden; }
+.history-row { display: flex; align-items: center; min-height: 116px; box-sizing: border-box; padding: 24px 32px; border-bottom: 1px solid #e8e2d9; }
+.history-row:last-child { border-bottom: 0; }
+.history-copy { flex: 1; min-width: 0; }
+.history-title { display: block; font-size: 30px; font-weight: 600; }
+.history-date { display: block; margin-top: 4px; color: #a39a8e; font-size: 24px; }
+.history-count { margin-left: 18px; color: #786754; font-size: 28px; font-variant-numeric: tabular-nums; }
+.history-chevron { width: 26px; height: 26px; margin-left: 16px; }

@@ -1,1 +1,17 @@
-.auth-screen { min-height: 100vh; box-sizing: border-box; padding: calc(env(safe-area-inset-top) + 46px) 34px calc(env(safe-area-inset-bottom) + 42px); background: #f7f5f1; }.auth-hero { margin-bottom: 72px; }.auth-mark { display: grid; width: 78px; height: 78px; place-items: center; border-radius: 27px; background: #312d28; color: #fffdf8; font-size: 33px; font-weight: 700; box-shadow: 0 12px 25px rgba(52, 45, 37, .16); }.auth-kicker { display: block; margin-top: 28px; color: #89796a; font-size: 20px; font-weight: 700; letter-spacing: .16em; }.auth-title { display: block; margin-top: 22px; color: #29251f; font-size: 53px; font-weight: 700; line-height: 1.2; letter-spacing: -.05em; }.auth-copy { display: block; margin-top: 22px; color: #77716a; font-size: 26px; line-height: 1.65; }.auth-actions, .binding-card { padding: 27px; border: 1px solid rgba(76, 64, 48, .09); border-radius: 31px; background: #fffefa; box-shadow: 0 8px 25px rgba(67, 56, 41, .04); }.auth-primary, .auth-secondary, .auth-text { margin-top: 15px; border-radius: 24px; font-size: 27px; font-weight: 650; }.auth-primary { background: #34302b; color: #fff; }.auth-secondary { background: #ede7de; color: #3a352f; }.auth-text { color: #756d63; background: transparent; }.binding-title { font-size: 33px; font-weight: 680; }.binding-copy { display: block; margin-top: 12px; color: #77716a; font-size: 23px; line-height: 1.6; }.auth-input { height: 88px; margin-top: 16px; padding: 0 24px; border-radius: 20px; background: #f5f1eb; color: #302c26; font-size: 27px; }.auth-error { display: block; margin-top: 24px; color: #a03f33; font-size: 24px; line-height: 1.5; }
+.auth-screen { padding-right: 42px; padding-left: 42px; padding-bottom: calc(35px + env(safe-area-inset-bottom)); }
+.auth-hero { display: flex; flex-direction: column; align-items: center; padding-top: 145px; text-align: center; }
+.auth-emblem { width: 220px; height: 220px; }
+.auth-title { display: block; margin-top: 37px; font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 65px; font-weight: 650; line-height: 1.3; }
+.auth-copy { display: block; margin-top: 20px; color: #847d73; font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 28px; line-height: 1.6; }
+.auth-actions { margin-top: 198px; }
+.auth-actions .button { min-height: 94px; }
+.auth-actions .button + .button { margin-top: 23px; }
+.auth-wechat { width: 45px; height: 45px; margin-right: 22px; }
+.auth-text { width: 100%; padding: 20px 0; background: transparent; color: #786754; font-size: 28px; line-height: 1.4; }
+.auth-create { margin-top: 54px; text-decoration: underline; text-underline-offset: 9px; }
+.auth-footer { display: block; margin-top: 84px; color: #a1998e; font-family: "Songti SC", "STSong", "SimSun", serif; font-size: 25px; text-align: center; }
+.binding-card { margin-top: 32px; padding: 28px; }
+.binding-title { display: block; margin-bottom: 12px; font-size: 32px; font-weight: 650; }
+.auth-input { box-sizing: border-box; height: 84px; margin-top: 20px; padding: 0 22px; border: 1px solid #e0d8cb; border-radius: 18px; background: #fffefa; font-size: 29px; }
+.binding-card .button { margin-top: 24px; }
+.is-binding .auth-hero { padding-top: 15px; }.is-binding .auth-emblem { width: 95px; height: 95px; }.is-binding .auth-title { margin-top: 12px; font-size: 45px; }.is-binding .auth-footer { margin-top: 26px; }

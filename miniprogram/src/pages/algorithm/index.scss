@@ -1,1 +1,15 @@
-.algorithm-stats { display: flex; margin-top: 30px; padding: 23px 0; border-top: 1px solid rgba(77, 65, 48, .1); border-bottom: 1px solid rgba(77, 65, 48, .1); }.algorithm-stats view { display: flex; flex: 1; flex-direction: column; }.algorithm-stats view + view { padding-left: 19px; border-left: 1px solid rgba(77, 65, 48, .1); }.algorithm-stat-number { color: #342f29; font-size: 38px; font-weight: 700; letter-spacing: -.05em; line-height: 1; }.algorithm-stat-label { margin-top: 8px; color: #8a8278; font-size: 20px; }.problem-card { margin-top: 0; }.problem-topline { display: flex; justify-content: space-between; color: #998c7c; font-size: 21px; font-weight: 620; letter-spacing: .04em; }.problem-title { display: block; margin: 18px 0 9px; color: #302c26; font-size: 38px; font-weight: 690; line-height: 1.24; letter-spacing: -.035em; }.review-note { margin-top: 22px; padding: 5px 13px; }.review-note-title { display: block; color: #5d554b; font-size: 27px; font-weight: 650; }.review-note-copy { display: block; margin-top: 8px; color: #8a8177; font-size: 23px; line-height: 1.55; }
+.algorithm-screen .page-header { margin-top: 15px; }
+.algorithm-stats { display: flex; margin: 35px 0 92px; }
+.algorithm-stats > view { display: flex; flex: 1; flex-direction: column; align-items: center; }
+.algorithm-stats > view + view { border-left: 1px solid #e1d8cb; }
+.algorithm-stat-number { font-size: 46px; font-weight: 650; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.algorithm-stat-label { margin-top: 10px; color: #847d73; font-size: 26px; }
+.problem-card { padding: 36px; }
+.problem-topline { display: flex; align-items: center; justify-content: space-between; color: #847d73; font-size: 26px; }
+.difficulty { padding: 5px 20px; border-radius: 30px; background: #edf3ec; color: #396048; font-size: 23px; }
+.difficulty-medium { background: #f5eee1; color: #866b36; }.difficulty-hard { background: #f5e8e4; color: #91513f; }
+.problem-title { display: block; margin: 36px 0 14px; font-size: 43px; font-weight: 700; line-height: 1.25; }
+.problem-invitation { display: block; margin: 26px 0 44px; padding-top: 25px; border-top: 1px solid #e8e2d9; color: #847d73; font-size: 27px; line-height: 1.6; }
+.review-note { margin-top: 46px; }
+.review-note-title { display: block; font-size: 33px; font-weight: 650; }
+.review-note-copy { display: block; margin-top: 12px; color: #847d73; font-size: 26px; line-height: 1.6; }
