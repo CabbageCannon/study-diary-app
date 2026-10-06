@@ -5,7 +5,6 @@ page {
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
 }
 
-* { box-sizing: border-box; }
 button::after { border: 0; }
 .screen { min-height: 100vh; padding: calc(env(safe-area-inset-top) + 28px) 32px calc(env(safe-area-inset-bottom) + 104px); }
 .eyebrow { color: #8f8274; font-size: 22px; letter-spacing: .12em; }

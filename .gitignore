@@ -35,3 +35,5 @@ backend/data/*.sqlite3
 .DS_Store
 Thumbs.db
 .dev-processes.json
+miniprogram/miniapp-preview.png
+miniprogram/miniapp-preview.json
