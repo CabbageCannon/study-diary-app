@@ -1,0 +1,21 @@
+page {
+  min-height: 100%;
+  background: #f6f4ef;
+  color: #292720;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+}
+
+* { box-sizing: border-box; }
+button::after { border: 0; }
+.screen { min-height: 100vh; padding: calc(env(safe-area-inset-top) + 28px) 32px calc(env(safe-area-inset-bottom) + 104px); }
+.eyebrow { color: #8f8274; font-size: 22px; letter-spacing: .12em; }
+.page-title { margin: 10px 0 6px; font-size: 48px; line-height: 1.1; letter-spacing: -.04em; }
+.page-subtitle { margin: 0; color: #77716a; font-size: 27px; line-height: 1.55; }
+.card { margin-top: 26px; padding: 28px; border: 1px solid rgba(63, 55, 43, .08); border-radius: 28px; background: rgba(255, 255, 255, .72); box-shadow: 0 12px 36px rgba(89, 71, 47, .05); }
+.card-title { font-size: 30px; font-weight: 650; }
+.muted { color: #817a72; font-size: 25px; line-height: 1.55; }
+.button { display: flex; align-items: center; justify-content: center; min-height: 88px; margin-top: 20px; border-radius: 999px; font-size: 29px; font-weight: 600; }
+.button-primary { background: #35312c; color: #fff; }
+.button-secondary { background: #e9e3da; color: #39352e; }
+.error { margin-top: 18px; color: #a23d31; font-size: 24px; }
+.loading { display: flex; align-items: center; min-height: 180px; color: #817a72; font-size: 27px; }

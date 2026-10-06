@@ -32,6 +32,14 @@ services:
         sync: false
       - key: ADMIN_USER_ID
         sync: false
+      - key: WECHAT_MINI_APP_ID
+        value: wx5372148eb34bcbdc
+      - key: WECHAT_MINI_APP_SECRET
+        sync: false
+      - key: MINIAPP_JWT_SECRET
+        sync: false
+      - key: MINIAPP_TOKEN_TTL_SECONDS
+        value: 604800
       - key: APP_TIMEZONE
         value: Asia/Shanghai
       - key: VAPID_PUBLIC_KEY

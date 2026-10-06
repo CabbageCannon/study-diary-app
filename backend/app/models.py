@@ -31,6 +31,18 @@ class UserProfile(Base):
         return value if isinstance(value, dict) else {}
 
 
+class WechatMiniIdentity(Base):
+    """Private link between a WeChat Mini Program OpenID and one app user."""
+
+    __tablename__ = "wechat_mini_identities"
+
+    openid: Mapped[str] = mapped_column(String(128), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(36), unique=True, index=True)
+    unionid: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
 class Diary(Base):
     __tablename__ = "diaries"
 
