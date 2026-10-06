@@ -4,10 +4,9 @@
 
 ## 本地启动
 
-1. 复制 `.env.example` 为 `.env.production`，填写 Supabase **publishable key**（它是公开客户端配置，不是 service-role key）。
-2. `npm install --no-audit --no-fund`
-3. `npm run build:weapp`
-4. 在微信开发者工具导入本目录；它会读取 `dist/`，AppID 已填为 `wx5372148eb34bcbdc`。
+1. `npm install --no-audit --no-fund`
+2. `npm run build:weapp`
+3. 在微信开发者工具导入本目录；它会读取 `dist/`，AppID 已填为 `wx5372148eb34bcbdc`。
 
 ## 微信上线前配置
 
