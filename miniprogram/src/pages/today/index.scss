@@ -1,10 +1,7 @@
 .today-focus { margin-top: 32px; padding: 28px; border-radius: 32px; background: #e9e3d9; color: #332f29; }
 .focus-kicker { display: block; color: #8a7c6b; font-size: 20px; font-weight: 650; letter-spacing: .1em; }
 .focus-copy { display: block; margin-top: 10px; font-size: 30px; font-weight: 680; letter-spacing: -.025em; }
-.progress-row { display: flex; margin-top: 27px; padding-top: 22px; border-top: 1px solid rgba(73, 61, 44, .11); }
-.progress-item { display: flex; flex: 1; flex-direction: column; }
-.progress-item + .progress-item { padding-left: 20px; border-left: 1px solid rgba(73, 61, 44, .11); }
-.progress-number { font-size: 47px; font-weight: 700; letter-spacing: -.055em; line-height: 1; }
-.progress-label { margin-top: 9px; color: #7f7467; font-size: 21px; }
+.focus-total { display: block; margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(73, 61, 44, .11); color: #796e61; font-size: 23px; }
+.today-task-list { display: flex; flex-direction: column; gap: 14px; }.today-task-card { display: flex; align-items: center; min-height: 112px; box-sizing: border-box; padding: 20px; border: 1px solid rgba(72, 61, 45, .075); border-radius: 27px; background: #fffefa; box-shadow: 0 6px 19px rgba(67, 56, 41, .035); }.today-task-card:active { opacity: .76; transform: scale(.99); }.task-index { display: flex; width: 70px; min-height: 70px; flex-direction: column; align-items: center; justify-content: center; border-radius: 21px; background: #eee8de; color: #5c5348; line-height: 1; }.task-index text:first-child { color: #332f29; font-size: 30px; font-weight: 700; letter-spacing: -.04em; }.task-index text:last-child { margin-top: 5px; color: #847a6f; font-size: 18px; }.task-copy { display: flex; flex: 1; flex-direction: column; min-width: 0; margin-left: 19px; }.task-title { color: #37312a; font-size: 28px; font-weight: 680; }.task-detail { display: block; margin-top: 7px; color: #8b8278; font-size: 21px; line-height: 1.35; }.task-arrow { margin-left: 12px; color: #a0978b; font-size: 35px; font-weight: 300; }
 .quiet-card { background: #f1ede6; box-shadow: none; }
 .today-divider { height: 1px; margin: 19px 0; background: rgba(80, 69, 55, .1); }
