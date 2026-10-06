@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "problem_key": "leetcode-39",
+  "title": "Combination Sum",
+  "title_zh": "组合总和",
+  "statement_zh": "给定一个不含重复元素的正整数数组 candidates 和一个目标值 target。请找出所有数字和等于 target 的组合。每个候选数字可以被选择多次；组合内部顺序不影响是否重复，只要使用的数字及次数相同，就视为同一个组合。",
+  "input_output": {
+    "input": "candidates：互不重复的正整数数组；target：正整数目标和。",
+    "output": "所有不重复的组合列表，每个组合中的数来自 candidates，且总和等于 target。"
+  },
+  "constraints": [
+    "1 <= candidates.length <= 30",
+    "2 <= candidates[i] <= 40",
+    "candidates 中的元素互不相同",
+    "1 <= target <= 40",
+    "每个 candidates[i] 可以被重复使用"
+  ],
+  "examples": [
+    {
+      "input": "candidates = [2, 3, 6, 7], target = 7",
+      "output": "[[2, 2, 3], [7]]",
+      "explanation": "2 可以重复选择；[2,3,2] 与 [2,2,3] 视为同一个组合。"
+    },
+    {
+      "input": "candidates = [4, 5], target = 3",
+      "output": "[]",
+      "explanation": "所有候选数都大于 target，无有效组合。"
+    },
+    {
+      "input": "candidates = [2], target = 4",
+      "output": "[[2, 2]]",
+      "explanation": "同一个候选数字可以使用两次。"
+    }
+  ],
+  "verification_points": [
+    {
+      "id": "vp-reuse-same-candidate",
+      "kind": "correctness_condition",
+      "statement": "说明候选数字可以重复使用，递归选择当前数字后仍可继续从当前下标开始。",
+      "required": true,
+      "acceptable_variants": [
+        "回溯参数传入 start 而不是 start + 1 来允许复用当前候选。"
+      ]
+    },
+    {
+      "id": "vp-no-duplicate-combinations",
+      "kind": "correctness_condition",
+      "statement": "组合结果不能因顺序不同而重复输出。",
+      "required": true,
+      "acceptable_variants": [
+        "按候选数组下标非递减选择。",
+        "排序后只向后枚举候选。"
+      ]
+    },
+    {
+      "id": "vp-target-pruning",
+      "kind": "key_insight",
+      "statement": "维护剩余和，剩余和为 0 时记录答案，剩余和小于 0 或候选数过大时停止当前分支。",
+      "required": true,
+      "acceptable_variants": [
+        "维护当前总和并在超过 target 时剪枝也可。"
+      ]
+    },
+    {
+      "id": "vp-complexity",
+      "kind": "complexity",
+      "statement": "回溯搜索复杂度取决于答案数量和分支剪枝，不能简单声称严格 O(n)；空间主要来自递归深度和输出。",
+      "required": false,
+      "acceptable_variants": []
+    }
+  ],
+  "acceptable_approaches": [
+    {
+      "name": "排序加回溯",
+      "idea": "先排序 candidates；递归维护 start、path 和 remaining。枚举 start 之后的候选数，选择 nums[i] 后递归仍传 i 以允许重复使用；remaining 为 0 时复制 path 到答案。",
+      "time_complexity": "与搜索树和输出规模相关",
+      "space_complexity": "O(target / min(candidates)) 加输出空间",
+      "is_reference": true,
+      "note": null
+    },
+    {
+      "name": "动态规划枚举组合",
+      "idea": "用 dp[sum] 保存能组成 sum 的组合，并按候选数字外层遍历来避免不同顺序产生重复组合。",
+      "time_complexity": "与 target、候选数和组合数量相关",
+      "space_complexity": "与输出规模相关",
+      "is_reference": false,
+      "note": "可行但实现更重，移动端思路核对优先认可回溯。"
+    }
+  ],
+  "common_mistakes": [
+    {
+      "description": "选择当前候选后递归到 i + 1，导致同一个数字不能重复使用。",
+      "counterexample": "candidates = [2], target = 4：正确答案是 [[2, 2]]。"
+    },
+    {
+      "description": "每层都从 0 开始枚举，导致相同组合以不同顺序重复出现。",
+      "counterexample": "candidates = [2, 3], target = 5：可能同时输出 [2,3] 和 [3,2]。"
+    },
+    {
+      "description": "path 直接加入答案后继续修改，导致答案内容被后续回溯污染。",
+      "counterexample": "记录答案时若不复制列表，最终答案可能都变成空列表或同一个路径。"
+    }
+  ],
+  "edge_cases": [
+    {
+      "description": "单个候选数需要重复使用。",
+      "expected_handling": "允许多次选择同一下标对应的值。"
+    },
+    {
+      "description": "所有候选数都大于 target。",
+      "expected_handling": "返回空列表，排序后可直接剪枝。"
+    },
+    {
+      "description": "target 恰好等于某个候选数。",
+      "expected_handling": "该单元素组合应被记录。"
+    }
+  ],
+  "source": {
+    "name": "LeetCode CN 39. 组合总和",
+    "url": "https://leetcode.cn/problems/combination-sum/",
+    "license_note": "题意、示例、核对要点和反例均为原创中文转写，未复制外站题面或题解。",
+    "source_version": "2026-09-11 对照 leetcode.cn 官方题面核对"
+  },
+  "content_notes": "按官方题目约束补齐移动端思路核对上下文；示例与反例为本项目原创构造。",
+  "content_status": "ready"
+}

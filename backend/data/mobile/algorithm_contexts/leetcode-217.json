@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "problem_key": "leetcode-217",
+  "title": "Contains Duplicate",
+  "title_zh": "存在重复元素",
+  "statement_zh": "给定整数数组 nums，判断数组中是否存在至少一对不同下标 i 和 j，使得 nums[i] 等于 nums[j]。只要存在任意重复值就返回 true；如果所有元素都互不相同，则返回 false。",
+  "input_output": {
+    "input": "nums：整数数组。",
+    "output": "布尔值；存在重复元素返回 true，否则返回 false。"
+  },
+  "constraints": [
+    "1 <= nums.length <= 10^5",
+    "-10^9 <= nums[i] <= 10^9",
+    "只需判断是否存在重复，不需要返回重复值或下标"
+  ],
+  "examples": [
+    {
+      "input": "nums = [7, 1, 7, 3]",
+      "output": "true",
+      "explanation": "值 7 出现了两次。"
+    },
+    {
+      "input": "nums = [1, 2, 3, 4]",
+      "output": "false",
+      "explanation": "所有元素都不同。"
+    },
+    {
+      "input": "nums = [-1, 0, -1]",
+      "output": "true",
+      "explanation": "负数也可以作为重复值。"
+    }
+  ],
+  "verification_points": [
+    {
+      "id": "vp-seen-set",
+      "kind": "key_insight",
+      "statement": "用集合或哈希表记录已经见过的值，遇到已存在的值即可返回 true。",
+      "required": true,
+      "acceptable_variants": [
+        "先建集合后比较集合大小与数组长度也可接受。"
+      ]
+    },
+    {
+      "id": "vp-distinct-indices",
+      "kind": "correctness_condition",
+      "statement": "重复意味着相同值出现在不同下标上；不是同一元素与自己比较。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-early-return",
+      "kind": "key_insight",
+      "statement": "一旦发现重复即可返回 true，不必找出所有重复值。",
+      "required": false,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-complexity",
+      "kind": "complexity",
+      "statement": "哈希集合方案时间 O(n)、空间 O(n)；排序方案时间 O(n log n)、额外空间依实现而定。",
+      "required": false,
+      "acceptable_variants": []
+    }
+  ],
+  "acceptable_approaches": [
+    {
+      "name": "哈希集合",
+      "idea": "遍历 nums，若当前值已经在集合中则返回 true；否则加入集合。遍历结束仍未发现重复则返回 false。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(n)",
+      "is_reference": true,
+      "note": null
+    },
+    {
+      "name": "集合大小比较",
+      "idea": "把所有元素放入集合，若集合大小小于数组长度，说明存在重复。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(n)",
+      "is_reference": false,
+      "note": "正确但不能提前返回。"
+    },
+    {
+      "name": "排序后相邻比较",
+      "idea": "排序数组后检查相邻元素是否相等。",
+      "time_complexity": "O(n log n)",
+      "space_complexity": "O(1)",
+      "is_reference": false,
+      "note": "正确；若不能修改输入，需要说明复制数组或接受排序副作用。"
+    }
+  ],
+  "common_mistakes": [
+    {
+      "description": "把每个元素和自己比较导致永远认为重复。",
+      "counterexample": "nums = [1]：没有两个不同下标，应返回 false。"
+    },
+    {
+      "description": "排序方案忘记只需要比较相邻元素。",
+      "counterexample": "排序后相同值一定相邻；若继续双重循环会退化到 O(n^2)。"
+    },
+    {
+      "description": "误以为负数或 0 不能作为哈希键。",
+      "counterexample": "nums = [-1, 0, -1] 应返回 true。"
+    }
+  ],
+  "edge_cases": [
+    {
+      "description": "数组长度为 1。",
+      "expected_handling": "不可能存在不同下标的重复，返回 false。"
+    },
+    {
+      "description": "重复值出现在首尾。",
+      "expected_handling": "哈希集合能在第二次遇到该值时返回 true。"
+    },
+    {
+      "description": "所有元素都唯一。",
+      "expected_handling": "遍历结束或集合大小等于数组长度时返回 false。"
+    }
+  ],
+  "source": {
+    "name": "LeetCode CN 217. 存在重复元素",
+    "url": "https://leetcode.cn/problems/contains-duplicate/",
+    "license_note": "题意、示例、核对要点和反例均为原创中文转写，未复制外站题面或题解。",
+    "source_version": "2026-09-06 对照 leetcode.cn 官方题面核对"
+  },
+  "content_notes": "已核对官方题名、URL 和约束；排序方案正确但参考方案采用哈希集合。",
+  "content_status": "ready"
+}

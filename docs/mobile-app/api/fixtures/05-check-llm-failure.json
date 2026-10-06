@@ -1,0 +1,71 @@
+{
+  "fixture": "05-check-llm-failure",
+  "description": "一键核对时 LLM 超时/失败。回答已可靠保存（save_status=saved），核对失败（check_status=failed），feedback=null，给出 retry.check_url。系统超时不得显示为答错。同一请求体也覆盖 context_unavailable 变体（见 notes）。",
+  "request": {
+    "method": "POST",
+    "path": "/api/algorithms/reasoning/checks",
+    "headers": {
+      "Content-Type": "application/json",
+      "X-Study-Diary-Access": "<仅在配置 APP_ACCESS_TOKEN 时需要>"
+    },
+    "body": {
+      "problem_id": "leetcode-1",
+      "session_id": null,
+      "answer_text": "遍历数组，用哈希表存见过的数，对当前数先查 target 减它的差在不在表里，在就返回两个下标，不在就存进去继续。",
+      "answer_source": "text",
+      "details": {
+        "time_complexity": null,
+        "space_complexity": null,
+        "code": null,
+        "notes": null
+      },
+      "client_answer_id": "e5f6a7b8-99aa-4b2c-8d3e-4f5a6b7c8d9e",
+      "revision_of_answer_id": null
+    }
+  },
+  "response": {
+    "status": 201,
+    "body": {
+      "save_status": "saved",
+      "check_status": "failed",
+      "answer": {
+        "answer_id": 105,
+        "problem_id": "leetcode-1",
+        "session_id": null,
+        "version": 1,
+        "revision_of_answer_id": null,
+        "answer_text": "遍历数组，用哈希表存见过的数，对当前数先查 target 减它的差在不在表里，在就返回两个下标，不在就存进去继续。",
+        "answer_source": "text",
+        "details": {
+          "time_complexity": null,
+          "space_complexity": null,
+          "code": null,
+          "notes": null
+        },
+        "client_answer_id": "e5f6a7b8-99aa-4b2c-8d3e-4f5a6b7c8d9e",
+        "save_status": "saved",
+        "check_status": "failed",
+        "saved_at": "2026-09-06T12:25:03+00:00",
+        "checked_at": null
+      },
+      "feedback": null,
+      "check_error": "大模型服务暂时不可用（请求超时）。你的回答已保存，可稍后重试核对。",
+      "retry": {
+        "check_url": "/api/algorithms/reasoning/answers/105/check",
+        "method": "POST"
+      },
+      "problem_context": {
+        "problem_id": "leetcode-1",
+        "content_version": 3,
+        "reasoning_available": true
+      }
+    }
+  },
+  "notes": [
+    "HTTP 仍是 201：新回答已保存成功；核对失败只反映在 check_status=failed，不影响保存。",
+    "feedback=null、checked_at=null。B 显示“已保存 · 核对失败 · 重试”，绝不显示为答错。",
+    "重试用 retry.check_url（POST /reasoning/answers/105/check），见 06 fixture；重试不重复保存。",
+    "context_unavailable 变体：若题目上下文未 ready，save_status=saved、check_status=context_unavailable、feedback=null、check_error=“该题核对内容尚未就绪”，retry 为 null（重试无意义），problem_context.reasoning_available=false。",
+    "无效输出变体：LLM 返回非法 JSON 且一次修复重试仍失败时，同样 check_status=failed，不落库为 feedback（无效输出不污染记录）。"
+  ]
+}

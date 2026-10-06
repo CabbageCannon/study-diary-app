@@ -1,0 +1,938 @@
+{
+  "questions": [
+    {
+      "id": "agent-vs-llm-001",
+      "domain": "agent",
+      "topic": "agent_architecture",
+      "subtopic": "agent_vs_llm",
+      "question": "Agent 和普通的大模型调用有什么区别？什么情况下不必做成 Agent？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "Agent",
+        "LLM",
+        "架构选择"
+      ],
+      "reference_points": [
+        "区分一次生成与围绕目标持续决策的执行循环",
+        "说明 Agent 由模型、工具、状态和控制逻辑共同组成",
+        "能按任务确定性、步骤数量和外部操作需求判断是否需要 Agent",
+        "指出简单请求优先使用单次调用或固定工作流"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "区分一次生成与围绕目标持续决策的执行循环",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "说明 Agent 由模型、工具、状态和控制逻辑共同组成",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "能按任务确定性、步骤数量和外部操作需求判断是否需要 Agent",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "把任何接入大模型的应用都称为 Agent",
+        "只谈提示词而忽略工具执行与状态管理"
+      ],
+      "oral_answer_outline": [
+        "先说明一次调用和执行循环的边界",
+        "再列出 Agent 的运行时组成",
+        "最后给出选型条件"
+      ],
+      "reference_answer": "普通大模型调用通常根据一次输入生成一次输出；Agent 则让模型在受控循环里根据环境反馈决定下一步，并由应用执行工具、维护状态和约束权限。任务若步骤固定、结果可用确定性代码得到，单次调用或普通工作流更容易测试，也更快更便宜。只有任务需要动态规划、调用外部能力并根据结果改路时，Agent 才有明显价值。",
+      "follow_up_questions": [
+        "Agent 的自主程度应如何限制？",
+        "如何用指标证明 Agent 比固定工作流更合适？"
+      ],
+      "sources": [
+        {
+          "source_id": "anthropic-effective-agents"
+        },
+        {
+          "source_id": "openai-agents-sdk"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "agent-architecture-components-001",
+      "domain": "agent",
+      "topic": "agent_architecture",
+      "subtopic": "core_components",
+      "question": "设计一个可上线的 Agent，核心模块通常有哪些？各自负责什么？",
+      "difficulty": "medium",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Agent",
+        "系统设计",
+        "运行时"
+      ],
+      "reference_points": [
+        "模型和指令负责理解目标与提出下一步",
+        "工具层以清晰契约执行外部动作并返回结果",
+        "状态与记忆保存当前线程及跨线程信息",
+        "控制循环、护栏和追踪负责终止、权限、恢复与观测"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "模型和指令负责理解目标与提出下一步",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "工具层以清晰契约执行外部动作并返回结果",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "状态与记忆保存当前线程及跨线程信息",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "认为模型本身就等于完整 Agent",
+        "没有把权限校验和终止条件放在应用层"
+      ],
+      "oral_answer_outline": [
+        "从决策、行动、状态三部分展开",
+        "补充控制与安全边界",
+        "最后说明追踪和评估"
+      ],
+      "reference_answer": "可上线的 Agent 至少包含模型与指令、工具、状态、运行时控制和可观测性。模型只负责提出决策；工具层验证参数并执行动作；短期状态记录当前线程，长期记忆按命名空间存储可复用信息。运行时还要管理重试、预算、终止和人工确认，追踪系统记录模型与工具调用，便于定位失败和评估效果。",
+      "follow_up_questions": [
+        "哪些模块应该保持确定性？",
+        "如何为每个模块建立独立测试？"
+      ],
+      "sources": [
+        {
+          "source_id": "openai-agents-sdk"
+        },
+        {
+          "source_id": "langchain-agents-docs"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "agent-workflow-tools-boundary-001",
+      "domain": "agent",
+      "topic": "workflow",
+      "subtopic": "workflow_agent_tool_boundary",
+      "question": "Workflow、Agent 和 Tool 分别解决什么问题，三者应如何组合？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "Agent",
+        "Workflow",
+        "Tool"
+      ],
+      "reference_points": [
+        "Tool 是带输入输出契约的原子能力",
+        "Workflow 由代码预先规定步骤和分支",
+        "Agent 让模型根据中间结果动态选择行动",
+        "说明实际系统常以固定工作流包住局部 Agent"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "Tool 是带输入输出契约的原子能力",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "Workflow 由代码预先规定步骤和分支",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "Agent 让模型根据中间结果动态选择行动",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "把工作流和 Agent 当成同义词",
+        "允许模型绕过工具层直接操作外部系统"
+      ],
+      "oral_answer_outline": [
+        "先分别定义三者",
+        "再比较控制权所在",
+        "用混合架构收尾"
+      ],
+      "reference_answer": "Tool 是搜索、查询或写入等可执行能力；Workflow 把步骤与分支写在代码里，适合规则明确的流程；Agent 把部分下一步选择交给模型，适合路径无法预先枚举的任务。生产系统通常把三者组合：外层工作流控制权限、审批和终止，局部 Agent 处理开放式判断，具体动作仍通过受控 Tool 执行。",
+      "follow_up_questions": [
+        "何时应把 Agent 节点改回确定性节点？",
+        "工具契约设计不好会产生什么问题？"
+      ],
+      "sources": [
+        {
+          "source_id": "anthropic-effective-agents"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "agent-pattern-selection-001",
+      "domain": "agent",
+      "topic": "planning",
+      "subtopic": "pattern_selection",
+      "question": "ReAct、Plan-and-Execute 与 Reflection 三种 Agent 模式如何选择？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Agent",
+        "ReAct",
+        "Plan-and-Execute",
+        "Reflection"
+      ],
+      "reference_points": [
+        "ReAct 交替推理与行动，适合逐步探索",
+        "Plan-and-Execute 先形成计划再执行，适合依赖关系明显的长任务",
+        "Reflection 引入评价与修订，适合可验证的质量迭代",
+        "比较延迟、成本、可恢复性并允许混合使用"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "ReAct 交替推理与行动，适合逐步探索",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "Plan-and-Execute 先形成计划再执行，适合依赖关系明显的长任务",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "Reflection 引入评价与修订，适合可验证的质量迭代",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "认为某一种模式适合所有任务",
+        "只比较效果而不考虑调用成本和终止条件"
+      ],
+      "oral_answer_outline": [
+        "逐一解释工作方式",
+        "按任务结构匹配场景",
+        "补充成本与混合策略"
+      ],
+      "reference_answer": "ReAct 每拿到一次工具结果就决定下一步，路径灵活但调用次数可能较多。Plan-and-Execute 先拆解任务再执行，便于并行和检查依赖，但计划可能过早失效。Reflection 在生成后增加评价和修订，适合代码、报告等有明确标准的产物，同时必须限制迭代次数。实际可按任务阶段混合，并用预算和停止条件控制成本。",
+      "follow_up_questions": [
+        "怎样避免 Reflection 自我肯定却没有实质改进？",
+        "计划失效后应局部重排还是全部重做？"
+      ],
+      "sources": [
+        {
+          "source_id": "anthropic-effective-agents"
+        },
+        {
+          "source_id": "react-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "agent-task-decomposition-001",
+      "domain": "agent",
+      "topic": "planning",
+      "subtopic": "task_decomposition",
+      "question": "Agent 应怎样拆解复杂任务，才能支持并行执行又避免过度切分？",
+      "difficulty": "hard",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Agent",
+        "任务分解",
+        "并行"
+      ],
+      "reference_points": [
+        "先识别目标、依赖关系和不可并行的关键路径",
+        "每个子任务应有明确输入、输出与验收条件",
+        "独立子任务才能并行并需要统一汇总协议",
+        "根据执行反馈动态重排，同时限制粒度和子任务数量"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "先识别目标、依赖关系和不可并行的关键路径",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "每个子任务应有明确输入、输出与验收条件",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "独立子任务才能并行并需要统一汇总协议",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "把一句提示词机械切成很多小步骤",
+        "没有声明依赖和验收条件就直接并行"
+      ],
+      "oral_answer_outline": [
+        "从最终目标与依赖开始",
+        "定义子任务契约",
+        "说明并行、合并和重排"
+      ],
+      "reference_answer": "任务分解应从最终验收条件反推，先画出依赖，再把可独立产出和验证的部分切成子任务。每个子任务都要声明所需上下文、输出格式、截止时间和完成证据；无依赖的任务才并行。协调器合并结果时处理冲突和缺失，并根据新信息局部重排。切得过细会增加上下文复制、协调和失败面，因此应以可独立验收为最小粒度。",
+      "follow_up_questions": [
+        "如何发现两个子任务其实写入同一资源？",
+        "并行结果互相矛盾时由谁裁决？"
+      ],
+      "sources": [
+        {
+          "source_id": "anthropic-effective-agents"
+        },
+        {
+          "source_id": "openai-agents-orchestration"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "agent-memory-compression-001",
+      "domain": "agent",
+      "topic": "memory",
+      "subtopic": "memory_compression",
+      "question": "Agent 上下文过长时，如何压缩记忆又尽量不丢失关键事实？",
+      "difficulty": "hard",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Agent",
+        "记忆压缩",
+        "上下文工程"
+      ],
+      "reference_points": [
+        "区分必须原样保留的指令、近期消息与工具调用配对",
+        "结合滑动窗口、结构化摘要和按需检索",
+        "为摘要保留来源、时间和版本以便追溯",
+        "用任务成功率和事实召回测试信息损失"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "区分必须原样保留的指令、近期消息与工具调用配对",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "结合滑动窗口、结构化摘要和按需检索",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "为摘要保留来源、时间和版本以便追溯",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只保留最后若干条消息",
+        "反复摘要旧摘要却不保留可追溯来源"
+      ],
+      "oral_answer_outline": [
+        "先给记忆分类",
+        "说明窗口、摘要和检索的组合",
+        "最后说明可追溯与评估"
+      ],
+      "reference_answer": "压缩前先给信息分层：系统约束、未完成承诺、近期交互和工具调用结果通常优先保留。较旧内容可写入结构化摘要或长期存储，需要时再按相关性检索。摘要要记录来源、时间和版本，并保持工具调用与结果成对，避免上下文失真。压缩策略不能只看节省 token，还要用事实召回、任务成功率和错误恢复能力评估。",
+      "follow_up_questions": [
+        "摘要本身逐轮失真怎么办？",
+        "哪些信息不应交给模型决定是否删除？"
+      ],
+      "sources": [
+        {
+          "source_id": "langchain-memory-docs"
+        },
+        {
+          "source_id": "langgraph-persistence-docs"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "agent-framework-or-custom-001",
+      "domain": "agent",
+      "topic": "agent_architecture",
+      "subtopic": "framework_selection",
+      "question": "什么情况下应使用 Agent 框架，什么情况下手写简单执行循环更合适？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Agent",
+        "框架选型",
+        "工程权衡"
+      ],
+      "reference_points": [
+        "简单、稳定、少工具的任务可用短小的自定义循环",
+        "需要持久化、人工介入、流式输出和生态集成时框架更省成本",
+        "比较可调试性、升级成本、锁定风险与团队熟悉度",
+        "先做最小实现再用真实瓶颈决定是否引入框架"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "简单、稳定、少工具的任务可用短小的自定义循环",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "需要持久化、人工介入、流式输出和生态集成时框架更省成本",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "比较可调试性、升级成本、锁定风险与团队熟悉度",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "一开始就引入最重的框架",
+        "忽略框架抽象后仍需自己处理的业务状态"
+      ],
+      "oral_answer_outline": [
+        "按任务复杂度划分",
+        "比较框架提供的运行时能力",
+        "以最小验证和维护成本决策"
+      ],
+      "reference_answer": "只有几个工具、固定停止条件且状态简单时，自定义循环更透明，依赖也少。任务需要断点恢复、长时运行、人工审批、子图或大量集成时，成熟框架能提供现成运行时。选型不应只看功能表，还要验证调试体验、追踪、版本升级和团队维护成本。最稳妥的做法是先完成最小纵向流程，再让真实需求决定抽象层级。",
+      "follow_up_questions": [
+        "如何避免框架升级影响已有 Agent 行为？",
+        "迁移框架前应保存哪些可回放数据？"
+      ],
+      "sources": [
+        {
+          "source_id": "anthropic-effective-agents"
+        },
+        {
+          "source_id": "langgraph-docs"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "agent-reflection-001",
+      "domain": "agent",
+      "topic": "agent_evaluation",
+      "subtopic": "reflection_loop",
+      "question": "Agent 的 Reflection 机制应如何设计，才能真正提高结果质量？",
+      "difficulty": "medium",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Agent",
+        "Reflection",
+        "质量评估"
+      ],
+      "reference_points": [
+        "评价器应依据明确标准检查产物而不是泛泛点评",
+        "反馈应转化为可执行修改并重新验证",
+        "尽量使用测试、检索证据或独立评价器提供外部信号",
+        "设置迭代上限、无改进停止和成本预算"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "评价器应依据明确标准检查产物而不是泛泛点评",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "反馈应转化为可执行修改并重新验证",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "尽量使用测试、检索证据或独立评价器提供外部信号",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "让模型自由反省却不给评价标准",
+        "没有停止条件导致反复改写"
+      ],
+      "oral_answer_outline": [
+        "定义闭环步骤",
+        "说明外部验证信号",
+        "补充偏差和终止治理"
+      ],
+      "reference_answer": "有效 Reflection 是生成、评价、修订、再验证的闭环。评价器应围绕正确性、覆盖度和约束等明确标准输出具体缺口，修订后用测试或来源证据再次检查。若生成者和评价者使用同一上下文，要警惕共同偏差，因此关键任务最好加入确定性检查或独立模型。系统还应在评分不再提升、达到轮数或预算时停止。",
+      "follow_up_questions": [
+        "评价器与生成器是否应该用不同模型？",
+        "怎样判断一次反思只是改写而非改进？"
+      ],
+      "sources": [
+        {
+          "source_id": "anthropic-effective-agents"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "agent-context-engineering-001",
+      "domain": "agent",
+      "topic": "agent_architecture",
+      "subtopic": "context_engineering",
+      "question": "Agent 的上下文工程具体在管理什么，怎样做到信息足够但不过载？",
+      "difficulty": "hard",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Agent",
+        "上下文工程",
+        "Token"
+      ],
+      "reference_points": [
+        "上下文包括指令、对话、工具定义、检索内容与运行状态",
+        "按当前决策动态选择最少且足够的信息",
+        "对外部内容标注来源、可信度、时效与权限",
+        "通过裁剪、摘要、检索和中间件控制 token 预算"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "上下文包括指令、对话、工具定义、检索内容与运行状态",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "按当前决策动态选择最少且足够的信息",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "对外部内容标注来源、可信度、时效与权限",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "把上下文工程等同于写一段很长的系统提示",
+        "只追求少 token 而删除完成任务所需的约束"
+      ],
+      "oral_answer_outline": [
+        "先列出上下文组成",
+        "说明动态选择与可信度",
+        "用预算和效果指标收尾"
+      ],
+      "reference_answer": "上下文工程不是把所有资料塞进提示词，而是为当前一步选择正确的信息。它同时管理系统约束、消息历史、工具说明、检索证据、用户状态和中间结果。应用应按决策阶段裁剪与检索，给外部内容附上来源和时效，并避免把敏感信息传给无关工具。最后用 token、延迟、事实命中率和任务成功率共同衡量策略。",
+      "follow_up_questions": [
+        "工具数量很多时如何动态选择工具描述？",
+        "上下文中相互冲突的事实应如何处理？"
+      ],
+      "sources": [
+        {
+          "source_id": "langchain-context-docs"
+        },
+        {
+          "source_id": "langchain-agents-docs"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "agent-conversation-state-001",
+      "domain": "agent",
+      "topic": "memory",
+      "subtopic": "state_resume",
+      "question": "多轮 Agent 如何保存状态并支持中断后恢复，为什么不能只存完整聊天记录？",
+      "difficulty": "hard",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Agent",
+        "状态管理",
+        "断点恢复"
+      ],
+      "reference_points": [
+        "用 thread 标识隔离会话并在关键步骤写入 checkpoint",
+        "显式保存任务状态、工具结果、待审批项和版本",
+        "外部副作用要有幂等键并区分已请求、已执行、已验证",
+        "恢复时从一致检查点重放或继续而不是盲目重跑"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "用 thread 标识隔离会话并在关键步骤写入 checkpoint",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "显式保存任务状态、工具结果、待审批项和版本",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "外部副作用要有幂等键并区分已请求、已执行、已验证",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只把消息数组持久化就认为可以恢复",
+        "恢复时重新执行所有工具调用"
+      ],
+      "oral_answer_outline": [
+        "说明聊天记录的局限",
+        "给出线程、状态和检查点模型",
+        "补充幂等与版本迁移"
+      ],
+      "reference_answer": "完整聊天记录只描述交流，并不能可靠表示任务是否执行、某次写入是否成功或审批是否完成。系统应按 thread 保存结构化状态和检查点，包括当前节点、工具回执、待处理动作与版本。外部操作要使用幂等键，恢复时先核对执行状态，再从最近一致检查点继续。这样既能防止重复副作用，也便于回放和人工介入。",
+      "follow_up_questions": [
+        "checkpoint 写入和外部 API 成功之间如何处理不一致？",
+        "状态结构升级后旧线程怎样恢复？"
+      ],
+      "sources": [
+        {
+          "source_id": "langgraph-persistence-docs"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "agent-loop-governance-001",
+      "domain": "agent",
+      "topic": "react_pattern",
+      "subtopic": "loop_detection",
+      "question": "Agent 出现路径震荡、重复调用工具或死循环时，如何检测和终止？",
+      "difficulty": "hard",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Agent",
+        "死循环",
+        "可靠性"
+      ],
+      "reference_points": [
+        "为状态、动作和工具参数生成指纹以识别重复模式",
+        "定义可度量的进展信号而不只看模型自述",
+        "设置最大轮数、时间、token、费用和同类错误阈值",
+        "终止后返回可恢复状态并选择降级或人工接管"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "为状态、动作和工具参数生成指纹以识别重复模式",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "定义可度量的进展信号而不只看模型自述",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "设置最大轮数、时间、token、费用和同类错误阈值",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只靠提示词要求模型不要循环",
+        "触发上限后直接丢弃所有中间成果"
+      ],
+      "oral_answer_outline": [
+        "先讲重复模式检测",
+        "再讲进展指标与硬预算",
+        "最后说明停止后的恢复路径"
+      ],
+      "reference_answer": "可以对最近若干轮的状态摘要、动作名和规范化参数生成指纹，检测 A-B-A 或连续相同调用。与此同时定义任务进度，例如新增证据数、未完成子任务数或测试通过数；多轮无进展即触发停止。硬限制还应覆盖轮数、时间、token 和费用。终止时保存检查点与失败原因，随后降级为固定流程、请求用户信息或交给人工。",
+      "follow_up_questions": [
+        "合法重试与无效重复调用如何区分？",
+        "怎样让终止结果仍对用户有帮助？"
+      ],
+      "sources": [
+        {
+          "source_id": "openai-agents-tracing"
+        },
+        {
+          "source_id": "anthropic-effective-agents"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "agent-trace-latency-001",
+      "domain": "agent",
+      "topic": "agent_evaluation",
+      "subtopic": "trace_latency",
+      "question": "Agent 响应很慢时，如何从 Trace 定位真正的延迟瓶颈？",
+      "difficulty": "medium",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Agent",
+        "Tracing",
+        "延迟"
+      ],
+      "reference_points": [
+        "把一次请求拆成模型、工具、检索、队列和重试等 span",
+        "同时记录首 token、总耗时、token 数、错误和重试次数",
+        "用关键路径识别串行阻塞并查看 p50、p95、p99",
+        "根据证据选择并行、缓存、缩短上下文或替换慢工具"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "把一次请求拆成模型、工具、检索、队列和重试等 span",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "同时记录首 token、总耗时、token 数、错误和重试次数",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "用关键路径识别串行阻塞并查看 p50、p95、p99",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只记录整个请求的总耗时",
+        "看到模型耗时高就直接换模型而不检查上下文和重试"
+      ],
+      "oral_answer_outline": [
+        "建立端到端 trace",
+        "补齐关键 span 与指标",
+        "沿关键路径提出优化"
+      ],
+      "reference_answer": "先给整次 Agent 运行建立 trace，再为模型调用、检索、工具、排队和重试建立带父子关系的 span。关注首 token 时间与总耗时，并关联 token 量、工具参数规模、网络错误和重试。多分支流程要看关键路径而不是简单相加，线上还要比较 p50、p95、p99。确认瓶颈后再决定并行、缓存、减少上下文或优化具体工具。",
+      "follow_up_questions": [
+        "为什么平均延迟会掩盖真实体验问题？",
+        "并行工具调用一定能降低总延迟吗？"
+      ],
+      "sources": [
+        {
+          "source_id": "openai-agents-tracing"
+        },
+        {
+          "source_id": "opentelemetry-docs"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "agent-multi-agent-faults-001",
+      "domain": "agent",
+      "topic": "multi_agent",
+      "subtopic": "fault_coordination",
+      "question": "多 Agent 系统中，子 Agent 超时、失联或并发写冲突应如何处理？",
+      "difficulty": "hard",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Multi-Agent",
+        "容错",
+        "并发冲突"
+      ],
+      "reference_points": [
+        "协调器记录每个子任务的状态、期限、尝试次数和幂等键",
+        "超时后可取消、重试、降级或重新分配并保留部分结果",
+        "共享资源写入使用版本号、事务或比较交换检测冲突",
+        "汇总阶段标注缺失与冲突，不能把部分成功伪装成全部完成"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "协调器记录每个子任务的状态、期限、尝试次数和幂等键",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "超时后可取消、重试、降级或重新分配并保留部分结果",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "共享资源写入使用版本号、事务或比较交换检测冲突",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "广播同一任务后采用最先返回结果而不取消其余执行",
+        "多个 Agent 直接覆盖同一份共享状态"
+      ],
+      "oral_answer_outline": [
+        "先定义子任务状态机",
+        "说明超时与重新分配",
+        "补充并发控制和结果完整性"
+      ],
+      "reference_answer": "协调器应把子任务建模为可追踪状态机，记录负责人、截止时间、幂等键与已产出证据。超时后先取消旧执行，再按错误类型重试、重新分配或降级，防止多个副本同时产生副作用。共享状态使用版本号、事务或 compare-and-swap 检测写冲突，并通过明确合并规则解决。最终结果必须暴露部分失败和未决冲突。",
+      "follow_up_questions": [
+        "重试后的旧子 Agent 又返回结果怎么办？",
+        "多 Agent 共享上下文应怎样控制版本？"
+      ],
+      "sources": [
+        {
+          "source_id": "openai-agents-orchestration"
+        },
+        {
+          "source_id": "langgraph-persistence-docs"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "agent-task-hallucination-001",
+      "domain": "agent",
+      "topic": "agent_safety",
+      "subtopic": "completion_evidence",
+      "question": "如何防止 Agent 没有真正执行任务，却向用户声称已经完成？",
+      "difficulty": "hard",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Agent",
+        "任务幻觉",
+        "完成证据"
+      ],
+      "reference_points": [
+        "区分计划、已发起、已执行和已验证等状态",
+        "完成状态必须由工具回执或确定性检查产生",
+        "为外部操作记录对象、参数、时间与结果标识",
+        "面向用户明确展示失败、部分完成和待确认状态"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "区分计划、已发起、已执行和已验证等状态",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "完成状态必须由工具回执或确定性检查产生",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "为外部操作记录对象、参数、时间与结果标识",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "把模型说“已完成”当成成功信号",
+        "只记录工具是否被调用而不验证业务结果"
+      ],
+      "oral_answer_outline": [
+        "先拆分任务状态",
+        "定义工具回执与后置验证",
+        "说明面向用户的状态表达"
+      ],
+      "reference_answer": "不能让模型文本决定任务是否完成。运行时应把任务状态拆成计划、执行中、已执行、已验证和失败，只有工具返回可核验回执或后置检查通过后才能进入完成状态。对发送、部署、写数据库等动作记录目标、参数摘要、时间和结果 ID，并可再次查询验证。最终回复由结构化状态生成，部分成功就明确列出剩余项。",
+      "follow_up_questions": [
+        "工具返回 200 是否足以证明业务完成？",
+        "异步任务的完成证据应如何获取？"
+      ],
+      "sources": [
+        {
+          "source_id": "openai-agents-tracing"
+        },
+        {
+          "source_id": "openai-agents-guardrails"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "agent-database-safety-001",
+      "domain": "agent",
+      "topic": "agent_safety",
+      "subtopic": "database_access",
+      "question": "如果允许 Agent 查询或修改数据库，应如何设计权限与执行边界？",
+      "difficulty": "hard",
+      "question_type": "security_reasoning",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Agent",
+        "数据库",
+        "安全"
+      ],
+      "reference_points": [
+        "模型只调用参数化且白名单化的领域工具，不直接持有管理员凭据",
+        "使用最小权限账号、行级范围、只读副本和结果限额",
+        "写操作在服务端校验并对高风险变更增加预览与人工确认",
+        "设置超时、事务、审计、脱敏和幂等机制"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "模型只调用参数化且白名单化的领域工具，不直接持有管理员凭据",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "使用最小权限账号、行级范围、只读副本和结果限额",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "写操作在服务端校验并对高风险变更增加预览与人工确认",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "依赖系统提示词禁止危险 SQL",
+        "为了方便让 Agent 共用数据库管理员账号"
+      ],
+      "oral_answer_outline": [
+        "先限制可调用能力",
+        "再说明最小权限与写入审批",
+        "补充事务、审计和脱敏"
+      ],
+      "reference_answer": "不要把数据库连接串和任意 SQL 能力交给模型。应用应暴露少量参数化领域工具，在服务端验证表、字段、租户范围和最大返回量；查询尽量走只读账号或副本。写操作使用事务、幂等键和业务校验，对批量删除、权限变更等先预览并人工确认。所有调用记录审计信息，返回结果还需脱敏并限制体积。",
+      "follow_up_questions": [
+        "自然语言转 SQL 场景还能怎样限制风险？",
+        "怎样验证 Agent 没有跨用户读取数据？"
+      ],
+      "sources": [
+        {
+          "source_id": "openai-agents-guardrails"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "fixture": "03-check-insufficient-context",
+  "description": "回答过于含糊，无法判断对错。模型不判错，而是返回 insufficient_context + 一个具体追问。context_sufficient=false。这是“回答不足”而非“题目上下文缺失”（后者见 05/notes 的 context_unavailable）。",
+  "request": {
+    "method": "POST",
+    "path": "/api/algorithms/reasoning/checks",
+    "headers": {
+      "Content-Type": "application/json",
+      "X-Study-Diary-Access": "<仅在配置 APP_ACCESS_TOKEN 时需要>"
+    },
+    "body": {
+      "problem_id": "leetcode-1",
+      "session_id": null,
+      "answer_text": "就……用个哈希吧，应该能过。",
+      "answer_source": "voice",
+      "details": {
+        "time_complexity": null,
+        "space_complexity": null,
+        "code": null,
+        "notes": null
+      },
+      "client_answer_id": "c3a1d9e0-77b2-4f6a-8c1d-0e5f6a7b8c9d",
+      "revision_of_answer_id": null
+    }
+  },
+  "response": {
+    "status": 201,
+    "body": {
+      "save_status": "saved",
+      "check_status": "completed",
+      "answer": {
+        "answer_id": 103,
+        "problem_id": "leetcode-1",
+        "session_id": null,
+        "version": 1,
+        "revision_of_answer_id": null,
+        "answer_text": "就……用个哈希吧，应该能过。",
+        "answer_source": "voice",
+        "details": {
+          "time_complexity": null,
+          "space_complexity": null,
+          "code": null,
+          "notes": null
+        },
+        "client_answer_id": "c3a1d9e0-77b2-4f6a-8c1d-0e5f6a7b8c9d",
+        "save_status": "saved",
+        "check_status": "completed",
+        "saved_at": "2026-09-06T12:15:44+00:00",
+        "checked_at": "2026-09-06T12:15:50+00:00"
+      },
+      "feedback": {
+        "feedback_id": 57,
+        "answer_id": 103,
+        "conclusion": "insufficient_context",
+        "headline": "信息不足：只说“用哈希”没法判断思路是否成立，先补两点再核对。",
+        "context_sufficient": false,
+        "correct_parts": [
+          {
+            "point": "选哈希表作为数据结构方向是合理的",
+            "quote": "用个哈希"
+          }
+        ],
+        "issues_or_missing": [
+          {
+            "type": "unclear",
+            "detail": "没有说明哈希表里存什么（值到下标？），也没说明如何用它找到两个数。",
+            "quote": "用个哈希吧，应该能过",
+            "verification_point_id": "vp-hash-lookup"
+          },
+          {
+            "type": "unclear",
+            "detail": "没有描述遍历与查找的先后步骤，无法判断是否会重复使用同一下标。",
+            "quote": null,
+            "verification_point_id": "vp-lookup-before-store"
+          }
+        ],
+        "counterexample_or_followup": {
+          "kind": "followup",
+          "content": "请补充：哈希表的键和值分别存什么？遍历时你是先查还是先存？"
+        },
+        "complexity": {
+          "time": {
+            "user_claim": null,
+            "assessment": "not_stated",
+            "expected": "O(n)",
+            "note": "信息不足，暂不评判复杂度"
+          },
+          "space": {
+            "user_claim": null,
+            "assessment": "not_stated",
+            "expected": "O(n)",
+            "note": "信息不足，暂不评判复杂度"
+          }
+        },
+        "alternative_approaches_accepted": [],
+        "reference_outline": "（信息不足时不倾倒参考解；用户补充后再给。展开区可提示：想想哈希表存什么、何时查。）",
+        "needs_review": true,
+        "model_name": "gpt-4o-mini",
+        "prompt_version": "reasoning-check-v1",
+        "context_version": 3,
+        "created_at": "2026-09-06T12:15:50+00:00"
+      },
+      "check_error": null,
+      "retry": null,
+      "problem_context": {
+        "problem_id": "leetcode-1",
+        "content_version": 3,
+        "reasoning_available": true
+      }
+    }
+  },
+  "notes": [
+    "context_sufficient=false 与 conclusion=insufficient_context 必须同时出现；counterexample_or_followup.kind=followup 必填。",
+    "insufficient_context 不同步为 AlgorithmAttempt.result（信息不足不是学习结果），但可标记 needs_review 引导复习。",
+    "题目上下文本身缺失/未 ready 是另一种情况：check_status=context_unavailable、feedback=null，见 05 fixture notes 与 README §2.2。"
+  ]
+}

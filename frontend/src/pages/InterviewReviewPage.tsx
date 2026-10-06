@@ -272,12 +272,12 @@ export function InterviewReviewPage() {
             </article>;
           })}{!isLoading && visibleQuestions.length === 0 ? <div className="empty-state"><p>当前筛选没有题目。</p></div> : null}</div>
         </aside>
-        <main className="review-main-panel">
+        <section className="review-main-panel" aria-label="题目审核编辑区">
           {draft ? <>
             <button className="review-mobile-back" onClick={() => setMobileView("list")} type="button"><ArrowLeftIcon aria-hidden="true" size={17} weight="bold" />题目列表</button>
             <InterviewReviewEditor draft={draft} isSaving={isSavingCurrentQuestion} isRunningAiReview={isRunningCurrentAiReview} isProcessingInBatch={isDraftProcessing} error={error} aiReviewEnabled={aiReviewEnabled} quickPublishEnabled={quickPublishEnabled} onChange={setDraft} onSave={() => void saveReview()} onRequestStatus={(status) => setPendingAction({ kind: "status", status })} onAiReview={() => void runAiReview()} onApplyAiReview={() => void applyAiReview()} onKeepPending={() => notify("AI 审核结果已保留，题目继续保持待审核。", "info")} onQuickPublish={() => setPendingAction({ kind: "quick-current" })} />
           </> : <div className="empty-state"><p>{error || "选择一题开始审核。"}</p></div>}
-        </main>
+        </section>
       </div>
       {dialog ? <ConfirmActionDialog open title={dialog.title} description={dialog.description} confirmLabel={dialog.confirmLabel} danger={dialog.danger} isConfirming={isDialogConfirming} onCancel={() => setPendingAction(null)} onConfirm={() => { if (pendingAction?.kind === "discard") { applyQuestion(pendingAction.nextQuestion); setMobileView("detail"); setPendingAction(null); } else if (pendingAction?.kind === "status") { void saveReview(pendingAction.status); } else if (pendingAction?.kind === "quick-current") { void quickPublishCurrent(); } else if (pendingAction?.kind === "batch") { void submitBatch(pendingAction.type); } }} /> : null}
     </div>

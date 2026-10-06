@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "problem_key": "leetcode-49",
+  "title": "Group Anagrams",
+  "title_zh": "字母异位词分组",
+  "statement_zh": "给定一个字符串数组 strs，请把互为字母异位词的字符串分到同一组。字母异位词指由相同字符及相同出现次数重新排列得到的字符串。每个输入字符串只包含小写英文字母；分组内部顺序和分组之间顺序不限。",
+  "input_output": {
+    "input": "strs：字符串数组，每个字符串由小写英文字母组成，可能包含空字符串。",
+    "output": "若干字符串分组，同组内的字符串拥有完全相同的字符计数。"
+  },
+  "constraints": [
+    "1 <= strs.length <= 10^4",
+    "0 <= strs[i].length <= 100",
+    "strs[i] 仅包含小写英文字母",
+    "输出分组顺序不限",
+    "同一个字符串实例应保留在某个分组中"
+  ],
+  "examples": [
+    {
+      "input": "strs = [\"eat\", \"tea\", \"tan\", \"ate\", \"nat\", \"bat\"]",
+      "output": "[[\"eat\", \"tea\", \"ate\"], [\"tan\", \"nat\"], [\"bat\"]]",
+      "explanation": "eat、tea、ate 的字符计数相同；tan 和 nat 的字符计数相同。"
+    },
+    {
+      "input": "strs = [\"\", \"\"]",
+      "output": "[[\"\", \"\"]]",
+      "explanation": "两个空字符串字符计数都为空，应分在同一组。"
+    },
+    {
+      "input": "strs = [\"a\", \"b\"]",
+      "output": "[[\"a\"], [\"b\"]]",
+      "explanation": "不同字符组成的字符串不能分到同一组。"
+    }
+  ],
+  "verification_points": [
+    {
+      "id": "vp-group-by-signature",
+      "kind": "key_insight",
+      "statement": "为每个字符串构造能唯一表示字符多重集合的签名，并按签名哈希分组。",
+      "required": true,
+      "acceptable_variants": [
+        "签名可以是排序后的字符串。",
+        "签名可以是 26 个字母计数构成的元组或字符串。"
+      ]
+    },
+    {
+      "id": "vp-counts-not-set",
+      "kind": "correctness_condition",
+      "statement": "签名必须保留每个字符的出现次数，不能只用字符集合。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-output-groups",
+      "kind": "correctness_condition",
+      "statement": "返回的是字符串分组本身，而不是每组签名、下标或计数数组。",
+      "required": true,
+      "acceptable_variants": [
+        "返回列表、数组、哈希表 values 均可，只要最终内容是分组后的原字符串。"
+      ]
+    },
+    {
+      "id": "vp-complexity",
+      "kind": "complexity",
+      "statement": "排序签名方案约为 O(n * k log k)；计数签名方案约为 O(n * k)，其中 k 为单个字符串长度。",
+      "required": false,
+      "acceptable_variants": []
+    }
+  ],
+  "acceptable_approaches": [
+    {
+      "name": "字符计数签名加哈希表",
+      "idea": "遍历每个字符串，统计 26 个小写字母出现次数，把计数元组作为哈希键，将原字符串追加到对应列表中，最后返回所有列表。",
+      "time_complexity": "O(n * k)",
+      "space_complexity": "O(n * k)",
+      "is_reference": true,
+      "note": "n 是字符串数量，k 是单个字符串平均或最大长度；空间包含输出。"
+    },
+    {
+      "name": "排序字符串签名加哈希表",
+      "idea": "把每个字符串排序后作为键，排序结果相同的字符串加入同一组。",
+      "time_complexity": "O(n * k log k)",
+      "space_complexity": "O(n * k)",
+      "is_reference": false,
+      "note": "实现简单，复杂度略高，但通常可接受。"
+    }
+  ],
+  "common_mistakes": [
+    {
+      "description": "用字符集合当签名，丢失字符出现次数。",
+      "counterexample": "\"abb\" 和 \"ab\" 字符集合相同，但不是字母异位词。"
+    },
+    {
+      "description": "只比较字符串长度或首字母。",
+      "counterexample": "\"ab\" 和 \"cd\" 长度相同但字符不同，不能同组。"
+    },
+    {
+      "description": "把签名返回给用户，而不是返回原字符串分组。",
+      "counterexample": "返回 (1,1,0,...) 这类计数键不符合题目输出。"
+    }
+  ],
+  "edge_cases": [
+    {
+      "description": "空字符串。",
+      "expected_handling": "空字符串的签名应一致，多个空字符串放入同一组。"
+    },
+    {
+      "description": "重复出现的同一个字符串。",
+      "expected_handling": "重复实例都应保留在分组中。"
+    },
+    {
+      "description": "同字符集合但次数不同。",
+      "expected_handling": "必须分到不同组，例如 ab 与 abb。"
+    }
+  ],
+  "source": {
+    "name": "LeetCode CN 49. 字母异位词分组",
+    "url": "https://leetcode.cn/problems/group-anagrams/",
+    "license_note": "题意、示例、核对要点和反例均为原创中文转写，未复制外站题面或题解。",
+    "source_version": "2026-09-11 对照 leetcode.cn 官方题面核对"
+  },
+  "content_notes": "按官方题目约束补齐移动端思路核对上下文；示例与反例为本项目原创构造。leetcode-49 是当前推荐题之一，需保证 reasoning_available。",
+  "content_status": "ready"
+}

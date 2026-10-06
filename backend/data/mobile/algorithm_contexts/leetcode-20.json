@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "problem_key": "leetcode-20",
+  "title": "Valid Parentheses",
+  "title_zh": "有效的括号",
+  "statement_zh": "给定一个只包含圆括号、方括号和花括号的字符串 s，判断括号是否有效。有效意味着每个左括号都由相同类型的右括号闭合，闭合顺序正确，并且每个右括号都能匹配到前面尚未匹配的同类型左括号。",
+  "input_output": {
+    "input": "s：只由字符 '(', ')', '[', ']', '{', '}' 组成的字符串。",
+    "output": "布尔值；若括号类型和嵌套顺序都匹配则为 true，否则为 false。"
+  },
+  "constraints": [
+    "1 <= s.length <= 10^4",
+    "s 仅由括号字符 '()[]{}' 组成",
+    "右括号必须匹配最近的尚未闭合左括号",
+    "所有左括号最终都必须被闭合"
+  ],
+  "examples": [
+    {
+      "input": "s = \"([])\"",
+      "output": "true",
+      "explanation": "先闭合 []，再闭合外层 ()，类型和顺序都正确。"
+    },
+    {
+      "input": "s = \"([)]\"",
+      "output": "false",
+      "explanation": "虽然每种括号数量相等，但 ) 不能越过未闭合的 [ 去匹配 (。"
+    },
+    {
+      "input": "s = \"((\"",
+      "output": "false",
+      "explanation": "遍历结束后仍有左括号未闭合。"
+    }
+  ],
+  "verification_points": [
+    {
+      "id": "vp-stack-lifo",
+      "kind": "key_insight",
+      "statement": "使用栈或等价结构记录尚未闭合的左括号，利用后进先出匹配最近的左括号。",
+      "required": true,
+      "acceptable_variants": [
+        "把期望的右括号入栈，遇到右括号时直接比较栈顶，也可接受。"
+      ]
+    },
+    {
+      "id": "vp-type-and-order",
+      "kind": "correctness_condition",
+      "statement": "同时检查括号类型一致和嵌套顺序正确，不能只比较数量。",
+      "required": true,
+      "acceptable_variants": [
+        "能解释 ([)] 为 false 即可。"
+      ]
+    },
+    {
+      "id": "vp-empty-stack-on-right",
+      "kind": "edge_case",
+      "statement": "遇到右括号时若栈为空，应立即判 false。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-final-empty-stack",
+      "kind": "edge_case",
+      "statement": "遍历结束后栈必须为空；否则仍有左括号未闭合。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-complexity",
+      "kind": "complexity",
+      "statement": "每个字符只进栈或出栈一次，时间 O(n)，空间 O(n)。",
+      "required": false,
+      "acceptable_variants": []
+    }
+  ],
+  "acceptable_approaches": [
+    {
+      "name": "栈匹配括号",
+      "idea": "遍历字符：左括号入栈；右括号时检查栈顶是否为同类型左括号，匹配则弹出，不匹配或栈为空则 false。最后栈为空才 true。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(n)",
+      "is_reference": true,
+      "note": null
+    },
+    {
+      "name": "期望右括号入栈",
+      "idea": "遇到左括号时把对应的右括号压入栈；遇到右括号时要求它等于栈顶并弹出。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(n)",
+      "is_reference": false,
+      "note": "与标准栈方案等价，常使类型比较更简单。"
+    }
+  ],
+  "common_mistakes": [
+    {
+      "description": "只统计左右括号数量，不检查嵌套顺序。",
+      "counterexample": "s = \"([)]\"：数量平衡但顺序错误，应为 false。"
+    },
+    {
+      "description": "遇到右括号时不检查栈是否为空。",
+      "counterexample": "s = \")(\"：第一个字符就无法匹配，应立即 false。"
+    },
+    {
+      "description": "遍历结束后忘记检查栈是否为空。",
+      "counterexample": "s = \"((\"：没有右括号闭合，应为 false。"
+    }
+  ],
+  "edge_cases": [
+    {
+      "description": "只有一个右括号。",
+      "expected_handling": "栈为空时遇到右括号，返回 false。"
+    },
+    {
+      "description": "所有括号成对但交叉嵌套。",
+      "expected_handling": "栈顶类型不匹配时返回 false。"
+    },
+    {
+      "description": "深层嵌套。",
+      "expected_handling": "栈空间随嵌套深度增长，仍是 O(n)。"
+    }
+  ],
+  "source": {
+    "name": "LeetCode CN 20. 有效的括号",
+    "url": "https://leetcode.cn/problems/valid-parentheses/",
+    "license_note": "题意、示例、核对要点和反例均为原创中文转写，未复制外站题面或题解。",
+    "source_version": "2026-09-06 对照 leetcode.cn 官方题面核对"
+  },
+  "content_notes": "已核对官方题名、URL 和约束；内容重点放在栈的最近匹配语义。",
+  "content_status": "ready"
+}

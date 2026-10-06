@@ -11,16 +11,55 @@ def utc_now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+class UserProfile(Base):
+    __tablename__ = "user_profiles"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    email: Mapped[str] = mapped_column(String(320), index=True)
+    role: Mapped[str] = mapped_column(String(20), default="user")
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    preferences_json: Mapped[str] = mapped_column(Text, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+    @property
+    def preferences(self) -> dict[str, object]:
+        try:
+            value = json.loads(self.preferences_json or "{}")
+        except json.JSONDecodeError:
+            return {}
+        return value if isinstance(value, dict) else {}
+
+
+class WechatMiniIdentity(Base):
+    """Private link between a WeChat Mini Program OpenID and one app user."""
+
+    __tablename__ = "wechat_mini_identities"
+
+    openid: Mapped[str] = mapped_column(String(128), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(36), unique=True, index=True)
+    unionid: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
 class Diary(Base):
     __tablename__ = "diaries"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
     date: Mapped[str] = mapped_column(String(10), index=True)
     title: Mapped[str] = mapped_column(String(160))
     raw_text: Mapped[str] = mapped_column(Text)
     polished_text: Mapped[str] = mapped_column(Text)
     summary: Mapped[str] = mapped_column(Text)
     tags_json: Mapped[str] = mapped_column("tags", Text, default="[]")
+    category: Mapped[str] = mapped_column(String(20), default="learning", index=True)
+    status: Mapped[str] = mapped_column(String(20), default="published", index=True)
+    images_json: Mapped[str] = mapped_column("images", Text, default="[]")
+    weather: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    location: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    is_pinned: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 
@@ -35,6 +74,34 @@ class Diary(Base):
             return []
 
         return [str(item) for item in value if str(item).strip()]
+
+    @property
+    def images(self) -> list[str]:
+        try:
+            value = json.loads(self.images_json or "[]")
+        except json.JSONDecodeError:
+            return []
+        return [str(item) for item in value[:4]] if isinstance(value, list) else []
+
+
+class PushSubscription(Base):
+    __tablename__ = "push_subscriptions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
+    endpoint: Mapped[str] = mapped_column(Text, unique=True)
+    p256dh: Mapped[str] = mapped_column(Text)
+    auth: Mapped[str] = mapped_column(Text)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    reminder_time: Mapped[str] = mapped_column(String(5), default="21:30")
+    timezone: Mapped[str] = mapped_column(String(80), default="Asia/Shanghai")
+    interview_goal: Mapped[int] = mapped_column(Integer, default=3)
+    algorithm_goal: Mapped[int] = mapped_column(Integer, default=3)
+    include_diary: Mapped[bool] = mapped_column(Boolean, default=True)
+    include_review: Mapped[bool] = mapped_column(Boolean, default=True)
+    last_sent_local_date: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 
 
 class AlgorithmProblem(Base):
@@ -83,6 +150,7 @@ class AlgorithmPracticeSession(Base):
     __tablename__ = "algorithm_practice_sessions"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
     mode: Mapped[str] = mapped_column(String(32), index=True)
     status: Mapped[str] = mapped_column(String(20), default="in_progress", index=True)
     requested_count: Mapped[int] = mapped_column(Integer)
@@ -130,6 +198,7 @@ class AlgorithmAttempt(Base):
     __tablename__ = "algorithm_attempts"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
     problem_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problems.id"), index=True)
     session_id: Mapped[str | None] = mapped_column(
         ForeignKey("algorithm_practice_sessions.id", ondelete="SET NULL"), nullable=True, index=True
@@ -169,9 +238,11 @@ class AlgorithmAttempt(Base):
 
 class AlgorithmReviewSchedule(Base):
     __tablename__ = "algorithm_review_schedules"
+    __table_args__ = (UniqueConstraint("user_id", "problem_id", name="uq_algorithm_review_user_problem"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    problem_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problems.id"), unique=True, index=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
+    problem_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problems.id"), index=True)
     last_attempt_id: Mapped[int] = mapped_column(ForeignKey("algorithm_attempts.id"), index=True)
     next_review_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     interval_days: Mapped[int] = mapped_column(Integer)
@@ -184,9 +255,11 @@ class AlgorithmReviewSchedule(Base):
 
 class AlgorithmProblemProgress(Base):
     __tablename__ = "algorithm_problem_progress"
+    __table_args__ = (UniqueConstraint("user_id", "problem_id", name="uq_algorithm_progress_user_problem"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    problem_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problems.id"), unique=True, index=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
+    problem_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problems.id"), index=True)
     status: Mapped[str] = mapped_column(String(24), default="unseen", index=True)
     attempt_count: Mapped[int] = mapped_column(Integer, default=0)
     solved_count: Mapped[int] = mapped_column(Integer, default=0)
@@ -199,10 +272,110 @@ class AlgorithmProblemProgress(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 
 
+class AlgorithmProblemContext(Base):
+    """Versioned mobile reasoning context for an algorithm problem."""
+
+    __tablename__ = "algorithm_problem_contexts"
+    __table_args__ = (
+        UniqueConstraint("problem_id", "content_version", name="uq_algorithm_context_problem_version"),
+        UniqueConstraint("problem_id", "content_hash", name="uq_algorithm_context_problem_hash"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    problem_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problems.id"), index=True)
+    problem_key: Mapped[str] = mapped_column(String(160), index=True)
+    schema_version: Mapped[int] = mapped_column(Integer)
+    content_version: Mapped[int] = mapped_column(Integer)
+    content_hash: Mapped[str] = mapped_column(String(64), index=True)
+    context_json: Mapped[str] = mapped_column("context", Text)
+    content_status: Mapped[str] = mapped_column(String(20), default="ready", index=True)
+    is_current: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    content_updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    imported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+    @property
+    def context(self) -> dict[str, object]:
+        try:
+            value = json.loads(self.context_json or "{}")
+        except json.JSONDecodeError:
+            return {}
+        return value if isinstance(value, dict) else {}
+
+
+class AlgorithmReasoningAnswer(Base):
+    """A saved mobile reasoning answer version, independent from LLM feedback."""
+
+    __tablename__ = "algorithm_reasoning_answers"
+    __table_args__ = (UniqueConstraint("client_answer_id", name="uq_algorithm_reasoning_client_answer"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
+    problem_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problems.id"), index=True)
+    session_id: Mapped[str | None] = mapped_column(
+        ForeignKey("algorithm_practice_sessions.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    session_item_id: Mapped[int | None] = mapped_column(
+        ForeignKey("algorithm_practice_session_items.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    revision_of_answer_id: Mapped[int | None] = mapped_column(
+        ForeignKey("algorithm_reasoning_answers.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    answer_text: Mapped[str] = mapped_column(Text)
+    answer_source: Mapped[str] = mapped_column(String(20), default="text")
+    details_json: Mapped[str] = mapped_column("details", Text, default="{}")
+    client_answer_id: Mapped[str] = mapped_column(String(36), unique=True, index=True)
+    saved_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+    @property
+    def details(self) -> dict[str, object]:
+        try:
+            value = json.loads(self.details_json or "{}")
+        except json.JSONDecodeError:
+            return {}
+        return value if isinstance(value, dict) else {}
+
+
+class AlgorithmReasoningFeedback(Base):
+    """Structured LLM feedback bound to exactly one saved answer version."""
+
+    __tablename__ = "algorithm_reasoning_feedbacks"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    answer_id: Mapped[int] = mapped_column(
+        ForeignKey("algorithm_reasoning_answers.id", ondelete="CASCADE"), unique=True, index=True
+    )
+    problem_context_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problem_contexts.id"), index=True)
+    synced_attempt_id: Mapped[int | None] = mapped_column(ForeignKey("algorithm_attempts.id"), nullable=True, index=True)
+    conclusion: Mapped[str] = mapped_column(String(32), index=True)
+    headline: Mapped[str] = mapped_column(Text)
+    context_sufficient: Mapped[bool] = mapped_column(Boolean, default=True)
+    feedback_json: Mapped[str] = mapped_column("feedback", Text)
+    model_name: Mapped[str] = mapped_column(String(160))
+    prompt_version: Mapped[str] = mapped_column(String(80))
+    context_version: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+    @property
+    def feedback(self) -> dict[str, object]:
+        try:
+            value = json.loads(self.feedback_json or "{}")
+        except json.JSONDecodeError:
+            return {}
+        return value if isinstance(value, dict) else {}
+
+
 class AlgorithmDailyRecommendationSettings(Base):
     __tablename__ = "algorithm_daily_recommendation_settings"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), unique=True, index=True, nullable=True)
     strategy: Mapped[str] = mapped_column(String(32), default="balanced")
     topics_json: Mapped[str] = mapped_column("topics", Text, default="[]")
     difficulties_json: Mapped[str] = mapped_column("difficulties", Text, default="[]")
@@ -239,9 +412,11 @@ class AlgorithmDailyRecommendationSettings(Base):
 
 class AlgorithmDailyFeed(Base):
     __tablename__ = "algorithm_daily_feeds"
+    __table_args__ = (UniqueConstraint("user_id", "recommendation_date", name="uq_algorithm_feed_user_date"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    recommendation_date: Mapped[str] = mapped_column(String(10), unique=True, index=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
+    recommendation_date: Mapped[str] = mapped_column(String(10), index=True)
     primary_problem_id: Mapped[int] = mapped_column(ForeignKey("algorithm_problems.id"), index=True)
     extra_problem_ids_json: Mapped[str] = mapped_column("extra_problem_ids", Text, default="[]")
     settings_snapshot_json: Mapped[str] = mapped_column("settings_snapshot", Text, default="{}")
@@ -390,6 +565,7 @@ class InterviewQuestionSet(Base):
     __tablename__ = "interview_question_sets"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
     date: Mapped[str] = mapped_column(String(10), index=True)
     domain: Mapped[str | None] = mapped_column(String(80), nullable=True, index=True)
     topic: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
@@ -431,6 +607,7 @@ class InterviewAnswer(Base):
     __table_args__ = (UniqueConstraint("question_set_id", "question_id", "attempt_index", name="uq_interview_answer_attempt"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
     question_set_id: Mapped[int] = mapped_column(
         ForeignKey("interview_question_sets.id", ondelete="CASCADE"), index=True
     )
@@ -439,6 +616,8 @@ class InterviewAnswer(Base):
     answer_text: Mapped[str] = mapped_column(Text)
     answer_source: Mapped[str] = mapped_column(String(20))
     duration_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    evaluation_status: Mapped[str] = mapped_column(String(20), default="processing", index=True)
+    evaluation_error: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 
@@ -488,9 +667,11 @@ class InterviewEvaluation(Base):
 
 class InterviewReviewSchedule(Base):
     __tablename__ = "interview_review_schedules"
+    __table_args__ = (UniqueConstraint("user_id", "question_id", name="uq_interview_review_user_question"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    question_id: Mapped[str] = mapped_column(ForeignKey("interview_questions.id"), unique=True, index=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
+    question_id: Mapped[str] = mapped_column(ForeignKey("interview_questions.id"), index=True)
     last_answer_id: Mapped[int] = mapped_column(ForeignKey("interview_answers.id"), index=True)
     last_score: Mapped[float] = mapped_column(Float)
     next_review_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
@@ -509,9 +690,11 @@ class StudySession(Base):
     """
 
     __tablename__ = "study_sessions"
+    __table_args__ = (UniqueConstraint("user_id", "client_event_id", name="uq_study_session_user_event"),)
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    client_event_id: Mapped[str] = mapped_column(String(100), unique=True, index=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
+    client_event_id: Mapped[str] = mapped_column(String(100), index=True)
     source: Mapped[str] = mapped_column(String(32), index=True)
     activity_type: Mapped[str] = mapped_column(String(32), index=True)
     title: Mapped[str] = mapped_column(String(160), default="自主学习")

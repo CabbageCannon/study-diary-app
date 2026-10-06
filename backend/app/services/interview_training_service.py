@@ -3,9 +3,9 @@ from __future__ import annotations
 import json
 import random
 from datetime import date as date_type
-from datetime import datetime, time, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import settings
 from app.llm import LLMError, evaluate_interview_answer
@@ -34,6 +34,10 @@ from app.schemas import (
     InterviewTrainingDomainStat,
     InterviewTrainingStats,
 )
+from app.time_utils import app_local_date, app_local_day_end_utc
+
+
+RECENT_QUESTION_SET_LIMIT = 4
 
 
 def utc_now() -> datetime:
@@ -84,6 +88,19 @@ def answer_read(answer: InterviewAnswer) -> InterviewAnswerRead:
     return InterviewAnswerRead.model_validate(answer)
 
 
+def answer_submission_read(db: Session, answer: InterviewAnswer, user_id: str) -> InterviewAnswerSubmissionRead:
+    evaluation = repository.get_evaluation_for_answer(db, answer.id, user_id)
+    schedule = repository.get_schedule(db, answer.question_id, user_id) if evaluation else None
+    status = "completed" if evaluation else answer.evaluation_status
+    return InterviewAnswerSubmissionRead(
+        answer=answer_read(answer),
+        evaluation=evaluation_read(evaluation) if evaluation else None,
+        evaluation_status=status,
+        evaluation_error=None if evaluation else answer.evaluation_error,
+        next_review_at=as_utc(schedule.next_review_at) if schedule else None,
+    )
+
+
 def _advance_question_set(question_set: InterviewQuestionSet, items: list[InterviewQuestionSetItem]) -> None:
     next_item = next((item for item in items if item.status == "pending"), None)
     if next_item is None:
@@ -94,7 +111,7 @@ def _advance_question_set(question_set: InterviewQuestionSet, items: list[Interv
     question_set.last_active_question_id = next_item.question_id
 
 
-def create_question_set(db: Session, payload: InterviewQuestionSetCreate) -> tuple[InterviewQuestionSet, str | None]:
+def create_question_set(db: Session, payload: InterviewQuestionSetCreate, user_id: str) -> tuple[InterviewQuestionSet, str | None]:
     candidates = repository.list_verified_questions(
         db,
         domain=payload.domain,
@@ -106,41 +123,57 @@ def create_question_set(db: Session, payload: InterviewQuestionSetCreate) -> tup
 
     now = utc_now()
     candidate_ids = [question.id for question in candidates]
-    schedules = repository.get_schedules_for_questions(db, candidate_ids)
-    latest_answers = repository.get_latest_answer_times(db, candidate_ids)
-    due_questions = [
-        question
+    schedules = repository.get_schedules_for_questions(db, candidate_ids, user_id)
+    latest_answers = repository.get_latest_answer_times(db, candidate_ids, user_id)
+    last_seen_times = repository.get_question_last_seen_times(db, candidate_ids, user_id)
+    recent_question_ids = repository.list_question_ids_for_sets(
+        db,
+        repository.list_recent_question_set_ids(db, RECENT_QUESTION_SET_LIMIT, user_id),
+        user_id,
+    )
+    due_ids = {
+        question.id
         for question in candidates
         if question.id in schedules and as_utc(schedules[question.id].next_review_at) <= now
-    ]
-    remaining_questions = [question for question in candidates if question not in due_questions]
+    }
+    oldest = datetime.min.replace(tzinfo=timezone.utc)
+    rng = random.SystemRandom()
 
-    if payload.random_order:
-        random.SystemRandom().shuffle(due_questions)
-        unanswered_questions = [question for question in remaining_questions if question.id not in latest_answers]
-        answered_questions = [question for question in remaining_questions if question.id in latest_answers]
-        random.SystemRandom().shuffle(unanswered_questions)
-        random.SystemRandom().shuffle(answered_questions)
-        remaining_questions = unanswered_questions + answered_questions
-    else:
-        due_questions.sort(key=lambda question: as_utc(schedules[question.id].next_review_at))
-        remaining_questions.sort(
-            key=lambda question: (
-                question.id in latest_answers,
-                as_utc(latest_answers[question.id]) if question.id in latest_answers else datetime.min.replace(tzinfo=timezone.utc),
-                question.id,
-            )
+    def answer_sort_key(question: InterviewQuestion) -> tuple[bool, datetime, str]:
+        return (
+            question.id in latest_answers,
+            as_utc(latest_answers[question.id]) if question.id in latest_answers else oldest,
+            question.id,
         )
 
-    ordered_candidates = (due_questions if payload.include_due_reviews else []) + remaining_questions
-    if not payload.include_due_reviews:
-        ordered_candidates = remaining_questions + due_questions
+    def last_seen_sort_key(question: InterviewQuestion) -> tuple[datetime, str]:
+        return (as_utc(last_seen_times.get(question.id, oldest)), question.id)
+
+    def order_pool(pool: list[InterviewQuestion], *, fallback: bool = False) -> list[InterviewQuestion]:
+        due = [question for question in pool if question.id in due_ids]
+        rest = [question for question in pool if question.id not in due_ids]
+        if payload.random_order and not fallback:
+            rng.shuffle(due)
+            unanswered = [question for question in rest if question.id not in latest_answers]
+            answered = [question for question in rest if question.id in latest_answers]
+            rng.shuffle(unanswered)
+            rng.shuffle(answered)
+            rest = unanswered + answered
+        else:
+            due.sort(key=lambda question: as_utc(schedules[question.id].next_review_at))
+            rest.sort(key=last_seen_sort_key if fallback else answer_sort_key)
+        return (due if payload.include_due_reviews else []) + rest + ([] if payload.include_due_reviews else due)
+
+    fresh_candidates = [question for question in candidates if question.id not in recent_question_ids]
+    fallback_candidates = [question for question in candidates if question.id in recent_question_ids]
+    ordered_candidates = order_pool(fresh_candidates) + order_pool(fallback_candidates, fallback=True)
     selected_questions = ordered_candidates[: payload.question_count]
     if not selected_questions:
         raise ValueError("没有可用于训练的已审核题目。")
 
     question_set = InterviewQuestionSet(
-        date=now.date().isoformat(),
+        user_id=user_id,
+        date=app_local_date(now).isoformat(),
         domain=payload.domain,
         topic=payload.topic,
         difficulty=payload.difficulty,
@@ -170,13 +203,13 @@ def create_question_set(db: Session, payload: InterviewQuestionSetCreate) -> tup
     return question_set, message
 
 
-def _set_item_read(db: Session, item: InterviewQuestionSetItem) -> InterviewQuestionSetItemRead | None:
+def _set_item_read(db: Session, item: InterviewQuestionSetItem, user_id: str) -> InterviewQuestionSetItemRead | None:
     question = db.get(InterviewQuestion, item.question_id)
     if question is None or not question.is_active:
         return None
-    answer = repository.get_latest_answer_for_question_set(db, item.question_set_id, item.question_id)
-    evaluation = repository.get_evaluation_for_answer(db, answer.id) if answer else None
-    schedule = repository.get_schedule(db, item.question_id)
+    answer = repository.get_latest_answer_for_question_set(db, item.question_set_id, item.question_id, user_id)
+    evaluation = repository.get_evaluation_for_answer(db, answer.id, user_id) if answer else None
+    schedule = repository.get_schedule(db, item.question_id, user_id)
     return InterviewQuestionSetItemRead(
         id=item.id,
         order_index=item.order_index,
@@ -191,10 +224,11 @@ def _set_item_read(db: Session, item: InterviewQuestionSetItem) -> InterviewQues
 def get_question_set_read(
     db: Session,
     question_set: InterviewQuestionSet,
+    user_id: str,
     availability_message: str | None = None,
 ) -> InterviewQuestionSetRead:
-    items = repository.list_set_items(db, question_set.id)
-    item_reads = [item for item in (_set_item_read(db, item) for item in items) if item is not None]
+    items = repository.list_set_items(db, question_set.id, user_id)
+    item_reads = [item for item in (_set_item_read(db, item, user_id) for item in items) if item is not None]
     current_item = next((item for item in item_reads if item.order_index == question_set.current_index), None)
     if current_item is None:
         current_item = next((item for item in item_reads if item.status == "pending"), None)
@@ -223,10 +257,12 @@ def get_question_set_read(
     )
 
 
-def skip_current_question(db: Session, question_set: InterviewQuestionSet) -> InterviewQuestionSet:
+def skip_current_question(db: Session, question_set: InterviewQuestionSet, user_id: str) -> InterviewQuestionSet:
+    if question_set.user_id != user_id:
+        raise ValueError("训练题集不存在")
     if question_set.status != "in_progress":
         raise ValueError("当前训练题集不是进行中状态")
-    items = repository.list_set_items(db, question_set.id)
+    items = repository.list_set_items(db, question_set.id, user_id)
     current = next((item for item in items if item.order_index == question_set.current_index and item.status == "pending"), None)
     if current is None:
         raise ValueError("当前没有可跳过的题目")
@@ -242,31 +278,37 @@ def save_answer(
     db: Session,
     question_set: InterviewQuestionSet,
     payload: InterviewAnswerCreate,
+    user_id: str,
     *,
     retry: bool = False,
 ) -> InterviewAnswer:
-    item = repository.get_set_item(db, question_set.id, payload.question_id)
+    if question_set.user_id != user_id:
+        raise ValueError("训练题集不存在")
+    item = repository.get_set_item(db, question_set.id, payload.question_id, user_id)
     if item is None:
         raise ValueError("该题目不属于当前训练题集")
     if question_set.status != "in_progress":
         raise ValueError("训练题集已结束，不能继续提交回答")
-    existing = repository.get_latest_answer_for_question_set(db, question_set.id, payload.question_id)
+    existing = repository.get_latest_answer_for_question_set(db, question_set.id, payload.question_id, user_id)
     if existing is not None and not retry:
         raise ValueError("该题已提交回答；如需保留历史版本，请使用重新回答功能")
     if not retry and item.status != "pending":
         raise ValueError("该题目当前不可提交")
 
     answer = InterviewAnswer(
+        user_id=user_id,
         question_set_id=question_set.id,
         question_id=payload.question_id,
         attempt_index=(existing.attempt_index + 1) if existing else 1,
         answer_text=payload.answer_text,
         answer_source=payload.answer_source,
         duration_seconds=payload.duration_seconds,
+        evaluation_status="processing",
+        evaluation_error=None,
     )
     db.add(answer)
     item.status = "answered"
-    items = repository.list_set_items(db, question_set.id)
+    items = repository.list_set_items(db, question_set.id, user_id)
     _advance_question_set(question_set, items)
     question_set.last_active_at = utc_now()
     db.commit()
@@ -274,11 +316,12 @@ def save_answer(
     return answer
 
 
-def _upsert_review_schedule(db: Session, answer: InterviewAnswer, total_score: float) -> InterviewReviewSchedule:
+def _upsert_review_schedule(db: Session, answer: InterviewAnswer, total_score: float, user_id: str) -> InterviewReviewSchedule:
     interval_days = review_interval_days(total_score)
-    schedule = repository.get_schedule(db, answer.question_id)
+    schedule = repository.get_schedule(db, answer.question_id, user_id)
     if schedule is None:
         schedule = InterviewReviewSchedule(
+            user_id=user_id,
             question_id=answer.question_id,
             last_answer_id=answer.id,
             last_score=total_score,
@@ -296,12 +339,15 @@ def _upsert_review_schedule(db: Session, answer: InterviewAnswer, total_score: f
     return schedule
 
 
-async def evaluate_answer(db: Session, answer: InterviewAnswer) -> tuple[InterviewEvaluation, InterviewReviewSchedule]:
-    existing = repository.get_evaluation_for_answer(db, answer.id)
+async def evaluate_answer(db: Session, answer: InterviewAnswer, user_id: str) -> tuple[InterviewEvaluation, InterviewReviewSchedule]:
+    existing = repository.get_evaluation_for_answer(db, answer.id, user_id)
     if existing is not None:
-        schedule = repository.get_schedule(db, answer.question_id)
+        schedule = repository.get_schedule(db, answer.question_id, user_id)
         if schedule is None:
             raise ValueError("已有评价但缺少复习计划")
+        answer.evaluation_status = "completed"
+        answer.evaluation_error = None
+        db.commit()
         return existing, schedule
     question = db.get(InterviewQuestion, answer.question_id)
     if question is None:
@@ -325,66 +371,72 @@ async def evaluate_answer(db: Session, answer: InterviewAnswer) -> tuple[Intervi
         model_name=settings.llm_model,
     )
     db.add(stored)
-    schedule = _upsert_review_schedule(db, answer, total_score)
+    schedule = _upsert_review_schedule(db, answer, total_score, user_id)
+    answer.evaluation_status = "completed"
+    answer.evaluation_error = None
     db.commit()
     db.refresh(stored)
     db.refresh(schedule)
     return stored, schedule
 
 
-async def submit_and_evaluate(
+async def run_answer_evaluation(answer_id: int, user_id: str, bind: object) -> None:
+    SessionFactory = sessionmaker(bind=bind, autoflush=False, autocommit=False)
+    with SessionFactory() as db:
+        answer = repository.get_answer(db, answer_id, user_id)
+        if answer is None:
+            return
+        answer.evaluation_status = "processing"
+        answer.evaluation_error = None
+        db.commit()
+        try:
+            await evaluate_answer(db, answer, user_id)
+        except LLMError as exc:
+            answer.evaluation_status = "failed"
+            answer.evaluation_error = str(exc)
+            db.commit()
+        except Exception as exc:
+            answer.evaluation_status = "failed"
+            answer.evaluation_error = str(exc) or "核对失败，请稍后重试。"
+            db.commit()
+
+
+def submit_and_queue_evaluation(
     db: Session,
     question_set: InterviewQuestionSet,
     payload: InterviewAnswerCreate,
+    background_tasks: object,
+    user_id: str,
     *,
     retry: bool = False,
 ) -> InterviewAnswerSubmissionRead:
-    answer = save_answer(db, question_set, payload, retry=retry)
-    try:
-        evaluation, schedule = await evaluate_answer(db, answer)
-    except LLMError as exc:
-        return InterviewAnswerSubmissionRead(
-            answer=answer_read(answer),
-            evaluation=None,
-            evaluation_status="failed",
-            evaluation_error=str(exc),
-            next_review_at=None,
-        )
-    return InterviewAnswerSubmissionRead(
-        answer=answer_read(answer),
-        evaluation=evaluation_read(evaluation),
-        evaluation_status="completed",
-        evaluation_error=None,
-        next_review_at=as_utc(schedule.next_review_at),
-    )
+    answer = save_answer(db, question_set, payload, user_id, retry=retry)
+    background_tasks.add_task(run_answer_evaluation, answer.id, user_id, db.get_bind())
+    return answer_submission_read(db, answer, user_id)
 
 
-async def retry_evaluation(db: Session, answer: InterviewAnswer) -> InterviewAnswerSubmissionRead:
-    try:
-        evaluation, schedule = await evaluate_answer(db, answer)
-    except LLMError as exc:
-        return InterviewAnswerSubmissionRead(
-            answer=answer_read(answer),
-            evaluation=None,
-            evaluation_status="failed",
-            evaluation_error=str(exc),
-        )
-    return InterviewAnswerSubmissionRead(
-        answer=answer_read(answer),
-        evaluation=evaluation_read(evaluation),
-        evaluation_status="completed",
-        next_review_at=as_utc(schedule.next_review_at),
-    )
+def queue_retry_evaluation(db: Session, answer: InterviewAnswer, background_tasks: object, user_id: str) -> InterviewAnswerSubmissionRead:
+    if repository.get_evaluation_for_answer(db, answer.id, user_id) is not None:
+        return answer_submission_read(db, answer, user_id)
+    answer.evaluation_status = "processing"
+    answer.evaluation_error = None
+    db.commit()
+    db.refresh(answer)
+    background_tasks.add_task(run_answer_evaluation, answer.id, user_id, db.get_bind())
+    return answer_submission_read(db, answer, user_id)
 
 
 def update_question_set_progress(
     db: Session,
     question_set: InterviewQuestionSet,
     payload: InterviewQuestionSetProgressUpdate,
+    user_id: str,
 ) -> InterviewQuestionSet:
+    if question_set.user_id != user_id:
+        raise ValueError("训练题集不存在")
     if question_set.status != "in_progress":
         raise ValueError("已结束的训练不能再更新进度")
-    items = repository.list_set_items(db, question_set.id)
+    items = repository.list_set_items(db, question_set.id, user_id)
     target = next((item for item in items if item.order_index == payload.current_index), None)
     if target is None:
         raise ValueError("current_index 超出当前训练题集范围")
@@ -398,12 +450,14 @@ def update_question_set_progress(
     return question_set
 
 
-def complete_question_set(db: Session, question_set: InterviewQuestionSet) -> InterviewQuestionSet:
+def complete_question_set(db: Session, question_set: InterviewQuestionSet, user_id: str) -> InterviewQuestionSet:
+    if question_set.user_id != user_id:
+        raise ValueError("训练题集不存在")
     if question_set.status == "completed":
         return question_set
     if question_set.status != "in_progress":
         raise ValueError("已放弃的训练不能标记为完成")
-    if any(item.status == "pending" for item in repository.list_set_items(db, question_set.id)):
+    if any(item.status == "pending" for item in repository.list_set_items(db, question_set.id, user_id)):
         raise ValueError("仍有未完成题目，不能结束训练")
     now = utc_now()
     question_set.status = "completed"
@@ -415,7 +469,9 @@ def complete_question_set(db: Session, question_set: InterviewQuestionSet) -> In
     return question_set
 
 
-def abandon_question_set(db: Session, question_set: InterviewQuestionSet) -> InterviewQuestionSet:
+def abandon_question_set(db: Session, question_set: InterviewQuestionSet, user_id: str) -> InterviewQuestionSet:
+    if question_set.user_id != user_id:
+        raise ValueError("训练题集不存在")
     if question_set.status != "in_progress":
         raise ValueError("只有进行中的训练可以放弃")
     now = utc_now()
@@ -427,7 +483,9 @@ def abandon_question_set(db: Session, question_set: InterviewQuestionSet) -> Int
     return question_set
 
 
-def restart_question_set(db: Session, question_set: InterviewQuestionSet) -> tuple[InterviewQuestionSet, str | None]:
+def restart_question_set(db: Session, question_set: InterviewQuestionSet, user_id: str) -> tuple[InterviewQuestionSet, str | None]:
+    if question_set.user_id != user_id:
+        raise ValueError("训练题集不存在")
     payload = InterviewQuestionSetCreate(
         domain=question_set.domain,
         topic=question_set.topic,
@@ -436,28 +494,24 @@ def restart_question_set(db: Session, question_set: InterviewQuestionSet) -> tup
         include_due_reviews=question_set.include_due_reviews,
         random_order=question_set.random_order,
     )
-    return create_question_set(db, payload)
+    return create_question_set(db, payload, user_id)
 
 
-def delete_question_set(db: Session, question_set: InterviewQuestionSet) -> None:
+def delete_question_set(db: Session, question_set: InterviewQuestionSet, user_id: str) -> None:
     """Remove a local training record without touching its reusable question bank entries."""
-    answers = repository.list_answers_for_set(db, question_set.id)
+    if question_set.user_id != user_id:
+        raise ValueError("训练题集不存在")
+    answers = repository.list_answers_for_set(db, question_set.id, user_id)
     affected_question_ids = {answer.question_id for answer in answers}
-    for answer in answers:
-        evaluation = repository.get_evaluation_for_answer(db, answer.id)
-        if evaluation is not None:
-            db.delete(evaluation)
-        db.delete(answer)
-
     for question_id in affected_question_ids:
-        schedule = repository.get_schedule(db, question_id)
+        schedule = repository.get_schedule(db, question_id, user_id)
         if schedule is None:
             continue
         replacement = repository.get_latest_answer_for_question(
-            db, question_id, excluding_question_set_id=question_set.id
+            db, question_id, user_id, excluding_question_set_id=question_set.id
         )
         replacement_evaluation = (
-            repository.get_evaluation_for_answer(db, replacement.id) if replacement is not None else None
+            repository.get_evaluation_for_answer(db, replacement.id, user_id) if replacement is not None else None
         )
         if replacement is None or replacement_evaluation is None:
             db.delete(schedule)
@@ -466,9 +520,21 @@ def delete_question_set(db: Session, question_set: InterviewQuestionSet) -> None
         schedule.last_score = replacement_evaluation.total_score
         schedule.review_interval_days = review_interval_days(replacement_evaluation.total_score)
         schedule.next_review_at = utc_now() + timedelta(days=schedule.review_interval_days)
+    db.flush()
 
-    for item in repository.list_set_items(db, question_set.id):
+    for answer in answers:
+        evaluation = repository.get_evaluation_for_answer(db, answer.id, user_id)
+        if evaluation is not None:
+            db.delete(evaluation)
+    db.flush()
+
+    for answer in answers:
+        db.delete(answer)
+
+    for item in repository.list_set_items(db, question_set.id, user_id):
         db.delete(item)
+    db.flush()
+
     db.delete(question_set)
     db.commit()
 
@@ -476,17 +542,18 @@ def delete_question_set(db: Session, question_set: InterviewQuestionSet) -> None
 def list_question_set_summaries(
     db: Session,
     limit: int,
+    user_id: str,
     *,
     status: str | None = None,
 ) -> list[InterviewQuestionSetSummary]:
     summaries: list[InterviewQuestionSetSummary] = []
-    for question_set in repository.list_question_sets(db, limit, status=status):
-        items = repository.list_set_items(db, question_set.id)
-        answers = repository.list_answers_for_set(db, question_set.id)
+    for question_set in repository.list_question_sets(db, limit, user_id, status=status):
+        items = repository.list_set_items(db, question_set.id, user_id)
+        answers = repository.list_answers_for_set(db, question_set.id, user_id)
         evaluations = [
             evaluation
             for answer in answers
-            if (evaluation := repository.get_evaluation_for_answer(db, answer.id)) is not None
+            if (evaluation := repository.get_evaluation_for_answer(db, answer.id, user_id)) is not None
         ]
         average_score = sum(evaluation.total_score for evaluation in evaluations) / len(evaluations) if evaluations else None
         summaries.append(
@@ -510,27 +577,29 @@ def list_question_set_summaries(
     return summaries
 
 
-def get_training_stats(db: Session) -> InterviewTrainingStats:
-    question_sets = repository.list_question_sets_for_stats(db)
+def get_training_stats(db: Session, user_id: str) -> InterviewTrainingStats:
+    question_sets = repository.list_question_sets_for_stats(db, user_id)
     all_items: list[tuple[InterviewQuestionSet, InterviewQuestionSetItem]] = []
     answer_dates: set[date_type] = set()
     today_answered_count = 0
     evaluations: list[InterviewEvaluation] = []
     domains: dict[str, dict[str, list[float] | int]] = {}
+    now = utc_now()
+    today = app_local_date(now)
 
     for question_set in question_sets:
-        for answer in repository.list_answers_for_set(db, question_set.id):
-            answer_dates.add(as_utc(answer.created_at).date())
-        for item in repository.list_set_items(db, question_set.id):
+        for answer in repository.list_answers_for_set(db, question_set.id, user_id):
+            answer_dates.add(app_local_date(answer.created_at))
+        for item in repository.list_set_items(db, question_set.id, user_id):
             all_items.append((question_set, item))
             if item.status != "answered":
                 continue
-            answer = repository.get_latest_answer_for_question_set(db, question_set.id, item.question_id)
+            answer = repository.get_latest_answer_for_question_set(db, question_set.id, item.question_id, user_id)
             if answer is None:
                 continue
-            if as_utc(answer.created_at).date() == utc_now().date():
+            if app_local_date(answer.created_at) == today:
                 today_answered_count += 1
-            evaluation = repository.get_evaluation_for_answer(db, answer.id)
+            evaluation = repository.get_evaluation_for_answer(db, answer.id, user_id)
             if evaluation is not None:
                 evaluations.append(evaluation)
             question = db.get(InterviewQuestion, item.question_id)
@@ -543,14 +612,13 @@ def get_training_stats(db: Session) -> InterviewTrainingStats:
                 assert isinstance(scores, list)
                 scores.append(evaluation.total_score)
 
-    today = utc_now().date()
     streak_days = 0
     cursor = today
     while cursor in answer_dates:
         streak_days += 1
         cursor -= timedelta(days=1)
 
-    due_review_count = len(repository.list_due_schedules(db, due_before=utc_now(), domain=None, limit=10000))
+    due_review_count = len(repository.list_due_schedules(db, user_id, due_before=now, domain=None, limit=10000))
     recent_scores = [evaluation.total_score for evaluation in sorted(evaluations, key=lambda value: value.created_at, reverse=True)[:20]]
     domain_stats = [
         InterviewTrainingDomainStat(
@@ -574,6 +642,7 @@ def get_training_stats(db: Session) -> InterviewTrainingStats:
 
 def list_due_reviews(
     db: Session,
+    user_id: str,
     *,
     date: str | None,
     domain: str | None,
@@ -584,10 +653,10 @@ def list_due_reviews(
             due_date = date_type.fromisoformat(date)
         except ValueError as exc:
             raise ValueError("date 必须使用 YYYY-MM-DD 格式") from exc
-        due_before = datetime.combine(due_date, time.max, tzinfo=timezone.utc)
+        due_before = app_local_day_end_utc(due_date)
     else:
         due_before = utc_now()
-    rows = repository.list_due_schedules(db, due_before=due_before, domain=domain, limit=limit)
+    rows = repository.list_due_schedules(db, user_id, due_before=due_before, domain=domain, limit=limit)
     return [
         InterviewReviewScheduleRead(
             id=schedule.id,

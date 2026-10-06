@@ -1,19 +1,20 @@
 {
-  "total": 27,
+  "total": 195,
   "by_domain": {
-    "agent": 9,
-    "ai_engineering": 6,
-    "llm_application": 3,
-    "network": 3,
+    "agent": 45,
+    "ai_engineering": 30,
+    "llm_application": 6,
+    "mysql": 48,
+    "network": 44,
     "python": 3,
-    "rag": 3
+    "rag": 19
   },
   "by_difficulty": {
-    "easy": 1,
-    "medium": 20,
-    "hard": 6
+    "easy": 13,
+    "medium": 95,
+    "hard": 87
   },
-  "pending_count": 27,
+  "pending_count": 195,
   "verified_count": 0,
   "rejected_count": 0,
   "duplicate_candidates": [],

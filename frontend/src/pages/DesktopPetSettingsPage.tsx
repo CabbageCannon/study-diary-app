@@ -8,6 +8,7 @@ import {
   updateDesktopPetConfig,
   waitForDesktopPetShow,
 } from "../api/desktopPet";
+import { useAuth } from "../auth/AuthContext";
 import type { DesktopPetConfig, DesktopPetConfigUpdate, DesktopPetControlState } from "../types/desktopPet";
 
 const defaultConfig: DesktopPetConfig = {
@@ -35,6 +36,7 @@ function desktopPetIsConnected(state: DesktopPetControlState | null): boolean {
 }
 
 export function DesktopPetSettingsPage() {
+  const { session } = useAuth();
   const [form, setForm] = useState<DesktopPetConfigUpdate>(configToForm(defaultConfig));
   const [milestoneInput, setMilestoneInput] = useState("10, 20, 50");
   const [isLoading, setIsLoading] = useState(true);
@@ -54,26 +56,24 @@ export function DesktopPetSettingsPage() {
     }
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setIsLoading(true);
-      setError("");
-      try {
-        const config = await getDesktopPetConfig();
-        if (cancelled) return;
-        setForm(configToForm(config));
-        setMilestoneInput(config.milestone_minutes.join(", "));
-      } catch (loadError) {
-        if (!cancelled) setError(loadError instanceof Error ? loadError.message : "桌宠设置加载失败。");
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
+  const refreshConfig = useCallback(async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const config = await getDesktopPetConfig();
+      setForm(configToForm(config));
+      setMilestoneInput(config.milestone_minutes.join(", "));
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "桌宠设置加载失败。");
+    } finally {
+      setIsLoading(false);
     }
-    void load();
+  }, []);
+
+  useEffect(() => {
+    void refreshConfig();
     void refreshControlState();
-    return () => { cancelled = true; };
-  }, [refreshControlState]);
+  }, [session?.access_token, refreshConfig, refreshControlState]);
 
   const locationReady = form.latitude !== null && form.longitude !== null;
   const helpText = useMemo(

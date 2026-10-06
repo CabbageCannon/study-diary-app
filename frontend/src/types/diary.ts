@@ -6,6 +6,12 @@ export interface Diary {
   polished_text: string;
   summary: string;
   tags: string[];
+  category: "learning" | "life";
+  status: "draft" | "published";
+  images: string[];
+  weather: string | null;
+  location: string | null;
+  is_pinned: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -35,3 +41,14 @@ export interface RewriteDiaryDraftPayload {
 }
 
 export type SaveDiaryPayload = DiaryDraft;
+
+export interface MobileDiaryPayload extends DiaryDraft {
+  category: "learning" | "life";
+  status: "draft" | "published";
+  images: string[];
+  weather: string | null;
+  location: string | null;
+  is_pinned: boolean;
+}
+
+export type UpdateDiaryPayload = Partial<MobileDiaryPayload>;

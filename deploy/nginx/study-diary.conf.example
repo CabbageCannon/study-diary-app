@@ -1,0 +1,63 @@
+# Replace app.example.com and the filesystem paths before enabling this site.
+# The frontend build is served from /srv/study-diary/frontend/dist and the API
+# listens only on loopback through the systemd unit in deploy/systemd/.
+server {
+    listen 80;
+    listen [::]:80;
+    server_name app.example.com;
+
+    # Certbot may use this location for the HTTP-01 challenge before TLS is enabled.
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name app.example.com;
+
+    ssl_certificate /etc/letsencrypt/live/app.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/app.example.com/privkey.pem;
+
+    root /srv/study-diary/frontend/dist;
+    index index.html;
+    client_max_body_size 1m;
+
+    # A new service worker must be fetched on every navigation so the in-app
+    # "稍后 / 立即更新" prompt can control when an update takes effect.
+    location = /sw.js {
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+        try_files $uri =404;
+    }
+
+    location = /index.html {
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+        try_files $uri =404;
+    }
+
+    location /assets/ {
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        try_files $uri =404;
+    }
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_connect_timeout 10s;
+        proxy_read_timeout 120s;
+    }
+
+    # Vite SPA route fallback. /api/ is handled above and never falls through.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

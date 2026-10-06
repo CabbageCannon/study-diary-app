@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { userStorageKey } from "../auth/userStorage";
 
 export interface AlgorithmAttemptDraft {
   result: "solved" | "partially_solved" | "failed" | "gave_up";
@@ -11,6 +12,10 @@ export interface AlgorithmAttemptDraft {
   mistakes: string;
   edgeCases: string;
   needsReview: boolean;
+  clientAnswerId: string;
+  revisionOfAnswerId: number | null;
+  committedAnswerId: number | null;
+  committedAnswerText: string;
 }
 
 const emptyDraft: AlgorithmAttemptDraft = {
@@ -24,14 +29,33 @@ const emptyDraft: AlgorithmAttemptDraft = {
   mistakes: "",
   edgeCases: "",
   needsReview: false,
+  clientAnswerId: "",
+  revisionOfAnswerId: null,
+  committedAnswerId: null,
+  committedAnswerText: "",
 };
 
+function createClientAnswerId() {
+  return crypto.randomUUID();
+}
+
+function normalizeDraft(value: Partial<AlgorithmAttemptDraft> | null): AlgorithmAttemptDraft {
+  return {
+    ...emptyDraft,
+    ...(value ?? {}),
+    clientAnswerId: value?.clientAnswerId || createClientAnswerId(),
+    revisionOfAnswerId: value?.revisionOfAnswerId ?? null,
+    committedAnswerId: value?.committedAnswerId ?? null,
+    committedAnswerText: value?.committedAnswerText ?? "",
+  };
+}
+
 function draftStorageKey(sessionId: string, problemId: number) {
-  return `study-diary:algorithm:session:${sessionId}:problem:${problemId}:draft`;
+  return userStorageKey(`algorithm:session:${sessionId}:problem:${problemId}:draft`);
 }
 
 function timerStorageKey(sessionId: string) {
-  return `study-diary:algorithm:session:${sessionId}:timer`;
+  return userStorageKey(`algorithm:session:${sessionId}:timer`);
 }
 
 export function useAlgorithmAttemptDraft(sessionId: string, problemId: number) {
@@ -42,9 +66,9 @@ export function useAlgorithmAttemptDraft(sessionId: string, problemId: number) {
     try {
       const raw = window.localStorage.getItem(key);
       const parsed = raw ? JSON.parse(raw) as Partial<AlgorithmAttemptDraft> : null;
-      setDraft({ ...emptyDraft, ...(parsed ?? {}) });
+      setDraft(normalizeDraft(parsed));
     } catch {
-      setDraft(emptyDraft);
+      setDraft(normalizeDraft(null));
     }
   }, [key]);
 
@@ -57,10 +81,29 @@ export function useAlgorithmAttemptDraft(sessionId: string, problemId: number) {
 
   function clearDraft() {
     window.localStorage.removeItem(key);
-    setDraft(emptyDraft);
+    setDraft(normalizeDraft(null));
   }
 
-  return { draft, setDraft, clearDraft };
+  function markCommitted(answerId: number, answerText: string) {
+    setDraft((current) => ({
+      ...current,
+      committedAnswerId: answerId,
+      committedAnswerText: answerText,
+      revisionOfAnswerId: null,
+    }));
+  }
+
+  function beginRevision(previousAnswerId: number | null) {
+    setDraft((current) => ({
+      ...current,
+      clientAnswerId: createClientAnswerId(),
+      revisionOfAnswerId: previousAnswerId,
+      committedAnswerId: null,
+      committedAnswerText: "",
+    }));
+  }
+
+  return { draft, setDraft, clearDraft, markCommitted, beginRevision };
 }
 
 export function useAlgorithmSessionTimer(sessionId: string) {

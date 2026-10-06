@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "problem_key": "leetcode-3",
+  "title": "Longest Substring Without Repeating Characters",
+  "title_zh": "无重复字符的最长子串",
+  "statement_zh": "给定字符串 s，求其中不含重复字符的最长连续子串长度。子串必须是原字符串中连续的一段；只需要返回长度，不需要返回子串本身。",
+  "input_output": {
+    "input": "s：可包含英文字母、数字、符号和空格的字符串。",
+    "output": "整数，表示最长无重复字符连续子串的长度。"
+  },
+  "constraints": [
+    "0 <= s.length <= 10^5",
+    "s 由英文字母、数字、符号和空格组成",
+    "子串必须连续，不能跳着选字符",
+    "重复判断按字符值进行，空格和符号也算字符"
+  ],
+  "examples": [
+    {
+      "input": "s = \"abcaef\"",
+      "output": "5",
+      "explanation": "最长无重复连续子串可以是 \"bcaef\"。"
+    },
+    {
+      "input": "s = \"bbbbb\"",
+      "output": "1",
+      "explanation": "任意一个单独的 b 都是最长无重复子串。"
+    },
+    {
+      "input": "s = \"\"",
+      "output": "0",
+      "explanation": "空字符串长度为 0。"
+    }
+  ],
+  "verification_points": [
+    {
+      "id": "vp-substring-not-subsequence",
+      "kind": "correctness_condition",
+      "statement": "明确处理的是连续子串，而不是可以跳选字符的子序列。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-sliding-window-invariant",
+      "kind": "key_insight",
+      "statement": "维护一个当前窗口，使窗口内始终没有重复字符。",
+      "required": true,
+      "acceptable_variants": [
+        "用集合维护窗口字符，或用哈希表记录字符最新下标并跳动左边界。"
+      ]
+    },
+    {
+      "id": "vp-left-only-forward",
+      "kind": "correctness_condition",
+      "statement": "遇到重复字符时左边界只能向右移动，不能向左回退；使用最新下标时需取 max(left, last[c]+1)。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-update-answer",
+      "kind": "correctness_condition",
+      "statement": "每次窗口调整后更新最大长度。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-complexity",
+      "kind": "complexity",
+      "statement": "滑动窗口每个字符进出窗口有限次，时间 O(n)，空间 O(min(n, 字符集大小))。",
+      "required": false,
+      "acceptable_variants": []
+    }
+  ],
+  "acceptable_approaches": [
+    {
+      "name": "哈希表记录最新下标的滑动窗口",
+      "idea": "右指针遍历字符；若字符上次出现位置在当前窗口内，就把左边界跳到上次位置后一位；更新该字符最新位置和答案。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(min(n, charset))",
+      "is_reference": true,
+      "note": null
+    },
+    {
+      "name": "集合维护窗口的滑动窗口",
+      "idea": "右指针尝试加入字符；若重复，则不断移除左侧字符并右移左指针，直到可以加入当前字符。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(min(n, charset))",
+      "is_reference": false,
+      "note": "正确；每个字符最多被加入和移除一次。"
+    },
+    {
+      "name": "枚举起点向右扩展",
+      "idea": "对每个起点用集合向右扩展，直到遇到重复。",
+      "time_complexity": "O(n^2)",
+      "space_complexity": "O(min(n, charset))",
+      "is_reference": false,
+      "note": "逻辑正确但规模上限下不可接受；应引导到滑动窗口。"
+    }
+  ],
+  "common_mistakes": [
+    {
+      "description": "把子串当成子序列，允许跳过中间字符。",
+      "counterexample": "s = \"abca\"：不能跳过中间字符随意拼接。"
+    },
+    {
+      "description": "遇到重复字符时直接 left = last[c] + 1，未取 max，导致左边界回退。",
+      "counterexample": "s = \"abba\"：处理最后一个 a 时不能把 left 从 2 回退到 1。"
+    },
+    {
+      "description": "只在遇到重复时更新答案，漏掉末尾最长窗口。",
+      "counterexample": "s = \"abc\"：没有重复，也应得到 3。"
+    }
+  ],
+  "edge_cases": [
+    {
+      "description": "空字符串。",
+      "expected_handling": "返回 0。"
+    },
+    {
+      "description": "所有字符相同。",
+      "expected_handling": "返回 1。"
+    },
+    {
+      "description": "重复字符出现在当前窗口左侧之外。",
+      "expected_handling": "左边界不回退，只更新最新位置。"
+    }
+  ],
+  "source": {
+    "name": "LeetCode CN 3. 无重复字符的最长子串",
+    "url": "https://leetcode.cn/problems/longest-substring-without-repeating-characters/",
+    "license_note": "题意、示例、核对要点和反例均为原创中文转写，未复制外站题面或题解。",
+    "source_version": "2026-09-06 对照 leetcode.cn 官方题面核对"
+  },
+  "content_notes": "已核对官方题名、URL 和约束；重点区分子串与子序列，并检查 left 不回退。",
+  "content_status": "ready"
+}

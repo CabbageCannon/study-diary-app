@@ -28,7 +28,10 @@ function currentStudyDateParams(): URLSearchParams {
 }
 
 export function getDesktopPetDashboard(signal?: AbortSignal): Promise<DesktopPetDashboard> {
-  return request<DesktopPetDashboard>(`/api/desktop-pet/dashboard?${currentStudyDateParams()}`, { signal });
+  return request<DesktopPetDashboard>(`/api/desktop-pet/dashboard?${currentStudyDateParams()}`, {
+    signal,
+    cache: "no-store",
+  });
 }
 
 export function requestDesktopPetShow(): Promise<ShowDesktopPetResponse> {

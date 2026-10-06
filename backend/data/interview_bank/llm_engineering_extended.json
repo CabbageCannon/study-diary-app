@@ -1,0 +1,1427 @@
+{
+  "questions": [
+    {
+      "id": "llm-vs-traditional-nlp-001",
+      "domain": "ai_engineering",
+      "topic": "llm_fundamentals",
+      "subtopic": "llm_vs_nlp",
+      "question": "什么是大语言模型，它与传统 NLP 模型的主要区别是什么？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "LLM",
+        "NLP",
+        "预训练"
+      ],
+      "reference_points": [
+        "LLM 通常以大规模自监督预训练学习通用语言表示和生成能力",
+        "传统 NLP 往往针对分类、序列标注等单任务训练或组合专用模块",
+        "LLM 可通过提示和少样本适配多任务，但成本、可控性和幻觉问题更突出",
+        "说明两者并非按参数量简单二分"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "LLM 通常以大规模自监督预训练学习通用语言表示和生成能力",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "传统 NLP 往往针对分类、序列标注等单任务训练或组合专用模块",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "LLM 可通过提示和少样本适配多任务，但成本、可控性和幻觉问题更突出",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "大语言模型通常在大规模语料上通过下一 token 等自监督目标预训练，再通过指令或偏好对齐获得通用交互能力，可以用提示完成多种任务。传统 NLP 系统更常针对特定任务训练分类器、序列标注或检索模块，成本低且边界清楚。两者不是绝对替代关系：稳定、可解释的小任务仍可能更适合专用模型。",
+      "follow_up_questions": [
+        "参数更多为什么不必然意味着业务效果更好？",
+        "什么场景应保留传统 NLP 模型？"
+      ],
+      "sources": [
+        {
+          "source_id": "transformer-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-transformer-architecture-001",
+      "domain": "ai_engineering",
+      "topic": "transformer",
+      "subtopic": "architecture",
+      "question": "Transformer 的基本结构和信息流是什么，Encoder 与 Decoder 有什么区别？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Transformer",
+        "Encoder",
+        "Decoder"
+      ],
+      "reference_points": [
+        "输入经过 token embedding 与位置信息进入多层注意力和前馈网络",
+        "自注意力让每个位置按相关性聚合其他位置的信息",
+        "Encoder 通常双向编码输入，Decoder 使用因果掩码自回归生成",
+        "残差连接与归一化帮助深层训练稳定"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "输入经过 token embedding 与位置信息进入多层注意力和前馈网络",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "自注意力让每个位置按相关性聚合其他位置的信息",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "Encoder 通常双向编码输入，Decoder 使用因果掩码自回归生成",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "Transformer 把 token 表示与位置信息送入重复堆叠的注意力和前馈层，并通过残差与归一化稳定训练。Encoder 自注意力通常可看到完整输入，适合理解和表示；Decoder 用因果掩码只能关注当前位置之前的 token，从而逐步生成。Encoder-Decoder 模型还在 Decoder 中加入交叉注意力读取编码结果，而很多 LLM 采用 Decoder-only 架构。",
+      "follow_up_questions": [
+        "因果掩码为什么能保证自回归生成？",
+        "Decoder-only 模型如何处理输入理解任务？"
+      ],
+      "sources": [
+        {
+          "source_id": "transformer-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-attention-optimization-001",
+      "domain": "ai_engineering",
+      "topic": "attention",
+      "subtopic": "mha_mqa_gqa_flash",
+      "question": "MHA 的主要开销是什么，MQA、GQA 与 FlashAttention 分别优化了哪一部分？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "MHA",
+        "MQA",
+        "GQA",
+        "FlashAttention"
+      ],
+      "reference_points": [
+        "MHA 为每个查询头保存独立 K/V，解码时 KV Cache 体积和带宽较大",
+        "MQA 让多个查询头共享一组 K/V，显著降低缓存但可能损失质量",
+        "GQA 让一组查询头共享 K/V，在质量与效率间折中",
+        "FlashAttention 通过分块和 IO 感知精确计算注意力，主要减少显存读写"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "MHA 为每个查询头保存独立 K/V，解码时 KV Cache 体积和带宽较大",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "MQA 让多个查询头共享一组 K/V，显著降低缓存但可能损失质量",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "GQA 让一组查询头共享 K/V，在质量与效率间折中",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "MHA 的多个头各自拥有 Q、K、V，在自回归解码中每层都要缓存历史 K/V，内存容量和带宽容易成为瓶颈。MQA 让所有查询头共享 K/V，最省缓存；GQA 让若干查询头共享一组 K/V，通常取得更平衡的质量。FlashAttention 不改变注意力数学结果，而是通过分块计算减少 HBM 往返和中间矩阵存储。",
+      "follow_up_questions": [
+        "FlashAttention 为什么仍是精确注意力？",
+        "GQA 的组数变化如何影响质量和吞吐？"
+      ],
+      "sources": [
+        {
+          "source_id": "gqa-paper"
+        },
+        {
+          "source_id": "flash-attention-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-position-encoding-001",
+      "domain": "ai_engineering",
+      "topic": "transformer",
+      "subtopic": "position_encoding",
+      "question": "大模型为什么需要位置编码，sin/cos、RoPE 与 ALiBi 的思路有何不同？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "位置编码",
+        "RoPE",
+        "ALiBi"
+      ],
+      "reference_points": [
+        "自注意力本身对 token 顺序没有天然区分",
+        "绝对 sin/cos 编码把位置信号加到表示中",
+        "RoPE 通过旋转 Q/K 表达相对位置信息",
+        "ALiBi 在注意力分数上加入随距离变化的线性偏置，并比较外推特性"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "自注意力本身对 token 顺序没有天然区分",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "绝对 sin/cos 编码把位置信号加到表示中",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "RoPE 通过旋转 Q/K 表达相对位置信息",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "注意力若没有位置信息，对输入排列近似不敏感。经典 sin/cos 编码把固定绝对位置向量加到 token 表示；RoPE 对查询和键做与位置有关的旋转，使点积自然携带相对距离；ALiBi 直接给注意力分数加入按头设置的距离惩罚。它们在训练长度外推、计算方式和模型兼容性上有不同取舍。",
+      "follow_up_questions": [
+        "RoPE 长上下文外推为什么常需要缩放策略？",
+        "相对位置表示相比绝对表示有什么优势？"
+      ],
+      "sources": [
+        {
+          "source_id": "transformer-paper"
+        },
+        {
+          "source_id": "rope-paper"
+        },
+        {
+          "source_id": "alibi-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-tokenizer-001",
+      "domain": "ai_engineering",
+      "topic": "llm_fundamentals",
+      "subtopic": "tokenizer",
+      "question": "大模型 Tokenizer 的作用是什么，词表和切分方式会怎样影响训练与推理？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Tokenizer",
+        "BPE",
+        "SentencePiece"
+      ],
+      "reference_points": [
+        "Tokenizer 在文本与离散 token id 之间转换",
+        "子词算法在字符与整词之间平衡词表规模和序列长度",
+        "语言、代码和特殊符号覆盖会影响 token 效率与未知表达",
+        "词表变化会改变 embedding 和模型接口，不能随意替换"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "Tokenizer 在文本与离散 token id 之间转换",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "子词算法在字符与整词之间平衡词表规模和序列长度",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "语言、代码和特殊符号覆盖会影响 token 效率与未知表达",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "Tokenizer 把原始文本切成离散 token 并映射到词表 ID，模型只处理这些 ID。BPE、Unigram 等子词方法用有限词表组合开放词汇：词表过小会让序列变长，过大则增加参数与稀疏性。中文、代码、数字和特殊符号的覆盖会直接影响成本和效果。模型训练后不能随意换词表，否则 embedding 对应关系会失效。",
+      "follow_up_questions": [
+        "为什么同一句中文在不同模型上 token 数差异很大？",
+        "新增特殊 token 后模型还需要怎样处理？"
+      ],
+      "sources": [
+        {
+          "source_id": "sentencepiece-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-training-pipeline-001",
+      "domain": "ai_engineering",
+      "topic": "training",
+      "subtopic": "training_pipeline",
+      "question": "一个大模型从数据到可对话产品通常经历哪些训练阶段？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "LLM",
+        "Pretraining",
+        "Post-training"
+      ],
+      "reference_points": [
+        "数据收集、清洗、去重和分词后进行自监督预训练",
+        "监督指令微调让模型学习任务格式与跟随指令",
+        "偏好对齐通过 RLHF、DPO 等改善有用性和安全性",
+        "各阶段都需要独立评测、数据治理和防止污染"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "数据收集、清洗、去重和分词后进行自监督预训练",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "监督指令微调让模型学习任务格式与跟随指令",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "偏好对齐通过 RLHF、DPO 等改善有用性和安全性",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "首先对大规模语料做许可、清洗、去重和分词，再用自监督目标预训练基础模型。随后用高质量指令和回答做 SFT，使模型学会对话与任务格式；再通过人工或模型偏好数据进行 RLHF、DPO 等对齐。训练之外还要做能力、安全、污染和过拟合评测。上线后的反馈可进入下一轮数据闭环，但不能直接无审核回流。",
+      "follow_up_questions": [
+        "预训练数据去重为什么重要？",
+        "SFT 与偏好对齐各自改变什么？"
+      ],
+      "sources": [
+        {
+          "source_id": "instructgpt-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-scaling-law-emergence-001",
+      "domain": "ai_engineering",
+      "topic": "training",
+      "subtopic": "scaling_law",
+      "question": "什么是 Scaling Law，所谓大模型“涌现能力”应怎样理解和验证？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Scaling Law",
+        "Emergence",
+        "LLM"
+      ],
+      "reference_points": [
+        "经验缩放规律描述损失与模型、数据、算力规模之间的可预测关系",
+        "算力最优训练要求在参数量和训练 token 之间平衡",
+        "能力曲线的突然跃迁可能受离散指标或评测阈值影响",
+        "不能据缩放规律保证具体业务能力，仍需连续指标和任务评测"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "经验缩放规律描述损失与模型、数据、算力规模之间的可预测关系",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "算力最优训练要求在参数量和训练 token 之间平衡",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "能力曲线的突然跃迁可能受离散指标或评测阈值影响",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "Scaling Law 是经验规律，描述训练损失随参数、数据和计算规模扩展的变化，并帮助分配有限算力。所谓涌现常指某项能力在规模达到阈值后明显出现，但部分跳变可能来自准确率等离散指标或评测设计。它不能保证任意业务随规模自动改善，应该使用连续指标、多模型尺寸和任务外推实验验证。",
+      "follow_up_questions": [
+        "数据不足时继续增大参数会发生什么？",
+        "怎样区分真实能力跃迁与指标阈值效应？"
+      ],
+      "sources": [
+        {
+          "source_id": "scaling-laws-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-finetuning-options-001",
+      "domain": "ai_engineering",
+      "topic": "fine_tuning",
+      "subtopic": "method_selection",
+      "question": "大模型微调有哪些主要方案，实际项目应如何选？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Fine-tuning",
+        "PEFT",
+        "LoRA"
+      ],
+      "reference_points": [
+        "全参数微调更新全部权重，能力上限高但资源与维护成本大",
+        "PEFT 只训练少量新增或选定参数，成本更低",
+        "还可选择提示微调、Adapter、LoRA 或量化结合方案",
+        "依据数据量、目标变化、硬件、延迟和部署方式评估"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "全参数微调更新全部权重，能力上限高但资源与维护成本大",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "PEFT 只训练少量新增或选定参数，成本更低",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "还可选择提示微调、Adapter、LoRA 或量化结合方案",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "全参数微调更新整个模型，资源需求大且每个版本都要维护完整权重；PEFT 通过 Adapter、LoRA 或提示参数等方式只训练少量参数，更适合资源有限和多任务版本。QLoRA 进一步在量化基座上训练适配器。选型要看目标是格式、领域术语还是复杂能力，以及数据质量、硬件、推理部署和是否需要频繁切换适配器。",
+      "follow_up_questions": [
+        "什么情况下 PEFT 的能力上限可能不够？",
+        "多个 LoRA 适配器如何部署与管理？"
+      ],
+      "sources": [
+        {
+          "source_id": "lora-paper"
+        },
+        {
+          "source_id": "qlora-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-lora-001",
+      "domain": "ai_engineering",
+      "topic": "fine_tuning",
+      "subtopic": "lora",
+      "question": "LoRA 的核心原理是什么，除了减少训练参数还有哪些工程优势？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "LoRA",
+        "低秩",
+        "PEFT"
+      ],
+      "reference_points": [
+        "冻结原权重，用两个低秩矩阵表示权重增量",
+        "利用任务适配更新可能位于低内在维度的假设",
+        "适配器体积小，便于保存、切换和版本管理",
+        "合并权重可减少额外推理开销，但秩和目标层仍需实验"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "冻结原权重，用两个低秩矩阵表示权重增量",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "利用任务适配更新可能位于低内在维度的假设",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "适配器体积小，便于保存、切换和版本管理",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "LoRA 冻结预训练权重，把某些线性层的更新表示为两个低秩矩阵的乘积，只训练这部分增量。这样显著减少优化器状态和显存，适配器文件也便于按任务保存、共享和切换。部署时可把增量合并到基座，避免额外算子。低秩维度、目标层和数据质量决定效果，并非秩越大越好。",
+      "follow_up_questions": [
+        "LoRA 的 alpha 与 rank 如何共同影响缩放？",
+        "合并 LoRA 权重后怎样保留可回滚性？"
+      ],
+      "sources": [
+        {
+          "source_id": "lora-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-post-training-map-001",
+      "domain": "ai_engineering",
+      "topic": "alignment",
+      "subtopic": "post_training",
+      "question": "SFT 之后常见的 RLHF、DPO、GRPO 与拒绝采样分别解决什么问题？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "RLHF",
+        "DPO",
+        "GRPO",
+        "拒绝采样"
+      ],
+      "reference_points": [
+        "RLHF 通常训练奖励模型并用强化学习优化策略",
+        "DPO 直接利用偏好对简化相对奖励优化",
+        "GRPO 以同组样本相对回报形成优势，减少独立价值模型需求",
+        "拒绝采样生成多个候选后筛选再用于训练或输出"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "RLHF 通常训练奖励模型并用强化学习优化策略",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "DPO 直接利用偏好对简化相对奖励优化",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "GRPO 以同组样本相对回报形成优势，减少独立价值模型需求",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "SFT 让模型模仿高质量示例，之后可用偏好信号进一步对齐。经典 RLHF 先训练奖励模型，再通过 PPO 等优化策略；DPO 直接从偏好对优化，流程更简单；GRPO 用一组候选的相对回报估计优势，常用于可验证推理训练；拒绝采样则先生成多候选，筛选优质样本用于输出或继续训练。选择取决于反馈质量、算力和稳定性。",
+      "follow_up_questions": [
+        "偏好数据存在系统性偏差会怎样影响对齐？",
+        "可验证奖励为什么适合推理任务？"
+      ],
+      "sources": [
+        {
+          "source_id": "instructgpt-paper"
+        },
+        {
+          "source_id": "dpo-paper"
+        },
+        {
+          "source_id": "deepseekmath-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-dpo-vs-ppo-001",
+      "domain": "ai_engineering",
+      "topic": "alignment",
+      "subtopic": "dpo_vs_ppo",
+      "question": "DPO 与 PPO 用于大模型对齐时有什么核心区别？",
+      "difficulty": "hard",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "DPO",
+        "PPO",
+        "偏好对齐"
+      ],
+      "reference_points": [
+        "PPO 通常需要奖励模型并在线从当前策略采样优化",
+        "DPO 把偏好学习转成监督式目标，直接比较优选与拒选响应",
+        "DPO 实现稳定简单但依赖离线偏好分布与参考策略",
+        "PPO 更灵活地使用复杂奖励，但训练成本和不稳定性更高"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "PPO 通常需要奖励模型并在线从当前策略采样优化",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "DPO 把偏好学习转成监督式目标，直接比较优选与拒选响应",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "DPO 实现稳定简单但依赖离线偏好分布与参考策略",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "PPO 型 RLHF 通过奖励模型给生成结果打分，并在 KL 等约束下在线优化策略，流程灵活但要维护采样、奖励和价值估计。DPO 从偏好对推导出直接分类式目标，不需要显式奖励模型和在线强化学习，训练更简单稳定。DPO 仍依赖偏好数据覆盖和参考模型，遇到分布外目标并不会自动优于 PPO。",
+      "follow_up_questions": [
+        "DPO 的 beta 控制什么取舍？",
+        "为什么奖励模型过拟合会伤害 PPO？"
+      ],
+      "sources": [
+        {
+          "source_id": "dpo-paper"
+        },
+        {
+          "source_id": "instructgpt-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-decoding-strategies-001",
+      "domain": "ai_engineering",
+      "topic": "inference",
+      "subtopic": "decoding_strategies",
+      "question": "贪心、Beam Search 与随机采样分别适合哪些生成任务？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Decoding",
+        "Beam Search",
+        "Sampling"
+      ],
+      "reference_points": [
+        "贪心每步选最高概率 token，稳定快速但容易局部最优和重复",
+        "Beam Search 保留多个高概率序列，适合目标较确定的序列任务",
+        "随机采样从分布抽取，适合开放创作与多样候选",
+        "解码策略要与任务指标、重复控制和延迟预算匹配"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "贪心每步选最高概率 token，稳定快速但容易局部最优和重复",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "Beam Search 保留多个高概率序列，适合目标较确定的序列任务",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "随机采样从分布抽取，适合开放创作与多样候选",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "贪心解码每一步选概率最高 token，速度快、可复现但可能陷入重复。Beam Search 保留若干累计得分较高的序列，适合翻译等输出较确定的任务，在开放对话里容易生成安全但单调的文本。随机采样保留分布多样性，适合创作和多候选推理。生产系统应按正确性、多样性、延迟和可重复性选择。",
+      "follow_up_questions": [
+        "Beam 宽度增大为什么不一定提升质量？",
+        "需要稳定 JSON 时应怎样设置解码？"
+      ],
+      "sources": [
+        {
+          "source_id": "nucleus-sampling-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-sampling-parameters-001",
+      "domain": "ai_engineering",
+      "topic": "inference",
+      "subtopic": "sampling_parameters",
+      "question": "Temperature、Top-P 与 Top-K 分别怎样改变采样分布，为什么不宜机械套用固定最佳值？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Temperature",
+        "Top-P",
+        "Top-K"
+      ],
+      "reference_points": [
+        "Temperature 缩放 logits，低值使分布更尖锐，高值增加随机性",
+        "Top-K 只保留概率最高的固定数量候选",
+        "Top-P 保留累计概率达到阈值的动态候选集合",
+        "参数会相互作用，应按任务和模型评测并记录版本"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "Temperature 缩放 logits，低值使分布更尖锐，高值增加随机性",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "Top-K 只保留概率最高的固定数量候选",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "Top-P 保留累计概率达到阈值的动态候选集合",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "Temperature 在 softmax 前缩放 logits，越低越偏向高概率 token；Top-K 把候选限制为固定 K 个；Top-P 则保留累计概率达到阈值的最小集合，会随上下文动态变化。它们组合后相互影响，不存在跨模型、跨任务通用的最佳值。事实问答通常更保守，创作任务可增加多样性，但都应通过业务评测校准。",
+      "follow_up_questions": [
+        "Temperature 为 0 是否保证绝对确定性？",
+        "同时设置 Top-P 与 Top-K 有什么风险？"
+      ],
+      "sources": [
+        {
+          "source_id": "nucleus-sampling-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-kv-prompt-cache-001",
+      "domain": "ai_engineering",
+      "topic": "inference",
+      "subtopic": "kv_and_prompt_cache",
+      "question": "KV Cache 与 Prompt Caching 分别缓存什么，它们如何影响推理性能和费用？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "KV Cache",
+        "Prompt Caching",
+        "推理优化"
+      ],
+      "reference_points": [
+        "KV Cache 保存当前序列各层历史 token 的 K/V，避免解码时重复计算",
+        "缓存体积随层数、序列和并发增长并消耗显存带宽",
+        "Prompt Caching 复用相同前缀的预填充结果，通常跨请求命中",
+        "两者都要求前缀稳定，并需考虑隔离、过期和命中率"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "KV Cache 保存当前序列各层历史 token 的 K/V，避免解码时重复计算",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "缓存体积随层数、序列和并发增长并消耗显存带宽",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "Prompt Caching 复用相同前缀的预填充结果，通常跨请求命中",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "KV Cache 是单次或持续会话推理中的中间张量，保存各层历史 token 的键和值，使每个新 token 不必重算完整前缀；代价是显存随上下文和并发增长。Prompt Caching 则尝试在多个请求间复用相同前缀的预填充计算，可降低首 token 时间或输入费用。稳定的系统提示与工具前缀更容易命中，但必须做好租户隔离和失效。",
+      "follow_up_questions": [
+        "GQA 为什么能减少 KV Cache？",
+        "动态时间戳放在提示开头会怎样影响缓存？"
+      ],
+      "sources": [
+        {
+          "source_id": "vllm-paper"
+        },
+        {
+          "source_id": "openai-api-docs"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-quantization-001",
+      "domain": "ai_engineering",
+      "topic": "inference",
+      "subtopic": "quantization",
+      "question": "大模型量化解决什么问题，INT8、INT4、GPTQ 与 AWQ 应如何理解和选择？",
+      "difficulty": "hard",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Quantization",
+        "INT4",
+        "GPTQ",
+        "AWQ"
+      ],
+      "reference_points": [
+        "量化用较低精度表示权重或激活以减少显存、带宽和计算",
+        "位宽越低通常压缩越大但质量和硬件内核敏感性更高",
+        "GPTQ 与 AWQ 都属于常见训练后权重量化思路，但校准目标不同",
+        "必须在目标硬件与业务集上测质量、吞吐、首 token 和并发"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "量化用较低精度表示权重或激活以减少显存、带宽和计算",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "位宽越低通常压缩越大但质量和硬件内核敏感性更高",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "GPTQ 与 AWQ 都属于常见训练后权重量化思路，但校准目标不同",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "量化把 FP16/BF16 权重或激活转换为 INT8、INT4 等低精度表示，主要降低显存占用和内存带宽，并可能提高吞吐。位宽更低不一定更快，取决于硬件内核和反量化开销。GPTQ 通过近似二阶信息降低逐层量化误差，AWQ 关注保护对激活重要的权重。选型必须在目标模型、硬件和业务任务上实测。",
+      "follow_up_questions": [
+        "权重量化与权重加激活量化有什么区别？",
+        "为什么困惑度变化小仍可能伤害特定业务？"
+      ],
+      "sources": [
+        {
+          "source_id": "gptq-paper"
+        },
+        {
+          "source_id": "awq-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-prompt-engineering-001",
+      "domain": "ai_engineering",
+      "topic": "prompt_management",
+      "subtopic": "prompt_engineering",
+      "question": "如何为生产大模型应用编写和维护高质量 Prompt？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Prompt Engineering",
+        "版本管理",
+        "评测"
+      ],
+      "reference_points": [
+        "明确角色、任务、输入上下文、约束和输出格式",
+        "用分隔与结构化字段区分指令和不可信数据",
+        "只加入完成任务所需示例，并覆盖边界与拒答条件",
+        "Prompt 必须版本化并用固定评测集回归"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "明确角色、任务、输入上下文、约束和输出格式",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "用分隔与结构化字段区分指令和不可信数据",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "只加入完成任务所需示例，并覆盖边界与拒答条件",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "生产 Prompt 应清楚写明目标、输入、边界、可用信息和输出契约，并通过结构或分隔符把指令与用户、检索内容区分。示例要少而有代表性，覆盖容易出错的边界。更长并不必然更好，冗余会增加成本和冲突。每次修改都应带版本，在同一评测集上比较正确率、格式、延迟与费用。",
+      "follow_up_questions": [
+        "怎样发现 Prompt 中互相冲突的约束？",
+        "Few-shot 示例为什么可能造成分布偏移？"
+      ],
+      "sources": [
+        {
+          "source_id": "openai-api-docs"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-chain-of-thought-001",
+      "domain": "ai_engineering",
+      "topic": "prompt_management",
+      "subtopic": "chain_of_thought",
+      "question": "Chain-of-Thought 为什么可能改善复杂推理，它有哪些局限？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "CoT",
+        "Reasoning",
+        "推理"
+      ],
+      "reference_points": [
+        "中间步骤把复杂问题分解并为后续 token 提供计算轨迹",
+        "效果依赖模型规模、任务和示例质量",
+        "长推理会增加延迟、成本，也可能产生看似合理的错误链",
+        "生产评估应看最终可验证结果，不把自然语言推理当忠实解释"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "中间步骤把复杂问题分解并为后续 token 提供计算轨迹",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "效果依赖模型规模、任务和示例质量",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "长推理会增加延迟、成本，也可能产生看似合理的错误链",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "CoT 通过生成中间步骤把复杂任务拆成较小决策，并让后续生成利用这些中间状态，因此在数学或多步问题上可能提高表现。但它不是模型内部计算的可靠解释，也可能自信地展开错误路径。更长推理还增加 token、延迟和泄露风险。生产系统应依靠答案验证、工具或测试，而不是相信推理文本的流畅度。",
+      "follow_up_questions": [
+        "Self-consistency 如何利用多条推理路径？",
+        "为什么不应向所有用户暴露内部推理文本？"
+      ],
+      "sources": [
+        {
+          "source_id": "cot-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-hallucination-001",
+      "domain": "ai_engineering",
+      "topic": "hallucination",
+      "subtopic": "causes_and_mitigation",
+      "question": "大模型为什么会产生幻觉，应用层可以怎样系统缓解？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "LLM",
+        "幻觉",
+        "Grounding"
+      ],
+      "reference_points": [
+        "训练目标优化下一个 token 概率，不直接保证事实真实性",
+        "知识缺失、提示歧义、分布外输入和错误上下文都会诱发幻觉",
+        "可用检索、工具、结构化约束、验证器和拒答降低风险",
+        "通过带证据评测、校准和人工升级衡量而非宣称消除"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "训练目标优化下一个 token 概率，不直接保证事实真实性",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "知识缺失、提示歧义、分布外输入和错误上下文都会诱发幻觉",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "可用检索、工具、结构化约束、验证器和拒答降低风险",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "语言模型学习的是条件文本分布，并没有内置事实数据库或真实性保证。知识过时、问题歧义、错误检索和强制回答都会提高幻觉。应用层可提供可靠证据、调用权威工具、约束输出结构、执行后置验证，并允许在证据不足时拒答。缓解效果要用事实性和证据支持度评测，不能承诺完全消除。",
+      "follow_up_questions": [
+        "为什么 RAG 也会产生幻觉？",
+        "如何区分知识缺失与模型忽略证据？"
+      ],
+      "sources": [
+        {
+          "source_id": "hallucination-survey"
+        },
+        {
+          "source_id": "rag-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-moe-001",
+      "domain": "ai_engineering",
+      "topic": "llm_fundamentals",
+      "subtopic": "mixture_of_experts",
+      "question": "MoE 模型的工作原理是什么，为什么它能增加参数规模却控制单次计算量？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "MoE",
+        "Router",
+        "Expert"
+      ],
+      "reference_points": [
+        "MoE 层包含多个专家网络并由路由器为 token 选择少数专家",
+        "总参数可很大，但每个 token 只激活 Top-K 专家",
+        "需要负载均衡损失、防止专家拥塞和容量溢出",
+        "分布式部署会增加 all-to-all 通信与路由稳定性成本"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "MoE 层包含多个专家网络并由路由器为 token 选择少数专家",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "总参数可很大，但每个 token 只激活 Top-K 专家",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "需要负载均衡损失、防止专家拥塞和容量溢出",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "MoE 将部分前馈层替换为多个专家，路由器根据 token 选择少量专家执行，因此模型总参数量可以增长，而单 token 的激活计算量相对受控。训练要防止路由坍缩到少数专家，并处理专家容量。部署时专家跨设备会产生 all-to-all 通信，实际速度还取决于批量、网络和负载均衡，不能只看激活参数量。",
+      "follow_up_questions": [
+        "为什么 MoE 推理可能受网络带宽限制？",
+        "专家负载不均衡会带来什么后果？"
+      ],
+      "sources": [
+        {
+          "source_id": "switch-transformer-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-serving-frameworks-001",
+      "domain": "ai_engineering",
+      "topic": "deployment",
+      "subtopic": "serving_frameworks",
+      "question": "vLLM、SGLang、TGI 与 llama.cpp 在部署大模型时应如何选型？",
+      "difficulty": "hard",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "vLLM",
+        "SGLang",
+        "TGI",
+        "llama.cpp"
+      ],
+      "reference_points": [
+        "比较目标硬件、模型格式、量化与提供商特性支持",
+        "在线服务关注连续批处理、KV Cache 管理、吞吐和尾延迟",
+        "结构化或 Agent 工作负载还需关注前缀复用、调度与约束解码",
+        "边缘 CPU 或消费级设备与 GPU 集群的选型不同，必须实测"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "比较目标硬件、模型格式、量化与提供商特性支持",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "在线服务关注连续批处理、KV Cache 管理、吞吐和尾延迟",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "结构化或 Agent 工作负载还需关注前缀复用、调度与约束解码",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "vLLM 和 SGLang 面向高吞吐 GPU 服务，强调 KV Cache 与请求调度；TGI 提供 Hugging Face 生态中的生产服务能力；llama.cpp 更偏本地、CPU 和多种消费级硬件及量化模型。功能和性能变化很快，不能仅按宣传选。应在目标模型与硬件上测并发、TTFT、每 token 时间、显存、量化质量和运维复杂度。",
+      "follow_up_questions": [
+        "连续批处理为什么能提高吞吐？",
+        "Agent 短输出工作负载为何与长文本生成的调度重点不同？"
+      ],
+      "sources": [
+        {
+          "source_id": "vllm-paper"
+        },
+        {
+          "source_id": "sglang-paper"
+        },
+        {
+          "source_id": "llamacpp-repo"
+        },
+        {
+          "source_id": "tgi-docs"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-evaluation-metrics-001",
+      "domain": "ai_engineering",
+      "topic": "evaluation",
+      "subtopic": "evaluation_metrics",
+      "question": "大模型能力评测应包含哪些指标，公开 Benchmark 有什么局限？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "LLM Evaluation",
+        "Benchmark",
+        "业务评测"
+      ],
+      "reference_points": [
+        "按知识、推理、代码、指令遵循、安全与事实性拆分能力",
+        "自动指标、模型裁判和人工评审各有偏差，需要校准",
+        "公开榜单可能存在数据污染、饱和和与业务分布不一致",
+        "业务评测应固定版本、保存失败样本并同时看延迟与成本"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "按知识、推理、代码、指令遵循、安全与事实性拆分能力",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "自动指标、模型裁判和人工评审各有偏差，需要校准",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "公开榜单可能存在数据污染、饱和和与业务分布不一致",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "评测要先定义业务能力，再组合可验证准确率、结构合规、事实支持、安全拒答和人工偏好等指标。模型裁判便于扩展，但会受位置、风格和同源模型偏差影响，需要人工校准。公开 Benchmark 可能被训练数据污染或与真实任务差异很大，只适合初筛。最终选型应在业务数据上同时比较质量、稳定性、延迟和费用。",
+      "follow_up_questions": [
+        "怎样校准 LLM-as-a-Judge？",
+        "评测集如何避免被 Prompt 过拟合？"
+      ],
+      "sources": [
+        {
+          "source_id": "helm-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-model-selection-001",
+      "domain": "ai_engineering",
+      "topic": "evaluation",
+      "subtopic": "model_selection",
+      "question": "实际项目如何比较并选择主流大模型，而不是只看排行榜？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "LLM",
+        "模型选型",
+        "A/B 测试"
+      ],
+      "reference_points": [
+        "从真实任务、语言、上下文、工具和结构化输出需求建立候选集",
+        "用相同 Prompt、数据和失败规则进行盲测",
+        "比较质量、延迟、价格、限额、可用区与数据政策",
+        "设计路由与回退，但避免无依据维护过多模型"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "从真实任务、语言、上下文、工具和结构化输出需求建立候选集",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "用相同 Prompt、数据和失败规则进行盲测",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "比较质量、延迟、价格、限额、可用区与数据政策",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "先依据中文能力、上下文长度、工具调用、结构化输出和部署约束筛选少量模型，再用脱敏的真实任务做相同条件下的盲测。除了正确率和用户偏好，还要记录 TTFT、总延迟、费用、限流、稳定性和数据政策。若任务差异明显可按类别路由，并保留失败回退；没有实测收益时不必维护复杂多模型体系。",
+      "follow_up_questions": [
+        "模型版本静默更新时如何发现回归？",
+        "怎样设计既公平又贴近生产的成本比较？"
+      ],
+      "sources": [
+        {
+          "source_id": "helm-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-long-context-001",
+      "domain": "ai_engineering",
+      "topic": "long_context",
+      "subtopic": "lost_in_the_middle",
+      "question": "为什么上下文窗口越大不代表模型能有效使用全部内容，Lost in the Middle 是什么？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Long Context",
+        "Lost in the Middle",
+        "评测"
+      ],
+      "reference_points": [
+        "上下文窗口只表示可接受 token 上限，不保证各位置利用均匀",
+        "关键信息位于长上下文中部时性能可能明显下降",
+        "长输入增加预填充延迟、内存、费用和无关信息干扰",
+        "应按证据位置、长度和多跳依赖评测，并结合检索与摘要"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "上下文窗口只表示可接受 token 上限，不保证各位置利用均匀",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "关键信息位于长上下文中部时性能可能明显下降",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "长输入增加预填充延迟、内存、费用和无关信息干扰",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "上下文窗口是输入容量指标，不等于有效记忆。研究发现，关键信息放在长上下文中间时，模型表现可能低于放在开头或结尾，这被称为 Lost in the Middle。更长输入还会提高预填充延迟、缓存占用和费用，并引入噪声。系统应按不同位置和长度测试真实任务，必要时用检索、结构化摘要和证据排序。",
+      "follow_up_questions": [
+        "怎样设计 needle-in-a-haystack 之外的长上下文评测？",
+        "RAG 与长上下文应该如何组合？"
+      ],
+      "sources": [
+        {
+          "source_id": "lost-middle-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    }
+  ]
+}

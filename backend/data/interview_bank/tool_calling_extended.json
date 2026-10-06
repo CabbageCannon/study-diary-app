@@ -1,0 +1,869 @@
+{
+  "questions": [
+    {
+      "id": "tool-call-learning-001",
+      "domain": "llm_application",
+      "topic": "function_calling",
+      "subtopic": "inference_mechanism",
+      "question": "LLM 是怎样决定调用哪个外部工具的，模型本身真的执行了函数吗？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "Function Calling",
+        "Tool Calling",
+        "LLM"
+      ],
+      "reference_points": [
+        "模型根据提示、工具名称、描述和参数 schema 预测结构化调用",
+        "应用而不是模型负责校验参数并执行真实函数",
+        "工具结果作为新消息返回模型以继续生成",
+        "模型可能误选或漏调，因此需要限制和评测"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "模型根据提示、工具名称、描述和参数 schema 预测结构化调用",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "应用而不是模型负责校验参数并执行真实函数",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "工具结果作为新消息返回模型以继续生成",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "模型在上下文中读取可用工具的描述和参数结构，然后像生成文本一样生成某个工具名及参数。它并不直接执行本地函数，真正的调用由应用校验权限和参数后完成。应用再把结果作为工具消息送回模型，模型据此继续或给出最终回答。整个选择是概率性的，所以仍需服务端控制和失败处理。",
+      "follow_up_questions": [
+        "怎样减少名称相似工具之间的误选？",
+        "为什么工具返回值也应视为不可信输入？"
+      ],
+      "sources": [
+        {
+          "source_id": "openai-api-docs"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "tool-call-training-001",
+      "domain": "llm_application",
+      "topic": "function_calling",
+      "subtopic": "capability_training",
+      "question": "大模型的 Function Calling 能力通常是怎样训练和对齐出来的？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Function Calling",
+        "SFT",
+        "对齐"
+      ],
+      "reference_points": [
+        "预训练先提供通用语言与代码模式能力",
+        "监督微调使用工具定义、调用参数和工具结果组成的轨迹",
+        "偏好或强化学习可改善何时调用、参数质量和拒绝行为",
+        "训练能力仍依赖推理时 schema、工具描述与服务端校验"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "预训练先提供通用语言与代码模式能力",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "监督微调使用工具定义、调用参数和工具结果组成的轨迹",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "偏好或强化学习可改善何时调用、参数质量和拒绝行为",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "模型先从预训练获得语言、代码和结构化表达能力，再通过带工具定义、调用参数、工具返回和最终答案的监督轨迹学习调用格式与时机。后续偏好优化或强化学习可以奖励正确选择、参数和停止行为。即使模型训练过 Function Calling，推理时仍需清晰的工具契约，并由应用校验与执行，不能把对齐结果当安全边界。",
+      "follow_up_questions": [
+        "训练集里应包含哪些失败工具轨迹？",
+        "为什么仅训练合法 JSON 还不够？"
+      ],
+      "sources": [
+        {
+          "source_id": "openai-api-docs"
+        },
+        {
+          "source_id": "instructgpt-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mcp-core-primitives-001",
+      "domain": "agent",
+      "topic": "mcp",
+      "subtopic": "core_primitives",
+      "question": "MCP 解决了什么问题，Tools、Resources 和 Prompts 三类能力分别由谁控制？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MCP",
+        "Tools",
+        "Resources",
+        "Prompts"
+      ],
+      "reference_points": [
+        "MCP 标准化 AI 应用与外部能力之间的发现和调用",
+        "Tools 通常由模型选择调用，Resources 由应用选择读取",
+        "Prompts 是用户或应用可选择的模板能力",
+        "协议统一交换方式但不替代认证、授权和业务校验"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "MCP 标准化 AI 应用与外部能力之间的发现和调用",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "Tools 通常由模型选择调用，Resources 由应用选择读取",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "Prompts 是用户或应用可选择的模板能力",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "MCP 把 Host 与外部 Server 的能力发现、调用和结果交换标准化。Tools 表示可执行动作，通常由模型决定是否调用；Resources 表示可读取的上下文，通常由应用选择；Prompts 提供可复用模板，通常由用户或应用触发。MCP 只解决互操作协议，真实资源的认证、授权、参数校验和审计仍由各端实现。",
+      "follow_up_questions": [
+        "为什么 Resource 不应默认全部塞给模型？",
+        "Server 如何声明能力变化？"
+      ],
+      "sources": [
+        {
+          "source_id": "mcp-spec"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mcp-vs-function-calling-001",
+      "domain": "agent",
+      "topic": "mcp",
+      "subtopic": "mcp_vs_function_calling",
+      "question": "MCP 与 Function Calling 的核心区别是什么，它们在一次工具调用中如何协作？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MCP",
+        "Function Calling",
+        "工具生态"
+      ],
+      "reference_points": [
+        "Function Calling 是模型表达工具选择和参数的机制",
+        "MCP 是应用与工具服务之间发现和调用能力的协议",
+        "Host 可把 MCP Server 的工具转换为模型可见 schema",
+        "模型输出调用后仍由 Host 经 MCP Client 执行并回填结果"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "Function Calling 是模型表达工具选择和参数的机制",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "MCP 是应用与工具服务之间发现和调用能力的协议",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "Host 可把 MCP Server 的工具转换为模型可见 schema",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "Function Calling 位于模型交互层，让模型输出工具名和结构化参数；MCP 位于应用集成层，让 Host 以统一协议发现并调用外部 Server。实际流程可以是 Host 获取 MCP 工具清单并转成模型 schema，模型选择工具后，Host 通过 MCP Client 发起调用，再把结果返回模型。两者互补，不是彼此替代。",
+      "follow_up_questions": [
+        "没有 MCP 时 Function Calling 还能工作吗？",
+        "MCP Server 是否必须理解具体模型协议？"
+      ],
+      "sources": [
+        {
+          "source_id": "mcp-spec"
+        },
+        {
+          "source_id": "openai-api-docs"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mcp-function-calling-selection-001",
+      "domain": "agent",
+      "topic": "mcp",
+      "subtopic": "integration_selection",
+      "question": "什么场景直接使用 Function Calling 就够了，什么场景值得接入 MCP？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MCP",
+        "Function Calling",
+        "选型"
+      ],
+      "reference_points": [
+        "少量进程内、仅供单应用使用的工具可直接注册 Function Calling",
+        "跨应用复用、独立部署或动态发现的能力更适合 MCP",
+        "比较协议开销、权限边界、连接生命周期和生态兼容",
+        "可以从本地函数开始，在复用需求出现后封装 MCP Server"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "少量进程内、仅供单应用使用的工具可直接注册 Function Calling",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "跨应用复用、独立部署或动态发现的能力更适合 MCP",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "比较协议开销、权限边界、连接生命周期和生态兼容",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "若工具数量少、与业务代码同进程且只服务一个应用，直接 Function Calling 最简单。能力需要被多个 Host 复用、独立部署、动态发现或跨语言时，MCP 能减少定制适配。引入 MCP 也会增加连接、协议、版本和授权管理，因此应按真实复用边界决定。模型侧仍可能使用 Function Calling 来选择 MCP 暴露的工具。",
+      "follow_up_questions": [
+        "本地工具迁移为 MCP Server 时契约应怎样兼容？",
+        "远程 MCP 的超时和断线如何处理？"
+      ],
+      "sources": [
+        {
+          "source_id": "mcp-spec"
+        },
+        {
+          "source_id": "openai-api-docs"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mcp-model-support-boundary-001",
+      "domain": "agent",
+      "topic": "mcp",
+      "subtopic": "model_support",
+      "question": "为什么说“某个模型是否支持 MCP”这个问题容易混淆层级？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MCP",
+        "推理模型",
+        "协议分层"
+      ],
+      "reference_points": [
+        "MCP 连接通常由 Host 与 Server 实现，不是模型直接建立",
+        "模型真正需要的是稳定生成工具调用或结构化决策的能力",
+        "Host 可以适配不同模型 API 与 MCP 能力",
+        "缺少工具调用能力的模型也可由应用用受限文本协议桥接，但可靠性较低"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "MCP 连接通常由 Host 与 Server 实现，不是模型直接建立",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "模型真正需要的是稳定生成工具调用或结构化决策的能力",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "Host 可以适配不同模型 API 与 MCP 能力",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "MCP 是 Host、Client 与 Server 之间的应用协议，模型通常不会直接发起 MCP 网络请求。所谓模型支持 MCP，往往实际指 Host 能否把 MCP 能力转换成该模型理解的工具描述，以及模型能否稳定输出结构化调用。不同模型可以由 Host 适配；若模型没有可靠工具调用能力，文本解析也能桥接，但错误率和安全成本更高。",
+      "follow_up_questions": [
+        "Host 适配层需要统一哪些差异？",
+        "文本解析桥接为什么不宜执行高风险工具？"
+      ],
+      "sources": [
+        {
+          "source_id": "mcp-spec"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "agent-skill-concept-001",
+      "domain": "agent",
+      "topic": "tool_calling",
+      "subtopic": "agent_skill",
+      "question": "Agent Skill 是什么，它为什么不仅是一段提示词？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Agent Skill",
+        "SKILL.md",
+        "可复用流程"
+      ],
+      "reference_points": [
+        "Skill 封装某类任务的操作知识、步骤、边界与资源",
+        "通过元数据帮助 Agent 按需发现和加载",
+        "可引用脚本、模板或资料，但实际能力仍受工具权限约束",
+        "需要版本化、测试触发条件并避免把秘密写入内容"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "Skill 封装某类任务的操作知识、步骤、边界与资源",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "通过元数据帮助 Agent 按需发现和加载",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "可引用脚本、模板或资料，但实际能力仍受工具权限约束",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "Agent Skill 把完成一类任务所需的说明、步骤、边界和配套资源封装成可发现模块。Agent 先读取精简元数据，在任务匹配时再加载详细说明，因此它比散落在系统提示中的长文本更易复用和维护。Skill 可以指导如何使用脚本和工具，但不会自动获得权限；权限、参数校验和秘密管理仍由运行环境负责。",
+      "follow_up_questions": [
+        "怎样避免 Skill 元数据过宽导致频繁误触发？",
+        "Skill 更新后如何回归旧任务？"
+      ],
+      "sources": [
+        {
+          "source_id": "agent-skills-spec"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "tool-ecosystem-layers-001",
+      "domain": "agent",
+      "topic": "tool_calling",
+      "subtopic": "function_skill_mcp_layers",
+      "question": "Function Calling、Agent Skill 与 MCP 分别处在哪一层，三者如何配合？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Function Calling",
+        "Agent Skill",
+        "MCP"
+      ],
+      "reference_points": [
+        "Function Calling 表达模型对某个动作的结构化选择",
+        "MCP 连接应用与可复用工具或数据服务",
+        "Skill 提供完成任务的方法、流程和工具使用知识",
+        "说明同一任务可由 Skill 指导、Function Calling 决策、MCP 执行"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "Function Calling 表达模型对某个动作的结构化选择",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "MCP 连接应用与可复用工具或数据服务",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "Skill 提供完成任务的方法、流程和工具使用知识",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "Function Calling 是模型输出动作名和参数的交互机制；MCP 是 Host 发现并访问外部能力的协议；Skill 则告诉 Agent 在某类任务中怎样组合能力、遵守什么流程。一个完整例子是：Agent 加载部署 Skill，根据步骤生成 Function Calling，Host 再通过 MCP 调用部署服务。三者解决不同层次的问题，可以同时存在。",
+      "follow_up_questions": [
+        "Skill 与普通工具描述的边界在哪里？",
+        "MCP Server 是否应该内置业务工作流？"
+      ],
+      "sources": [
+        {
+          "source_id": "agent-skills-spec"
+        },
+        {
+          "source_id": "mcp-spec"
+        },
+        {
+          "source_id": "openai-api-docs"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "a2a-vs-mcp-001",
+      "domain": "agent",
+      "topic": "multi_agent",
+      "subtopic": "a2a_vs_mcp",
+      "question": "A2A 与 MCP 的用途有什么区别，什么时候需要同时使用？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "A2A",
+        "MCP",
+        "Multi-Agent"
+      ],
+      "reference_points": [
+        "MCP 侧重 Agent 应用访问工具、资源和提示能力",
+        "A2A 侧重独立 Agent 之间的发现、任务状态和产物交换",
+        "A2A 允许对方内部实现保持不透明并支持长时任务",
+        "一个 Agent 可用 MCP 操作工具，同时用 A2A 委派给远程 Agent"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "MCP 侧重 Agent 应用访问工具、资源和提示能力",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "A2A 侧重独立 Agent 之间的发现、任务状态和产物交换",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "A2A 允许对方内部实现保持不透明并支持长时任务",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "MCP 主要连接 Agent 应用与工具或数据服务，调用方通常知道要使用哪项能力；A2A 面向独立 Agent 之间的协作，通过 Agent Card、任务状态、消息和产物交换描述长时工作。远程 Agent 的内部工具可以保持不透明。复杂系统中，一个 Agent 可以通过 A2A 委派任务，而被委派的 Agent 再通过 MCP 使用自己的工具。",
+      "follow_up_questions": [
+        "A2A 长时任务如何通知调用方进度？",
+        "为什么不能简单用 MCP Tool 模拟所有 Agent 协作？"
+      ],
+      "sources": [
+        {
+          "source_id": "a2a-spec"
+        },
+        {
+          "source_id": "mcp-spec"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "mcp-transport-001",
+      "domain": "agent",
+      "topic": "mcp",
+      "subtopic": "transport",
+      "question": "MCP 常见传输方式如何工作，本地 stdio 与远程 HTTP 应如何选择？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "MCP",
+        "stdio",
+        "HTTP"
+      ],
+      "reference_points": [
+        "stdio 适合同机子进程，消息走标准输入输出并由 Host 管理生命周期",
+        "远程 Streamable HTTP 适合独立服务并需要认证、请求元数据与网络治理",
+        "传输只承载协议消息，不改变 Tools、Resources、Prompts 语义",
+        "选择时比较部署边界、延迟、权限、扩缩容和断线恢复"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "stdio 适合同机子进程，消息走标准输入输出并由 Host 管理生命周期",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "远程 HTTP 适合独立服务并需要认证、会话与网络治理",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "传输只承载协议消息，不改变 Tools、Resources、Prompts 语义",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "stdio 由 Host 启动本地 Server 子进程，通过换行分隔的消息交换，适合同机工具。远程 Streamable HTTP 让每个消息通过 HTTP POST 发送，并可用请求范围的 SSE 返回增量结果，适合共享或独立扩缩容的服务。两种传输承载相同的 MCP 消息语义，选择主要取决于进程边界、复用、认证和运维需求。",
+      "follow_up_questions": [
+        "为什么 Server 不应把日志写到 stdio 协议流？",
+        "远程传输怎样限制跨租户会话？"
+      ],
+      "sources": [
+        {
+          "source_id": "mcp-transport-docs"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-webrtc-websocket-001",
+      "domain": "network",
+      "topic": "websocket",
+      "subtopic": "webrtc_vs_websocket",
+      "question": "实时 AI 语音对话中，WebRTC 与 WebSocket 的核心差异是什么？",
+      "difficulty": "hard",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "WebRTC",
+        "WebSocket",
+        "实时语音"
+      ],
+      "reference_points": [
+        "WebSocket 提供基于 TCP 的可靠双向字节流",
+        "WebRTC 面向实时音视频，包含媒体协商、抖动处理和拥塞控制",
+        "实时媒体更重视低延迟并可容忍部分丢包，控制消息更重视可靠有序",
+        "WebRTC 需处理 ICE、STUN/TURN 和更复杂的连接建立"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "WebSocket 提供基于 TCP 的可靠双向字节流",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "WebRTC 面向实时音视频，包含媒体协商、抖动处理和拥塞控制",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "实时媒体更重视低延迟并可容忍部分丢包，控制消息更重视可靠有序",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "WebSocket 是基于 TCP 的可靠有序双向通道，适合事件、文本和控制消息；WebRTC 为实时音视频设计，提供媒体协商、抖动缓冲、拥塞控制以及 NAT 穿透，并能在实时性与少量丢包之间取舍。实时语音通常优先 WebRTC，简单的录音上传或文本流可用 WebSocket。代价是 WebRTC 的信令和 ICE/STUN/TURN 运维更复杂。",
+      "follow_up_questions": [
+        "TURN 为什么会显著增加带宽成本？",
+        "WebRTC 数据通道能否完全替代 WebSocket？"
+      ],
+      "sources": [
+        {
+          "source_id": "mdn-webrtc"
+        },
+        {
+          "source_id": "mdn-websocket"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "llm-gateway-001",
+      "domain": "ai_engineering",
+      "topic": "model_routing",
+      "subtopic": "llm_gateway",
+      "question": "LLM 网关层通常解决哪些问题，哪些业务逻辑不应该塞进网关？",
+      "difficulty": "medium",
+      "question_type": "architecture_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "LLM Gateway",
+        "路由",
+        "限流"
+      ],
+      "reference_points": [
+        "统一不同模型提供商的认证、协议适配和路由",
+        "集中处理限流、重试、预算、观测和故障切换",
+        "网关需保留流式语义并避免记录敏感原文",
+        "业务提示、领域权限和任务状态应留在应用服务"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "统一不同模型提供商的认证、协议适配和路由",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "集中处理限流、重试、预算、观测和故障切换",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "网关需保留流式语义并避免记录敏感原文",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "LLM 网关适合统一提供商协议、密钥、模型路由、限流、重试、用量统计和故障切换，让应用减少重复集成。它还应正确透传流式输出和请求标识。具体业务提示、用户资源权限和任务状态不应塞入通用网关，否则边界混乱且难以独立演进。网关日志也要默认脱敏。",
+      "follow_up_questions": [
+        "网关自动重试怎样避免重复工具副作用？",
+        "多模型路由应依据哪些实时信号？"
+      ],
+      "sources": [
+        {
+          "source_id": "litellm-docs"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "agent-tool-routing-001",
+      "domain": "agent",
+      "topic": "tool_calling",
+      "subtopic": "tool_routing",
+      "question": "工具数量很多时，Agent 如何减少工具描述占用并降低选错工具的概率？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Agent",
+        "Tool Routing",
+        "上下文"
+      ],
+      "reference_points": [
+        "先按用户权限和任务阶段做确定性过滤",
+        "再用分类、语义检索或分层目录选出小候选集",
+        "只向模型暴露候选工具的精确契约",
+        "记录路由召回率、误选率、token、延迟并保留回退"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "先按用户权限和任务阶段做确定性过滤",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "再用分类、语义检索或分层目录选出小候选集",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "只向模型暴露候选工具的精确契约",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "先在应用层按身份、权限和当前流程排除不可能使用的工具，再用规则、分类器或语义检索从目录中召回少量候选。模型只看到这些候选的名称、使用条件和 schema，必要时先选工具组再选具体工具。路由器也可能漏掉正确能力，因此要有回退通道，并持续评估工具召回率、误选率、token 和延迟。",
+      "follow_up_questions": [
+        "工具描述本身如何建立可检索索引？",
+        "路由器漏召回时怎样降级？"
+      ],
+      "sources": [
+        {
+          "source_id": "langchain-tools-docs"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "tool-call-fault-tolerance-001",
+      "domain": "llm_application",
+      "topic": "tool_calling",
+      "subtopic": "fault_tolerance",
+      "question": "工具调用出现格式非法、参数错误、超时或服务失败时，Agent 应如何分类处理？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Tool Calling",
+        "错误处理",
+        "重试"
+      ],
+      "reference_points": [
+        "解析或 schema 错误可返回结构化反馈让模型限次修正",
+        "业务校验与权限错误不可盲目重试",
+        "瞬时网络或服务错误采用受预算约束的退避重试",
+        "超时和未知结果要结合幂等键查询执行状态，避免重复副作用"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "解析或 schema 错误可返回结构化反馈让模型限次修正",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "业务校验与权限错误不可盲目重试",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "瞬时网络或服务错误采用受预算约束的退避重试",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "先把错误分为生成格式、参数或业务校验、权限、瞬时基础设施故障和结果未知。格式问题可把精简错误返回模型并限制修正次数；权限和不可满足的业务条件直接终止；限流或短暂故障按 deadline 退避重试。对写操作超时，不能假定失败后重放，应借助幂等键或状态查询确认是否已经执行。",
+      "follow_up_questions": [
+        "工具返回部分结果时怎样表示？",
+        "如何防止模型反复用同一错误参数重试？"
+      ],
+      "sources": [
+        {
+          "source_id": "openai-api-docs"
+        },
+        {
+          "source_id": "mcp-spec"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    }
+  ]
+}

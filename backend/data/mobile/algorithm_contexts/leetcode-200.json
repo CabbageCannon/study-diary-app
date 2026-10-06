@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "problem_key": "leetcode-200",
+  "title": "Number of Islands",
+  "title_zh": "岛屿数量",
+  "statement_zh": "给定一个由字符 '1' 和 '0' 组成的二维网格，'1' 表示陆地，'0' 表示水。上下左右相邻的陆地属于同一个岛屿，对角相邻不连通。请统计网格中的岛屿数量。",
+  "input_output": {
+    "input": "grid：二维字符网格，只包含 '1' 和 '0'。",
+    "output": "岛屿的数量。"
+  },
+  "constraints": [
+    "1 <= grid.length <= 300",
+    "1 <= grid[i].length <= 300",
+    "grid[i][j] 为 '0' 或 '1'",
+    "只按上下左右四个方向连接陆地",
+    "水域不属于任何岛屿"
+  ],
+  "examples": [
+    {
+      "input": "grid = [[\"1\",\"1\",\"0\"],[\"0\",\"1\",\"0\"],[\"1\",\"0\",\"1\"]]",
+      "output": "3",
+      "explanation": "左上连成一个岛，左下和右下各是独立岛屿；对角不连通。"
+    },
+    {
+      "input": "grid = [[\"0\",\"0\"],[\"0\",\"0\"]]",
+      "output": "0",
+      "explanation": "没有陆地。"
+    },
+    {
+      "input": "grid = [[\"1\"]]",
+      "output": "1",
+      "explanation": "单个陆地格子就是一个岛屿。"
+    }
+  ],
+  "verification_points": [
+    {
+      "id": "vp-start-search-on-unvisited-land",
+      "kind": "key_insight",
+      "statement": "遍历网格，遇到未访问的陆地时岛屿数加一，并从该位置搜索完整个连通块。",
+      "required": true,
+      "acceptable_variants": [
+        "DFS、BFS 或并查集均可。"
+      ]
+    },
+    {
+      "id": "vp-four-direction-only",
+      "kind": "correctness_condition",
+      "statement": "只连接上下左右四个方向，不能把对角线相邻的陆地合并。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-mark-visited",
+      "kind": "correctness_condition",
+      "statement": "搜索时必须标记已访问陆地，避免重复计数或无限递归。",
+      "required": true,
+      "acceptable_variants": [
+        "可以原地把 '1' 改为 '0'，也可以使用 visited 集合或布尔矩阵。"
+      ]
+    },
+    {
+      "id": "vp-complexity",
+      "kind": "complexity",
+      "statement": "DFS/BFS 每个格子最多处理一次，时间 O(mn)，额外空间取决于访问标记和搜索队列或递归栈。",
+      "required": false,
+      "acceptable_variants": []
+    }
+  ],
+  "acceptable_approaches": [
+    {
+      "name": "遍历加 DFS 洪泛搜索",
+      "idea": "扫描每个格子，遇到 '1' 时计数加一，然后 DFS 把该岛屿的所有上下左右连通陆地标记为已访问。",
+      "time_complexity": "O(mn)",
+      "space_complexity": "O(mn)",
+      "is_reference": true,
+      "note": "原地改 grid 可省 visited 矩阵，但递归栈最坏仍可能 O(mn)。"
+    },
+    {
+      "name": "遍历加 BFS",
+      "idea": "遇到未访问陆地后，用队列逐层扩展上下左右相邻陆地并标记访问。",
+      "time_complexity": "O(mn)",
+      "space_complexity": "O(mn)",
+      "is_reference": false,
+      "note": "和 DFS 等价，适合避免语言递归深度问题。"
+    },
+    {
+      "name": "并查集",
+      "idea": "把每个陆地格子看作节点，将上下左右相邻陆地合并，最后统计连通分量数量。",
+      "time_complexity": "O(mn * α(mn))",
+      "space_complexity": "O(mn)",
+      "is_reference": false,
+      "note": "正确但比本题常规 DFS/BFS 更重。"
+    }
+  ],
+  "common_mistakes": [
+    {
+      "description": "把对角线陆地当成同一岛屿。",
+      "counterexample": "grid = [[\"1\",\"0\"],[\"0\",\"1\"]]：正确答案是 2，不是 1。"
+    },
+    {
+      "description": "没有标记访问，导致同一岛屿被重复计数。",
+      "counterexample": "grid = [[\"1\",\"1\"]]：两个格子属于同一个岛，答案是 1。"
+    },
+    {
+      "description": "把字符 '0'/'1' 当成数字 0/1 比较错误。",
+      "counterexample": "在部分语言里 grid[i][j] == 1 不会命中字符 '1'。"
+    }
+  ],
+  "edge_cases": [
+    {
+      "description": "全水网格。",
+      "expected_handling": "返回 0。"
+    },
+    {
+      "description": "全陆地网格。",
+      "expected_handling": "所有格子连成一个岛，返回 1。"
+    },
+    {
+      "description": "只有对角线接触的陆地。",
+      "expected_handling": "分别计数，因为对角不连通。"
+    }
+  ],
+  "source": {
+    "name": "LeetCode CN 200. 岛屿数量",
+    "url": "https://leetcode.cn/problems/number-of-islands/",
+    "license_note": "题意、示例、核对要点和反例均为原创中文转写，未复制外站题面或题解。",
+    "source_version": "2026-09-11 对照 leetcode.cn 官方题面核对"
+  },
+  "content_notes": "按官方题目约束补齐移动端思路核对上下文；示例与反例为本项目原创构造。",
+  "content_status": "ready"
+}

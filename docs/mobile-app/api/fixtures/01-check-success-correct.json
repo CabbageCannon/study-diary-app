@@ -1,0 +1,108 @@
+{
+  "fixture": "01-check-success-correct",
+  "description": "一键核对成功，思路成立。用户讲清了哈希表 + 先查补数再存当前值，关键点齐全，复杂度自述正确。",
+  "request": {
+    "method": "POST",
+    "path": "/api/algorithms/reasoning/checks",
+    "headers": {
+      "Content-Type": "application/json",
+      "X-Study-Diary-Access": "<仅在配置 APP_ACCESS_TOKEN 时需要>"
+    },
+    "body": {
+      "problem_id": "leetcode-1",
+      "session_id": null,
+      "answer_text": "一边遍历数组，一边用哈希表存已经见过的数和它的下标。对当前数 x，先查表里有没有 target - x：有就直接返回那个下标和当前下标；没有就把 x 和当前下标存进表，继续往后走。这样每个数只查一次。",
+      "answer_source": "voice",
+      "details": {
+        "time_complexity": "O(n)",
+        "space_complexity": "O(n)",
+        "code": null,
+        "notes": null
+      },
+      "client_answer_id": "8f14e45f-ea51-4c9d-9a2a-2f9c6f1b90d3",
+      "revision_of_answer_id": null
+    }
+  },
+  "response": {
+    "status": 201,
+    "body": {
+      "save_status": "saved",
+      "check_status": "completed",
+      "answer": {
+        "answer_id": 101,
+        "problem_id": "leetcode-1",
+        "session_id": null,
+        "version": 1,
+        "revision_of_answer_id": null,
+        "answer_text": "一边遍历数组，一边用哈希表存已经见过的数和它的下标。对当前数 x，先查表里有没有 target - x：有就直接返回那个下标和当前下标；没有就把 x 和当前下标存进表，继续往后走。这样每个数只查一次。",
+        "answer_source": "voice",
+        "details": {
+          "time_complexity": "O(n)",
+          "space_complexity": "O(n)",
+          "code": null,
+          "notes": null
+        },
+        "client_answer_id": "8f14e45f-ea51-4c9d-9a2a-2f9c6f1b90d3",
+        "save_status": "saved",
+        "check_status": "completed",
+        "saved_at": "2026-09-06T12:03:11+00:00",
+        "checked_at": "2026-09-06T12:03:18+00:00"
+      },
+      "feedback": {
+        "feedback_id": 55,
+        "answer_id": 101,
+        "conclusion": "correct",
+        "headline": "思路成立：哈希表边遍历边查补数，先查后存也避免了重复使用同一下标。",
+        "context_sufficient": true,
+        "correct_parts": [
+          {
+            "point": "用哈希表把找补数降为 O(1)，整体一次遍历",
+            "quote": "用哈希表存已经见过的数和它的下标……每个数只查一次"
+          },
+          {
+            "point": "先查 target - x 再存当前数，天然避免把自己当补数",
+            "quote": "先查表里有没有 target - x……没有就把 x 和当前下标存进表"
+          }
+        ],
+        "issues_or_missing": [],
+        "counterexample_or_followup": {
+          "kind": "none",
+          "content": null
+        },
+        "complexity": {
+          "time": {
+            "user_claim": "O(n)",
+            "assessment": "correct",
+            "expected": "O(n)",
+            "note": "一次遍历，每次哈希查找 O(1)"
+          },
+          "space": {
+            "user_claim": "O(n)",
+            "assessment": "correct",
+            "expected": "O(n)",
+            "note": "哈希表最坏存 n 个元素"
+          }
+        },
+        "alternative_approaches_accepted": [],
+        "reference_outline": "遍历中对 x 先查 target - x：命中返回两下标，否则存 (x, i) 继续。这就是哈希表一次遍历的标准解。",
+        "needs_review": false,
+        "model_name": "gpt-4o-mini",
+        "prompt_version": "reasoning-check-v1",
+        "context_version": 3,
+        "created_at": "2026-09-06T12:03:18+00:00"
+      },
+      "check_error": null,
+      "retry": null,
+      "problem_context": {
+        "problem_id": "leetcode-1",
+        "content_version": 3,
+        "reasoning_available": true
+      }
+    }
+  },
+  "notes": [
+    "HTTP 201 表示新回答已保存；核对同时完成，check_status=completed。",
+    "conclusion=correct 时 issues_or_missing 为空，counterexample_or_followup.kind=none。",
+    "needs_review=false：服务端据此同步 AlgorithmProblemProgress.status=solved，复习间隔走既有 spaced_repetition。"
+  ]
+}

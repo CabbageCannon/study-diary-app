@@ -1,10 +1,13 @@
 .env
 .env.*
 !.env.example
+!frontend/.env.production
+!miniprogram/.env.example
 
 node_modules/
 dist/
 build/
+.swc/
 
 # Tauri build-time artifacts (regenerated locally)
 desktop-pet/src-tauri/target/
@@ -19,12 +22,16 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 .playwright-cli/
-output/playwright/
+.wrangler/
+output/
+.worktrees/
 *.log
 
 backend/data/*.db
+backend/data/*.db-journal
 backend/data/*.sqlite
 backend/data/*.sqlite3
 
 .DS_Store
 Thumbs.db
+.dev-processes.json

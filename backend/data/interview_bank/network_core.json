@@ -1,0 +1,2348 @@
+{
+  "questions": [
+    {
+      "id": "network-osi-tcp-ip-001",
+      "domain": "network",
+      "topic": "network_model",
+      "subtopic": "osi-tcp-ip",
+      "question": "OSI 七层模型与 TCP/IP 模型如何对应？实际排障为什么仍需要分层思考？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "network_model"
+      ],
+      "reference_points": [
+        "OSI 是概念上的七层模型，TCP/IP 常按应用、传输、网际和网络接口四层描述",
+        "HTTP、TCP、IP、以太网分别位于不同层，每层只依赖下层提供的能力",
+        "分层能缩小故障范围，但真实协议可能跨层优化，不能机械套层"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "OSI 是概念上的七层模型，TCP/IP 常按应用、传输、网际和网络接口四层描述",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "HTTP、TCP、IP、以太网分别位于不同层，每层只依赖下层提供的能力",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "分层能缩小故障范围，但真实协议可能跨层优化，不能机械套层",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：OSI 是概念上的七层模型，TCP/IP 常按应用、传输、网际和网络接口四层描述；HTTP、TCP、IP、以太网分别位于不同层，每层只依赖下层提供的能力；分层能缩小故障范围，但真实协议可能跨层优化，不能机械套层。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [],
+      "sources": [
+        {
+          "source_id": "rfc1122"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-url-request-journey-002",
+      "domain": "network",
+      "topic": "network_model",
+      "subtopic": "url-request-journey",
+      "question": "从手机输入一个 HTTPS 地址到页面出现，网络链路上依次发生了什么？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "network_model"
+      ],
+      "reference_points": [
+        "浏览器先解析 URL、查询 DNS，并根据缓存与网络环境确定目标地址",
+        "随后建立传输连接与 TLS 安全会话，再发送 HTTP 请求并接收响应",
+        "页面还会解析资源、复用连接、执行缓存策略，任一阶段都可能造成首屏延迟"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "浏览器先解析 URL、查询 DNS，并根据缓存与网络环境确定目标地址",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "随后建立传输连接与 TLS 安全会话，再发送 HTTP 请求并接收响应",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "页面还会解析资源、复用连接、执行缓存策略，任一阶段都可能造成首屏延迟",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：浏览器先解析 URL、查询 DNS，并根据缓存与网络环境确定目标地址；随后建立传输连接与 TLS 安全会话，再发送 HTTP 请求并接收响应；页面还会解析资源、复用连接、执行缓存策略，任一阶段都可能造成首屏延迟。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc1034"
+        },
+        {
+          "source_id": "rfc9293"
+        },
+        {
+          "source_id": "rfc8446"
+        },
+        {
+          "source_id": "rfc9110"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-http-message-003",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "http-message",
+      "question": "HTTP 请求报文和响应报文由哪些部分组成？服务器如何知道消息边界？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "请求含方法、目标和版本，响应含版本、状态码，二者都可带字段和内容",
+        "HTTP/1.1 可用 Content-Length、Transfer-Encoding 或连接关闭表达消息边界",
+        "HTTP/2 和 HTTP/3 使用二进制帧，不再依赖文本报文的行分隔来划界"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "请求含方法、目标和版本，响应含版本、状态码，二者都可带字段和内容",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "HTTP/1.1 可用 Content-Length、Transfer-Encoding 或连接关闭表达消息边界",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "HTTP/2 和 HTTP/3 使用二进制帧，不再依赖文本报文的行分隔来划界",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：请求含方法、目标和版本，响应含版本、状态码，二者都可带字段和内容；HTTP/1.1 可用 Content-Length、Transfer-Encoding 或连接关闭表达消息边界；HTTP/2 和 HTTP/3 使用二进制帧，不再依赖文本报文的行分隔来划界。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc9110"
+        },
+        {
+          "source_id": "rfc9112"
+        },
+        {
+          "source_id": "rfc9113"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-http-status-004",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "http-status",
+      "question": "HTTP 状态码应如何分类？301、302、502 和 504 分别表达什么？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "1xx 到 5xx 分别表示信息、成功、重定向、客户端错误和服务端错误",
+        "301 表示永久重定向，302 表示临时重定向，客户端通常依据 Location 继续请求",
+        "502 表示网关收到无效上游响应，504 表示网关等待上游超时"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "1xx 到 5xx 分别表示信息、成功、重定向、客户端错误和服务端错误",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "301 表示永久重定向，302 表示临时重定向，客户端通常依据 Location 继续请求",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "502 表示网关收到无效上游响应，504 表示网关等待上游超时",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：1xx 到 5xx 分别表示信息、成功、重定向、客户端错误和服务端错误；301 表示永久重定向，302 表示临时重定向，客户端通常依据 Location 继续请求；502 表示网关收到无效上游响应，504 表示网关等待上游超时。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [],
+      "sources": [
+        {
+          "source_id": "rfc9110"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-http-method-semantics-005",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "http-method-semantics",
+      "question": "GET、POST、PUT、PATCH、DELETE 的语义、安全性和幂等性应如何理解？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "安全方法强调不请求改变服务端状态；幂等表示重复相同请求的预期效果与一次相同",
+        "GET 通常安全且幂等，PUT 和 DELETE 通常幂等，POST 和 PATCH 是否幂等取决于接口设计",
+        "方法语义影响缓存、重试和中间代理行为，不能只按参数放在 URL 还是 body 来区分"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "安全方法强调不请求改变服务端状态；幂等表示重复相同请求的预期效果与一次相同",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "GET 通常安全且幂等，PUT 和 DELETE 通常幂等，POST 和 PATCH 是否幂等取决于接口设计",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "方法语义影响缓存、重试和中间代理行为，不能只按参数放在 URL 还是 body 来区分",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：安全方法强调不请求改变服务端状态；幂等表示重复相同请求的预期效果与一次相同；GET 通常安全且幂等，PUT 和 DELETE 通常幂等，POST 和 PATCH 是否幂等取决于接口设计；方法语义影响缓存、重试和中间代理行为，不能只按参数放在 URL 还是 body 来区分。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc9110"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-http-keep-alive-006",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "http-keep-alive",
+      "question": "HTTP Keep-Alive 解决了什么问题？它与 TCP Keepalive 是一回事吗？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "HTTP 持久连接允许多个请求复用同一传输连接，减少握手和慢启动成本",
+        "TCP Keepalive 是操作系统探测空闲 TCP 连接是否仍存活的机制",
+        "两者所属层级、触发时机和目的不同，应用还需配置连接池、空闲超时和最大复用次数"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "HTTP 持久连接允许多个请求复用同一传输连接，减少握手和慢启动成本",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "TCP Keepalive 是操作系统探测空闲 TCP 连接是否仍存活的机制",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "两者所属层级、触发时机和目的不同，应用还需配置连接池、空闲超时和最大复用次数",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：HTTP 持久连接允许多个请求复用同一传输连接，减少握手和慢启动成本；TCP Keepalive 是操作系统探测空闲 TCP 连接是否仍存活的机制；两者所属层级、触发时机和目的不同，应用还需配置连接池、空闲超时和最大复用次数。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc9110"
+        },
+        {
+          "source_id": "rfc9293"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-http1-framing-007",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "http1-framing",
+      "question": "HTTP/1.1 如何区分连续请求或响应，为什么错误的 Content-Length 会带来风险？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "消息体长度可由 Content-Length、分块传输编码、特定方法语义或连接关闭确定",
+        "同一消息的边界解释必须一致，否则前后端可能把剩余字节解释成另一条请求",
+        "代理与源站解析差异会引发请求走私，因此应拒绝冲突或非法的长度信息"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "消息体长度可由 Content-Length、分块传输编码、特定方法语义或连接关闭确定",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "同一消息的边界解释必须一致，否则前后端可能把剩余字节解释成另一条请求",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "代理与源站解析差异会引发请求走私，因此应拒绝冲突或非法的长度信息",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：消息体长度可由 Content-Length、分块传输编码、特定方法语义或连接关闭确定；同一消息的边界解释必须一致，否则前后端可能把剩余字节解释成另一条请求；代理与源站解析差异会引发请求走私，因此应拒绝冲突或非法的长度信息。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc9112"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-range-request-008",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "range-request",
+      "question": "HTTP 断点续传怎样利用 Range、Content-Range 和 206 状态码？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "客户端用 Range 请求资源的指定字节范围，服务端支持时返回 206 Partial Content",
+        "响应通过 Content-Range 描述本段位置和完整资源长度，不满足范围可返回 416",
+        "续传还需用校验条件确认资源未变化，避免拼接不同版本的数据"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "客户端用 Range 请求资源的指定字节范围，服务端支持时返回 206 Partial Content",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "响应通过 Content-Range 描述本段位置和完整资源长度，不满足范围可返回 416",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "续传还需用校验条件确认资源未变化，避免拼接不同版本的数据",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：客户端用 Range 请求资源的指定字节范围，服务端支持时返回 206 Partial Content；响应通过 Content-Range 描述本段位置和完整资源长度，不满足范围可返回 416；续传还需用校验条件确认资源未变化，避免拼接不同版本的数据。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc9110"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-https-properties-009",
+      "domain": "network",
+      "topic": "https",
+      "subtopic": "https-properties",
+      "question": "HTTPS 相比 HTTP 增加了哪些安全属性，它仍不能解决什么问题？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "https"
+      ],
+      "reference_points": [
+        "TLS 为传输提供机密性、完整性，并通过证书认证通信端身份",
+        "HTTPS 不能保证服务端业务可信，也不能阻止终端中毒、凭证泄漏或应用层越权",
+        "安全性取决于证书校验、协议版本、密码套件和私钥保护等完整配置"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "TLS 为传输提供机密性、完整性，并通过证书认证通信端身份",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "HTTPS 不能保证服务端业务可信，也不能阻止终端中毒、凭证泄漏或应用层越权",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "安全性取决于证书校验、协议版本、密码套件和私钥保护等完整配置",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：TLS 为传输提供机密性、完整性，并通过证书认证通信端身份；HTTPS 不能保证服务端业务可信，也不能阻止终端中毒、凭证泄漏或应用层越权；安全性取决于证书校验、协议版本、密码套件和私钥保护等完整配置。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc8446"
+        },
+        {
+          "source_id": "rfc9110"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-tls13-handshake-010",
+      "domain": "network",
+      "topic": "https",
+      "subtopic": "tls13-handshake",
+      "question": "TLS 1.3 握手的关键步骤是什么，为什么通常只需 1-RTT？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "https"
+      ],
+      "reference_points": [
+        "客户端在 ClientHello 中携带版本、算法与密钥共享，服务端选择参数并返回自己的密钥共享",
+        "双方基于临时密钥协商出握手密钥，服务端用证书和签名证明身份",
+        "客户端验证 Finished 后即可发送受保护的应用数据；0-RTT 仅用于恢复且有重放风险"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "客户端在 ClientHello 中携带版本、算法与密钥共享，服务端选择参数并返回自己的密钥共享",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "双方基于临时密钥协商出握手密钥，服务端用证书和签名证明身份",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "客户端验证 Finished 后即可发送受保护的应用数据；0-RTT 仅用于恢复且有重放风险",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：客户端在 ClientHello 中携带版本、算法与密钥共享，服务端选择参数并返回自己的密钥共享；双方基于临时密钥协商出握手密钥，服务端用证书和签名证明身份；客户端验证 Finished 后即可发送受保护的应用数据；0-RTT 仅用于恢复且有重放风险。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc8446"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-certificate-validation-011",
+      "domain": "network",
+      "topic": "https",
+      "subtopic": "certificate-validation",
+      "question": "浏览器如何用数字证书降低中间人攻击风险？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "https"
+      ],
+      "reference_points": [
+        "证书把域名和公钥绑定，并由客户端信任链中的 CA 签名",
+        "客户端校验证书链、有效期、域名、用途和吊销相关信息，再验证握手签名",
+        "若用户忽略证书警告、信任恶意根证书或私钥泄漏，身份保证仍可能失效"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "证书把域名和公钥绑定，并由客户端信任链中的 CA 签名",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "客户端校验证书链、有效期、域名、用途和吊销相关信息，再验证握手签名",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "若用户忽略证书警告、信任恶意根证书或私钥泄漏，身份保证仍可能失效",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：证书把域名和公钥绑定，并由客户端信任链中的 CA 签名；客户端校验证书链、有效期、域名、用途和吊销相关信息，再验证握手签名；若用户忽略证书警告、信任恶意根证书或私钥泄漏，身份保证仍可能失效。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc8446"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-http-versions-012",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "http-versions",
+      "question": "HTTP/1.1、HTTP/2 和 HTTP/3 的主要差异是什么？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "HTTP/1.1 使用文本消息且常需多个连接缓解队头阻塞，流水线实践受限",
+        "HTTP/2 在一个 TCP 连接上用二进制帧多路复用并支持头部压缩，但丢包仍影响整条 TCP 连接",
+        "HTTP/3 将 HTTP 映射到 QUIC，多条流独立传输并把 TLS 1.3 集成进连接建立"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "HTTP/1.1 使用文本消息且常需多个连接缓解队头阻塞，流水线实践受限",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "HTTP/2 在一个 TCP 连接上用二进制帧多路复用并支持头部压缩，但丢包仍影响整条 TCP 连接",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "HTTP/3 将 HTTP 映射到 QUIC，多条流独立传输并把 TLS 1.3 集成进连接建立",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：HTTP/1.1 使用文本消息且常需多个连接缓解队头阻塞，流水线实践受限；HTTP/2 在一个 TCP 连接上用二进制帧多路复用并支持头部压缩，但丢包仍影响整条 TCP 连接；HTTP/3 将 HTTP 映射到 QUIC，多条流独立传输并把 TLS 1.3 集成进连接建立。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc9112"
+        },
+        {
+          "source_id": "rfc9113"
+        },
+        {
+          "source_id": "rfc9114"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-http3-quic-013",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "http3-quic",
+      "question": "HTTP/3 为什么基于 QUIC，而不是继续直接使用 TCP？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "QUIC 基于 UDP 在用户态实现可靠传输，并原生集成 TLS 1.3",
+        "不同 QUIC 流的丢包恢复相互独立，避免 TCP 连接级队头阻塞",
+        "QUIC 支持连接迁移和更快恢复，但会增加用户态实现、观测和中间设备兼容成本"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "QUIC 基于 UDP 在用户态实现可靠传输，并原生集成 TLS 1.3",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "不同 QUIC 流的丢包恢复相互独立，避免 TCP 连接级队头阻塞",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "QUIC 支持连接迁移和更快恢复，但会增加用户态实现、观测和中间设备兼容成本",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：QUIC 基于 UDP 在用户态实现可靠传输，并原生集成 TLS 1.3；不同 QUIC 流的丢包恢复相互独立，避免 TCP 连接级队头阻塞；QUIC 支持连接迁移和更快恢复，但会增加用户态实现、观测和中间设备兼容成本。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc9000"
+        },
+        {
+          "source_id": "rfc9114"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-socket-http-tcp-014",
+      "domain": "network",
+      "topic": "network_model",
+      "subtopic": "socket-http-tcp",
+      "question": "Socket、TCP 和 HTTP 分别是什么，它们之间是什么关系？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "network_model"
+      ],
+      "reference_points": [
+        "TCP 是传输层协议，提供有序可靠字节流；HTTP 是应用层消息语义",
+        "Socket 是操作系统暴露的通信编程接口，不等同于某个网络协议",
+        "应用可通过 socket 使用 TCP 承载 HTTP，也可使用 UDP 或其他传输协议"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "TCP 是传输层协议，提供有序可靠字节流；HTTP 是应用层消息语义",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "Socket 是操作系统暴露的通信编程接口，不等同于某个网络协议",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "应用可通过 socket 使用 TCP 承载 HTTP，也可使用 UDP 或其他传输协议",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：TCP 是传输层协议，提供有序可靠字节流；HTTP 是应用层消息语义；Socket 是操作系统暴露的通信编程接口，不等同于某个网络协议；应用可通过 socket 使用 TCP 承载 HTTP，也可使用 UDP 或其他传输协议。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [],
+      "sources": [
+        {
+          "source_id": "rfc1122"
+        },
+        {
+          "source_id": "rfc9293"
+        },
+        {
+          "source_id": "rfc9110"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-dns-resolution-015",
+      "domain": "network",
+      "topic": "dns",
+      "subtopic": "dns-resolution",
+      "question": "递归 DNS 查询从域名到 IP 地址通常经历哪些环节？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "dns"
+      ],
+      "reference_points": [
+        "客户端先查询浏览器、系统和本地解析器缓存，再把请求交给递归解析器",
+        "递归解析器必要时依次查询根、顶级域和权威服务器",
+        "TTL 控制缓存复用时间，CNAME、负载调度和负缓存都会影响最终结果"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "客户端先查询浏览器、系统和本地解析器缓存，再把请求交给递归解析器",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "递归解析器必要时依次查询根、顶级域和权威服务器",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "TTL 控制缓存复用时间，CNAME、负载调度和负缓存都会影响最终结果",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：客户端先查询浏览器、系统和本地解析器缓存，再把请求交给递归解析器；递归解析器必要时依次查询根、顶级域和权威服务器；TTL 控制缓存复用时间，CNAME、负载调度和负缓存都会影响最终结果。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc1034"
+        },
+        {
+          "source_id": "rfc1035"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-dns-transport-016",
+      "domain": "network",
+      "topic": "dns",
+      "subtopic": "dns-transport",
+      "question": "DNS 使用 UDP 还是 TCP？修改 hosts 文件与 DNS 缓存分别会影响哪一段？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "dns"
+      ],
+      "reference_points": [
+        "传统 DNS 查询常优先使用 UDP 53，但响应过大、截断或区域传送等场景会使用 TCP",
+        "hosts 文件通常由本机解析器优先检查，只影响本机的名称解析",
+        "多层缓存受 TTL 和本地策略影响，修改权威记录后不会瞬间传播到所有客户端"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "传统 DNS 查询常优先使用 UDP 53，但响应过大、截断或区域传送等场景会使用 TCP",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "hosts 文件通常由本机解析器优先检查，只影响本机的名称解析",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "多层缓存受 TTL 和本地策略影响，修改权威记录后不会瞬间传播到所有客户端",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：传统 DNS 查询常优先使用 UDP 53，但响应过大、截断或区域传送等场景会使用 TCP；hosts 文件通常由本机解析器优先检查，只影响本机的名称解析；多层缓存受 TTL 和本地策略影响，修改权威记录后不会瞬间传播到所有客户端。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc1034"
+        },
+        {
+          "source_id": "rfc1035"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-http-state-session-017",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "http-state-session",
+      "question": "为什么说 HTTP 是无状态的？Cookie 和 Session 又怎样保存登录状态？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "HTTP 每个请求本身不要求服务器记住前一次请求的会话上下文",
+        "Cookie 是客户端随匹配请求发送的小型状态，Session 通常把状态保存在服务端并用标识关联",
+        "在 HTTP 上叠加状态机制不会改变协议本身的无状态语义，还需处理过期、轮换和跨站限制"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "HTTP 每个请求本身不要求服务器记住前一次请求的会话上下文",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "Cookie 是客户端随匹配请求发送的小型状态，Session 通常把状态保存在服务端并用标识关联",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "在 HTTP 上叠加状态机制不会改变协议本身的无状态语义，还需处理过期、轮换和跨站限制",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：HTTP 每个请求本身不要求服务器记住前一次请求的会话上下文；Cookie 是客户端随匹配请求发送的小型状态，Session 通常把状态保存在服务端并用标识关联；在 HTTP 上叠加状态机制不会改变协议本身的无状态语义，还需处理过期、轮换和跨站限制。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc9110"
+        },
+        {
+          "source_id": "rfc6265"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-token-session-jwt-018",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "token-session-jwt",
+      "question": "Session、普通 Token 和 JWT 有什么区别，JWT 为什么方便集群部署？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "Session 常由服务端保存状态，客户端只持有随机标识；Token 是更宽泛的凭证概念",
+        "JWT 是带声明并可签名的令牌格式，服务端可本地验证，减少共享会话存储依赖",
+        "JWT 难以即时撤销且载荷默认不加密，仍需短有效期、密钥轮换和服务端授权检查"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "Session 常由服务端保存状态，客户端只持有随机标识；Token 是更宽泛的凭证概念",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "JWT 是带声明并可签名的令牌格式，服务端可本地验证，减少共享会话存储依赖",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "JWT 难以即时撤销且载荷默认不加密，仍需短有效期、密钥轮换和服务端授权检查",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：Session 常由服务端保存状态，客户端只持有随机标识；Token 是更宽泛的凭证概念；JWT 是带声明并可签名的令牌格式，服务端可本地验证，减少共享会话存储依赖；JWT 难以即时撤销且载荷默认不加密，仍需短有效期、密钥轮换和服务端授权检查。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc7519"
+        },
+        {
+          "source_id": "rfc6265"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-browser-token-storage-019",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "browser-token-storage",
+      "question": "Cookie 与 localStorage 存储登录凭证各有什么风险，移动 Web 应怎样选择？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "HttpOnly Cookie 可阻止脚本直接读取并自动随请求发送，但要配置 SameSite 并防范 CSRF",
+        "localStorage 不会自动随请求发送，却能被同源脚本读取，XSS 会直接威胁其中的令牌",
+        "选择应结合威胁模型；常见 Web 会话优先使用 Secure、HttpOnly、SameSite Cookie"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "HttpOnly Cookie 可阻止脚本直接读取并自动随请求发送，但要配置 SameSite 并防范 CSRF",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "localStorage 不会自动随请求发送，却能被同源脚本读取，XSS 会直接威胁其中的令牌",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "选择应结合威胁模型；常见 Web 会话优先使用 Secure、HttpOnly、SameSite Cookie",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：HttpOnly Cookie 可阻止脚本直接读取并自动随请求发送，但要配置 SameSite 并防范 CSRF；localStorage 不会自动随请求发送，却能被同源脚本读取，XSS 会直接威胁其中的令牌；选择应结合威胁模型；常见 Web 会话优先使用 Secure、HttpOnly、SameSite Cookie。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc6265"
+        },
+        {
+          "source_id": "owasp-session"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-rpc-vs-http-020",
+      "domain": "network",
+      "topic": "http",
+      "subtopic": "rpc-vs-http",
+      "question": "已经有 HTTP API，为什么内部服务还会选择 RPC？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "http"
+      ],
+      "reference_points": [
+        "HTTP 是传输和消息语义，RPC 是把远程调用抽象成方法调用的通信风格，两者并不互斥",
+        "RPC 框架常提供 IDL、代码生成、类型约束、流式调用和治理能力",
+        "公网兼容性、可调试性、浏览器支持与内部性能需求决定选择，不应只比较序列化速度"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "HTTP 是传输和消息语义，RPC 是把远程调用抽象成方法调用的通信风格，两者并不互斥",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "RPC 框架常提供 IDL、代码生成、类型约束、流式调用和治理能力",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "公网兼容性、可调试性、浏览器支持与内部性能需求决定选择，不应只比较序列化速度",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：HTTP 是传输和消息语义，RPC 是把远程调用抽象成方法调用的通信风格，两者并不互斥；RPC 框架常提供 IDL、代码生成、类型约束、流式调用和治理能力；公网兼容性、可调试性、浏览器支持与内部性能需求决定选择，不应只比较序列化速度。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc9110"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-websocket-handshake-021",
+      "domain": "network",
+      "topic": "websocket",
+      "subtopic": "websocket-handshake",
+      "question": "HTTP 长连接、WebSocket 与 SSE 有什么区别？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "websocket"
+      ],
+      "reference_points": [
+        "HTTP 持久连接复用底层连接，但交互仍以请求响应为主",
+        "WebSocket 通过 HTTP 握手升级为全双工消息通道，适合频繁双向实时通信",
+        "SSE 是服务端到客户端的文本事件流，接口简单且有浏览器重连语义，适合单向推送"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "HTTP 持久连接复用底层连接，但交互仍以请求响应为主",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "WebSocket 通过 HTTP 握手升级为全双工消息通道，适合频繁双向实时通信",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "SSE 是服务端到客户端的文本事件流，接口简单且有浏览器重连语义，适合单向推送",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：HTTP 持久连接复用底层连接，但交互仍以请求响应为主；WebSocket 通过 HTTP 握手升级为全双工消息通道，适合频繁双向实时通信；SSE 是服务端到客户端的文本事件流，接口简单且有浏览器重连语义，适合单向推送。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc6455"
+        },
+        {
+          "source_id": "mdn-sse"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-load-balancing-022",
+      "domain": "network",
+      "topic": "load_balancing",
+      "subtopic": "load-balancing",
+      "question": "反向代理常见的负载均衡策略有哪些，如何选择？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "load_balancing"
+      ],
+      "reference_points": [
+        "轮询和加权轮询适合能力相近或权重已知的实例，最少连接更关注当前连接负载",
+        "哈希类策略可提高会话或缓存亲和性，但扩缩容时要考虑重新映射",
+        "健康检查、熔断、慢启动与连接排空比单纯的分配算法更影响故障体验"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "轮询和加权轮询适合能力相近或权重已知的实例，最少连接更关注当前连接负载",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "哈希类策略可提高会话或缓存亲和性，但扩缩容时要考虑重新映射",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "健康检查、熔断、慢启动与连接排空比单纯的分配算法更影响故障体验",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：轮询和加权轮询适合能力相近或权重已知的实例，最少连接更关注当前连接负载；哈希类策略可提高会话或缓存亲和性，但扩缩容时要考虑重新映射；健康检查、熔断、慢启动与连接排空比单纯的分配算法更影响故障体验。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "nginx-load-balancing"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-tcp-header-023",
+      "domain": "network",
+      "topic": "tcp",
+      "subtopic": "tcp-header",
+      "question": "TCP 首部中的序列号、确认号、窗口和标志位分别解决什么问题？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "tcp"
+      ],
+      "reference_points": [
+        "序列号标识字节流位置，确认号表示下一段期望收到的字节",
+        "接收窗口用于流量控制，SYN、ACK、FIN、RST 等标志表达连接控制状态",
+        "校验和、选项与时间戳等字段参与差错检测、能力协商和性能优化"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "序列号标识字节流位置，确认号表示下一段期望收到的字节",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "接收窗口用于流量控制，SYN、ACK、FIN、RST 等标志表达连接控制状态",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "校验和、选项与时间戳等字段参与差错检测、能力协商和性能优化",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：序列号标识字节流位置，确认号表示下一段期望收到的字节；接收窗口用于流量控制，SYN、ACK、FIN、RST 等标志表达连接控制状态；校验和、选项与时间戳等字段参与差错检测、能力协商和性能优化。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc9293"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-tcp-handshake-024",
+      "domain": "network",
+      "topic": "tcp",
+      "subtopic": "tcp-handshake",
+      "question": "TCP 为什么需要三次握手，建立连接时双方确认了什么？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "tcp"
+      ],
+      "reference_points": [
+        "双方需要确认彼此的发送与接收路径可用，并同步各自的初始序列号",
+        "第三次 ACK 让服务端确认客户端收到了服务端的序列号，避免仅凭旧 SYN 建立错误连接",
+        "握手还可协商 MSS、窗口扩大、SACK 等 TCP 选项"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "双方需要确认彼此的发送与接收路径可用，并同步各自的初始序列号",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "第三次 ACK 让服务端确认客户端收到了服务端的序列号，避免仅凭旧 SYN 建立错误连接",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "握手还可协商 MSS、窗口扩大、SACK 等 TCP 选项",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：双方需要确认彼此的发送与接收路径可用，并同步各自的初始序列号；第三次 ACK 让服务端确认客户端收到了服务端的序列号，避免仅凭旧 SYN 建立错误连接；握手还可协商 MSS、窗口扩大、SACK 等 TCP 选项。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc9293"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-tcp-handshake-loss-025",
+      "domain": "network",
+      "topic": "tcp",
+      "subtopic": "tcp-handshake-loss",
+      "question": "TCP 三次握手中 SYN、SYN-ACK 或最后 ACK 丢失时分别会怎样？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "tcp"
+      ],
+      "reference_points": [
+        "SYN 丢失时客户端按重传策略再次发送，直到成功或超时",
+        "SYN-ACK 丢失时服务端重传，客户端收到后仍可继续确认",
+        "最后 ACK 丢失时服务端仍处于等待确认状态并重传 SYN-ACK，客户端可再次发送 ACK"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "SYN 丢失时客户端按重传策略再次发送，直到成功或超时",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "SYN-ACK 丢失时服务端重传，客户端收到后仍可继续确认",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "最后 ACK 丢失时服务端仍处于等待确认状态并重传 SYN-ACK，客户端可再次发送 ACK",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：SYN 丢失时客户端按重传策略再次发送，直到成功或超时；SYN-ACK 丢失时服务端重传，客户端收到后仍可继续确认；最后 ACK 丢失时服务端仍处于等待确认状态并重传 SYN-ACK，客户端可再次发送 ACK。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc9293"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-tcp-backlog-accept-026",
+      "domain": "network",
+      "topic": "tcp",
+      "subtopic": "tcp-backlog-accept",
+      "question": "TCP 半连接队列、全连接队列和 accept 调用是什么关系？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "tcp"
+      ],
+      "reference_points": [
+        "收到 SYN 后，内核为尚未完成握手的连接维护相应状态；握手完成后连接进入等待应用接收的队列",
+        "accept 从已完成连接队列取出连接并返回新的 socket，不负责完成网络上的三次握手",
+        "队列溢出、应用 accept 过慢或监听参数不足都会表现为连接建立异常"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "收到 SYN 后，内核为尚未完成握手的连接维护相应状态；握手完成后连接进入等待应用接收的队列",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "accept 从已完成连接队列取出连接并返回新的 socket，不负责完成网络上的三次握手",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "队列溢出、应用 accept 过慢或监听参数不足都会表现为连接建立异常",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：收到 SYN 后，内核为尚未完成握手的连接维护相应状态；握手完成后连接进入等待应用接收的队列；accept 从已完成连接队列取出连接并返回新的 socket，不负责完成网络上的三次握手；队列溢出、应用 accept 过慢或监听参数不足都会表现为连接建立异常。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc9293"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-syn-flood-027",
+      "domain": "network",
+      "topic": "tcp",
+      "subtopic": "syn-flood",
+      "question": "SYN Flood 如何耗尽服务端资源，SYN Cookies 能缓解什么？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "tcp"
+      ],
+      "reference_points": [
+        "攻击者发送大量 SYN 或伪造源地址，使服务端维持大量未完成连接状态",
+        "SYN Cookies 把必要状态编码进服务端序列号，收到有效 ACK 后再分配连接状态",
+        "它只能缓解部分握手状态耗尽，仍需限速、容量、防护服务和异常流量治理"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "攻击者发送大量 SYN 或伪造源地址，使服务端维持大量未完成连接状态",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "SYN Cookies 把必要状态编码进服务端序列号，收到有效 ACK 后再分配连接状态",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "它只能缓解部分握手状态耗尽，仍需限速、容量、防护服务和异常流量治理",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：攻击者发送大量 SYN 或伪造源地址，使服务端维持大量未完成连接状态；SYN Cookies 把必要状态编码进服务端序列号，收到有效 ACK 后再分配连接状态；它只能缓解部分握手状态耗尽，仍需限速、容量、防护服务和异常流量治理。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc4987"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-tcp-close-028",
+      "domain": "network",
+      "topic": "tcp",
+      "subtopic": "tcp-close",
+      "question": "TCP 四次挥手为什么通常是四段，什么时候中间两段可能合并？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "tcp"
+      ],
+      "reference_points": [
+        "TCP 是全双工连接，每个方向都要独立发送 FIN 并被确认",
+        "收到对方 FIN 只代表对方不再发送，本端仍可能继续发送剩余数据",
+        "若应用收到 FIN 时已准备关闭，ACK 与本端 FIN 可以在同一报文中发送"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "TCP 是全双工连接，每个方向都要独立发送 FIN 并被确认",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "收到对方 FIN 只代表对方不再发送，本端仍可能继续发送剩余数据",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "若应用收到 FIN 时已准备关闭，ACK 与本端 FIN 可以在同一报文中发送",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：TCP 是全双工连接，每个方向都要独立发送 FIN 并被确认；收到对方 FIN 只代表对方不再发送，本端仍可能继续发送剩余数据；若应用收到 FIN 时已准备关闭，ACK 与本端 FIN 可以在同一报文中发送。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc9293"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-time-wait-029",
+      "domain": "network",
+      "topic": "tcp",
+      "subtopic": "time-wait",
+      "question": "主动关闭方为什么进入 TIME_WAIT 并等待约 2MSL？大量 TIME_WAIT 应怎样分析？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "tcp"
+      ],
+      "reference_points": [
+        "等待能让最后 ACK 丢失时重新确认对端 FIN，并让旧连接报文从网络中消失",
+        "大量 TIME_WAIT 常说明该端频繁主动关闭短连接，不等于系统一定故障",
+        "应优先检查连接复用、关闭方向和端口容量，再谨慎调整内核参数"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "等待能让最后 ACK 丢失时重新确认对端 FIN，并让旧连接报文从网络中消失",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "大量 TIME_WAIT 常说明该端频繁主动关闭短连接，不等于系统一定故障",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "应优先检查连接复用、关闭方向和端口容量，再谨慎调整内核参数",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：等待能让最后 ACK 丢失时重新确认对端 FIN，并让旧连接报文从网络中消失；大量 TIME_WAIT 常说明该端频繁主动关闭短连接，不等于系统一定故障；应优先检查连接复用、关闭方向和端口容量，再谨慎调整内核参数。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc9293"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-tcp-reliability-030",
+      "domain": "network",
+      "topic": "tcp",
+      "subtopic": "tcp-reliability",
+      "question": "TCP 通过哪些机制提供可靠、有序的字节流？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "tcp"
+      ],
+      "reference_points": [
+        "序列号、累计确认、超时重传与快速重传负责发现并补偿丢失",
+        "接收端重排并去重，校验和检测传输错误，滑动窗口提供流量控制",
+        "可靠仅指两个 TCP 端点间交付语义，应用崩溃、磁盘失败或对端未处理仍可能造成业务数据丢失"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "序列号、累计确认、超时重传与快速重传负责发现并补偿丢失",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "接收端重排并去重，校验和检测传输错误，滑动窗口提供流量控制",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "可靠仅指两个 TCP 端点间交付语义，应用崩溃、磁盘失败或对端未处理仍可能造成业务数据丢失",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：序列号、累计确认、超时重传与快速重传负责发现并补偿丢失；接收端重排并去重，校验和检测传输错误，滑动窗口提供流量控制；可靠仅指两个 TCP 端点间交付语义，应用崩溃、磁盘失败或对端未处理仍可能造成业务数据丢失。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc9293"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-tcp-vs-udp-031",
+      "domain": "network",
+      "topic": "udp",
+      "subtopic": "tcp-vs-udp",
+      "question": "TCP 和 UDP 的核心差异是什么，各自适合哪些场景？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "udp"
+      ],
+      "reference_points": [
+        "TCP 面向连接并提供可靠有序字节流，UDP 以独立数据报发送且不保证到达、顺序或去重",
+        "TCP 自带流量与拥塞控制；UDP 应用若需要可靠性必须自行设计或采用 QUIC 等上层协议",
+        "选择取决于延迟、消息边界、可靠性与网络友好性，不能简单认为 UDP 一定更快"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "TCP 面向连接并提供可靠有序字节流，UDP 以独立数据报发送且不保证到达、顺序或去重",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "TCP 自带流量与拥塞控制；UDP 应用若需要可靠性必须自行设计或采用 QUIC 等上层协议",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "选择取决于延迟、消息边界、可靠性与网络友好性，不能简单认为 UDP 一定更快",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：TCP 面向连接并提供可靠有序字节流，UDP 以独立数据报发送且不保证到达、顺序或去重；TCP 自带流量与拥塞控制；UDP 应用若需要可靠性必须自行设计或采用 QUIC 等上层协议；选择取决于延迟、消息边界、可靠性与网络友好性，不能简单认为 UDP 一定更快。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [],
+      "sources": [
+        {
+          "source_id": "rfc9293"
+        },
+        {
+          "source_id": "rfc768"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-tcp-stream-framing-032",
+      "domain": "network",
+      "topic": "tcp",
+      "subtopic": "tcp-stream-framing",
+      "question": "所谓 TCP 粘包是什么，应用层应如何正确处理消息边界？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "tcp"
+      ],
+      "reference_points": [
+        "TCP 只提供连续字节流，不保留发送方每次 write 的消息边界，因此粘包不是协议故障",
+        "应用协议可使用固定长度、长度前缀、分隔符或自描述帧来划分消息",
+        "读取逻辑必须支持半包、多个消息同时到达、长度校验与恶意超长输入"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "TCP 只提供连续字节流，不保留发送方每次 write 的消息边界，因此粘包不是协议故障",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "应用协议可使用固定长度、长度前缀、分隔符或自描述帧来划分消息",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "读取逻辑必须支持半包、多个消息同时到达、长度校验与恶意超长输入",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：TCP 只提供连续字节流，不保留发送方每次 write 的消息边界，因此粘包不是协议故障；应用协议可使用固定长度、长度前缀、分隔符或自描述帧来划分消息；读取逻辑必须支持半包、多个消息同时到达、长度校验与恶意超长输入。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc9293"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-congestion-control-033",
+      "domain": "network",
+      "topic": "tcp",
+      "subtopic": "congestion-control",
+      "question": "TCP 的慢启动、拥塞避免、快速重传和快速恢复分别做什么？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "tcp"
+      ],
+      "reference_points": [
+        "慢启动按确认快速扩大拥塞窗口，达到阈值后拥塞避免更平缓地增长",
+        "重复确认可触发快速重传，在重传超时之前补发疑似丢失的数据",
+        "快速恢复根据拥塞信号降低发送速率并继续探测容量，具体行为依拥塞控制算法而异"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "慢启动按确认快速扩大拥塞窗口，达到阈值后拥塞避免更平缓地增长",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "重复确认可触发快速重传，在重传超时之前补发疑似丢失的数据",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "快速恢复根据拥塞信号降低发送速率并继续探测容量，具体行为依拥塞控制算法而异",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：慢启动按确认快速扩大拥塞窗口，达到阈值后拥塞避免更平缓地增长；重复确认可触发快速重传，在重传超时之前补发疑似丢失的数据；快速恢复根据拥塞信号降低发送速率并继续探测容量，具体行为依拥塞控制算法而异。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc5681"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-quic-reliability-034",
+      "domain": "network",
+      "topic": "udp",
+      "subtopic": "quic-reliability",
+      "question": "QUIC 如何在 UDP 之上实现可靠传输，它与直接使用 UDP 有什么不同？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "udp"
+      ],
+      "reference_points": [
+        "QUIC 自己实现确认、重传、拥塞控制、流量控制和多路复用",
+        "TLS 1.3 握手与传输状态集成，连接 ID 支持地址变化后的连接迁移",
+        "应用直接使用 UDP 并不会自动得到这些能力，错误地自制可靠协议通常代价很高"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "QUIC 自己实现确认、重传、拥塞控制、流量控制和多路复用",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "TLS 1.3 握手与传输状态集成，连接 ID 支持地址变化后的连接迁移",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "应用直接使用 UDP 并不会自动得到这些能力，错误地自制可靠协议通常代价很高",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：QUIC 自己实现确认、重传、拥塞控制、流量控制和多路复用；TLS 1.3 握手与传输状态集成，连接 ID 支持地址变化后的连接迁移；应用直接使用 UDP 并不会自动得到这些能力，错误地自制可靠协议通常代价很高。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc9000"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-slow-page-035",
+      "domain": "network",
+      "topic": "troubleshooting",
+      "subtopic": "slow-page",
+      "question": "网页一直转圈或首屏很慢时，你会如何分层排查？",
+      "difficulty": "hard",
+      "question_type": "scenario_analysis",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "troubleshooting"
+      ],
+      "reference_points": [
+        "先用浏览器网络面板拆分 DNS、建连、TLS、TTFB、下载和前端执行时间",
+        "再沿 CDN、代理、应用、数据库与下游依赖检查指标、日志和追踪",
+        "通过对照请求、分位延迟、缓存命中和资源瀑布定位瓶颈，避免仅凭平均耗时猜测"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "先用浏览器网络面板拆分 DNS、建连、TLS、TTFB、下载和前端执行时间",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "再沿 CDN、代理、应用、数据库与下游依赖检查指标、日志和追踪",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "通过对照请求、分位延迟、缓存命中和资源瀑布定位瓶颈，避免仅凭平均耗时猜测",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：先用浏览器网络面板拆分 DNS、建连、TLS、TTFB、下载和前端执行时间；再沿 CDN、代理、应用、数据库与下游依赖检查指标、日志和追踪；通过对照请求、分位延迟、缓存命中和资源瀑布定位瓶颈，避免仅凭平均耗时猜测。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc9110"
+        },
+        {
+          "source_id": "opentelemetry-docs"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-connectivity-036",
+      "domain": "network",
+      "topic": "troubleshooting",
+      "subtopic": "connectivity",
+      "question": "服务已启动但客户端访问不到，或 ping 不通但 HTTP 能访问，可能是什么原因？",
+      "difficulty": "hard",
+      "question_type": "scenario_analysis",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "troubleshooting"
+      ],
+      "reference_points": [
+        "检查域名解析、路由、端口监听地址、安全组、防火墙、代理和证书等逐层条件",
+        "ping 使用 ICMP，HTTP 使用 TCP 或 QUIC；网络可过滤 ICMP 而继续允许应用端口",
+        "用 dig、traceroute、ss、curl、抓包和服务日志逐跳验证，区分无响应、拒绝和超时"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "检查域名解析、路由、端口监听地址、安全组、防火墙、代理和证书等逐层条件",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "ping 使用 ICMP，HTTP 使用 TCP 或 QUIC；网络可过滤 ICMP 而继续允许应用端口",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "用 dig、traceroute、ss、curl、抓包和服务日志逐跳验证，区分无响应、拒绝和超时",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：检查域名解析、路由、端口监听地址、安全组、防火墙、代理和证书等逐层条件；ping 使用 ICMP，HTTP 使用 TCP 或 QUIC；网络可过滤 ICMP 而继续允许应用端口；用 dig、traceroute、ss、curl、抓包和服务日志逐跳验证，区分无响应、拒绝和超时。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc1122"
+        },
+        {
+          "source_id": "rfc9110"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-web-attacks-037",
+      "domain": "network",
+      "topic": "security",
+      "subtopic": "web-attacks",
+      "question": "DDoS、CSRF、XSS 和 SQL 注入分别攻击什么边界，基本防护思路是什么？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "security"
+      ],
+      "reference_points": [
+        "DDoS 消耗带宽或服务容量；CSRF 借用用户凭证发起非预期请求；XSS 在页面上下文执行恶意脚本；SQL 注入改变查询结构",
+        "防护分别依赖流量清洗与限速、SameSite 或 CSRF Token、上下文输出编码与 CSP、参数化查询",
+        "这些攻击位于不同层，HTTPS 只保护链路，不能替代应用层输入输出和授权控制"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "DDoS 消耗带宽或服务容量；CSRF 借用用户凭证发起非预期请求；XSS 在页面上下文执行恶意脚本；SQL 注入改变查询结构",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "防护分别依赖流量清洗与限速、SameSite 或 CSRF Token、上下文输出编码与 CSP、参数化查询",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "这些攻击位于不同层，HTTPS 只保护链路，不能替代应用层输入输出和授权控制",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：DDoS 消耗带宽或服务容量；CSRF 借用用户凭证发起非预期请求；XSS 在页面上下文执行恶意脚本；SQL 注入改变查询结构；防护分别依赖流量清洗与限速、SameSite 或 CSRF Token、上下文输出编码与 CSP、参数化查询；这些攻击位于不同层，HTTPS 只保护链路，不能替代应用层输入输出和授权控制。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "owasp-web"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-dns-hijacking-038",
+      "domain": "network",
+      "topic": "security",
+      "subtopic": "dns-hijacking",
+      "question": "DNS 劫持和 DNS 缓存投毒有什么表现，应用可以怎样降低风险？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "NETWORK",
+        "security"
+      ],
+      "reference_points": [
+        "攻击者让解析结果指向错误地址，可能发生在本机、递归解析器、网络链路或权威配置环节",
+        "DNSSEC 可验证 DNS 数据来源与完整性，但不负责加密查询内容",
+        "HTTPS 证书校验可阻止许多错误站点冒充，DoH 或 DoT 可保护查询链路但不能替代权威安全"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "攻击者让解析结果指向错误地址，可能发生在本机、递归解析器、网络链路或权威配置环节",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "DNSSEC 可验证 DNS 数据来源与完整性，但不负责加密查询内容",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "HTTPS 证书校验可阻止许多错误站点冒充，DoH 或 DoT 可保护查询链路但不能替代权威安全",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：攻击者让解析结果指向错误地址，可能发生在本机、递归解析器、网络链路或权威配置环节；DNSSEC 可验证 DNS 数据来源与完整性，但不负责加密查询内容；HTTPS 证书校验可阻止许多错误站点冒充，DoH 或 DoT 可保护查询链路但不能替代权威安全。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc4033"
+        },
+        {
+          "source_id": "rfc8446"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-ip-routing-039",
+      "domain": "network",
+      "topic": "ip",
+      "subtopic": "ip-routing",
+      "question": "IP 地址、子网掩码、默认网关和路由表如何共同决定数据包下一跳？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "ip"
+      ],
+      "reference_points": [
+        "源主机用前缀长度判断目标是否在本地链路，本地目标直接解析链路层地址",
+        "非本地目标依据最长前缀匹配选择路由，通常发送给默认网关",
+        "NAT 会改写地址或端口，但它不承担路由协议本身的职责"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "源主机用前缀长度判断目标是否在本地链路，本地目标直接解析链路层地址",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "非本地目标依据最长前缀匹配选择路由，通常发送给默认网关",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "NAT 会改写地址或端口，但它不承担路由协议本身的职责",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：源主机用前缀长度判断目标是否在本地链路，本地目标直接解析链路层地址；非本地目标依据最长前缀匹配选择路由，通常发送给默认网关；NAT 会改写地址或端口，但它不承担路由协议本身的职责。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc1122"
+        },
+        {
+          "source_id": "rfc8200"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "network-icmp-ping-040",
+      "domain": "network",
+      "topic": "ip",
+      "subtopic": "icmp-ping",
+      "question": "ping 的工作原理是什么，为什么 ping 成功不代表业务服务正常？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "NETWORK",
+        "ip"
+      ],
+      "reference_points": [
+        "ping 通常发送 ICMP Echo Request 并等待 Echo Reply，用往返时间与丢包率观察基本可达性",
+        "它不验证 DNS、TCP 端口、TLS、HTTP、应用逻辑或数据库依赖",
+        "网络设备可能单独过滤或限速 ICMP，所以 ping 失败也不能直接证明业务端口不可达"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "ping 通常发送 ICMP Echo Request 并等待 Echo Reply，用往返时间与丢包率观察基本可达性",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "它不验证 DNS、TCP 端口、TLS、HTTP、应用逻辑或数据库依赖",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "网络设备可能单独过滤或限速 ICMP，所以 ping 失败也不能直接证明业务端口不可达",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背结论，没有解释协议或存储机制",
+        "忽略版本、配置和具体业务场景，给出绝对化结论"
+      ],
+      "oral_answer_outline": [
+        "先给出核心结论",
+        "按数据流或执行过程解释",
+        "补充边界条件与工程取舍"
+      ],
+      "reference_answer": "可以按这条主线回答：ping 通常发送 ICMP Echo Request 并等待 Echo Reply，用往返时间与丢包率观察基本可达性；它不验证 DNS、TCP 端口、TLS、HTTP、应用逻辑或数据库依赖；网络设备可能单独过滤或限速 ICMP，所以 ping 失败也不能直接证明业务端口不可达。回答时应把机制、现象和工程影响连起来，而不是只罗列术语。",
+      "follow_up_questions": [
+        "如果在线上遇到相关故障，你会用什么指标或工具验证判断？"
+      ],
+      "sources": [
+        {
+          "source_id": "rfc792"
+        },
+        {
+          "source_id": "rfc4443"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    }
+  ]
+}

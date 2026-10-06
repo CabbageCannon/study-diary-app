@@ -37,6 +37,7 @@ const initialPreferences: LocalWindowPreferences = {
 
 export default function App() {
   const [accessToken, setAccessTokenState] = useState(getAccessToken());
+  const [authReady, setAuthReady] = useState(false);
   const [bubbleOpen, setBubbleOpen] = useState(false);
   const [bubbleView, setBubbleView] = useState<BubbleView>("actions");
   const [appFeedback, setAppFeedback] = useState<string | null>(null);
@@ -49,17 +50,28 @@ export default function App() {
   const feedbackTimerRef = useRef<number | null>(null);
   const scaleQueueRef = useRef<Promise<void> | null>(null);
   const { state: petState, clearMilestone, setStudyStatus, setWeatherState, triggerMilestone } = usePetStateMachine();
-  const configState = useDesktopPetConfig(accessToken);
-  useDesktopPetControl(accessToken);
-  const weatherState = useWeatherState(configState.config, accessToken);
-  const timerState = useStudyTimer(accessToken);
-  const syncState = useOfflineSync(accessToken, timerState.setRemoteSessionId);
+  const configState = useDesktopPetConfig(accessToken, authReady);
+  useDesktopPetControl(accessToken, authReady);
+  const weatherState = useWeatherState(configState.config, accessToken, authReady);
+  const timerState = useStudyTimer(accessToken, authReady);
+  const syncState = useOfflineSync(
+    accessToken,
+    authReady,
+    timerState.setRemoteSessionId,
+    timerState.markQueuedCompletionSynced,
+  );
 
   const showAppFeedback = useCallback((message: string) => {
     setAppFeedback(message);
     if (feedbackTimerRef.current !== null) window.clearTimeout(feedbackTimerRef.current);
     feedbackTimerRef.current = window.setTimeout(() => setAppFeedback(null), 3200);
   }, []);
+
+  useEffect(() => {
+    if (!timerState.completionNotice) return;
+    showAppFeedback(timerState.completionNotice);
+    timerState.clearCompletionNotice();
+  }, [showAppFeedback, timerState.clearCompletionNotice, timerState.completionNotice]);
 
   useEffect(() => () => {
     if (feedbackTimerRef.current !== null) window.clearTimeout(feedbackTimerRef.current);
@@ -304,6 +316,9 @@ export default function App() {
       .catch((error) => {
         console.error("[desktop-pet] Failed to restore the saved access code.", error);
         if (!cancelled) showAppFeedback("无法读取系统凭据，请重新输入访问码");
+      })
+      .finally(() => {
+        if (!cancelled) setAuthReady(true);
       });
     return () => { cancelled = true; };
   }, [showAppFeedback]);
@@ -388,9 +403,9 @@ export default function App() {
             />
           ) : (
             <>
-              <StudyTimerPanel elapsed={timerState.elapsed} onComplete={timerState.complete} onPause={timerState.pause} onResume={timerState.resume} onStart={startStudy} timer={timerState.timer} />
+              <StudyTimerPanel authReady={authReady} elapsed={timerState.elapsed} isCompleting={timerState.isCompleting} onComplete={timerState.complete} onPause={timerState.pause} onResume={timerState.resume} onStart={startStudy} timer={timerState.timer} />
               <QuickActions onOpenLocalSettings={openSettings} onOpenRoute={openStudyRoute} onRouteOpened={closeBubble} />
-              <SyncStatus error={timerState.syncError || configState.error} isSyncing={syncState.isSyncing} pendingCount={syncState.pendingCount} />
+              <SyncStatus error={timerState.syncError || syncState.error || configState.error} isSyncing={syncState.isSyncing} pendingCount={syncState.pendingCount} />
             </>
           )}
         </PetBubble>
@@ -398,7 +413,7 @@ export default function App() {
       <div className="pet-stage">
         <PetAvatar onClick={toggleActionsBubble} onDoubleClick={openMainStudyApp} onScaleWheel={adjustPetScaleByWheel} visualState={petState.visualState} />
       </div>
-      {interactionFeedback || appFeedback ? <div aria-live="polite" className="interaction-feedback">{interactionFeedback ?? appFeedback}</div> : null}
+      {interactionFeedback || appFeedback || timerState.completionNotice ? <div aria-live="polite" className="interaction-feedback">{interactionFeedback ?? appFeedback ?? timerState.completionNotice}</div> : null}
     </main>
   );
 }

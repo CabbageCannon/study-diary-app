@@ -1,0 +1,52 @@
+services:
+  - type: web
+    name: study-diary-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: alembic upgrade head && python scripts/import_seed_data.py --all && python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_BASE_URL
+        value: https://api.openai.com/v1
+      - key: LLM_MODEL
+        value: gpt-4o-mini
+      - key: ASR_BASE_URL
+        sync: false
+      - key: ASR_API_KEY
+        sync: false
+      - key: ASR_MODEL
+        value: sensevoice
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: ADMIN_USER_ID
+        sync: false
+      - key: WECHAT_MINI_APP_ID
+        value: wx5372148eb34bcbdc
+      - key: WECHAT_MINI_APP_SECRET
+        sync: false
+      - key: MINIAPP_JWT_SECRET
+        sync: false
+      - key: MINIAPP_TOKEN_TTL_SECONDS
+        value: 604800
+      - key: APP_TIMEZONE
+        value: Asia/Shanghai
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        value: mailto:study-diary@example.com
+      - key: REMINDER_CRON_SECRET
+        sync: false

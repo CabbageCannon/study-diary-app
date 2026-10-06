@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getDesktopPetWeather } from "../services/api";
 import type { DesktopPetConfig, DesktopPetWeather, WeatherState } from "../types";
 
-export function useWeatherState(config: DesktopPetConfig, accessToken: string) {
+export function useWeatherState(config: DesktopPetConfig, accessToken: string, authReady: boolean) {
   const [weather, setWeather] = useState<DesktopPetWeather | null>(null);
   const [weatherState, setWeatherState] = useState<WeatherState>("unknown");
   const latestCandidate = useRef<WeatherState | null>(null);
@@ -26,7 +26,7 @@ export function useWeatherState(config: DesktopPetConfig, accessToken: string) {
   }, [weatherState]);
 
   useEffect(() => {
-    if (!config.weather_enabled || !accessToken) {
+    if (!config.weather_enabled || !authReady) {
       setWeather(null);
       setWeatherState("unknown");
       return undefined;
@@ -48,7 +48,7 @@ export function useWeatherState(config: DesktopPetConfig, accessToken: string) {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [accessToken, applyCandidate, config.weather_enabled, config.weather_refresh_minutes]);
+  }, [accessToken, applyCandidate, authReady, config.weather_enabled, config.weather_refresh_minutes]);
 
   return { weather, weatherState };
 }

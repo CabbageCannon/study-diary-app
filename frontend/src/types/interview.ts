@@ -1,8 +1,9 @@
 export type Difficulty = "easy" | "medium" | "hard";
 export type ReviewStatus = "pending" | "verified" | "rejected";
 export type ReviewMethod = "human" | "ai_auto" | "manual_override";
-export type QuestionDomain = "agent" | "rag" | "llm_application" | "python" | "network" | "ai_engineering";
+export type QuestionDomain = "agent" | "rag" | "llm_application" | "python" | "network" | "mysql" | "ai_engineering";
 export type AnswerSource = "voice" | "text";
+export type InterviewEvaluationStatus = "processing" | "completed" | "failed";
 export type QuestionSetStatus = "in_progress" | "completed" | "abandoned";
 export type QuestionSetItemStatus = "pending" | "answered" | "skipped";
 
@@ -155,6 +156,23 @@ export interface InterviewQuestionForTraining {
   question: string;
 }
 
+export interface InterviewQuestionCatalogItem {
+  id: string;
+  domain: QuestionDomain;
+  topic: string;
+  difficulty: Difficulty;
+  question: string;
+  is_answered: boolean;
+}
+
+export interface InterviewQuestionCatalogPage {
+  page: number;
+  page_size: number;
+  total: number;
+  total_pages: number;
+  items: InterviewQuestionCatalogItem[];
+}
+
 export interface InterviewEvaluation {
   id: number;
   answer_id: number;
@@ -180,6 +198,8 @@ export interface InterviewAnswer {
   answer_text: string;
   answer_source: AnswerSource;
   duration_seconds: number | null;
+  evaluation_status: InterviewEvaluationStatus;
+  evaluation_error: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -187,7 +207,7 @@ export interface InterviewAnswer {
 export interface InterviewAnswerSubmission {
   answer: InterviewAnswer;
   evaluation: InterviewEvaluation | null;
-  evaluation_status: "completed" | "failed";
+  evaluation_status: InterviewEvaluationStatus;
   evaluation_error: string | null;
   next_review_at: string | null;
 }

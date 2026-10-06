@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app import crud
 from app.database import get_db
 from app.llm import LLMError, generate_learning_diary_draft, rewrite_learning_diary_draft
-from app.schemas import DiaryDraft, DiaryDraftCreate, DiaryDraftRewrite, DiaryRead, DiarySave
+from app.schemas import DiaryDraft, DiaryDraftCreate, DiaryDraftRewrite, DiaryRead, DiarySave, DiaryUpdate
 
 
 router = APIRouter(prefix="/api/diaries", tags=["diaries"])
@@ -36,27 +36,35 @@ async def rewrite_draft(payload: DiaryDraftRewrite) -> DiaryDraft:
 
 
 @router.post("", response_model=DiaryRead, status_code=status.HTTP_201_CREATED)
-def create_diary(payload: DiarySave, db: Session = Depends(get_db)) -> DiaryRead:
-    return crud.create_diary(db=db, payload=payload)
+def create_diary(payload: DiarySave, request: Request, db: Session = Depends(get_db)) -> DiaryRead:
+    return crud.create_diary(db=db, payload=payload, user_id=request.state.user_id)
 
 
 @router.get("", response_model=list[DiaryRead])
-def list_diaries(db: Session = Depends(get_db)) -> list[DiaryRead]:
-    return crud.list_diaries(db)
+def list_diaries(request: Request, db: Session = Depends(get_db)) -> list[DiaryRead]:
+    return crud.list_diaries(db, request.state.user_id)
 
 
 @router.get("/{diary_id}", response_model=DiaryRead)
-def get_diary(diary_id: int, db: Session = Depends(get_db)) -> DiaryRead:
-    diary = crud.get_diary(db=db, diary_id=diary_id)
+def get_diary(diary_id: int, request: Request, db: Session = Depends(get_db)) -> DiaryRead:
+    diary = crud.get_diary(db=db, diary_id=diary_id, user_id=request.state.user_id)
     if diary is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="学习日记不存在")
 
     return diary
 
 
+@router.patch("/{diary_id}", response_model=DiaryRead)
+def update_diary(diary_id: int, payload: DiaryUpdate, request: Request, db: Session = Depends(get_db)) -> DiaryRead:
+    diary = crud.get_diary(db=db, diary_id=diary_id, user_id=request.state.user_id)
+    if diary is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="学习日记不存在")
+    return crud.update_diary(db=db, diary=diary, payload=payload)
+
+
 @router.delete("/{diary_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_diary(diary_id: int, db: Session = Depends(get_db)) -> None:
-    diary = crud.get_diary(db=db, diary_id=diary_id)
+def delete_diary(diary_id: int, request: Request, db: Session = Depends(get_db)) -> None:
+    diary = crud.get_diary(db=db, diary_id=diary_id, user_id=request.state.user_id)
     if diary is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="学习日记不存在")
 

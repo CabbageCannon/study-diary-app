@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "problem_key": "leetcode-322",
+  "title": "Coin Change",
+  "title_zh": "零钱兑换",
+  "statement_zh": "给定若干种互不相同的正整数硬币面值 coins 和一个非负整数金额 amount。每种面值的硬币可以使用任意多枚，要求恰好凑成 amount，并返回所需的最少硬币枚数；如果无法恰好凑出该金额，返回 -1。金额为 0 时答案为 0。",
+  "input_output": {
+    "input": "coins：正整数数组，表示可用硬币面值；amount：非负整数目标金额。",
+    "output": "一个整数：凑成 amount 的最少硬币枚数；无解时为 -1。"
+  },
+  "constraints": [
+    "1 <= coins.length <= 12",
+    "1 <= coins[i] <= 2^31 - 1",
+    "0 <= amount <= 10^4",
+    "每种面值可使用任意多枚",
+    "不保证存在面值 1，也不保证一定有解"
+  ],
+  "examples": [
+    {
+      "input": "coins = [1, 3, 4], amount = 6",
+      "output": "2",
+      "explanation": "6 = 3 + 3，只需 2 枚；每次取最大面值会得到 4 + 1 + 1 共 3 枚，非最优。"
+    },
+    {
+      "input": "coins = [2], amount = 3",
+      "output": "-1",
+      "explanation": "只有面值 2，无法凑出奇数金额 3。"
+    },
+    {
+      "input": "coins = [5], amount = 0",
+      "output": "0",
+      "explanation": "金额 0 不需要任何硬币。"
+    }
+  ],
+  "verification_points": [
+    {
+      "id": "vp-state-definition",
+      "kind": "key_insight",
+      "statement": "定义清楚子问题，例如 dp[x] 表示凑出金额 x 的最少硬币枚数。",
+      "required": true,
+      "acceptable_variants": [
+        "自顶向下 f(x) 表示凑出 x 的最少枚数也可接受。",
+        "BFS 中金额状态按硬币枚数层数扩展也可接受。"
+      ]
+    },
+    {
+      "id": "vp-base-and-unreachable",
+      "kind": "correctness_condition",
+      "statement": "说明基础情形 dp[0] = 0，并正确处理负金额或不可达金额。",
+      "required": true,
+      "acceptable_variants": [
+        "递归方案中 f(0)=0、f(x<0)=不可达。",
+        "BFS 方案中到达 0 即返回层数，访问集合避免重复。"
+      ]
+    },
+    {
+      "id": "vp-sentinel-to-minus-one",
+      "kind": "correctness_condition",
+      "statement": "内部不可达状态不能当作普通枚数参与最小值计算，最终不可达时才返回 -1。",
+      "required": true,
+      "acceptable_variants": [
+        "用 amount + 1、Infinity、null 或单独布尔状态表示不可达均可。"
+      ]
+    },
+    {
+      "id": "vp-greedy-not-valid",
+      "kind": "correctness_condition",
+      "statement": "不能把每次取最大面值的贪心当作通用正确解法；若提到贪心，需要说明其反例或适用限制。",
+      "required": true,
+      "acceptable_variants": [
+        "用户完全没有提贪心时，不要求主动展开反例，但最终方案不能依赖贪心正确性。"
+      ]
+    },
+    {
+      "id": "vp-complexity",
+      "kind": "complexity",
+      "statement": "动态规划或记忆化递归的时间复杂度为 O(amount * k)，空间复杂度为 O(amount)，k 为面值种数。",
+      "required": false,
+      "acceptable_variants": [
+        "BFS 状态搜索也可表述为 O(amount * k) 时间、O(amount) 空间。"
+      ]
+    }
+  ],
+  "acceptable_approaches": [
+    {
+      "name": "自底向上动态规划",
+      "idea": "令 dp[x] 为凑出金额 x 的最少枚数，dp[0]=0。对每个金额 x 遍历所有面值 c，若 x-c 可达，则用 dp[x-c]+1 更新 dp[x]；最终仍不可达则返回 -1。",
+      "time_complexity": "O(amount * k)",
+      "space_complexity": "O(amount)",
+      "is_reference": true,
+      "note": "k 为 coins.length；不可达状态必须用哨兵或等价机制隔离。"
+    },
+    {
+      "name": "自顶向下记忆化递归",
+      "idea": "递归求 f(x)=1+min(f(x-c))，以 f(0)=0 为基础，负金额或不可达金额返回不可达；使用备忘录避免重复子问题。",
+      "time_complexity": "O(amount * k)",
+      "space_complexity": "O(amount)",
+      "is_reference": false,
+      "note": "与递推是同一状态转移的不同实现，应认可。"
+    },
+    {
+      "name": "BFS 按层扩展金额状态",
+      "idea": "从 amount 出发，每一层减去一种面值，第一次到达 0 的层数就是最少硬币数；访问过的金额不重复入队。",
+      "time_complexity": "O(amount * k)",
+      "space_complexity": "O(amount)",
+      "is_reference": false,
+      "note": "正确性依赖 BFS 按层搜索第一次到达即最短路径。"
+    },
+    {
+      "name": "朴素递归",
+      "idea": "递归枚举每次选一种硬币，取所有可达分支中的最小枚数。",
+      "time_complexity": "exponential",
+      "space_complexity": "O(amount)",
+      "is_reference": false,
+      "note": "方向正确但无记忆化会指数级重复，官方规模下不可接受；应引导加记忆化或改 DP。"
+    }
+  ],
+  "common_mistakes": [
+    {
+      "description": "把每次取最大面值的贪心当作总能得到最优解。",
+      "counterexample": "coins = [1, 3, 4], amount = 6：贪心得 4+1+1 共 3 枚，最优是 3+3 共 2 枚。"
+    },
+    {
+      "description": "贪心还可能把有解误判为无解。",
+      "counterexample": "coins = [5, 3], amount = 6：先取 5 剩 1 会误报无解，实际 3+3 可达。"
+    },
+    {
+      "description": "把不可达初始化为 0 或把 -1 当作普通枚数参与转移。",
+      "counterexample": "coins = [2], amount = 3：错误哨兵可能得到 1，正确答案是 -1。"
+    }
+  ],
+  "edge_cases": [
+    {
+      "description": "amount = 0。",
+      "expected_handling": "直接返回 0，不需要选择硬币。"
+    },
+    {
+      "description": "没有任何组合可达。",
+      "expected_handling": "最终不可达时返回 -1，而不是返回哨兵值或 0。"
+    },
+    {
+      "description": "所有面值都大于当前金额。",
+      "expected_handling": "转移时跳过这些面值，避免负下标或负金额状态污染。"
+    },
+    {
+      "description": "最优解需要重复使用同一面值。",
+      "expected_handling": "每种硬币可以使用任意多枚，不能按 0/1 背包只用一次。"
+    }
+  ],
+  "source": {
+    "name": "LeetCode CN 322. 零钱兑换",
+    "url": "https://leetcode.cn/problems/coin-change/",
+    "license_note": "题意、示例、核对要点和反例均为原创中文转写，未复制外站题面或题解。",
+    "source_version": "2026-09-06 对照 leetcode.cn 官方题面核对"
+  },
+  "content_notes": "已核对官方题名、URL 和约束；示例与反例为本项目原创构造。参考方案为自底向上 DP，但记忆化递归和 BFS 状态搜索也应被认可。",
+  "content_status": "ready"
+}

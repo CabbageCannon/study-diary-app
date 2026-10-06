@@ -16,7 +16,7 @@ export function DiaryDetail({ diary, title, emptyText }: DiaryDetailProps) {
             <time dateTime={diary.date}>{diary.date}</time>
             <h2>{diary.title}</h2>
           </header>
-          <div className="polished-text">{diary.polished_text}</div>
+          <div className="polished-text copyable-text">{diary.polished_text}</div>
           <div className="summary-box">
             <span>总结</span>
             <p>{diary.summary}</p>

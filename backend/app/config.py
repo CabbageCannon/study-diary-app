@@ -39,6 +39,9 @@ class Settings:
         self.llm_api_key = os.getenv("LLM_API_KEY", "").strip()
         self.llm_base_url = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1").strip().rstrip("/")
         self.llm_model = os.getenv("LLM_MODEL", "gpt-4o-mini").strip()
+        self.asr_base_url = os.getenv("ASR_BASE_URL", "").strip().rstrip("/")
+        self.asr_api_key = os.getenv("ASR_API_KEY", "").strip()
+        self.asr_model = os.getenv("ASR_MODEL", "sensevoice").strip() or "sensevoice"
         self.database_url = _normalize_sqlite_url(
             os.getenv("DATABASE_URL", "sqlite:///./data/study_diary.db").strip()
         )
@@ -47,7 +50,19 @@ class Settings:
             "DESKTOP_PET_ORIGINS",
             "http://127.0.0.1:1420,http://tauri.localhost",
         ).strip()
-        self.app_access_token = os.getenv("APP_ACCESS_TOKEN", "").strip()
+        self.app_timezone = os.getenv("APP_TIMEZONE", "Asia/Shanghai").strip() or "Asia/Shanghai"
+        self.supabase_url = os.getenv("SUPABASE_URL", "").strip().rstrip("/")
+        self.supabase_publishable_key = os.getenv("SUPABASE_PUBLISHABLE_KEY", "").strip()
+        self.supabase_service_role_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+        self.admin_user_id = os.getenv("ADMIN_USER_ID", "").strip()
+        self.wechat_mini_app_id = os.getenv("WECHAT_MINI_APP_ID", "").strip()
+        self.wechat_mini_app_secret = os.getenv("WECHAT_MINI_APP_SECRET", "").strip()
+        self.miniapp_jwt_secret = os.getenv("MINIAPP_JWT_SECRET", "").strip()
+        self.miniapp_token_ttl_seconds = max(3600, _read_int("MINIAPP_TOKEN_TTL_SECONDS", 60 * 60 * 24 * 7))
+        self.vapid_public_key = os.getenv("VAPID_PUBLIC_KEY", "").strip()
+        self.vapid_private_key = os.getenv("VAPID_PRIVATE_KEY", "").strip()
+        self.vapid_subject = os.getenv("VAPID_SUBJECT", "mailto:study-diary@example.com").strip()
+        self.reminder_cron_secret = os.getenv("REMINDER_CRON_SECRET", "").strip()
         self.ai_rate_limit_per_minute = max(1, _read_int("AI_RATE_LIMIT_PER_MINUTE", 12))
         self.allow_question_review = _read_bool("ALLOW_QUESTION_REVIEW")
         self.allow_unverified_question_access = _read_bool("ALLOW_UNVERIFIED_QUESTION_ACCESS")
@@ -59,10 +74,5 @@ class Settings:
     def frontend_origins(self) -> list[str]:
         origins = [*self.frontend_origin.split(","), *self.desktop_pet_origins.split(",")]
         return list(dict.fromkeys(origin.strip() for origin in origins if origin.strip()))
-
-    @property
-    def write_access_enabled(self) -> bool:
-        return bool(self.app_access_token)
-
 
 settings = Settings()

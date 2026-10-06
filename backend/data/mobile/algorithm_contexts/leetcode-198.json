@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "problem_key": "leetcode-198",
+  "title": "House Robber",
+  "title_zh": "打家劫舍",
+  "statement_zh": "给定非负整数数组 nums，nums[i] 表示第 i 间房屋的金额。不能在同一晚选择相邻的两间房屋；请返回在不选择相邻房屋的前提下能够取得的最大金额。",
+  "input_output": {
+    "input": "nums：非负整数数组，表示每间房屋的金额。",
+    "output": "整数，表示不选择相邻房屋时的最大金额。"
+  },
+  "constraints": [
+    "1 <= nums.length <= 100",
+    "0 <= nums[i] <= 400",
+    "不能同时选择相邻的两个下标",
+    "可以选择不偷某些房屋；目标是总金额最大"
+  ],
+  "examples": [
+    {
+      "input": "nums = [2, 1, 4, 9]",
+      "output": "11",
+      "explanation": "选择下标 0 和 3，金额 2 + 9 = 11；不能同时选择 2 和 3。"
+    },
+    {
+      "input": "nums = [5]",
+      "output": "5",
+      "explanation": "只有一间房，直接选择它。"
+    },
+    {
+      "input": "nums = [2, 7, 9, 3, 1]",
+      "output": "12",
+      "explanation": "可选择 2、9、1，共 12。"
+    }
+  ],
+  "verification_points": [
+    {
+      "id": "vp-choice-recurrence",
+      "kind": "key_insight",
+      "statement": "对每个位置做选或不选的取舍：dp[i] = max(dp[i-1], dp[i-2] + nums[i])。",
+      "required": true,
+      "acceptable_variants": [
+        "用滚动变量表示前一间和前两间的最优值也可接受。",
+        "自顶向下记忆化递归表达同一转移也可接受。"
+      ]
+    },
+    {
+      "id": "vp-adjacent-constraint",
+      "kind": "correctness_condition",
+      "statement": "明确不能同时选择相邻房屋，因此选择当前房屋时只能加到 i-2 的最优值上。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-base-cases",
+      "kind": "edge_case",
+      "statement": "正确处理只有一间或两间房屋的基础情况。",
+      "required": true,
+      "acceptable_variants": [
+        "使用 dp[-1]=0、dp[0]=nums[0] 的等价初始化也可接受。"
+      ]
+    },
+    {
+      "id": "vp-not-greedy",
+      "kind": "correctness_condition",
+      "statement": "不能简单每次选局部金额最大的房屋；需要动态规划保留前缀最优。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-complexity",
+      "kind": "complexity",
+      "statement": "DP 时间 O(n)，数组空间 O(n)，滚动变量可优化到 O(1)。",
+      "required": false,
+      "acceptable_variants": []
+    }
+  ],
+  "acceptable_approaches": [
+    {
+      "name": "滚动变量动态规划",
+      "idea": "维护 rob_prev2 和 rob_prev1，遍历金额 x 时，当前最优为 max(rob_prev1, rob_prev2 + x)，再滚动更新。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(1)",
+      "is_reference": true,
+      "note": null
+    },
+    {
+      "name": "DP 数组",
+      "idea": "dp[i] 表示考虑到第 i 间房时的最大金额，转移为 max(dp[i-1], dp[i-2] + nums[i])。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(n)",
+      "is_reference": false,
+      "note": "正确且更容易口述，空间可进一步优化。"
+    },
+    {
+      "name": "记忆化递归",
+      "idea": "递归决定从第 i 间开始偷或不偷，偷则跳到 i+2，不偷则跳到 i+1，并用备忘录缓存结果。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(n)",
+      "is_reference": false,
+      "note": "正确；无记忆化会指数级。"
+    }
+  ],
+  "common_mistakes": [
+    {
+      "description": "贪心地选当前较大的房屋，忽略未来组合。",
+      "counterexample": "nums = [2,1,4,9]：局部选 4 可能错过 2+9=11 的更优组合。"
+    },
+    {
+      "description": "选择当前房屋时错误地加 dp[i-1]，违反相邻限制。",
+      "counterexample": "nums = [5,6]：不能得到 11，正确答案是 6。"
+    },
+    {
+      "description": "基础情况写错，单元素数组返回 0。",
+      "counterexample": "nums = [5]：正确答案是 5。"
+    }
+  ],
+  "edge_cases": [
+    {
+      "description": "只有一间房。",
+      "expected_handling": "返回 nums[0]。"
+    },
+    {
+      "description": "只有两间房。",
+      "expected_handling": "返回两者较大值，不能相加。"
+    },
+    {
+      "description": "金额中有 0。",
+      "expected_handling": "DP 转移仍然成立。"
+    }
+  ],
+  "source": {
+    "name": "LeetCode CN 198. 打家劫舍",
+    "url": "https://leetcode.cn/problems/house-robber/",
+    "license_note": "题意、示例、核对要点和反例均为原创中文转写，未复制外站题面或题解。",
+    "source_version": "2026-09-06 对照 leetcode.cn 官方题面核对"
+  },
+  "content_notes": "已核对官方题名、URL 和约束；参考方案为滚动变量 DP，DP 数组和记忆化递归也应被认可。",
+  "content_status": "ready"
+}

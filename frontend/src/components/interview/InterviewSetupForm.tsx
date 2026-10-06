@@ -1,5 +1,5 @@
 import type { CreateQuestionSetPayload, Difficulty, QuestionDomain } from "../../types/interview";
-import { PlayIcon } from "@phosphor-icons/react/Play";
+import { FloppyDiskIcon } from "@phosphor-icons/react/FloppyDisk";
 
 import { HoverSelect, type HoverSelectOption } from "./HoverSelect";
 
@@ -9,6 +9,7 @@ export const domainOptions: Array<{ value: QuestionDomain; label: string }> = [
   { value: "llm_application", label: "LLM 应用" },
   { value: "python", label: "Python" },
   { value: "network", label: "网络" },
+  { value: "mysql", label: "MySQL" },
   { value: "ai_engineering", label: "AI 工程" },
 ];
 
@@ -23,7 +24,12 @@ const topicOptions: Record<QuestionDomain, Array<{ value: string; label: string 
   rag: [
     { value: "retrieval", label: "检索" },
     { value: "chunking", label: "切分" },
+    { value: "embedding", label: "Embedding" },
+    { value: "vector_database", label: "向量数据库" },
+    { value: "hybrid_search", label: "混合检索" },
+    { value: "query_rewrite", label: "Query 改写" },
     { value: "evaluation", label: "评估" },
+    { value: "hallucination", label: "幻觉治理" },
   ],
   llm_application: [
     { value: "tool_calling", label: "Tool Calling" },
@@ -36,11 +42,43 @@ const topicOptions: Record<QuestionDomain, Array<{ value: string; label: string 
     { value: "pydantic", label: "Pydantic" },
   ],
   network: [
+    { value: "network_model", label: "网络模型" },
     { value: "http", label: "HTTP" },
+    { value: "https", label: "HTTPS / TLS" },
+    { value: "tcp", label: "TCP" },
+    { value: "udp", label: "UDP / QUIC" },
+    { value: "ip", label: "IP / ICMP" },
+    { value: "dns", label: "DNS" },
+    { value: "websocket", label: "WebSocket" },
     { value: "sse", label: "SSE" },
     { value: "proxy", label: "代理与超时" },
+    { value: "load_balancing", label: "负载均衡" },
+    { value: "troubleshooting", label: "网络排障" },
+    { value: "security", label: "网络安全" },
+  ],
+  mysql: [
+    { value: "sql", label: "SQL 基础" },
+    { value: "storage_engine", label: "存储引擎" },
+    { value: "index", label: "索引" },
+    { value: "transaction", label: "事务 / MVCC" },
+    { value: "lock", label: "锁" },
+    { value: "log", label: "日志" },
+    { value: "performance", label: "性能调优" },
+    { value: "replication", label: "主从复制" },
+    { value: "architecture", label: "架构" },
   ],
   ai_engineering: [
+    { value: "llm_fundamentals", label: "LLM 基础" },
+    { value: "transformer", label: "Transformer" },
+    { value: "attention", label: "Attention" },
+    { value: "training", label: "训练" },
+    { value: "fine_tuning", label: "微调" },
+    { value: "alignment", label: "对齐" },
+    { value: "inference", label: "推理优化" },
+    { value: "prompt_management", label: "Prompt" },
+    { value: "evaluation", label: "模型评测" },
+    { value: "hallucination", label: "幻觉" },
+    { value: "long_context", label: "长上下文" },
     { value: "retry", label: "重试" },
     { value: "streaming", label: "流式输出" },
     { value: "observability", label: "可观测性" },
@@ -65,10 +103,10 @@ interface InterviewSetupFormProps {
   isSubmitting: boolean;
   error: string;
   onChange: (nextValue: CreateQuestionSetPayload) => void;
-  onSubmit: () => void;
+  onSave: () => void;
 }
 
-export function InterviewSetupForm({ value, isSubmitting, error, onChange, onSubmit }: InterviewSetupFormProps) {
+export function InterviewSetupForm({ value, isSubmitting, error, onChange, onSave }: InterviewSetupFormProps) {
   const topics = value.domain ? topicOptions[value.domain] : [];
 
   function update<K extends keyof CreateQuestionSetPayload>(key: K, nextValue: CreateQuestionSetPayload[K]) {
@@ -150,9 +188,9 @@ export function InterviewSetupForm({ value, isSubmitting, error, onChange, onSub
       {error ? <p className="field-error" role="alert">{error}</p> : null}
 
       <div className="interview-form-actions">
-        <button className="button button-primary" disabled={isSubmitting} onClick={onSubmit} type="button">
-          <PlayIcon aria-hidden="true" size={16} weight="fill" />
-          {isSubmitting ? "正在创建..." : "开始训练"}
+        <button className="button button-primary" disabled={isSubmitting} onClick={onSave} type="button">
+          <FloppyDiskIcon aria-hidden="true" size={16} weight="bold" />
+          {isSubmitting ? "保存中..." : "保存"}
         </button>
       </div>
     </section>

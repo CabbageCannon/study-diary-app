@@ -26,6 +26,7 @@ const ACTIVE_STATUSES = new Set(["queued", "running"]);
 export function InterviewBatchJobProvider({ children, enabled }: { children: ReactNode; enabled: boolean }) {
   const [jobs, setJobs] = useState<InterviewBatchJob[]>([]);
   const [notices, setNotices] = useState<TaskNotice[]>([]);
+  const [pollGeneration, setPollGeneration] = useState(0);
   const knownStatusesRef = useRef(new Map<string, string>());
   const noticeIdRef = useRef(0);
   const noticeTimersRef = useRef(new Map<number, number>());
@@ -59,9 +60,11 @@ export function InterviewBatchJobProvider({ children, enabled }: { children: Rea
     const poll = async () => {
       controller?.abort();
       controller = new AbortController();
+      let hasActiveJobs = false;
       try {
         const nextJobs = await listInterviewBatchJobs(controller.signal);
         if (cancelled) return;
+        hasActiveJobs = nextJobs.some((job) => ACTIVE_STATUSES.has(job.status));
         for (const job of nextJobs) {
           const previousStatus = knownStatusesRef.current.get(job.id);
           if (previousStatus && ACTIVE_STATUSES.has(previousStatus) && !ACTIVE_STATUSES.has(job.status)) {
@@ -80,14 +83,8 @@ export function InterviewBatchJobProvider({ children, enabled }: { children: Rea
           // Network errors are kept quiet here; page-level actions surface actionable failures.
         }
       } finally {
-        if (!cancelled) {
-          const hasActiveJobs = nextHasActiveJobs();
-          schedule(hasActiveJobs ? (document.hidden ? 6000 : 1500) : 10000);
-        }
+        if (!cancelled && hasActiveJobs) schedule(document.hidden ? 6000 : 1500);
       }
-    };
-    const nextHasActiveJobs = () => {
-      return Array.from(knownStatusesRef.current.values()).some((status) => ACTIVE_STATUSES.has(status));
     };
     const onVisibilityChange = () => {
       if (!document.hidden) {
@@ -103,7 +100,7 @@ export function InterviewBatchJobProvider({ children, enabled }: { children: Rea
       if (timer !== null) window.clearTimeout(timer);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [enabled, notify]);
+  }, [enabled, notify, pollGeneration]);
 
   useEffect(() => () => {
     noticeTimersRef.current.forEach((timer) => window.clearTimeout(timer));
@@ -113,6 +110,7 @@ export function InterviewBatchJobProvider({ children, enabled }: { children: Rea
     const job = await createInterviewBatchJob(payload);
     knownStatusesRef.current.set(job.id, job.status);
     setJobs((current) => [job, ...current.filter((item) => item.id !== job.id)].slice(0, 12));
+    setPollGeneration((generation) => generation + 1);
     return job;
   }, []);
 

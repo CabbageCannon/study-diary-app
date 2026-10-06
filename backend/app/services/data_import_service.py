@@ -11,6 +11,7 @@ from app.repositories.algorithm_repository import upsert_problem
 from app.repositories.interview_repository import upsert_question
 from app.schemas import AlgorithmCatalog, InterviewQuestionCatalog, InterviewQuestionSource
 from app.services.algorithm_catalog_service import CatalogBuildError, leetcode_cn_url, read_json
+from app.services.algorithm_reasoning_service import import_mobile_problem_contexts
 from app.services.interview_bank_service import DOMAIN_TOPICS, question_hash
 
 
@@ -75,7 +76,7 @@ def _load_interview_catalog(path: Path) -> InterviewQuestionCatalog:
     return catalog
 
 
-def import_algorithms(db: Session, catalog_path: Path, dry_run: bool = False) -> ImportResult:
+def import_algorithms(db: Session, catalog_path: Path, dry_run: bool = False, *, defer_commit: bool = False) -> ImportResult:
     catalog = _load_algorithm_catalog(catalog_path)
     result = ImportResult(dry_run=dry_run)
     try:
@@ -83,7 +84,9 @@ def import_algorithms(db: Session, catalog_path: Path, dry_run: bool = False) ->
             _, action = upsert_problem(db, problem)
             result.record(action)
         db.flush()
-        if dry_run:
+        if defer_commit:
+            pass
+        elif dry_run:
             db.rollback()
         else:
             db.commit()
@@ -100,6 +103,7 @@ def import_interviews(
     dry_run: bool = False,
     *,
     overwrite_review_metadata: bool = False,
+    defer_commit: bool = False,
 ) -> ImportResult:
     catalog = _load_interview_catalog(catalog_path)
     result = ImportResult(dry_run=dry_run)
@@ -113,7 +117,9 @@ def import_interviews(
             result.record(action)
             result.question_changes.append({"question_id": question.id, "action": action, **changes})
         db.flush()
-        if dry_run:
+        if defer_commit:
+            pass
+        elif dry_run:
             db.rollback()
         else:
             db.commit()

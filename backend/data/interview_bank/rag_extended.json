@@ -1,0 +1,982 @@
+{
+  "questions": [
+    {
+      "id": "rag-problem-scope-001",
+      "domain": "rag",
+      "topic": "retrieval",
+      "subtopic": "problem_scope",
+      "question": "RAG 主要解决大模型应用中的哪些问题，又有哪些问题不能靠 RAG 解决？",
+      "difficulty": "easy",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 90,
+      "tags": [
+        "RAG",
+        "知识更新",
+        "边界"
+      ],
+      "reference_points": [
+        "说明 RAG 可接入私有、时效性强或可追溯的外部知识",
+        "说明检索证据可降低但不能消除幻觉",
+        "指出推理能力、工具执行和模型固有能力不足并不会被 RAG 自动修复",
+        "能根据知识是否可检索判断适用性"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "说明 RAG 可接入私有、时效性强或可追溯的外部知识",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "说明检索证据可降低但不能消除幻觉",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "指出推理能力、工具执行和模型固有能力不足并不会被 RAG 自动修复",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "RAG 通过检索把模型训练后新增、企业私有或需要引用的知识放进当前上下文，因而便于更新和追溯。它只能提高可用证据的质量，检索失败、资料冲突或模型错误理解时仍会幻觉。数学推理不足、复杂工具执行和行为风格等问题也不一定适合靠 RAG 解决，需要模型选择、工作流或微调配合。",
+      "follow_up_questions": [
+        "知识库没有答案时系统应怎样处理？",
+        "哪些需求更适合微调而不是 RAG？"
+      ],
+      "sources": [
+        {
+          "source_id": "rag-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "rag-vs-finetuning-001",
+      "domain": "rag",
+      "topic": "retrieval",
+      "subtopic": "rag_vs_finetuning",
+      "question": "RAG 与微调分别适合解决什么问题，实际项目如何选择或组合？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "RAG",
+        "Fine-tuning",
+        "选型"
+      ],
+      "reference_points": [
+        "RAG 适合频繁变化、私有且需要引用的事实知识",
+        "微调适合稳定行为、格式、风格或领域任务能力",
+        "比较数据准备、更新成本、延迟、可追溯性和遗忘风险",
+        "说明可用微调塑造行为并用 RAG 提供实时知识"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "RAG 适合频繁变化、私有且需要引用的事实知识",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "微调适合稳定行为、格式、风格或领域任务能力",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "比较数据准备、更新成本、延迟、可追溯性和遗忘风险",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "RAG 把知识留在外部索引中，更新快、可引用，但增加检索链路与延迟；微调改变模型参数，更适合稳定的行为模式、输出格式或专业任务能力，却不适合频繁写入新事实。项目应先看问题是知识缺失还是行为能力不足。两者可以组合：微调让模型更会使用证据，RAG 提供最新且可审计的内容。",
+      "follow_up_questions": [
+        "如何用实验判断问题来自检索还是模型能力？",
+        "什么情况下微调数据会造成灾难性遗忘？"
+      ],
+      "sources": [
+        {
+          "source_id": "rag-paper"
+        },
+        {
+          "source_id": "lora-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "rag-semantic-boundary-001",
+      "domain": "rag",
+      "topic": "chunking",
+      "subtopic": "semantic_boundary",
+      "question": "文档切分破坏了跨段语义时，可以用哪些方法修复？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "RAG",
+        "Chunking",
+        "语义边界"
+      ],
+      "reference_points": [
+        "优先按标题、段落、句子、代码块和表格等结构切分",
+        "使用有限 overlap、父子块或邻接块扩展补足上下文",
+        "检索小块后回取父块可兼顾定位与完整语义",
+        "用真实查询评估召回而不是无限增大 chunk"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "优先按标题、段落、句子、代码块和表格等结构切分",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "使用有限 overlap、父子块或邻接块扩展补足上下文",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "检索小块后回取父块可兼顾定位与完整语义",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "先利用文档结构和语义边界切分，避免在标题、表格或代码块中间截断。跨边界信息可以用受控 overlap、相邻块扩展或父子索引解决：小块负责精确召回，命中后回取较完整的父块。若仍缺上下文，应根据失败样本调整切分器，而不是一味放大 chunk 或 overlap。",
+      "follow_up_questions": [
+        "父子检索会增加哪些存储和实现成本？",
+        "表格与代码文档怎样采用不同切分策略？"
+      ],
+      "sources": [
+        {
+          "source_id": "rag-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "rag-embedding-model-evaluation-001",
+      "domain": "rag",
+      "topic": "embedding",
+      "subtopic": "model_selection",
+      "question": "RAG 项目如何选择和评估 Embedding 模型？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "RAG",
+        "Embedding",
+        "评测"
+      ],
+      "reference_points": [
+        "按语言、领域、查询长度和向量维度筛选候选模型",
+        "用业务标注集计算 Recall@k、MRR 或 nDCG",
+        "同时测索引体积、编码吞吐、查询延迟和费用",
+        "保持归一化与相似度一致，并验证模型升级后的全量重建影响"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "按语言、领域、查询长度和向量维度筛选候选模型",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "用业务标注集计算 Recall@k、MRR 或 nDCG",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "同时测索引体积、编码吞吐、查询延迟和费用",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "Embedding 选型要从业务查询和文档出发，先筛选支持语言、领域与输入长度的模型，再用带相关文档标注的真实查询测 Recall@k、MRR 或 nDCG。还要比较维度造成的存储、索引速度、吞吐、延迟和费用。部署前确认模型要求的归一化与距离函数，升级模型时通常不能混用旧向量，需要规划重算和灰度。",
+      "follow_up_questions": [
+        "没有人工标注集时如何构造初始评测集？",
+        "为什么公开榜单高分不保证业务检索更好？"
+      ],
+      "sources": [
+        {
+          "source_id": "mteb-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "rag-embedding-algorithms-001",
+      "domain": "rag",
+      "topic": "embedding",
+      "subtopic": "embedding_families",
+      "question": "常见文本 Embedding 方法经历了哪些演进，双塔模型为什么适合大规模检索？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "Embedding",
+        "双塔",
+        "向量检索"
+      ],
+      "reference_points": [
+        "区分稀疏词项表示、静态词向量与上下文化句向量",
+        "双塔可离线编码文档并在线计算查询向量",
+        "交叉编码器联合计算相关性更准但难以全库扫描",
+        "说明训练目标、负样本和领域数据会影响检索效果"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "区分稀疏词项表示、静态词向量与上下文化句向量",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "双塔可离线编码文档并在线计算查询向量",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "交叉编码器联合计算相关性更准但难以全库扫描",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "文本表示从 TF-IDF、BM25 等稀疏词项方法发展到静态词向量，再到基于 Transformer 的上下文化句向量。双塔分别编码查询和文档，文档向量可以预计算并建立近似最近邻索引，因此适合大规模召回；交叉编码器让查询与文档共同参与注意力，通常更精确但成本高，常放在重排阶段。",
+      "follow_up_questions": [
+        "困难负样本为什么重要？",
+        "双塔和交叉编码器如何组成两阶段检索？"
+      ],
+      "sources": [
+        {
+          "source_id": "dpr-paper"
+        },
+        {
+          "source_id": "mteb-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "rag-vector-database-selection-001",
+      "domain": "rag",
+      "topic": "vector_database",
+      "subtopic": "selection",
+      "question": "选择向量数据库时应比较哪些维度，而不是只看检索速度？",
+      "difficulty": "medium",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "RAG",
+        "向量数据库",
+        "选型"
+      ],
+      "reference_points": [
+        "比较索引算法、规模、召回率、延迟和写入更新能力",
+        "检查元数据过滤、租户隔离、备份恢复和一致性",
+        "考虑现有数据库集成、运维复杂度与总成本",
+        "用业务数据同时测试召回率和尾延迟"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "比较索引算法、规模、召回率、延迟和写入更新能力",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "检查元数据过滤、租户隔离、备份恢复和一致性",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "考虑现有数据库集成、运维复杂度与总成本",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "选型要同时看向量规模、索引算法、召回率、p95/p99 延迟和持续写入表现。生产场景还依赖元数据过滤、多租户隔离、备份恢复、权限与监控。若现有 PostgreSQL 的规模和延迟足够，pgvector 往往能减少系统数量；只有专用能力确有收益时才引入独立向量库。最终应以业务数据和查询分布压测。",
+      "follow_up_questions": [
+        "HNSW 与 IVF 的主要取舍是什么？",
+        "为什么过滤条件会显著影响向量检索性能？"
+      ],
+      "sources": [
+        {
+          "source_id": "pgvector-docs"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "rag-vector-database-performance-001",
+      "domain": "rag",
+      "topic": "vector_database",
+      "subtopic": "performance",
+      "question": "向量数据库出现召回下降或延迟升高时，应如何定位和优化？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "RAG",
+        "向量数据库",
+        "性能"
+      ],
+      "reference_points": [
+        "区分向量编码、过滤、ANN 搜索、回表和网络阶段",
+        "检查索引参数、数据分布、删除膨胀和冷热缓存",
+        "用 recall-latency 曲线选择 ef_search、probes 等参数",
+        "通过分区、批量写入、量化或扩容优化并回归质量"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "区分向量编码、过滤、ANN 搜索、回表和网络阶段",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "检查索引参数、数据分布、删除膨胀和冷热缓存",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "用 recall-latency 曲线选择 ef_search、probes 等参数",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "先把链路拆成编码、过滤、近似检索、回表和传输，分别记录耗时。召回下降要检查模型或归一化变化、索引参数和过滤后候选量；延迟升高则关注数据规模、缓存、删除膨胀与并发。ANN 参数只能在召回率与延迟曲线上调，必要时再采用分区、批量写入、量化或扩容，并用固定评测集确认质量没有倒退。",
+      "follow_up_questions": [
+        "为什么只压测空过滤查询会误判线上能力？",
+        "索引重建期间如何保持服务可用？"
+      ],
+      "sources": [
+        {
+          "source_id": "pgvector-docs"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "rag-dense-vs-sparse-001",
+      "domain": "rag",
+      "topic": "hybrid_search",
+      "subtopic": "dense_sparse",
+      "question": "向量检索和关键词检索各自擅长什么，为什么常组合成混合检索？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "RAG",
+        "Dense Retrieval",
+        "BM25"
+      ],
+      "reference_points": [
+        "稀疏检索擅长精确词、编号、专名和低频关键词",
+        "稠密检索擅长语义近似和不同表达",
+        "混合检索需要分别召回后归一化或用 RRF 融合",
+        "最终用重排和业务评测确定权重"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "稀疏检索擅长精确词、编号、专名和低频关键词",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "稠密检索擅长语义近似和不同表达",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "混合检索需要分别召回后归一化或用 RRF 融合",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "关键词检索直接匹配词项，对产品编号、专名和精确约束很强，但容易漏掉同义表达。向量检索能找到语义相近内容，却可能忽略关键字面条件。混合检索让两路独立召回，再用分数归一化、加权或 Reciprocal Rank Fusion 合并，随后可用重排器排序。权重应由真实查询评测决定。",
+      "follow_up_questions": [
+        "两路结果分数为什么不能直接相加？",
+        "哪些查询适合动态提高关键词权重？"
+      ],
+      "sources": [
+        {
+          "source_id": "dpr-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "rag-query-rewrite-001",
+      "domain": "rag",
+      "topic": "query_rewrite",
+      "subtopic": "rewrite_strategy",
+      "question": "RAG 为什么需要 Query Rewrite，如何避免改写后偏离用户原意？",
+      "difficulty": "medium",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 120,
+      "tags": [
+        "RAG",
+        "Query Rewrite",
+        "检索"
+      ],
+      "reference_points": [
+        "改写可补全指代、提取关键词、拆解多跳问题或生成多个检索表达",
+        "保留原查询并将改写结果作为候选而非唯一真相",
+        "利用对话状态和领域词典约束改写",
+        "通过查询级召回增益与语义偏移率评估"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "改写可补全指代、提取关键词、拆解多跳问题或生成多个检索表达",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "保留原查询并将改写结果作为候选而非唯一真相",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "利用对话状态和领域词典约束改写",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "Query Rewrite 用于消解多轮指代、提炼可检索实体、拆分多跳问题或生成不同表达。为防止偏题，系统应保留原查询，与一个或多个改写结果并行召回，并让改写输出结构化记录保留词和新增假设。最后比较改写前后的召回增益、错误实体和答案正确率，而不是只看改写文本是否顺畅。",
+      "follow_up_questions": [
+        "HyDE 与普通关键词改写有什么差异？",
+        "什么时候不应该对查询做改写？"
+      ],
+      "sources": [
+        {
+          "source_id": "hyde-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "rag-multi-retrieval-001",
+      "domain": "rag",
+      "topic": "hybrid_search",
+      "subtopic": "multi_retrieval",
+      "question": "RAG 的多路召回应如何设计、融合和去重？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "RAG",
+        "多路召回",
+        "融合"
+      ],
+      "reference_points": [
+        "按查询特征选择关键词、向量、结构化过滤或图检索等通道",
+        "每路独立控制候选数量并记录来源",
+        "使用 RRF、学习排序或重排器融合并按文档与片段去重",
+        "以覆盖度、冗余率、延迟和最终答案共同评估"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "按查询特征选择关键词、向量、结构化过滤或图检索等通道",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "每路独立控制候选数量并记录来源",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "使用 RRF、学习排序或重排器融合并按文档与片段去重",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "多路召回不是把每种检索都跑一遍，而是按查询类型选择通道。关键词、向量、结构化过滤和图检索分别返回带来源的候选，再用 RRF 或重排模型统一排序。相同文档的相邻片段应合并或限制占比，避免上下文被一个来源占满。评估同时看 Recall@k、冗余、尾延迟和最终回答质量。",
+      "follow_up_questions": [
+        "如何给不同召回通道设置动态预算？",
+        "去重时怎样避免删掉互补片段？"
+      ],
+      "sources": [
+        {
+          "source_id": "dpr-paper"
+        },
+        {
+          "source_id": "graphrag-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "rag-retrieval-optimization-001",
+      "domain": "rag",
+      "topic": "reranking",
+      "subtopic": "optimization",
+      "question": "RAG 检索链路有哪些常见优化手段，应该按什么顺序实施？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "RAG",
+        "Reranking",
+        "检索优化"
+      ],
+      "reference_points": [
+        "先用失败样本判断问题来自切分、查询、过滤、召回还是排序",
+        "分别尝试混合检索、查询改写、元数据过滤与重排",
+        "控制 top-k、上下文去重和证据覆盖避免噪声",
+        "每次只改变少量变量并用固定评测集验证"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "先用失败样本判断问题来自切分、查询、过滤、召回还是排序",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "分别尝试混合检索、查询改写、元数据过滤与重排",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "控制 top-k、上下文去重和证据覆盖避免噪声",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "优化应从错误分析开始：正确文档未入候选是召回问题，已召回却排后是排序问题，证据进入上下文仍答错则是生成问题。对应地调整切分、Embedding、混合检索、Query Rewrite、过滤、top-k 或重排。候选越多不一定越好，重复和冲突会稀释证据。每轮实验要固定数据集并同时记录质量、延迟和成本。",
+      "follow_up_questions": [
+        "什么时候值得引入 Cross-Encoder 重排？",
+        "如何建立可解释的检索失败分类？"
+      ],
+      "sources": [
+        {
+          "source_id": "rag-paper"
+        },
+        {
+          "source_id": "ragas-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "rag-advanced-patterns-001",
+      "domain": "rag",
+      "topic": "retrieval",
+      "subtopic": "advanced_patterns",
+      "question": "Self-RAG、Corrective RAG 和分层检索分别解决什么问题？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "Self-RAG",
+        "CRAG",
+        "RAPTOR"
+      ],
+      "reference_points": [
+        "Self-RAG 让模型判断是否检索并反思证据与回答",
+        "Corrective RAG 评估召回质量并在不足时纠正或扩大检索",
+        "分层检索为长文档构建多粒度摘要或树结构",
+        "说明复杂范式会增加调用、延迟和评测难度"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "Self-RAG 让模型判断是否检索并反思证据与回答",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "Corrective RAG 评估召回质量并在不足时纠正或扩大检索",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "分层检索为长文档构建多粒度摘要或树结构",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "Self-RAG 把是否需要检索、证据相关性和回答支持度纳入生成过程；Corrective RAG 在检索质量不足时触发纠正、外部搜索或重写；分层检索通过多粒度摘要或树结构处理跨段和全局问题。它们针对不同失败模式，不能只因名字先进就叠加。采用前应先确认基础 RAG 的具体瓶颈，并衡量额外模型调用、延迟与可测试性。",
+      "follow_up_questions": [
+        "怎样为复杂 RAG 设置停止条件？",
+        "基础 RAG 哪些失败不需要引入新范式？"
+      ],
+      "sources": [
+        {
+          "source_id": "self-rag-paper"
+        },
+        {
+          "source_id": "crag-paper"
+        },
+        {
+          "source_id": "raptor-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "rag-graph-enhancement-001",
+      "domain": "rag",
+      "topic": "hybrid_search",
+      "subtopic": "graph_retrieval",
+      "question": "什么场景适合用图数据库或 GraphRAG 增强向量检索？",
+      "difficulty": "hard",
+      "question_type": "design_tradeoff",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "RAG",
+        "GraphRAG",
+        "知识图谱"
+      ],
+      "reference_points": [
+        "关系、多跳、路径和全局主题问题更能利用图结构",
+        "需要实体识别、消歧、关系抽取和持续更新图索引",
+        "图检索可与向量检索互补而非全面替代",
+        "应比较构图成本、查询质量、延迟和可解释性"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "关系、多跳、路径和全局主题问题更能利用图结构",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "需要实体识别、消歧、关系抽取和持续更新图索引",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "图检索可与向量检索互补而非全面替代",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "当问题依赖实体关系、多跳路径、影响传播或全局主题时，纯相似度检索容易漏掉结构信息，图检索更合适。代价是要维护实体消歧、关系抽取、图更新和权限映射。实际常让向量召回处理局部语义，让图查询补充关系或社区摘要，再统一重排。是否采用应由多跳评测的增益证明。",
+      "follow_up_questions": [
+        "图中的错误关系会怎样影响回答？",
+        "多租户 GraphRAG 如何实施权限过滤？"
+      ],
+      "sources": [
+        {
+          "source_id": "graphrag-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "rag-knowledge-update-001",
+      "domain": "rag",
+      "topic": "vector_database",
+      "subtopic": "continuous_update",
+      "question": "RAG 知识库如何做持续更新，同时避免旧向量、重复文档和索引不一致？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "RAG",
+        "增量更新",
+        "索引"
+      ],
+      "reference_points": [
+        "为文档、版本和 chunk 设计稳定标识与内容哈希",
+        "变更时执行幂等 upsert，并删除或失效旧版本片段",
+        "Embedding 模型或切分策略升级使用新索引并灰度切换",
+        "记录摄取状态、失败重试、数据新鲜度和可回滚版本"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "为文档、版本和 chunk 设计稳定标识与内容哈希",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "变更时执行幂等 upsert，并删除或失效旧版本片段",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "Embedding 模型或切分策略升级使用新索引并灰度切换",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "摄取管线应给文档和 chunk 稳定 ID，并以内容哈希判断新增、修改和删除。更新通过幂等 upsert 写入，成功后再让旧版本失效，失败可重试。Embedding 模型或切分策略变化时不要把不同向量混进同一索引，应构建新版本并灰度切换。监控需覆盖队列积压、失败率、重复率和数据新鲜度。",
+      "follow_up_questions": [
+        "删除源文档后怎样保证所有派生片段被清理？",
+        "双索引切换期间如何处理持续写入？"
+      ],
+      "sources": [
+        {
+          "source_id": "pgvector-docs"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "rag-production-challenges-001",
+      "domain": "rag",
+      "topic": "evaluation",
+      "subtopic": "production_challenges",
+      "question": "RAG 从 Demo 到生产最难的环节通常有哪些，应该如何建立闭环？",
+      "difficulty": "hard",
+      "question_type": "engineering_practice",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "RAG",
+        "生产化",
+        "评估"
+      ],
+      "reference_points": [
+        "主要难点是数据质量、权限、召回、证据冲突和持续更新",
+        "把失败拆成摄取、检索、上下文与生成阶段",
+        "建立真实查询评测集、在线反馈和可回放 trace",
+        "同时治理延迟、成本、隐私和无答案场景"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "主要难点是数据质量、权限、召回、证据冲突和持续更新",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "把失败拆成摄取、检索、上下文与生成阶段",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "建立真实查询评测集、在线反馈和可回放 trace",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "生产难点通常不在接入向量库，而在知识是否准确可用、权限是否前置、检索是否稳定以及更新能否追踪。系统应把失败分层记录，让每个回答能回溯查询改写、候选文档、重排与最终引用。用线上失败沉淀评测集，再在版本发布前回放。质量指标还必须与延迟、费用、隐私和拒答体验一起看。",
+      "follow_up_questions": [
+        "怎样把用户差评转成可复现的评测样本？",
+        "RAG 事故应优先回滚模型还是索引？"
+      ],
+      "sources": [
+        {
+          "source_id": "ragas-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    },
+    {
+      "id": "rag-knowledge-conflict-001",
+      "domain": "rag",
+      "topic": "hallucination",
+      "subtopic": "source_conflict",
+      "question": "不同来源的知识互相冲突时，RAG 应依据什么决定采用哪条证据？",
+      "difficulty": "hard",
+      "question_type": "concept_explanation",
+      "expected_duration_seconds": 150,
+      "tags": [
+        "RAG",
+        "知识冲突",
+        "来源治理"
+      ],
+      "reference_points": [
+        "为来源记录权威级别、时间、版本、适用范围和所有者",
+        "先按业务规则过滤失效或越权证据，再比较时效和权威性",
+        "无法确定时并列呈现冲突并避免强行生成唯一结论",
+        "保留引用和决策轨迹以支持人工修订"
+      ],
+      "evaluation_rubric": [
+        {
+          "point": "为来源记录权威级别、时间、版本、适用范围和所有者",
+          "weight": 40,
+          "mandatory": true
+        },
+        {
+          "point": "先按业务规则过滤失效或越权证据，再比较时效和权威性",
+          "weight": 35,
+          "mandatory": true
+        },
+        {
+          "point": "无法确定时并列呈现冲突并避免强行生成唯一结论",
+          "weight": 25,
+          "mandatory": false
+        }
+      ],
+      "common_mistakes": [
+        "只背概念，没有说明实际处理流程",
+        "忽略适用边界、代价或验证方法"
+      ],
+      "oral_answer_outline": [
+        "先界定问题与核心概念",
+        "按流程说明关键机制",
+        "最后补充取舍、风险和验证"
+      ],
+      "reference_answer": "冲突治理应由显式来源策略完成，而不是让模型凭语气判断。每条文档要带权威级别、发布时间、版本、适用地区或产品线和负责人；检索后先剔除过期或无权限内容，再按领域规则排序。若两个有效来源仍冲突，回答应指出差异并引用双方，必要时请求用户选择或转人工。",
+      "follow_up_questions": [
+        "同一官方来源的新旧版本如何处理？",
+        "如何避免高相似度的过时文档压过最新规则？"
+      ],
+      "sources": [
+        {
+          "source_id": "rag-paper"
+        }
+      ],
+      "review_status": "pending",
+      "verified_by_human": false,
+      "quality_score": null
+    }
+  ]
+}

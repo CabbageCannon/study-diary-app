@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "problem_key": "leetcode-238",
+  "title": "Product of Array Except Self",
+  "title_zh": "除自身以外数组的乘积",
+  "statement_zh": "给定整数数组 nums，返回数组 answer，其中 answer[i] 等于 nums 中除了 nums[i] 自身以外所有元素的乘积。要求不要使用除法，并在 O(n) 时间内完成；输出数组不计入额外空间。",
+  "input_output": {
+    "input": "nums：整数数组，可能包含负数、零和重复值。",
+    "output": "answer：与 nums 等长的整数数组，answer[i] 为除 nums[i] 外其它元素的乘积。"
+  },
+  "constraints": [
+    "2 <= nums.length <= 10^5",
+    "-30 <= nums[i] <= 30",
+    "输入保证每个 answer[i] 都在 32 位整数范围内",
+    "题目要求不使用除法",
+    "输出数组不计入额外空间复杂度"
+  ],
+  "examples": [
+    {
+      "input": "nums = [2, 3, 4]",
+      "output": "[12, 8, 6]",
+      "explanation": "answer[0]=3*4，answer[1]=2*4，answer[2]=2*3。"
+    },
+    {
+      "input": "nums = [1, 0, 3, 4]",
+      "output": "[0, 12, 0, 0]",
+      "explanation": "只有零所在位置能得到其它非零元素的乘积，其余位置都包含这个零。"
+    },
+    {
+      "input": "nums = [-1, 2, -3]",
+      "output": "[-6, 3, -2]",
+      "explanation": "负数正常参与乘积符号计算。"
+    }
+  ],
+  "verification_points": [
+    {
+      "id": "vp-prefix-suffix",
+      "kind": "key_insight",
+      "statement": "每个位置的答案可由它左侧所有数的乘积和右侧所有数的乘积相乘得到。",
+      "required": true,
+      "acceptable_variants": [
+        "先分别计算 prefix 和 suffix 数组，或用输出数组承载前缀再反向乘后缀。"
+      ]
+    },
+    {
+      "id": "vp-no-division",
+      "kind": "correctness_condition",
+      "statement": "不能依赖总乘积除以 nums[i]，因为题目要求不使用除法且零会破坏该方法。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-exclude-self",
+      "kind": "correctness_condition",
+      "statement": "前缀和后缀乘积都必须排除当前位置自身。",
+      "required": true,
+      "acceptable_variants": []
+    },
+    {
+      "id": "vp-zero-handling",
+      "kind": "edge_case",
+      "statement": "方案应自然处理数组中有一个或多个零的情况。",
+      "required": true,
+      "acceptable_variants": [
+        "前后缀方案无需特殊分支也能处理零。"
+      ]
+    },
+    {
+      "id": "vp-complexity",
+      "kind": "complexity",
+      "statement": "参考方案时间 O(n)；若把输出数组不计入额外空间，可做到额外空间 O(1)。",
+      "required": false,
+      "acceptable_variants": []
+    }
+  ],
+  "acceptable_approaches": [
+    {
+      "name": "前缀乘积加后缀乘积",
+      "idea": "先让 answer[i] 保存 i 左侧所有元素乘积；再从右向左维护 right_product，把它乘到 answer[i] 上，随后更新 right_product *= nums[i]。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(1)",
+      "is_reference": true,
+      "note": "空间 O(1) 的说法基于输出数组不计入额外空间。"
+    },
+    {
+      "name": "两个辅助数组",
+      "idea": "分别计算每个位置左侧乘积 prefix[i] 和右侧乘积 suffix[i]，答案为 prefix[i] * suffix[i]。",
+      "time_complexity": "O(n)",
+      "space_complexity": "O(n)",
+      "is_reference": false,
+      "note": "正确但空间不如参考方案，可作为过渡思路认可。"
+    },
+    {
+      "name": "逐位置重新计算乘积",
+      "idea": "对每个 i 再遍历一遍其它位置求乘积。",
+      "time_complexity": "O(n^2)",
+      "space_complexity": "O(1)",
+      "is_reference": false,
+      "note": "逻辑正确但官方规模下不可接受；应引导利用前后缀复用。"
+    }
+  ],
+  "common_mistakes": [
+    {
+      "description": "用总乘积除以当前值。",
+      "counterexample": "nums = [1,0,3,4]：除法会遇到除以 0，且题目明确要求不用除法。"
+    },
+    {
+      "description": "前缀或后缀乘积包含了当前 nums[i] 自身。",
+      "counterexample": "nums = [2,3,4]：answer[1] 应为 2*4=8，不应包含 3。"
+    },
+    {
+      "description": "忽略两个及以上零的情况。",
+      "counterexample": "nums = [0,2,0]：所有位置结果都应为 0。"
+    }
+  ],
+  "edge_cases": [
+    {
+      "description": "数组包含一个零。",
+      "expected_handling": "只有零所在位置可能非零，其余位置乘积包含该零。"
+    },
+    {
+      "description": "数组包含多个零。",
+      "expected_handling": "每个位置的除自身乘积都包含至少一个零，输出全 0。"
+    },
+    {
+      "description": "数组长度为 2。",
+      "expected_handling": "两个位置分别返回对方的值。"
+    }
+  ],
+  "source": {
+    "name": "LeetCode CN 238. 除自身以外数组的乘积",
+    "url": "https://leetcode.cn/problems/product-of-array-except-self/",
+    "license_note": "题意、示例、核对要点和反例均为原创中文转写，未复制外站题面或题解。",
+    "source_version": "2026-09-06 对照 leetcode.cn 官方题面核对"
+  },
+  "content_notes": "已核对官方题名、URL 和约束；题目要求不使用除法，前后缀是参考方案。",
+  "content_status": "ready"
+}
