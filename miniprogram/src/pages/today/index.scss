@@ -1,1 +1,10 @@
-.progress-row { display: flex; justify-content: space-between; margin-top: 28px; }.progress-row > view { display: flex; flex: 1; flex-direction: column; }.progress-number { font-size: 47px; font-weight: 680; letter-spacing: -.04em; }.progress-label { margin-top: 6px; color: #857d73; font-size: 21px; }
+.today-focus { margin-top: 32px; padding: 28px; border-radius: 32px; background: #e9e3d9; color: #332f29; }
+.focus-kicker { display: block; color: #8a7c6b; font-size: 20px; font-weight: 650; letter-spacing: .1em; }
+.focus-copy { display: block; margin-top: 10px; font-size: 30px; font-weight: 680; letter-spacing: -.025em; }
+.progress-row { display: flex; margin-top: 27px; padding-top: 22px; border-top: 1px solid rgba(73, 61, 44, .11); }
+.progress-item { display: flex; flex: 1; flex-direction: column; }
+.progress-item + .progress-item { padding-left: 20px; border-left: 1px solid rgba(73, 61, 44, .11); }
+.progress-number { font-size: 47px; font-weight: 700; letter-spacing: -.055em; line-height: 1; }
+.progress-label { margin-top: 9px; color: #7f7467; font-size: 21px; }
+.quiet-card { background: #f1ede6; box-shadow: none; }
+.today-divider { height: 1px; margin: 19px 0; background: rgba(80, 69, 55, .1); }

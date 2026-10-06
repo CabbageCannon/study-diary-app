@@ -25,9 +25,12 @@ export default function TodayPage() {
     finally { setLoading(false); }
   }
   const today = new Date().toLocaleDateString("zh-CN", { month: "long", day: "numeric", weekday: "long" });
+  const interviewCount = interview?.today_answered_count ?? interview?.today_completed_count ?? 0;
+  const algorithmCount = algorithm?.today_completed_count ?? 0;
+  const diaryCount = diaries.filter((item) => item.status === "published").length;
   return <View className="screen">
-    <Text className="eyebrow">{today}</Text><Text className="page-title">今天，也慢慢变好。</Text><Text className="page-subtitle">把注意力还给一件真正重要的小事。</Text>
-    {loading ? <View className="loading">正在整理今天的学习轨迹…</View> : <><View className="card"><Text className="card-title">今日进度</Text><View className="progress-row"><View><Text className="progress-number">{interview?.today_answered_count ?? interview?.today_completed_count ?? 0}</Text><Text className="progress-label">八股完成</Text></View><View><Text className="progress-number">{algorithm?.today_completed_count ?? 0}</Text><Text className="progress-label">算法完成</Text></View><View><Text className="progress-number">{diaries.filter((item) => item.status === "published").length}</Text><Text className="progress-label">日记记录</Text></View></View></View><View className="card"><Text className="card-title">不急着赶路</Text><Text className="muted">连续学习 {Math.max(algorithm?.current_streak_days || 0, interview?.current_streak_days || 0)} 天 · 待复习 {Math.max(algorithm?.due_review_count || 0, interview?.due_review_count || 0)} 项</Text></View></>}
+    <View className="page-header"><Text className="eyebrow">{today}</Text><Text className="page-title">今天，也慢慢变好。</Text><Text className="page-subtitle">把注意力还给一件真正重要的小事。</Text></View>
+    {loading ? <View className="loading">正在整理今天的学习轨迹…</View> : <><View className="today-focus"><Text className="focus-kicker">TODAY'S RHYTHM</Text><Text className="focus-copy">一点一点，也算向前。</Text><View className="progress-row"><View className="progress-item"><Text className="progress-number">{interviewCount}</Text><Text className="progress-label">八股</Text></View><View className="progress-item"><Text className="progress-number">{algorithmCount}</Text><Text className="progress-label">算法</Text></View><View className="progress-item"><Text className="progress-number">{diaryCount}</Text><Text className="progress-label">日记</Text></View></View></View><View className="card quiet-card"><Text className="card-title">不急着赶路</Text><Text className="muted">连续学习 {Math.max(algorithm?.current_streak_days || 0, interview?.current_streak_days || 0)} 天</Text><View className="today-divider" /><Text className="muted">有 {Math.max(algorithm?.due_review_count || 0, interview?.due_review_count || 0)} 项内容，等你再见一面。</Text></View></>}
     {error ? <Text className="error">{error}</Text> : null}
   </View>;
 }
