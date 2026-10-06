@@ -16,6 +16,7 @@ from app.routers.interviews import router as interviews_router
 from app.routers.reminders import router as reminders_router
 from app.routers.speech import router as speech_router
 from app.routers.study_sessions import router as study_sessions_router
+from app.routers.wechat_auth import router as wechat_auth_router
 from app.security import is_ai_request, rate_limit_key, rate_limiter
 
 
@@ -40,6 +41,7 @@ app.add_middleware(
 async def protect_public_mutations(request: Request, call_next):
     protected = request.url.path.startswith("/api/") and request.url.path not in {
         "/api/health", "/api/reminders/dispatch",
+        "/api/auth/wechat/login",
     }
     if protected and request.method != "OPTIONS":
         scheme, _, token = request.headers.get("Authorization", "").partition(" ")
@@ -78,6 +80,7 @@ async def protect_public_mutations(request: Request, call_next):
 
 app.include_router(diaries_router)
 app.include_router(accounts_router)
+app.include_router(wechat_auth_router)
 app.include_router(algorithms_router)
 app.include_router(interviews_router)
 app.include_router(reminders_router)

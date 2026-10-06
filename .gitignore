@@ -2,10 +2,12 @@
 .env.*
 !.env.example
 !frontend/.env.production
+!miniprogram/.env.example
 
 node_modules/
 dist/
 build/
+.swc/
 
 # Tauri build-time artifacts (regenerated locally)
 desktop-pet/src-tauri/target/

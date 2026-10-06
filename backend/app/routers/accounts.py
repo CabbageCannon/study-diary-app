@@ -111,6 +111,16 @@ def _admin_user(user: dict[str, object], profile: UserProfile | None) -> dict[st
     }
 
 
+def _profile_only_admin_user(profile: UserProfile) -> dict[str, object]:
+    return {
+        "id": profile.id,
+        "email": "微信小程序用户" if profile.email.endswith("@local.invalid") else profile.email,
+        "role": "admin" if profile.id == settings.admin_user_id else profile.role,
+        "active": profile.active,
+        "created_at": profile.created_at.isoformat(),
+    }
+
+
 @router.get("/me")
 def get_me(request: Request, db: Session = Depends(get_db)) -> dict[str, object]:
     return _profile_read(db.get(UserProfile, request.state.user_id))
@@ -134,7 +144,10 @@ def list_users(request: Request, db: Session = Depends(get_db)) -> list[dict[str
     _require_admin(request)
     users = _auth_users()
     profiles = {profile.id: profile for profile in db.query(UserProfile).all()}
-    return [_admin_user(user, profiles.get(str(user["id"]))) for user in users]
+    rows = [_admin_user(user, profiles.get(str(user["id"]))) for user in users]
+    known_ids = {str(user["id"]) for user in users}
+    rows.extend(_profile_only_admin_user(profile) for profile in profiles.values() if profile.id not in known_ids)
+    return sorted(rows, key=lambda item: str(item["created_at"]), reverse=True)
 
 
 @router.patch("/admin/users/{user_id}/status")
@@ -152,12 +165,12 @@ def update_user_status(
     if user_id == settings.admin_user_id:
         raise HTTPException(status_code=400, detail="不能停用管理员账户。")
     user = next((item for item in _auth_users() if str(item.get("id")) == user_id), None)
-    if user is None:
-        raise HTTPException(status_code=404, detail="用户不存在。")
     profile = db.get(UserProfile, user_id)
-    if profile is None:
+    if user is None and profile is None:
+        raise HTTPException(status_code=404, detail="用户不存在。")
+    if profile is None and user is not None:
         profile = UserProfile(id=user_id, email=str(user.get("email") or ""))
         db.add(profile)
     profile.active = payload.active
     db.commit()
-    return _admin_user(user, profile)
+    return _admin_user(user, profile) if user is not None else _profile_only_admin_user(profile)
