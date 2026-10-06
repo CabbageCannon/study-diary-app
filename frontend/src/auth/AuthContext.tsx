@@ -22,6 +22,7 @@ interface AuthValue {
   me: CurrentUser | null;
   loading: boolean;
   recoveringPassword: boolean;
+  emailVerified: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<boolean>;
   resetPassword: (email: string) => Promise<void>;
@@ -39,11 +40,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [me, setMe] = useState<CurrentUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [recoveringPassword, setRecoveringPassword] = useState(() => [window.location.hash.slice(1), window.location.search.slice(1)].some((query) => ["recovery", "invite"].includes(new URLSearchParams(query).get("type") ?? "")));
+  const [emailVerificationCallback] = useState(() => [window.location.hash.slice(1), window.location.search.slice(1)].some((query) => new URLSearchParams(query).get("type") === "signup"));
+  const [emailVerified, setEmailVerified] = useState(false);
 
   useEffect(() => {
     let alive = true;
     let authVersion = 0;
     let enteredApp = false;
+    let emailVerificationHandled = false;
     async function applySession(next: Session | null, version: number) {
       clearClientState();
       setAccessToken(next?.access_token ?? "");
@@ -79,6 +83,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
       } finally { if (alive && version === authVersion) setLoading(false); }
     }
     const { data } = supabase.auth.onAuthStateChange((event, next) => {
+      if (emailVerificationCallback && !emailVerificationHandled && next && (event === "INITIAL_SESSION" || event === "SIGNED_IN")) {
+        emailVerificationHandled = true;
+        authVersion += 1;
+        clearClientState(); setAccessToken(""); setCacheUser(null); setStorageUser(null);
+        setSession(null); setMe(null); setEmailVerified(true); setLoading(false);
+        window.history.replaceState(null, "", "/");
+        window.setTimeout(() => { void supabase.auth.signOut(); }, 0);
+        return;
+      }
       if (event === "PASSWORD_RECOVERY" || (recoveringPassword && (event === "INITIAL_SESSION" || event === "SIGNED_IN"))) {
         authVersion += 1;
         clearClientState(); setAccessToken(""); setCacheUser(null); setStorageUser(null);
@@ -92,7 +105,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   const value = useMemo<AuthValue>(() => ({
-    session, me, loading, recoveringPassword,
+    session, me, loading, recoveringPassword, emailVerified,
     async signIn(email, password) { const { error } = await supabase.auth.signInWithPassword({ email, password }); if (error) throw error; },
     async signUp(email, password) { const { data, error } = await supabase.auth.signUp({ email, password }); if (error) throw error; return !data.session; },
     async resetPassword(email) { const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin }); if (error) throw error; },
@@ -114,7 +127,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     },
     listUsers: () => request<AdminUser[]>("/api/admin/users"),
     setUserActive: (id, active) => request<AdminUser>(`/api/admin/users/${id}/status`, { method: "PATCH", body: JSON.stringify({ active }) }),
-  }), [loading, me, recoveringPassword, session]);
+  }), [emailVerified, loading, me, recoveringPassword, session]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
